@@ -1,0 +1,75 @@
+# -----------------------------------------------------------------------------
+# Zależności i pakiety
+# -----------------------------------------------------------------------------
+/node_modules
+/jspm_packages/
+# Pnpm
+/pnpm-lock.yaml
+/pnpm-debug.log*
+# Yarn
+yarn-error.log
+.pnp
+.pnp.js
+.pnp.cjs
+
+# -----------------------------------------------------------------------------
+# Pliki kompilacji i dystrybucji (TypeScript/Babel/WebAssembly)
+# -----------------------------------------------------------------------------
+# Oczekiwane katalogi wyjściowe po transpilacji
+/dist
+/build
+/out
+
+# Pliki TypeScript/Babel
+*.tsbuildinfo
+
+# -----------------------------------------------------------------------------
+# Logi i dane tymczasowe
+# -----------------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+lerna-debug.log*
+
+# Pliki tymczasowe
+*.tmp
+*.bak
+/temp
+
+# -----------------------------------------------------------------------------
+# Pliki środowiskowe (kluczowe dla serwera)
+# -----------------------------------------------------------------------------
+# ZAWSZE ignoruj pliki .env z sekretami i kluczami API
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# -----------------------------------------------------------------------------
+# Testy i pokrycie kodu
+# -----------------------------------------------------------------------------
+/coverage
+/.nyc_output
+/test-results.xml
+*.gc.log
+
+# -----------------------------------------------------------------------------
+# Dane wrażliwe i bazy danych
+# -----------------------------------------------------------------------------
+# (Dodaj te, jeśli serwer przechowuje lokalne pliki DB lub uploady)
+*.sqlite
+*.sqlite3
+/uploads/
+/data/
+
+# -----------------------------------------------------------------------------
+# Pliki systemowe i edytorów
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+# Edytory i IDE
+.vscode
+.idea
+*.sublime-project
+*.sublime-workspace

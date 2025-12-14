@@ -1,0 +1,74 @@
+# -----------------------------------------------------------------------------
+# Zależności i pakiety
+# -----------------------------------------------------------------------------
+/node_modules
+/jspm_packages/
+# Pnpm
+/pnpm-lock.yaml
+/pnpm-debug.log*
+# Yarn
+yarn-error.log
+.pnp
+.pnp.js
+.pnp.cjs
+
+# -----------------------------------------------------------------------------
+# Pliki kompilacji i dystrybucji (kluczowe)
+# -----------------------------------------------------------------------------
+/build
+/dist
+/out
+/public
+
+# -----------------------------------------------------------------------------
+# Testy i pokrycie kodu
+# -----------------------------------------------------------------------------
+/coverage
+/.nyc_output
+/test-results.xml
+
+# -----------------------------------------------------------------------------
+# Pliki środowiskowe
+# -----------------------------------------------------------------------------
+# ZAWSZE ignoruj pliki .env z sekretami
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# -----------------------------------------------------------------------------
+# Narzędzia i Frameworki Frontend (Next.js, Vite, Gatsby, Storybook)
+# -----------------------------------------------------------------------------
+
+# Next.js
+/.next/
+/out/
+
+# Vite
+/.vite/
+
+# Gatsby
+/.cache/
+/public/
+/dist/
+.DS_Store
+DS_Store
+*DS_Store
+# Storybook
+/storybook-static/
+
+# -----------------------------------------------------------------------------
+# Pliki systemowe i edytorów
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Edytory i IDE
+.vscode
+.idea
+*.sublime-project
+*.sublime-workspace

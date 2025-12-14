@@ -1,0 +1,4 @@
+export { TrainingsScreen } from './TrainingsScreen'
+export { ExercisesScreen } from './ExercisesScreen'
+export { StatsScreen } from './StatsScreen'
+export { MenuScreen } from './MenuScreen'

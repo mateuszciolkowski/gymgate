@@ -1,0 +1,5 @@
+export { ArchiveIcon } from './ArchiveIcon'
+export { DumbbellIcon } from './DumbbellIcon'
+export { PlusIcon } from './PlusIcon'
+export { ChartIcon } from './ChartIcon'
+export { MenuIcon } from './MenuIcon'
