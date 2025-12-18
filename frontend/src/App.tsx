@@ -1,4 +1,4 @@
-import { useNavigation, useWorkout } from '@/hooks'
+import { useNavigation, useWorkout, useExercises } from '@/hooks'
 import {
   MainLayout,
   BottomNavigation,
@@ -6,18 +6,37 @@ import {
   ExercisesScreen,
   StatsScreen,
   MenuScreen,
+  AddExerciseScreen,
 } from '@/components'
 
 function App() {
-  const { activeTab, setActiveTab } = useNavigation('trainings')
+  const { activeTab, setActiveTab, screen, setScreen } = useNavigation('trainings')
   const { startAddWorkout } = useWorkout()
+  const { exercises, addExercise } = useExercises()
 
   const renderScreen = () => {
-    switch (activeTab) {
+    if (screen === 'add-exercise') {
+      return (
+        <AddExerciseScreen
+          onBack={() => setScreen('exercises')}
+          onAddExercise={(exercise) => {
+            addExercise(exercise)
+            setScreen('exercises')
+          }}
+        />
+      )
+    }
+
+    switch (screen) {
       case 'trainings':
         return <TrainingsScreen />
       case 'exercises':
-        return <ExercisesScreen />
+        return (
+          <ExercisesScreen
+            onAddExercise={() => setScreen('add-exercise')}
+            exercises={exercises}
+          />
+        )
       case 'stats':
         return <StatsScreen />
       case 'menu':

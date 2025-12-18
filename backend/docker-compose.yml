@@ -1,0 +1,31 @@
+services:
+  gg_db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: no
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  gg_api:
+    build: .
+    container_name: node_backend
+    restart: no
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    environment:
+      DATABASE_URL: postgresql://${DB_USERNAME}:${DB_PASSWORD}@gg_db:5432/${DB_NAME}?schema=public
+      PORT: ${API_PORT}
+    depends_on:
+      - gg_db
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
