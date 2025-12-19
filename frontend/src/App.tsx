@@ -1,4 +1,4 @@
-import { useNavigation, useWorkout, useExercises } from '@/hooks'
+import { useNavigation, useWorkout, useExercises } from './hooks'
 import {
   MainLayout,
   BottomNavigation,
@@ -7,22 +7,19 @@ import {
   StatsScreen,
   MenuScreen,
   AddExerciseScreen,
-} from '@/components'
+} from './components'
 
 function App() {
   const { activeTab, setActiveTab, screen, setScreen } = useNavigation('trainings')
   const { startAddWorkout } = useWorkout()
-  const { exercises, addExercise } = useExercises()
+  const { addExercise } = useExercises()  // ✅ Tylko addExercise na poziomie App
 
   const renderScreen = () => {
     if (screen === 'add-exercise') {
       return (
         <AddExerciseScreen
           onBack={() => setScreen('exercises')}
-          onAddExercise={(exercise) => {
-            addExercise(exercise)
-            setScreen('exercises')
-          }}
+          onAddExercise={addExercise}  // ✅ Przekaż funkcję do dodawania
         />
       )
     }
@@ -34,7 +31,7 @@ function App() {
         return (
           <ExercisesScreen
             onAddExercise={() => setScreen('add-exercise')}
-            exercises={exercises}
+            // ❌ USUŃ exercises={exercises}
           />
         )
       case 'stats':

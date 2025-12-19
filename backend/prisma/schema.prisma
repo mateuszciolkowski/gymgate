@@ -41,17 +41,6 @@ enum PhotoStage {
   END      // Pozycja końcowa
 }
 
-model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
-  name      String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  exercises Exercise[]
-
-  @@map("users")
-}
-
 model Exercise {
   id              String        @id @default(uuid())
   name            String
@@ -78,3 +67,19 @@ model ExercisePhoto {
 
   @@map("exercise_photos")
 }
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  firstName   String   
+  lastName    String  
+  phone       String?  
+  password    String   
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  exercises   Exercise[]
+
+  @@map("users")
+}
+

@@ -30,7 +30,8 @@ export class ExerciseRepository {
         creator: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true,
           },
         },
@@ -49,7 +50,8 @@ export class ExerciseRepository {
         creator: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true,
           },
         },
@@ -79,7 +81,8 @@ export class ExerciseRepository {
       creator: {
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
       },
@@ -105,7 +108,8 @@ export class ExerciseRepository {
       creator: {
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
       },
@@ -131,7 +135,8 @@ export class ExerciseRepository {
         creator: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true,
           },
         },
