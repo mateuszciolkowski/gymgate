@@ -1,6 +1,6 @@
 import { memo, type ReactNode } from 'react'
 import { useTheme } from '@/hooks'
-import { User } from '@/types'
+import type { User } from '../../types'
 
 interface MainLayoutProps {
   children: ReactNode

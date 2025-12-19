@@ -59,13 +59,13 @@ export class ExerciseRepository {
     });
   }
 
- async create(data: CreateExerciseDto) {
-  const { photos, description, ...exerciseData } = data;
+ async create(data: CreateExerciseDto & {userId?: string}) {
+  const { photos, description, userId, ...exerciseData } = data;
 
   const createInput: any = {
     ...exerciseData,
     description: description ?? null,
-    creatorUserId: '1',
+    creatorUserId: userId || '1',
   };
 
   if (photos && photos.length > 0) {

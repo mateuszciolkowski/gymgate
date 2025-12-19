@@ -7,19 +7,43 @@ import {
   StatsScreen,
   MenuScreen,
   AddExerciseScreen,
+  EditExerciseScreen,  // ✅
 } from './components'
+import { useState } from 'react'
 
 function App() {
   const { activeTab, setActiveTab, screen, setScreen } = useNavigation('trainings')
   const { startAddWorkout } = useWorkout()
-  const { addExercise } = useExercises()  // ✅ Tylko addExercise na poziomie App
+  const { addExercise, updateExercise } = useExercises()
+  const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null)
 
   const renderScreen = () => {
     if (screen === 'add-exercise') {
       return (
         <AddExerciseScreen
           onBack={() => setScreen('exercises')}
-          onAddExercise={addExercise}  // ✅ Przekaż funkcję do dodawania
+          onAddExercise={addExercise}
+        />
+      )
+    }
+
+    if (screen === 'edit-exercise' && editingExerciseId) {
+      const { exercises } = useExercises()
+      const exercise = exercises.find(ex => ex.id === editingExerciseId)
+      
+      if (!exercise) {
+        setScreen('exercises')
+        return null
+      }
+
+      return (
+        <EditExerciseScreen
+          exercise={exercise}
+          onBack={() => {
+            setEditingExerciseId(null)
+            setScreen('exercises')
+          }}
+          onUpdate={updateExercise}
         />
       )
     }
@@ -31,7 +55,10 @@ function App() {
         return (
           <ExercisesScreen
             onAddExercise={() => setScreen('add-exercise')}
-            // ❌ USUŃ exercises={exercises}
+            onEditExercise={(id) => {
+              setEditingExerciseId(id)
+              setScreen('edit-exercise')
+            }}
           />
         )
       case 'stats':

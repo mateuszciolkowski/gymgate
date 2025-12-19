@@ -3,11 +3,12 @@ import { useState, useEffect, useCallback } from 'react'
 export interface Exercise {
   id: string
   name: string
-  muscleGroups: string[]  // Array MuscleGroup z backendu
+  muscleGroups: string[]
   description?: string
   creator: {
     id: string
-    name: string
+    firstName: string
+    lastName: string
     email: string
   }
   photos?: Array<{
@@ -67,6 +68,50 @@ export function useExercises() {
     }
   }, [API_BASE])
 
+  // ✅ Nowa funkcja - UPDATE
+  const updateExercise = useCallback(async (id: string, exerciseData: { name?: string; muscleGroups?: string[]; description?: string }) => {
+    try {
+      setError(null)
+      const response = await fetch(`${API_BASE}/api/exercises/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(exerciseData)
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Błąd aktualizacji ćwiczenia')
+      }
+      
+      const updatedExercise = await response.json()
+      setExercises(prev => prev.map(ex => ex.id === id ? updatedExercise.data : ex))
+      return updatedExercise.data
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nieznany błąd')
+      throw err
+    }
+  }, [API_BASE])
+
+  // ✅ Nowa funkcja - DELETE
+  const deleteExercise = useCallback(async (id: string) => {
+    try {
+      setError(null)
+      const response = await fetch(`${API_BASE}/api/exercises/${id}`, {
+        method: 'DELETE',
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Błąd usuwania ćwiczenia')
+      }
+      
+      setExercises(prev => prev.filter(ex => ex.id !== id))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nieznany błąd')
+      throw err
+    }
+  }, [API_BASE])
+
   useEffect(() => {
     fetchExercises()
   }, [fetchExercises])
@@ -76,6 +121,8 @@ export function useExercises() {
     loading, 
     error, 
     refetch: fetchExercises,
-    addExercise 
+    addExercise,
+    updateExercise,  // ✅
+    deleteExercise,  // ✅
   }
 }

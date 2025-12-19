@@ -1,8 +1,8 @@
-import { memo, useState } from 'react'
+import { memo, useState, useEffect } from 'react'
 import { ScreenContainer, ScreenHeader } from '../ui'
-import { PlusIcon, TrashIcon } from '../icons'
+import { TrashIcon } from '../icons'
+import type { Exercise } from '../../hooks/useExercises'
 
-// Lista dostępnych grup mięśniowych
 const MUSCLE_GROUPS = [
   { value: 'CHEST', label: 'Klatka piersiowa' },
   { value: 'BACK', label: 'Plecy' },
@@ -17,20 +17,33 @@ const MUSCLE_GROUPS = [
   { value: 'CALVES', label: 'Łydki' },
 ]
 
-interface AddExerciseScreenProps {
+interface EditExerciseScreenProps {
+  exercise: Exercise
   onBack: () => void
-  onAddExercise: (exercise: { name: string; muscleGroups: string[]; description?: string }) => Promise<void>
+  onUpdate: (id: string, data: { name?: string; muscleGroups?: string[]; description?: string }) => Promise<void>
 }
 
-export const AddExerciseScreen = memo(function AddExerciseScreen({ 
+export const EditExerciseScreen = memo(function EditExerciseScreen({ 
+  exercise,
   onBack, 
-  onAddExercise 
-}: AddExerciseScreenProps) {
-  const [name, setName] = useState('')
-  const [selectedGroups, setSelectedGroups] = useState<string[]>([''])
-  const [description, setDescription] = useState('')
+  onUpdate 
+}: EditExerciseScreenProps) {
+  const [name, setName] = useState(exercise.name)
+  const [selectedGroups, setSelectedGroups] = useState<string[]>(exercise.muscleGroups)
+  const [description, setDescription] = useState(exercise.description || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [hasChanges, setHasChanges] = useState(false)
+
+  // Sprawdź czy są zmiany
+  useEffect(() => {
+    const changed = 
+      name !== exercise.name ||
+      description !== (exercise.description || '') ||
+      JSON.stringify(selectedGroups.sort()) !== JSON.stringify(exercise.muscleGroups.sort())
+    
+    setHasChanges(changed)
+  }, [name, description, selectedGroups, exercise])
 
   const addMuscleGroup = () => {
     setSelectedGroups([...selectedGroups, ''])
@@ -60,7 +73,7 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
       setIsSubmitting(true)
       setError(null)
       
-      await onAddExercise({
+      await onUpdate(exercise.id, {
         name: name.trim(),
         muscleGroups: validGroups,
         description: description.trim() || undefined
@@ -68,7 +81,7 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
       
       onBack()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Błąd dodawania ćwiczenia')
+      setError(err instanceof Error ? err.message : 'Błąd aktualizacji ćwiczenia')
     } finally {
       setIsSubmitting(false)
     }
@@ -77,15 +90,15 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
   return (
     <ScreenContainer>
       <ScreenHeader 
-        title="Dodaj nowe ćwiczenie" 
-        subtitle="Wypełnij poniższe pola"
+        title="Edytuj ćwiczenie" 
+        subtitle={exercise.name}
         onBack={onBack}
       />
       
       <div className="mt-6">
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
-            {/* Nazwa ćwiczenia */}
+            {/* Nazwa */}
             <div>
               <label 
                 htmlFor="name" 
@@ -98,7 +111,6 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
                 id="name" 
                 value={name} 
                 onChange={e => setName(e.target.value)}
-                placeholder="np. Wyciskanie na ławce"
                 className="block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
                 disabled={isSubmitting}
               />
@@ -149,16 +161,15 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
                 <button
                   type="button"
                   onClick={addMuscleGroup}
-                  className="mt-2 flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400"
+                  className="mt-2 text-sm text-emerald-600 dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400"
                   disabled={isSubmitting}
                 >
-                  <PlusIcon className="w-4 h-4" />
-                  Dodaj grupę mięśniową
+                  + Dodaj grupę mięśniową
                 </button>
               )}
             </div>
 
-            {/* Opis (opcjonalny) */}
+            {/* Opis */}
             <div>
               <label 
                 htmlFor="description" 
@@ -170,7 +181,6 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
                 id="description"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="Dodatkowe informacje o ćwiczeniu..."
                 rows={3}
                 className="block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
                 disabled={isSubmitting}
@@ -185,14 +195,18 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
             )}
           </div>
 
-          {/* Przycisk */}
+          {/* Przycisk Zapisz */}
           <div className="mt-6">
             <button 
               type="submit"
-              disabled={isSubmitting}
-              className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting || !hasChanges}
+              className={`flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all ${
+                hasChanges 
+                  ? 'bg-emerald-600 hover:bg-emerald-700' 
+                  : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
+              } disabled:opacity-50`}
             >
-              {isSubmitting ? 'Dodawanie...' : 'Dodaj ćwiczenie'}
+              {isSubmitting ? 'Zapisywanie...' : hasChanges ? '✓ Zapisz zmiany' : 'Brak zmian'}
             </button>
           </div>
         </form>

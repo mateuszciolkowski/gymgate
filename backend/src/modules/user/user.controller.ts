@@ -3,13 +3,29 @@ import { getUserById as getUser } from './user.service.js'
 
 export const getUserById = async (req: Request, res: Response) => {
   try {
-    const user = await getUser(req.params.id)
+    const { id } = req.params  // ✅ Destrukturyzuj
+    
+    // ✅ Walidacja - sprawdź czy id istnieje
+    if (!id) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'User ID is required' 
+      })
+    }
+
+    const user = await getUser(id)
     res.json(user)
   } catch (error) {
     if (error instanceof Error) {
-      res.status(404).json({ message: error.message })
+      res.status(404).json({ 
+        success: false,
+        message: error.message 
+      })
     } else {
-      res.status(500).json({ message: 'An unknown error occurred' })
+      res.status(500).json({ 
+        success: false,
+        message: 'An unknown error occurred' 
+      })
     }
   }
 }

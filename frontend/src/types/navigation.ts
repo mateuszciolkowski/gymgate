@@ -1,5 +1,5 @@
 export type TabType = 'trainings' | 'exercises' | 'stats' | 'menu'
-export type Screen = TabType | 'add-exercise'
+export type Screen = TabType | 'add-exercise' | 'edit-exercise'  // ✅
 
 export interface NavItem {
   id: TabType
