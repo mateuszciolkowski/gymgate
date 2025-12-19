@@ -46,7 +46,7 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
     setSelectedGroups(newGroups)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     const validGroups = selectedGroups.filter(g => g.trim() !== '')
@@ -66,7 +66,7 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
         description: description.trim() || undefined
       })
       
-      onBack()
+      // onBack() będzie wywołane w App.tsx po sukcesie
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Błąd dodawania ćwiczenia')
     } finally {

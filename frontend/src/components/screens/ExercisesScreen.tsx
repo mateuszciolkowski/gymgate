@@ -1,18 +1,36 @@
-import { memo } from 'react'
-import { ScreenContainer, ScreenHeader, EmptyState } from '../ui'
+import { memo, useState } from 'react'
+import { ScreenContainer, ScreenHeader, EmptyState, FilterChip } from '../ui'
 import { DumbbellIcon, PlusIcon, EditIcon, TrashIcon } from '../icons'
-import { useExercises } from '../../hooks/useExercises'
+import { useExercises, type Exercise } from '../../hooks/useExercises'
+
+const MUSCLE_GROUPS = [
+  { value: 'CHEST', label: 'Klatka' },
+  { value: 'BACK', label: 'Plecy' },
+  { value: 'SHOULDERS', label: 'Barki' },
+  { value: 'BICEPS', label: 'Biceps' },
+  { value: 'TRICEPS', label: 'Triceps' },
+  { value: 'FOREARMS', label: 'Przedramiona' },
+  { value: 'ABS', label: 'Brzuch' },
+  { value: 'QUADS', label: 'Uda' },
+  { value: 'HAMSTRINGS', label: 'Dwugłowy' },
+  { value: 'GLUTES', label: 'Pośladki' },
+  { value: 'CALVES', label: 'Łydki' },
+]
 
 interface ExercisesScreenProps {
   onAddExercise: () => void
-  onEditExercise: (exerciseId: string) => void
+  onEditExercise: (exercise: Exercise) => void  // ✅ Przekazuj cały obiekt
 }
 
 export const ExercisesScreen = memo(function ExercisesScreen({ 
   onAddExercise,
   onEditExercise 
 }: ExercisesScreenProps) {
-  const { exercises, loading, error, deleteExercise } = useExercises()
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | undefined>(undefined)
+  
+  const { exercises, loading, error, deleteExercise } = useExercises(
+    selectedMuscleGroup ? { muscleGroup: selectedMuscleGroup } : undefined
+  )
 
   const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Czy na pewno chcesz usunąć ćwiczenie "${name}"?`)) {
@@ -24,12 +42,23 @@ export const ExercisesScreen = memo(function ExercisesScreen({
     }
   }
 
+  const toggleFilter = (muscleGroup: string) => {
+    setSelectedMuscleGroup(prev => prev === muscleGroup ? undefined : muscleGroup)
+  }
+
+  const clearFilters = () => {
+    setSelectedMuscleGroup(undefined)
+  }
+
   if (loading) {
     return (
       <ScreenContainer>
         <ScreenHeader title="Moje ćwiczenia" subtitle="Zarządzaj swoimi ćwiczeniami" />
         <div className="mt-6 flex items-center justify-center py-12">
-          <p className="text-gray-600 dark:text-gray-400">Ładowanie...</p>
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">Ładowanie...</p>
+          </div>
         </div>
       </ScreenContainer>
     )
@@ -56,23 +85,54 @@ export const ExercisesScreen = memo(function ExercisesScreen({
     <ScreenContainer>
       <ScreenHeader 
         title="Moje ćwiczenia" 
-        subtitle="Zarządzaj swoimi ćwiczeniami"
-        action={
-          <button 
-            onClick={onAddExercise}
-            className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-          >
-            <PlusIcon className="w-5 h-5 mr-2" />
-            Dodaj ćwiczenie
-          </button>
-        }
+        subtitle={`${exercises.length} ćwiczeń`}
       />
+
+      {/* Przycisk dodaj */}
+      <div className="mt-4 flex justify-center">
+        <button 
+          onClick={onAddExercise}
+          className="flex items-center justify-center w-full max-w-md px-6 py-3 text-base font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors shadow-md"
+        >
+          <PlusIcon className="w-5 h-5 mr-2" />
+          Dodaj nowe ćwiczenie
+        </button>
+      </div>
+
+      {/* Filtry */}
+      <div className="mt-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Filtruj po partii
+          </h3>
+          {selectedMuscleGroup && (
+            <button
+              onClick={clearFilters}
+              className="text-xs text-emerald-600 dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 font-medium"
+            >
+              Wyczyść
+            </button>
+          )}
+        </div>
+        
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {MUSCLE_GROUPS.map(group => (
+            <FilterChip
+              key={group.value}
+              label={group.label}
+              isActive={selectedMuscleGroup === group.value}
+              onClick={() => toggleFilter(group.value)}
+            />
+          ))}
+        </div>
+      </div>
       
-      <div className="mt-6">
+      {/* Lista ćwiczeń */}
+      <div className="mt-4">
         {exercises.length === 0 ? (
           <EmptyState 
-            title="Brak zapisanych ćwiczeń" 
-            description="Dodaj swoje ulubione ćwiczenia"
+            title={selectedMuscleGroup ? "Brak ćwiczeń dla tej partii" : "Brak zapisanych ćwiczeń"}
+            description={selectedMuscleGroup ? "Spróbuj wybrać inną grupę mięśniową" : "Dodaj swoje ulubione ćwiczenia"}
             icon={<DumbbellIcon className="w-12 h-12" />}
           />
         ) : (
@@ -88,7 +148,9 @@ export const ExercisesScreen = memo(function ExercisesScreen({
                       {exercise.name}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                      {exercise.muscleGroups.join(', ')}
+                      {exercise.muscleGroups.map(mg => 
+                        MUSCLE_GROUPS.find(g => g.value === mg)?.label || mg
+                      ).join(', ')}
                     </p>
                     {exercise.description && (
                       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 line-clamp-2">
@@ -102,7 +164,7 @@ export const ExercisesScreen = memo(function ExercisesScreen({
                   
                   <div className="flex gap-2">
                     <button
-                      onClick={() => onEditExercise(exercise.id)}
+                      onClick={() => onEditExercise(exercise)}  
                       className="p-2 text-gray-600 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-500 transition-colors"
                       title="Edytuj"
                     >

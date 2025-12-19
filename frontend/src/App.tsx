@@ -1,4 +1,6 @@
-import { useNavigation, useWorkout, useExercises } from './hooks'
+// frontend/src/App.tsx
+import { useState } from 'react'
+import { useNavigation, useWorkout } from './hooks'
 import {
   MainLayout,
   BottomNavigation,
@@ -7,43 +9,43 @@ import {
   StatsScreen,
   MenuScreen,
   AddExerciseScreen,
-  EditExerciseScreen,  // ✅
+  EditExerciseScreen,
 } from './components'
-import { useState } from 'react'
+import type { Exercise } from './hooks/useExercises'  // ✅ Import tylko typu
 
 function App() {
   const { activeTab, setActiveTab, screen, setScreen } = useNavigation('trainings')
   const { startAddWorkout } = useWorkout()
-  const { addExercise, updateExercise } = useExercises()
-  const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null)
+  
+  // ✅ Stan dla edytowanego ćwiczenia
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null)
 
   const renderScreen = () => {
     if (screen === 'add-exercise') {
       return (
         <AddExerciseScreen
           onBack={() => setScreen('exercises')}
-          onAddExercise={addExercise}
+          onAddExercise={async (data) => {
+            // Hook będzie w ExercisesScreen
+            setScreen('exercises')
+          }}
         />
       )
     }
 
-    if (screen === 'edit-exercise' && editingExerciseId) {
-      const { exercises } = useExercises()
-      const exercise = exercises.find(ex => ex.id === editingExerciseId)
-      
-      if (!exercise) {
-        setScreen('exercises')
-        return null
-      }
-
+    if (screen === 'edit-exercise' && editingExercise) {
       return (
         <EditExerciseScreen
-          exercise={exercise}
+          exercise={editingExercise}
           onBack={() => {
-            setEditingExerciseId(null)
+            setEditingExercise(null)
             setScreen('exercises')
           }}
-          onUpdate={updateExercise}
+          onUpdate={async () => {
+            // Hook będzie w ExercisesScreen
+            setEditingExercise(null)
+            setScreen('exercises')
+          }}
         />
       )
     }
@@ -55,8 +57,8 @@ function App() {
         return (
           <ExercisesScreen
             onAddExercise={() => setScreen('add-exercise')}
-            onEditExercise={(id) => {
-              setEditingExerciseId(id)
+            onEditExercise={(exercise) => {
+              setEditingExercise(exercise)  // ✅ Przekaż cały obiekt
               setScreen('edit-exercise')
             }}
           />

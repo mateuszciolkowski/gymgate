@@ -18,18 +18,35 @@ export interface Exercise {
   }>
 }
 
-export function useExercises() {
+interface ExerciseFilters {
+  muscleGroup?: string
+  name?: string
+}
+
+export function useExercises(filters?: ExerciseFilters) {
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
+  // Wyciągnij wartości z filters
+  const muscleGroup = filters?.muscleGroup
+  const name = filters?.name
+
   const fetchExercises = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`${API_BASE}/api/exercises`)
+      
+      // Zbuduj URL z query params
+      const params = new URLSearchParams()
+      if (muscleGroup) params.append('muscleGroup', muscleGroup)
+      if (name) params.append('name', name)
+      
+      const url = `${API_BASE}/api/exercises${params.toString() ? `?${params.toString()}` : ''}`
+      
+      const response = await fetch(url)
       if (!response.ok) throw new Error('Błąd ładowania ćwiczeń')
       const data = await response.json()
       setExercises(data.data || [])
@@ -39,7 +56,7 @@ export function useExercises() {
     } finally {
       setLoading(false)
     }
-  }, [API_BASE])
+  }, [API_BASE, muscleGroup, name])
 
   const addExercise = useCallback(async (exerciseData: Omit<Exercise, 'id' | 'creator' | 'photos'> & { muscleGroups: string[] }) => {
     try {
@@ -68,7 +85,6 @@ export function useExercises() {
     }
   }, [API_BASE])
 
-  // ✅ Nowa funkcja - UPDATE
   const updateExercise = useCallback(async (id: string, exerciseData: { name?: string; muscleGroups?: string[]; description?: string }) => {
     try {
       setError(null)
@@ -92,7 +108,6 @@ export function useExercises() {
     }
   }, [API_BASE])
 
-  // ✅ Nowa funkcja - DELETE
   const deleteExercise = useCallback(async (id: string) => {
     try {
       setError(null)
@@ -122,7 +137,7 @@ export function useExercises() {
     error, 
     refetch: fetchExercises,
     addExercise,
-    updateExercise,  // ✅
-    deleteExercise,  // ✅
+    updateExercise,
+    deleteExercise,
   }
 }
