@@ -1,8 +1,8 @@
 services:
   gg_db:
     image: postgres:16-alpine
-    container_name: postgres_db
-    restart: no
+    container_name: gg_db
+    restart: on-failure
     environment:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -14,8 +14,8 @@ services:
 
   gg_api:
     build: .
-    container_name: node_backend
-    restart: no
+    container_name: gg_api
+    restart: on-failure
     ports:
       - "${API_PORT}:${API_PORT}"
     environment:

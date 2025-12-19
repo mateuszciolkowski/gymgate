@@ -53,6 +53,7 @@ lerna-debug.log*
 /.nyc_output
 /test-results.xml
 *.gc.log
+package-lock.json
 
 # -----------------------------------------------------------------------------
 # Dane wrażliwe i bazy danych

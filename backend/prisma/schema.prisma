@@ -11,3 +11,70 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum MuscleGroup {
+  CHEST          // Klatka piersiowa
+  BACK           // Plecy
+  SHOULDERS      // Barki
+  BICEPS         // Biceps
+  TRICEPS        // Triceps
+  FOREARMS       // Przedramiona
+  ABS            // Brzuch
+  OBLIQUES       // Skośne brzucha
+  LOWER_BACK     // Dolna część pleców
+  QUADS          // Czworogłowy uda
+  HAMSTRINGS     // Kulszowo-goleniowy
+  GLUTES         // Pośladki
+  CALVES         // Łydki
+  ADDUCTORS      // Przywodziciele
+  HIP_FLEXORS    // Zginacze bioder
+  TRAPS          // Trapez
+  LATS           // Najszerszy grzbietu
+  MIDDLE_BACK    // Środkowa część pleców
+  NECK           // Kark
+  FULL_BODY      // Całe ciało
+}
+
+enum PhotoStage {
+  START    // Pozycja startowa
+  MIDDLE   // Pozycja pośrednia
+  END      // Pozycja końcowa
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  exercises Exercise[]
+
+  @@map("users")
+}
+
+model Exercise {
+  id              String        @id @default(uuid())
+  name            String
+  muscleGroups    MuscleGroup[] // Array of muscle groups
+  description     String?
+  creatorUserId   String        @default("1")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  creator User          @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
+  photos  ExercisePhoto[]
+
+  @@map("exercises")
+}
+
+model ExercisePhoto {
+  id         String     @id @default(uuid())
+  exerciseId String
+  photoStage PhotoStage
+  photoUrl   String     // Ścieżka lokalna lub URL (np. S3 w przyszłości)
+  createdAt  DateTime   @default(now())
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@map("exercise_photos")
+}
