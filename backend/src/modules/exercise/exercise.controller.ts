@@ -6,9 +6,16 @@ export class ExerciseController {
 
   constructor() {
     this.service = new ExerciseService();
+    
+    // ✅ Zbinduj metody do kontekstu klasy
+    this.getAll = this.getAll.bind(this);
+    this.getById = this.getById.bind(this);
+    this.create = this.create.bind(this);
+    this.update = this.update.bind(this);
+    this.delete = this.delete.bind(this);
   }
 
-  getAll = async (req: Request, res: Response) => {
+  async getAll(req: Request, res: Response) {
     try {
       const filters = {
         muscleGroup: req.query.muscleGroup as any,
@@ -29,9 +36,9 @@ export class ExerciseController {
         error: error instanceof Error ? error.message : 'Internal server error',
       });
     }
-  };
+  }
 
-  getById = async (req: Request, res: Response) => {
+  async getById(req: Request, res: Response) {
     try {
       const { id } = req.params as { id: string };
       const exercise = await this.service.getExerciseById(id);
@@ -48,9 +55,9 @@ export class ExerciseController {
         error: error instanceof Error ? error.message : 'Internal server error',
       });
     }
-  };
+  }
 
-  create = async (req: Request, res: Response) => {
+  async create(req: Request, res: Response) {
     try {
       const exercise = await this.service.createExercise(req.body);
       
@@ -64,9 +71,9 @@ export class ExerciseController {
         error: error instanceof Error ? error.message : 'Bad request',
       });
     }
-  };
+  }
 
-  update = async (req: Request, res: Response) => {
+  async update(req: Request, res: Response) {
     try {
       const { id } = req.params as { id: string };
       const exercise = await this.service.updateExercise(id, req.body);
@@ -83,9 +90,9 @@ export class ExerciseController {
         error: error instanceof Error ? error.message : 'Bad request',
       });
     }
-  };
+  }
 
-  delete = async (req: Request, res: Response) => {
+  async delete(req: Request, res: Response) {
     try {
       const { id } = req.params as { id: string };
       await this.service.deleteExercise(id);
@@ -99,5 +106,5 @@ export class ExerciseController {
         error: error instanceof Error ? error.message : 'Internal server error',
       });
     }
-  };
+  }
 }

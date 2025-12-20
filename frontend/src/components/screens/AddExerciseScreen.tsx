@@ -1,21 +1,7 @@
 import { memo, useState } from 'react'
 import { ScreenContainer, ScreenHeader } from '../ui'
-import { PlusIcon, TrashIcon } from '../icons'
-
-// Lista dostępnych grup mięśniowych
-const MUSCLE_GROUPS = [
-  { value: 'CHEST', label: 'Klatka piersiowa' },
-  { value: 'BACK', label: 'Plecy' },
-  { value: 'SHOULDERS', label: 'Barki' },
-  { value: 'BICEPS', label: 'Biceps' },
-  { value: 'TRICEPS', label: 'Triceps' },
-  { value: 'FOREARMS', label: 'Przedramiona' },
-  { value: 'ABS', label: 'Brzuch' },
-  { value: 'QUADS', label: 'Czworogłowy' },
-  { value: 'HAMSTRINGS', label: 'Dwugłowy uda' },
-  { value: 'GLUTES', label: 'Pośladki' },
-  { value: 'CALVES', label: 'Łydki' },
-]
+import { TrashIcon } from '../icons'
+import { MUSCLE_GROUPS } from '../../constants'  
 
 interface AddExerciseScreenProps {
   onBack: () => void
@@ -46,7 +32,7 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
     setSelectedGroups(newGroups)
   }
 
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     const validGroups = selectedGroups.filter(g => g.trim() !== '')
@@ -66,7 +52,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         description: description.trim() || undefined
       })
       
-      // onBack() będzie wywołane w App.tsx po sukcesie
+      onBack()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Błąd dodawania ćwiczenia')
     } finally {
@@ -77,15 +63,15 @@ const handleSubmit = async (e: React.FormEvent) => {
   return (
     <ScreenContainer>
       <ScreenHeader 
-        title="Dodaj nowe ćwiczenie" 
-        subtitle="Wypełnij poniższe pola"
+        title="Nowe ćwiczenie" 
+        subtitle="Dodaj ćwiczenie do swojej bazy"
         onBack={onBack}
       />
       
       <div className="mt-6">
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
-            {/* Nazwa ćwiczenia */}
+            {/* Nazwa */}
             <div>
               <label 
                 htmlFor="name" 
@@ -98,7 +84,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 id="name" 
                 value={name} 
                 onChange={e => setName(e.target.value)}
-                placeholder="np. Wyciskanie na ławce"
+                placeholder="np. Wyciskanie sztangi"
                 className="block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
                 disabled={isSubmitting}
               />
@@ -149,16 +135,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <button
                   type="button"
                   onClick={addMuscleGroup}
-                  className="mt-2 flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400"
+                  className="mt-2 text-sm text-emerald-600 dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400"
                   disabled={isSubmitting}
                 >
-                  <PlusIcon className="w-4 h-4" />
-                  Dodaj grupę mięśniową
+                  + Dodaj grupę mięśniową
                 </button>
               )}
             </div>
 
-            {/* Opis (opcjonalny) */}
+            {/* Opis */}
             <div>
               <label 
                 htmlFor="description" 
@@ -170,8 +155,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                 id="description"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="Dodatkowe informacje o ćwiczeniu..."
                 rows={3}
+                placeholder="Dodaj opis ćwiczenia..."
                 className="block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
                 disabled={isSubmitting}
               />
@@ -187,7 +172,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
           {/* Przycisk */}
           <div className="mt-6">
-            <button 
+            <button
               type="submit"
               disabled={isSubmitting}
               className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"

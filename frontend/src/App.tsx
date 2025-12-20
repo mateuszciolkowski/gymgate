@@ -1,6 +1,5 @@
-// frontend/src/App.tsx
 import { useState } from 'react'
-import { useNavigation, useWorkout } from './hooks'
+import { useNavigation, useWorkout, useExercises } from './hooks'
 import {
   MainLayout,
   BottomNavigation,
@@ -11,13 +10,13 @@ import {
   AddExerciseScreen,
   EditExerciseScreen,
 } from './components'
-import type { Exercise } from './hooks/useExercises'  // ✅ Import tylko typu
+import type { Exercise } from './hooks/useExercises'
 
 function App() {
   const { activeTab, setActiveTab, screen, setScreen } = useNavigation('trainings')
   const { startAddWorkout } = useWorkout()
+  const { addExercise, updateExercise } = useExercises()
   
-  // ✅ Stan dla edytowanego ćwiczenia
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null)
 
   const renderScreen = () => {
@@ -26,8 +25,12 @@ function App() {
         <AddExerciseScreen
           onBack={() => setScreen('exercises')}
           onAddExercise={async (data) => {
-            // Hook będzie w ExercisesScreen
-            setScreen('exercises')
+            try {
+              await addExercise(data)
+              setScreen('exercises')
+            } catch (error) {
+              console.error('Błąd dodawania ćwiczenia:', error)
+            }
           }}
         />
       )
@@ -41,10 +44,14 @@ function App() {
             setEditingExercise(null)
             setScreen('exercises')
           }}
-          onUpdate={async () => {
-            // Hook będzie w ExercisesScreen
-            setEditingExercise(null)
-            setScreen('exercises')
+          onUpdate={async (id, data) => {
+            try {
+              await updateExercise(id, data)
+              setEditingExercise(null)
+              setScreen('exercises')
+            } catch (error) {
+              console.error('Błąd aktualizacji ćwiczenia:', error)
+            }
           }}
         />
       )
@@ -58,7 +65,7 @@ function App() {
           <ExercisesScreen
             onAddExercise={() => setScreen('add-exercise')}
             onEditExercise={(exercise) => {
-              setEditingExercise(exercise)  // ✅ Przekaż cały obiekt
+              setEditingExercise(exercise)
               setScreen('edit-exercise')
             }}
           />

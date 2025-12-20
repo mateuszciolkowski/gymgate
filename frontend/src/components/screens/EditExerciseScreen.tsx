@@ -2,20 +2,7 @@ import { memo, useState, useEffect } from 'react'
 import { ScreenContainer, ScreenHeader } from '../ui'
 import { TrashIcon } from '../icons'
 import type { Exercise } from '../../hooks/useExercises'
-
-const MUSCLE_GROUPS = [
-  { value: 'CHEST', label: 'Klatka piersiowa' },
-  { value: 'BACK', label: 'Plecy' },
-  { value: 'SHOULDERS', label: 'Barki' },
-  { value: 'BICEPS', label: 'Biceps' },
-  { value: 'TRICEPS', label: 'Triceps' },
-  { value: 'FOREARMS', label: 'Przedramiona' },
-  { value: 'ABS', label: 'Brzuch' },
-  { value: 'QUADS', label: 'Czworogłowy' },
-  { value: 'HAMSTRINGS', label: 'Dwugłowy uda' },
-  { value: 'GLUTES', label: 'Pośladki' },
-  { value: 'CALVES', label: 'Łydki' },
-]
+import { MUSCLE_GROUPS } from '../../constants'  
 
 interface EditExerciseScreenProps {
   exercise: Exercise
@@ -35,7 +22,6 @@ export const EditExerciseScreen = memo(function EditExerciseScreen({
   const [error, setError] = useState<string | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
 
-  // Sprawdź czy są zmiany
   useEffect(() => {
     const changed = 
       name !== exercise.name ||
@@ -195,18 +181,14 @@ export const EditExerciseScreen = memo(function EditExerciseScreen({
             )}
           </div>
 
-          {/* Przycisk Zapisz */}
+          {/* Przycisk */}
           <div className="mt-6">
-            <button 
+            <button
               type="submit"
               disabled={isSubmitting || !hasChanges}
-              className={`flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all ${
-                hasChanges 
-                  ? 'bg-emerald-600 hover:bg-emerald-700' 
-                  : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
-              } disabled:opacity-50`}
+              className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Zapisywanie...' : hasChanges ? '✓ Zapisz zmiany' : 'Brak zmian'}
+              {isSubmitting ? 'Zapisywanie...' : 'Zapisz zmiany'}
             </button>
           </div>
         </form>

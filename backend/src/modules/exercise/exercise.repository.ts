@@ -5,25 +5,20 @@ import type { MuscleGroup } from '@prisma/client';
 export class ExerciseRepository {
   async findAll(filters?: FilterExercisesDto) {
     const where: any = {};
-
+    
     if (filters?.muscleGroup) {
-      where.muscleGroups = {
-        has: filters.muscleGroup,
-      };
+      where.muscleGroups = { has: filters.muscleGroup };
     }
-
+    
     if (filters?.name) {
-      where.name = {
-        contains: filters.name,
-        mode: 'insensitive',
-      };
+      where.name = { contains: filters.name, mode: 'insensitive' };
     }
-
+    
     if (filters?.creatorUserId) {
       where.creatorUserId = filters.creatorUserId;
     }
 
-    return prisma.exercise.findMany({
+    return await prisma.exercise.findMany({
       where,
       include: {
         photos: true,
@@ -36,14 +31,12 @@ export class ExerciseRepository {
           },
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async findById(id: string) {
-    return prisma.exercise.findUnique({
+    return await prisma.exercise.findUnique({
       where: { id },
       include: {
         photos: true,
@@ -59,76 +52,79 @@ export class ExerciseRepository {
     });
   }
 
- async create(data: CreateExerciseDto & {userId?: string}) {
-  const { photos, description, userId, ...exerciseData } = data;
+  async create(data: CreateExerciseDto & { userId?: string }) {
+    const { photos, description, userId, ...exerciseData } = data;
 
-  const createInput: any = {
-    ...exerciseData,
-    description: description ?? null,
-    creatorUserId: userId || '1',
-  };
-
-  if (photos && photos.length > 0) {
-    createInput.photos = {
-      create: photos,
+    const createInput: any = {
+      ...exerciseData,
+      description: description ?? null,
+      creatorUserId: userId || '1',
     };
-  }
 
-  return prisma.exercise.create({
-    data: createInput,
-    include: {
-      photos: true,
-      creator: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
+    if (photos && photos.length > 0) {
+      createInput.photos = {
+        create: photos,
+      };
+    }
+
+    return await prisma.exercise.create({
+      data: createInput,
+      include: {
+        photos: true,
+        creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
         },
       },
-    },
-  });
-}
+    });
+  }
 
   async update(id: string, data: UpdateExerciseDto) {
-  const updateData: any = {};
+    const updateData: any = {};
+    
+    if (data.name !== undefined) {
+      updateData.name = data.name;
+    }
+    
+    if (data.muscleGroups !== undefined) {
+      updateData.muscleGroups = data.muscleGroups;
+    }
+    
+    if (data.description !== undefined) {
+      updateData.description = data.description ?? null;
+    }
 
-  if (data.name !== undefined) updateData.name = data.name;
-  if (data.muscleGroups !== undefined) updateData.muscleGroups = data.muscleGroups;
-  
-  if (data.description !== undefined) {
-    updateData.description = data.description ?? null;
-  }
-
-  return prisma.exercise.update({
-    where: { id },
-    data: updateData,
-    include: {
-      photos: true,
-      creator: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
+    return await prisma.exercise.update({
+      where: { id },
+      data: updateData,
+      include: {
+        photos: true,
+        creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
         },
       },
-    },
-  });
-}
+    });
+  }
 
   async delete(id: string) {
-    return prisma.exercise.delete({
+    return await prisma.exercise.delete({
       where: { id },
     });
   }
 
   async findByMuscleGroups(muscleGroups: MuscleGroup[]) {
-    return prisma.exercise.findMany({
+    return await prisma.exercise.findMany({
       where: {
-        muscleGroups: {
-          hasSome: muscleGroups,
-        },
+        muscleGroups: { hasSome: muscleGroups },
       },
       include: {
         photos: true,
@@ -141,9 +137,7 @@ export class ExerciseRepository {
           },
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 }
