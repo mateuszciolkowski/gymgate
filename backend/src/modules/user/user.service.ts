@@ -1,11 +1,10 @@
-import { findUserById } from './user.repository'
+import { findUserById } from "./user.repository";
 
 export const getUserById = async (id: string) => {
-  const user = await findUserById(id)
+  const user = await findUserById(id);
   if (!user) {
-    throw new Error('User not found')
+    throw new Error("User not found");
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { password, ...userWithoutPassword } = user
-  return userWithoutPassword
-}
+  const { password, ...userWithoutPassword } = user;
+  return userWithoutPassword;
+};

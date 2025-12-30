@@ -1,15 +1,13 @@
-import { useCallback } from 'react'
+import { useCallback } from "react";
 
 interface UseWorkoutReturn {
-  startAddWorkout: () => void
+  startAddWorkout: () => void;
 }
 
 export function useWorkout(): UseWorkoutReturn {
-  const startAddWorkout = useCallback(() => {
-    console.log('Rozpoczynanie nowego treningu...')
-  }, [])
+  const startAddWorkout = useCallback(() => {}, []);
 
   return {
     startAddWorkout,
-  }
+  };
 }

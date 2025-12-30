@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import { useNavigation, useWorkout, useExercises } from './hooks'
+import { useState } from "react";
+import { useNavigation, useExercises, useWorkouts } from "./hooks";
+import { useAuth } from "./contexts/AuthContext";
+import type { TabType, Screen } from "@/types";
 import {
   MainLayout,
   BottomNavigation,
@@ -9,75 +11,183 @@ import {
   MenuScreen,
   AddExerciseScreen,
   EditExerciseScreen,
-} from './components'
-import type { Exercise } from './hooks/useExercises'
+  WorkoutDetailScreen,
+} from "./components";
+import { LoginScreen } from "./components/screens/LoginScreen";
+import { RegisterScreen } from "./components/screens/RegisterScreen";
+import type { Exercise } from "./hooks/useExercises";
 
 function App() {
-  const { activeTab, setActiveTab, screen, setScreen } = useNavigation('trainings')
-  const { startAddWorkout } = useWorkout()
-  const { addExercise, updateExercise } = useExercises()
-  
-  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null)
+  const { user, isLoading, login, register } = useAuth();
+  const [authScreen, setAuthScreen] = useState<"login" | "register">("login");
+
+  const { activeTab, setActiveTab, screen, setScreen } =
+    useNavigation("trainings");
+
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(
+    null
+  );
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Ładowanie...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    if (authScreen === "register") {
+      return (
+        <RegisterScreen
+          onRegister={register}
+          onSwitchToLogin={() => setAuthScreen("login")}
+        />
+      );
+    }
+    return (
+      <LoginScreen
+        onLogin={login}
+        onSwitchToRegister={() => setAuthScreen("register")}
+      />
+    );
+  }
+
+  return (
+    <AuthenticatedApp
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      screen={screen}
+      setScreen={setScreen}
+      editingExercise={editingExercise}
+      setEditingExercise={setEditingExercise}
+      selectedWorkoutId={selectedWorkoutId}
+      setSelectedWorkoutId={setSelectedWorkoutId}
+    />
+  );
+}
+
+interface AuthenticatedAppProps {
+  activeTab: TabType;
+  setActiveTab: (tab: TabType) => void;
+  screen: Screen;
+  setScreen: (screen: Screen) => void;
+  editingExercise: Exercise | null;
+  setEditingExercise: (exercise: Exercise | null) => void;
+  selectedWorkoutId: string | null;
+  setSelectedWorkoutId: (id: string | null) => void;
+}
+
+function AuthenticatedApp({
+  activeTab,
+  setActiveTab,
+  screen,
+  setScreen,
+  editingExercise,
+  setEditingExercise,
+  selectedWorkoutId,
+  setSelectedWorkoutId,
+}: AuthenticatedAppProps) {
+  const { createWorkout } = useWorkouts(undefined, false);
+  const { addExercise, updateExercise } = useExercises(undefined, false);
+
+  const handleStartWorkout = async () => {
+    try {
+      const newWorkout = await createWorkout({
+        workoutDate: new Date().toISOString(),
+      });
+      setSelectedWorkoutId(newWorkout.id);
+      setScreen("workout-detail");
+    } catch (error) {
+      alert("Nie udało się utworzyć treningu");
+    }
+  };
 
   const renderScreen = () => {
-    if (screen === 'add-exercise') {
+    if (screen === "workout-detail" && selectedWorkoutId) {
       return (
-        <AddExerciseScreen
-          onBack={() => setScreen('exercises')}
-          onAddExercise={async (data) => {
-            try {
-              await addExercise(data)
-              setScreen('exercises')
-            } catch (error) {
-              console.error('Błąd dodawania ćwiczenia:', error)
-            }
+        <WorkoutDetailScreen
+          workoutId={selectedWorkoutId}
+          onBack={() => {
+            setSelectedWorkoutId(null);
+            setScreen("trainings");
           }}
         />
-      )
+      );
     }
 
-    if (screen === 'edit-exercise' && editingExercise) {
+    if (screen === "add-exercise") {
+      return (
+        <AddExerciseScreen
+          onBack={() => setScreen("exercises")}
+          onAddExercise={async (data) => {
+            try {
+              await addExercise(data);
+              setScreen("exercises");
+            } catch (error) {}
+          }}
+        />
+      );
+    }
+
+    if (screen === "edit-exercise" && editingExercise) {
       return (
         <EditExerciseScreen
           exercise={editingExercise}
           onBack={() => {
-            setEditingExercise(null)
-            setScreen('exercises')
+            setEditingExercise(null);
+            setScreen("exercises");
           }}
           onUpdate={async (id, data) => {
             try {
-              await updateExercise(id, data)
-              setEditingExercise(null)
-              setScreen('exercises')
-            } catch (error) {
-              console.error('Błąd aktualizacji ćwiczenia:', error)
-            }
+              await updateExercise(id, data);
+              setEditingExercise(null);
+              setScreen("exercises");
+            } catch (error) {}
           }}
         />
-      )
+      );
     }
 
     switch (screen) {
-      case 'trainings':
-        return <TrainingsScreen />
-      case 'exercises':
+      case "trainings":
         return (
-          <ExercisesScreen
-            onAddExercise={() => setScreen('add-exercise')}
-            onEditExercise={(exercise) => {
-              setEditingExercise(exercise)
-              setScreen('edit-exercise')
+          <TrainingsScreen
+            onSelectWorkout={(workoutId) => {
+              setSelectedWorkoutId(workoutId);
+              setScreen("workout-detail");
             }}
           />
-        )
-      case 'stats':
-        return <StatsScreen />
-      case 'menu':
-        return <MenuScreen />
+        );
+      case "exercises":
+        return (
+          <ExercisesScreen
+            onAddExercise={() => setScreen("add-exercise")}
+            onEditExercise={(exercise) => {
+              setEditingExercise(exercise);
+              setScreen("edit-exercise");
+            }}
+          />
+        );
+      case "stats":
+        return <StatsScreen />;
+      case "menu":
+        return <MenuScreen />;
       default:
-        return <TrainingsScreen />
+        return (
+          <TrainingsScreen
+            onSelectWorkout={(workoutId) => {
+              setSelectedWorkoutId(workoutId);
+              setScreen("workout-detail");
+            }}
+          />
+        );
     }
-  }
+  };
 
   return (
     <MainLayout
@@ -85,13 +195,13 @@ function App() {
         <BottomNavigation
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          onAddWorkout={startAddWorkout}
+          onAddWorkout={handleStartWorkout}
         />
       }
     >
       {renderScreen()}
     </MainLayout>
-  )
+  );
 }
 
-export default App
+export default App;

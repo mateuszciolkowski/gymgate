@@ -1,31 +1,30 @@
-import type { Request, Response } from 'express'
-import { getUserById as getUser } from './user.service.js'
+import type { Request, Response } from "express";
+import { getUserById as getUser } from "./user.service.js";
 
 export const getUserById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params  // ✅ Destrukturyzuj
-    
-    // ✅ Walidacja - sprawdź czy id istnieje
+    const { id } = req.params;
+
     if (!id) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: 'User ID is required' 
-      })
+        message: "User ID is required",
+      });
     }
 
-    const user = await getUser(id)
-    res.json(user)
+    const user = await getUser(id);
+    res.json(user);
   } catch (error) {
     if (error instanceof Error) {
-      res.status(404).json({ 
+      res.status(404).json({
         success: false,
-        message: error.message 
-      })
+        message: error.message,
+      });
     } else {
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        message: 'An unknown error occurred' 
-      })
+        message: "An unknown error occurred",
+      });
     }
   }
-}
+};
