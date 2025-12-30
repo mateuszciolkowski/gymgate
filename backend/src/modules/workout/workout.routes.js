@@ -1,0 +1,24 @@
+import { Router } from "express";
+import * as workoutController from "./workout.controller.js";
+import { validate } from "../../common/middleware/validate.js";
+import { authMiddleware } from "../../common/middleware/auth.js";
+import { createWorkoutSchema, updateWorkoutSchema, addExerciseToWorkoutSchema, updateWorkoutItemSchema, createWorkoutSetSchema, updateWorkoutSetSchema, getWorkoutsQuerySchema, } from "./workout.schema.js";
+const router = Router();
+router.use(authMiddleware);
+router.post("/", validate(createWorkoutSchema), workoutController.createWorkout);
+router.get("/", validate(getWorkoutsQuerySchema), workoutController.getUserWorkouts);
+router.get("/active", workoutController.getActiveWorkout);
+router.delete("/active", workoutController.clearActiveWorkout);
+router.get("/:id", workoutController.getWorkoutById);
+router.patch("/:id", validate(updateWorkoutSchema), workoutController.updateWorkout);
+router.delete("/:id", workoutController.deleteWorkout);
+router.post("/:workoutId/exercises", validate(addExerciseToWorkoutSchema), workoutController.addExerciseToWorkout);
+router.patch("/items/:itemId", validate(updateWorkoutItemSchema), workoutController.updateWorkoutItem);
+router.delete("/items/:itemId", workoutController.deleteWorkoutItem);
+router.post("/items/:itemId/sets", validate(createWorkoutSetSchema), workoutController.addSetToWorkoutItem);
+router.patch("/sets/:setId", validate(updateWorkoutSetSchema), workoutController.updateWorkoutSet);
+router.delete("/sets/:setId", workoutController.deleteWorkoutSet);
+router.get("/stats/all", workoutController.getAllUserStats);
+router.get("/stats/exercise/:exerciseId", workoutController.getExerciseStats);
+export default router;
+//# sourceMappingURL=workout.routes.js.map

@@ -41,6 +41,11 @@ enum PhotoStage {
   END      // Pozycja końcowa
 }
 
+enum WorkoutStatus {
+  DRAFT      // Trening w trakcie tworzenia
+  COMPLETED  // Trening zakończony
+}
+
 model Exercise {
   id              String        @id @default(uuid())
   name            String
@@ -52,6 +57,8 @@ model Exercise {
 
   creator User          @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
   photos  ExercisePhoto[]
+  workoutItems WorkoutItem[]
+  stats   ExerciseUserStats[]
 
   @@map("exercises")
 }
@@ -69,17 +76,89 @@ model ExercisePhoto {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  email       String   @unique
-  firstName   String   
-  lastName    String  
-  phone       String?  
-  password    String   
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(uuid())
+  email           String   @unique
+  password        String
+  firstName       String   
+  lastName        String  
+  phone           String?
+  activeWorkoutId String?  @unique
+  updatedAt       DateTime @updatedAt
 
-  exercises   Exercise[]
+  exercises       Exercise[]
+  workouts        Workout[]
+  stats           ExerciseUserStats[]
+  activeWorkout   Workout?  @relation("ActiveWorkout", fields: [activeWorkoutId], references: [id], onDelete: SetNull)
 
   @@map("users")
 }
 
+model Workout {
+  id           String         @id @default(uuid())
+  userId       String
+  workoutDate  DateTime       @default(now())
+  status       WorkoutStatus  @default(DRAFT)
+  workoutName  String?
+  gymName      String?
+  location     String?
+  workoutNotes String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items         WorkoutItem[]
+  activeForUser User?         @relation("ActiveWorkout")
+
+  @@map("workouts")
+}
+
+model WorkoutItem {
+  id             String      @id @default(uuid())
+  workoutId      String
+  exerciseId     String
+  orderInWorkout Int
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  workout  Workout      @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exercise Exercise     @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  sets     WorkoutSet[]
+
+  @@map("workout_items")
+}
+
+model WorkoutSet {
+  id          String   @id @default(uuid())
+  itemId      String
+  setNumber   Int
+  weight      Decimal  @db.Decimal(6, 2)
+  repetitions Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  item WorkoutItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("workout_sets")
+}
+
+model ExerciseUserStats {
+  id              String   @id @default(uuid())
+  userId          String
+  exerciseId      String
+  maxWeight       Decimal  @db.Decimal(6, 2)
+  maxWeightReps   Int
+  maxWeightDate   DateTime
+  lastWeight      Decimal  @db.Decimal(6, 2)
+  lastReps        Int
+  lastWorkoutDate DateTime
+  totalWorkouts   Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, exerciseId])
+  @@map("exercise_user_stats")
+}

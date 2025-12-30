@@ -1,0 +1,311 @@
+# Workout API Documentation
+
+Base URL: `/api/workouts`
+
+## Workout Endpoints
+
+### 1. Create New Workout (Start Training)
+
+**POST** `/api/workouts`
+
+**Request Body:**
+
+```json
+{
+  "workoutDate": "2025-12-30T10:00:00Z", // optional, default: now
+  "workoutName": "Trening PUSH", // optional
+  "gymName": "Gold's Gym", // optional
+  "location": "Warszawa", // optional
+  "workoutNotes": "Dobra forma dzisiaj" // optional
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "userId": "uuid",
+    "workoutDate": "2025-12-30T10:00:00Z",
+    "status": "DRAFT",
+    "workoutName": "Trening PUSH",
+    "gymName": "Gold's Gym",
+    "location": "Warszawa",
+    "workoutNotes": "Dobra forma dzisiaj",
+    "items": [],
+    "createdAt": "2025-12-30T10:00:00Z",
+    "updatedAt": "2025-12-30T10:00:00Z"
+  }
+}
+```
+
+### 2. Get User Workouts
+
+**GET** `/api/workouts?status=DRAFT&limit=10&offset=0`
+
+**Query Parameters:**
+
+- `status` (optional): `DRAFT` or `COMPLETED`
+- `limit` (optional): number of workouts to return
+- `offset` (optional): pagination offset
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [...],
+  "count": 10
+}
+```
+
+### 3. Get Workout by ID
+
+**GET** `/api/workouts/:id`
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "userId": "uuid",
+    "workoutDate": "2025-12-30T10:00:00Z",
+    "status": "DRAFT",
+    "items": [
+      {
+        "id": "uuid",
+        "exerciseId": "uuid",
+        "orderInWorkout": 1,
+        "notes": "Długa rozgrzewka",
+        "exercise": {
+          "id": "uuid",
+          "name": "Wyciskanie sztangi",
+          "muscleGroups": ["CHEST"],
+          "photos": [...]
+        },
+        "sets": [
+          {
+            "id": "uuid",
+            "setNumber": 1,
+            "weight": 80.5,
+            "repetitions": 10
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### 4. Update Workout
+
+**PATCH** `/api/workouts/:id`
+
+**Request Body:**
+
+```json
+{
+  "status": "COMPLETED", // DRAFT or COMPLETED
+  "workoutName": "Updated name",
+  "workoutNotes": "New notes"
+}
+```
+
+**Note:** When status is changed to `COMPLETED`, the system automatically:
+
+- Updates `ExerciseUserStats` for all exercises
+- Identifies new personal records
+- Updates last workout data
+
+### 5. Delete Workout
+
+**DELETE** `/api/workouts/:id`
+
+## Exercise Management in Workout
+
+### 6. Add Exercise to Workout
+
+**POST** `/api/workouts/:workoutId/exercises`
+
+**Request Body:**
+
+```json
+{
+  "exerciseId": "uuid",
+  "orderInWorkout": 1, // optional, auto-increments
+  "notes": "Optional notes" // optional
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "workoutId": "uuid",
+    "exerciseId": "uuid",
+    "orderInWorkout": 1,
+    "notes": "Optional notes",
+    "exercise": {...},
+    "sets": [
+      {
+        "id": "uuid",
+        "setNumber": 1,
+        "weight": 0,
+        "repetitions": 1
+      }
+    ]
+  }
+}
+```
+
+**Note:** First set is created automatically with default values (0 kg, 1 rep)
+
+### 7. Update Workout Item
+
+**PATCH** `/api/workouts/items/:itemId`
+
+**Request Body:**
+
+```json
+{
+  "orderInWorkout": 2,
+  "notes": "Updated notes"
+}
+```
+
+### 8. Delete Exercise from Workout
+
+**DELETE** `/api/workouts/items/:itemId`
+
+## Set Management
+
+### 9. Add Set to Exercise
+
+**POST** `/api/workouts/items/:itemId/sets`
+
+**Request Body:**
+
+```json
+{
+  "weight": 80.5,
+  "repetitions": 10,
+  "setNumber": 2 // optional, auto-increments
+}
+```
+
+### 10. Update Set
+
+**PATCH** `/api/workouts/sets/:setId`
+
+**Request Body:**
+
+```json
+{
+  "weight": 85.0,
+  "repetitions": 8
+}
+```
+
+### 11. Delete Set
+
+**DELETE** `/api/workouts/sets/:setId`
+
+## Statistics Endpoints
+
+### 12. Get Exercise Stats (Personal Records + Last Workout)
+
+**GET** `/api/workouts/stats/exercise/:exerciseId`
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "userId": "uuid",
+    "exerciseId": "uuid",
+    "maxWeight": 100.0,
+    "maxWeightReps": 5,
+    "maxWeightDate": "2025-12-20T10:00:00Z",
+    "lastWeight": 95.0,
+    "lastReps": 8,
+    "lastWorkoutDate": "2025-12-28T10:00:00Z",
+    "totalWorkouts": 15
+  }
+}
+```
+
+**Or if first time:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "To twoje pierwsze wykonanie tego ćwiczenia"
+}
+```
+
+### 13. Get All User Stats
+
+**GET** `/api/workouts/stats/all`
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "userId": "uuid",
+      "exerciseId": "uuid",
+      "exercise": {
+        "id": "uuid",
+        "name": "Wyciskanie sztangi",
+        "muscleGroups": ["CHEST"]
+      },
+      "maxWeight": 100.0,
+      "maxWeightReps": 5,
+      "maxWeightDate": "2025-12-20T10:00:00Z",
+      "lastWeight": 95.0,
+      "lastReps": 8,
+      "lastWorkoutDate": "2025-12-28T10:00:00Z",
+      "totalWorkouts": 15
+    }
+  ],
+  "count": 25
+}
+```
+
+## Typical Workout Flow
+
+1. **Start workout:** `POST /api/workouts` → Returns workout with status `DRAFT`
+2. **Add exercises:** `POST /api/workouts/:id/exercises` (multiple times)
+3. **Add sets:** `POST /api/workouts/items/:itemId/sets` (multiple times per exercise)
+4. **Update sets:** `PATCH /api/workouts/sets/:setId` (if needed)
+5. **Complete workout:** `PATCH /api/workouts/:id` with `{"status": "COMPLETED"}`
+   - System automatically updates stats and records
+
+## Error Responses
+
+```json
+{
+  "success": false,
+  "error": "Error message"
+}
+```
+
+Status codes:
+
+- `400` - Validation error
+- `403` - Permission denied
+- `404` - Resource not found
+- `500` - Server error
