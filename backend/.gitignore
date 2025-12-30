@@ -45,7 +45,9 @@ lerna-debug.log*
 .env.development.local
 .env.test.local
 .env.production.local
-
+.DS_Store
+*.DS_Store
+other/.DS_Store
 # -----------------------------------------------------------------------------
 # Testy i pokrycie kodu
 # -----------------------------------------------------------------------------
