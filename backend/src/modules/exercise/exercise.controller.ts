@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { ExerciseService } from "./exercise.service.js";
+import type { AuthRequest } from "../../common/middleware/auth.js";
 
 export class ExerciseController {
   private service: ExerciseService;
@@ -59,9 +60,12 @@ export class ExerciseController {
     }
   }
 
-  async create(req: Request, res: Response) {
+  async create(req: AuthRequest, res: Response) {
     try {
-      const exercise = await this.service.createExercise(req.body);
+      const exercise = await this.service.createExercise({
+        ...req.body,
+        userId: req.userId,
+      });
 
       res.status(201).json({
         success: true,
@@ -75,10 +79,10 @@ export class ExerciseController {
     }
   }
 
-  async update(req: Request, res: Response) {
+  async update(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params as { id: string };
-      const exercise = await this.service.updateExercise(id, req.body);
+      const exercise = await this.service.updateExercise(id, req.body, req.userId!);
 
       res.json({
         success: true,
@@ -97,10 +101,10 @@ export class ExerciseController {
     }
   }
 
-  async delete(req: Request, res: Response) {
+  async delete(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params as { id: string };
-      await this.service.deleteExercise(id);
+      await this.service.deleteExercise(id, req.userId!);
 
       res.status(204).send();
     } catch (error) {

@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// Workout schemas
 const createWorkoutBody = z.object({
   workoutDate: z.string().datetime().optional(),
   workoutName: z.string().optional(),
@@ -26,7 +25,6 @@ export const updateWorkoutSchema = z.object({
   body: updateWorkoutBody,
 });
 
-// WorkoutItem schemas
 const addExerciseToWorkoutBody = z.object({
   exerciseId: z.string().uuid(),
   orderInWorkout: z.number().int().positive().optional(),

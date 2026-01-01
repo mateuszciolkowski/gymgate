@@ -17,12 +17,18 @@ export class ExerciseService {
     async createExercise(data) {
         return this.repository.create(data);
     }
-    async updateExercise(id, data) {
-        await this.getExerciseById(id);
+    async updateExercise(id, data, userId) {
+        const exercise = await this.getExerciseById(id);
+        if (exercise.creatorUserId !== userId) {
+            throw new Error('Unauthorized: You can only edit your own exercises');
+        }
         return this.repository.update(id, data);
     }
-    async deleteExercise(id) {
-        await this.getExerciseById(id);
+    async deleteExercise(id, userId) {
+        const exercise = await this.getExerciseById(id);
+        if (exercise.creatorUserId !== userId) {
+            throw new Error('Unauthorized: You can only delete your own exercises');
+        }
         return this.repository.delete(id);
     }
     async getExercisesByMuscleGroups(muscleGroups) {

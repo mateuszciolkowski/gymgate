@@ -26,13 +26,23 @@ export class ExerciseService {
     return this.repository.create(data);
   }
 
-  async updateExercise(id: string, data: UpdateExerciseDto) {
-    await this.getExerciseById(id);
+  async updateExercise(id: string, data: UpdateExerciseDto, userId: string) {
+    const exercise = await this.getExerciseById(id);
+    
+    if (exercise.creatorUserId !== userId) {
+      throw new Error('Unauthorized: You can only edit your own exercises');
+    }
+    
     return this.repository.update(id, data);
   }
 
-  async deleteExercise(id: string) {
-    await this.getExerciseById(id);
+  async deleteExercise(id: string, userId: string) {
+    const exercise = await this.getExerciseById(id);
+    
+    if (exercise.creatorUserId !== userId) {
+      throw new Error('Unauthorized: You can only delete your own exercises');
+    }
+    
     return this.repository.delete(id);
   }
 

@@ -28,6 +28,9 @@ function App() {
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(
     null
   );
+  const [pendingExerciseAdd, setPendingExerciseAdd] = useState<string | null>(
+    null
+  );
 
   if (isLoading) {
     return (
@@ -67,6 +70,8 @@ function App() {
       setEditingExercise={setEditingExercise}
       selectedWorkoutId={selectedWorkoutId}
       setSelectedWorkoutId={setSelectedWorkoutId}
+      pendingExerciseAdd={pendingExerciseAdd}
+      setPendingExerciseAdd={setPendingExerciseAdd}
     />
   );
 }
@@ -80,6 +85,8 @@ interface AuthenticatedAppProps {
   setEditingExercise: (exercise: Exercise | null) => void;
   selectedWorkoutId: string | null;
   setSelectedWorkoutId: (id: string | null) => void;
+  pendingExerciseAdd: string | null;
+  setPendingExerciseAdd: (id: string | null) => void;
 }
 
 function AuthenticatedApp({
@@ -91,6 +98,8 @@ function AuthenticatedApp({
   setEditingExercise,
   selectedWorkoutId,
   setSelectedWorkoutId,
+  pendingExerciseAdd,
+  setPendingExerciseAdd,
 }: AuthenticatedAppProps) {
   const { createWorkout } = useWorkouts(undefined, false);
   const { addExercise, updateExercise } = useExercises(undefined, false);
@@ -116,6 +125,11 @@ function AuthenticatedApp({
             setSelectedWorkoutId(null);
             setScreen("trainings");
           }}
+          onCreateNewExercise={() => {
+            setScreen("add-exercise");
+          }}
+          pendingExerciseId={pendingExerciseAdd}
+          onExerciseAdded={() => setPendingExerciseAdd(null)}
         />
       );
     }
@@ -123,11 +137,22 @@ function AuthenticatedApp({
     if (screen === "add-exercise") {
       return (
         <AddExerciseScreen
-          onBack={() => setScreen("exercises")}
+          onBack={() => {
+            if (selectedWorkoutId) {
+              setScreen("workout-detail");
+            } else {
+              setScreen("exercises");
+            }
+          }}
           onAddExercise={async (data) => {
             try {
-              await addExercise(data);
-              setScreen("exercises");
+              const newExercise = await addExercise(data);
+              if (selectedWorkoutId) {
+                setPendingExerciseAdd(newExercise.id);
+                setScreen("workout-detail");
+              } else {
+                setScreen("exercises");
+              }
             } catch (error) {}
           }}
         />

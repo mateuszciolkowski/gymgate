@@ -71,7 +71,7 @@ export declare class ExerciseService {
         creatorUserId: string;
         createdAt: Date;
     }>;
-    updateExercise(id: string, data: UpdateExerciseDto): Promise<{
+    updateExercise(id: string, data: UpdateExerciseDto, userId: string): Promise<{
         photos: {
             id: string;
             photoStage: import("@prisma/client").$Enums.PhotoStage;
@@ -94,7 +94,7 @@ export declare class ExerciseService {
         creatorUserId: string;
         createdAt: Date;
     }>;
-    deleteExercise(id: string): Promise<{
+    deleteExercise(id: string, userId: string): Promise<{
         id: string;
         updatedAt: Date;
         name: string;

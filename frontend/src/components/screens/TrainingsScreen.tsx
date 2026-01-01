@@ -224,7 +224,6 @@ export const TrainingsScreen = memo(function TrainingsScreen({
         )}
       </div>
 
-      {/* Modal formularza treningu */}
       {isFormModalOpen && (
         <WorkoutFormModal
           onClose={() => setIsFormModalOpen(false)}

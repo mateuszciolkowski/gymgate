@@ -73,7 +73,6 @@ export const deleteWorkout = async (req, res) => {
         });
     }
 };
-// WorkoutItem controllers
 export const addExerciseToWorkout = async (req, res) => {
     try {
         const userId = req.userId || "1";
@@ -119,7 +118,6 @@ export const deleteWorkoutItem = async (req, res) => {
         });
     }
 };
-// WorkoutSet controllers
 export const addSetToWorkoutItem = async (req, res) => {
     try {
         const userId = req.userId || "1";
@@ -165,7 +163,6 @@ export const deleteWorkoutSet = async (req, res) => {
         });
     }
 };
-// Stats controllers
 export const getExerciseStats = async (req, res) => {
     try {
         const userId = req.userId || "1";
@@ -199,7 +196,6 @@ export const getAllUserStats = async (req, res) => {
         });
     }
 };
-// Active workout controllers
 export const getActiveWorkout = async (req, res) => {
     try {
         const userId = req.userId || "1";

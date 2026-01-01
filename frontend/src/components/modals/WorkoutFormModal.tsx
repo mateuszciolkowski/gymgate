@@ -10,7 +10,7 @@ interface WorkoutFormModalProps {
 }
 
 export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const today = new Date().toISOString().split("T")[0];
   const [workoutName, setWorkoutName] = useState("");
   const [gymName, setGymName] = useState("");
   const [workoutDate, setWorkoutDate] = useState(today);
@@ -38,7 +38,6 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Nazwa treningu */}
             <div>
               <label
                 htmlFor="workoutName"
@@ -56,7 +55,6 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
               />
             </div>
 
-            {/* Nazwa siłowni */}
             <div>
               <label
                 htmlFor="gymName"
@@ -74,7 +72,6 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
               />
             </div>
 
-            {/* Data treningu */}
             <div>
               <label
                 htmlFor="workoutDate"
@@ -92,8 +89,7 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
               />
             </div>
 
-            {/* Przyciski */}
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3 pt-2">
               <button
                 type="button"
                 onClick={onClose}

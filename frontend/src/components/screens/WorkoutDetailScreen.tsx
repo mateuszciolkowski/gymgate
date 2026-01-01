@@ -1,17 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ScreenContainer, ScreenHeader } from "@/components/ui";
 import { useWorkout, useExerciseStats, useWorkouts } from "@/hooks";
 import { ExerciseSelectionModal } from "./ExerciseSelectionModal";
+import { MUSCLE_GROUPS } from "@/constants";
 import type { WorkoutItem } from "@/types";
 
 interface WorkoutDetailScreenProps {
   workoutId: string;
   onBack: () => void;
+  onCreateNewExercise?: () => void;
+  pendingExerciseId?: string | null;
+  onExerciseAdded?: () => void;
 }
 
 export function WorkoutDetailScreen({
   workoutId,
   onBack,
+  onCreateNewExercise,
+  pendingExerciseId,
+  onExerciseAdded,
 }: WorkoutDetailScreenProps) {
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
@@ -39,6 +46,36 @@ export function WorkoutDetailScreen({
     updateWorkout,
   } = useWorkout(workoutId);
 
+  const handleAddExercise = useCallback(
+    async (exerciseId: string) => {
+      if (!workout) return;
+      try {
+        const newItem = await addExercise({
+          exerciseId,
+          orderInWorkout: workout.items.length + 1,
+        });
+        setIsExerciseModalOpen(false);
+        if (newItem?.id) {
+          setExpandedItemId(newItem.id);
+        }
+      } catch (error) {}
+    },
+    [workout, addExercise, setIsExerciseModalOpen, setExpandedItemId]
+  );
+
+  useEffect(() => {
+    if (pendingExerciseId && workout && onExerciseAdded) {
+      handleAddExercise(pendingExerciseId);
+      onExerciseAdded();
+    }
+  }, [pendingExerciseId, workout, onExerciseAdded, handleAddExercise]);
+
+  useEffect(() => {
+    if (workout?.items && workout.items.length > 0 && !expandedItemId) {
+      setExpandedItemId(workout.items[workout.items.length - 1].id);
+    }
+  }, [workout?.items, expandedItemId]);
+
   if (loading) {
     return (
       <ScreenContainer>
@@ -64,19 +101,6 @@ export function WorkoutDetailScreen({
   }
 
   const isCompleted = workout.status === "COMPLETED";
-
-  const handleAddExercise = async (exerciseId: string) => {
-    try {
-      const newItem = await addExercise({
-        exerciseId,
-        orderInWorkout: workout.items.length + 1,
-      });
-      setIsExerciseModalOpen(false);
-      if (newItem?.id) {
-        setExpandedItemId(newItem.id);
-      }
-    } catch (error) {}
-  };
 
   const handleToggleExpand = (itemId: string) => {
     setExpandedItemId(expandedItemId === itemId ? null : itemId);
@@ -260,7 +284,6 @@ export function WorkoutDetailScreen({
           }
         />
 
-        {/* Workout Info */}
         <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           {!isEditingInfo ? (
             <>
@@ -371,7 +394,6 @@ export function WorkoutDetailScreen({
           )}
         </div>
 
-        {/* Exercises List */}
         <div className="space-y-6 mb-24">
           {workout.items.length === 0 ? (
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -381,31 +403,33 @@ export function WorkoutDetailScreen({
               </p>
             </div>
           ) : (
-            workout.items.map((item) => (
-              <WorkoutItemCard
-                key={item.id}
-                item={item}
-                isCompleted={isCompleted}
-                isEditMode={isEditMode}
-                isExpanded={expandedItemId === item.id}
-                onToggleExpand={handleToggleExpand}
-                editingSetId={editingSetId}
-                editWeight={editWeight}
-                editReps={editReps}
-                onEditWeightChange={setEditWeight}
-                onEditRepsChange={setEditReps}
-                onStartEditSet={handleStartEditSet}
-                onSaveSet={handleSaveSet}
-                onCancelEdit={handleCancelEdit}
-                onDeleteSet={handleDeleteSet}
-                onAddSet={handleAddSet}
-                onDeleteExercise={handleDeleteExercise}
-              />
-            ))
+            [...workout.items]
+              .reverse()
+              .map((item, index) => (
+                <WorkoutItemCard
+                  key={item.id}
+                  item={item}
+                  exerciseNumber={index + 1}
+                  isCompleted={isCompleted}
+                  isEditMode={isEditMode}
+                  isExpanded={expandedItemId === item.id}
+                  onToggleExpand={handleToggleExpand}
+                  editingSetId={editingSetId}
+                  editWeight={editWeight}
+                  editReps={editReps}
+                  onEditWeightChange={setEditWeight}
+                  onEditRepsChange={setEditReps}
+                  onStartEditSet={handleStartEditSet}
+                  onSaveSet={handleSaveSet}
+                  onCancelEdit={handleCancelEdit}
+                  onDeleteSet={handleDeleteSet}
+                  onAddSet={handleAddSet}
+                  onDeleteExercise={handleDeleteExercise}
+                />
+              ))
           )}
         </div>
 
-        {/* Action Buttons - widoczne dla DRAFT lub w trybie edycji */}
         {(!isCompleted || isEditMode) && (
           <div className="fixed bottom-20 left-0 right-0 p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg">
             <div className="max-w-md mx-auto flex gap-3">
@@ -456,12 +480,12 @@ export function WorkoutDetailScreen({
         )}
       </ScreenContainer>
 
-      {/* Exercise Selection Modal */}
       {isExerciseModalOpen && (
         <ExerciseSelectionModal
           onClose={() => setIsExerciseModalOpen(false)}
           onSelectExercise={handleAddExercise}
           existingExerciseIds={workout.items.map((item) => item.exerciseId)}
+          onCreateNewExercise={onCreateNewExercise}
         />
       )}
     </>
@@ -470,6 +494,7 @@ export function WorkoutDetailScreen({
 
 interface WorkoutItemCardProps {
   item: WorkoutItem;
+  exerciseNumber: number;
   isCompleted: boolean;
   isEditMode: boolean;
   isExpanded: boolean;
@@ -489,6 +514,7 @@ interface WorkoutItemCardProps {
 
 function WorkoutItemCard({
   item,
+  exerciseNumber,
   isCompleted,
   isEditMode,
   isExpanded,
@@ -510,22 +536,31 @@ function WorkoutItemCard({
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 overflow-hidden">
-      {/* Exercise Header - Collapsible */}
       <button
         onClick={() => onToggleExpand(item.id)}
         className="w-full p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
       >
         <div className="flex-1 text-left">
-          <h3 className="font-semibold text-lg">{item.exercise.name}</h3>
+          <h3 className="font-semibold text-lg">
+            <span className="text-emerald-600 dark:text-emerald-400 mr-2">
+              #{exerciseNumber}
+            </span>
+            {item.exercise.name}
+          </h3>
           <div className="flex gap-2 flex-wrap mt-1">
-            {item.exercise.muscleGroups.map((group) => (
-              <span
-                key={group}
-                className="text-xs px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full"
-              >
-                {group}
-              </span>
-            ))}
+            {item.exercise.muscleGroups.map((group) => {
+              const muscleGroup = MUSCLE_GROUPS.find(
+                (mg) => mg.value === group
+              );
+              return (
+                <span
+                  key={group}
+                  className="text-xs px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full"
+                >
+                  {muscleGroup?.label || group}
+                </span>
+              );
+            })}
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             {item.sets.length} {item.sets.length === 1 ? "seria" : "serie"}
@@ -576,7 +611,6 @@ function WorkoutItemCard({
         </div>
       </button>
 
-      {/* Collapsible Content */}
       {isExpanded && (
         <div className="px-4 pb-4">
           {/* Stats */}
@@ -739,7 +773,6 @@ function WorkoutItemCard({
             </button>
           )}
 
-          {/* Notes */}
           {item.notes && (
             <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm">
               <span className="font-medium">Notatki:</span> {item.notes}
