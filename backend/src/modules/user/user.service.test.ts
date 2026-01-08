@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { getUserById } from './user.service'
-import { findUserById } from './user.repository'
+import { getUserById } from './user.service.js'
+import { findUserById } from './user.repository.js'
 
 vi.mock('./user.repository', () => ({
   findUserById: vi.fn(),
@@ -9,14 +9,15 @@ vi.mock('./user.repository', () => ({
 describe('User Service', () => {
   it('should get user by id and exclude password', async () => {
     const mockUser = {
-      id: '1',
+      id: '123',
       email: 'test@example.com',
       firstName: 'Test',
       lastName: 'User',
-      password: 'password123',
-      phone: '123456789',
+      password: 'hashedpassword',
+      phone: '1234567890',
       createdAt: new Date(),
       updatedAt: new Date(),
+      activeWorkoutId: null,
     }
     vi.mocked(findUserById).mockResolvedValue(mockUser)
 

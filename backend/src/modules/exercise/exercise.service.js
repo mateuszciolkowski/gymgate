@@ -1,4 +1,4 @@
-import { ExerciseRepository } from './exercise.repository.js';
+import { ExerciseRepository } from "./exercise.repository.js";
 export class ExerciseService {
     repository;
     constructor() {
@@ -10,7 +10,7 @@ export class ExerciseService {
     async getExerciseById(id) {
         const exercise = await this.repository.findById(id);
         if (!exercise) {
-            throw new Error('Exercise not found');
+            throw new Error("Exercise not found");
         }
         return exercise;
     }
@@ -20,14 +20,14 @@ export class ExerciseService {
     async updateExercise(id, data, userId) {
         const exercise = await this.getExerciseById(id);
         if (exercise.creatorUserId !== userId) {
-            throw new Error('Unauthorized: You can only edit your own exercises');
+            throw new Error("Unauthorized: You can only edit your own exercises");
         }
         return this.repository.update(id, data);
     }
     async deleteExercise(id, userId) {
         const exercise = await this.getExerciseById(id);
         if (exercise.creatorUserId !== userId) {
-            throw new Error('Unauthorized: You can only delete your own exercises');
+            throw new Error("Unauthorized: You can only delete your own exercises");
         }
         return this.repository.delete(id);
     }

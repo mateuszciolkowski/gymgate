@@ -15,12 +15,12 @@ export class ExerciseController {
     this.delete = this.delete.bind(this);
   }
 
-  async getAll(req: Request, res: Response) {
+  async getAll(req: AuthRequest, res: Response) {
     try {
       const filters = {
         muscleGroup: req.query.muscleGroup as any,
         name: req.query.name as string,
-        creatorUserId: req.query.creatorUserId as string,
+        userId: req.userId!,
       };
 
       const exercises = await this.service.getAllExercises(filters);
@@ -82,7 +82,11 @@ export class ExerciseController {
   async update(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params as { id: string };
-      const exercise = await this.service.updateExercise(id, req.body, req.userId!);
+      const exercise = await this.service.updateExercise(
+        id,
+        req.body,
+        req.userId!
+      );
 
       res.json({
         success: true,

@@ -8,6 +8,7 @@ interface BottomNavigationProps {
   activeTab: TabType
   onTabChange: (tab: TabType) => void
   onAddWorkout: () => void
+  isWorkoutDetail?: boolean
 }
 
 const navItems = [
@@ -21,6 +22,7 @@ export const BottomNavigation = memo(function BottomNavigation({
   activeTab,
   onTabChange,
   onAddWorkout,
+  isWorkoutDetail = false,
 }: BottomNavigationProps) {
   const handleTabChange = useCallback(
     (tab: TabType) => {
@@ -35,19 +37,25 @@ export const BottomNavigation = memo(function BottomNavigation({
       role="navigation"
       aria-label="Nawigacja główna"
     >
-      <div className="flex items-center justify-around max-w-lg mx-auto">
+      <div className="grid grid-cols-5 items-center justify-items-center max-w-xl mx-auto gap-0">
         {navItems.slice(0, 2).map((item) => (
           <NavButton
             key={item.id}
             id={item.id}
             label={item.label}
             icon={item.icon}
-            isActive={activeTab === item.id}
+            isActive={!isWorkoutDetail && activeTab === item.id}
             onClick={handleTabChange}
           />
         ))}
 
-        <AddWorkoutButton onClick={onAddWorkout} />
+        <div className="flex justify-center">
+          <AddWorkoutButton
+            onClick={onAddWorkout}
+            isActive={isWorkoutDetail}
+            className="justify-self-center"
+          />
+        </div>
 
         {navItems.slice(2).map((item) => (
           <NavButton
@@ -55,7 +63,7 @@ export const BottomNavigation = memo(function BottomNavigation({
             id={item.id}
             label={item.label}
             icon={item.icon}
-            isActive={activeTab === item.id}
+            isActive={!isWorkoutDetail && activeTab === item.id}
             onClick={handleTabChange}
           />
         ))}

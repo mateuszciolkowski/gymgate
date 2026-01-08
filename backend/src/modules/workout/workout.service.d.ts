@@ -8,7 +8,7 @@ export declare const createWorkout: (userId: string, data: CreateWorkoutDto) => 
             name: string;
             muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
             description: string | null;
-            creatorUserId: string;
+            creatorUserId: string | null;
             createdAt: Date;
         };
         sets: {
@@ -32,8 +32,8 @@ export declare const createWorkout: (userId: string, data: CreateWorkoutDto) => 
 } & {
     id: string;
     updatedAt: Date;
-    createdAt: Date;
     userId: string;
+    createdAt: Date;
     workoutDate: Date;
     workoutName: string | null;
     gymName: string | null;
@@ -57,7 +57,7 @@ export declare const getWorkoutById: (id: string, userId: string) => Promise<{
             name: string;
             muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
             description: string | null;
-            creatorUserId: string;
+            creatorUserId: string | null;
             createdAt: Date;
         };
         sets: {
@@ -81,8 +81,8 @@ export declare const getWorkoutById: (id: string, userId: string) => Promise<{
 } & {
     id: string;
     updatedAt: Date;
-    createdAt: Date;
     userId: string;
+    createdAt: Date;
     workoutDate: Date;
     workoutName: string | null;
     gymName: string | null;
@@ -90,18 +90,47 @@ export declare const getWorkoutById: (id: string, userId: string) => Promise<{
     workoutNotes: string | null;
     status: import("@prisma/client").$Enums.WorkoutStatus;
 }>;
-export declare const getUserWorkouts: (userId: string, query: GetWorkoutsQuery) => Promise<{
+export declare const getUserWorkouts: (userId: string, query?: GetWorkoutsQuery) => Promise<({
+    items: ({
+        exercise: {
+            id: string;
+            updatedAt: Date;
+            name: string;
+            muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
+            description: string | null;
+            creatorUserId: string | null;
+            createdAt: Date;
+        };
+        sets: {
+            id: string;
+            updatedAt: Date;
+            createdAt: Date;
+            itemId: string;
+            weight: Prisma.Decimal;
+            repetitions: number;
+            setNumber: number;
+        }[];
+    } & {
+        id: string;
+        updatedAt: Date;
+        createdAt: Date;
+        exerciseId: string;
+        orderInWorkout: number;
+        notes: string | null;
+        workoutId: string;
+    })[];
+} & {
     id: string;
     updatedAt: Date;
-    createdAt: Date;
     userId: string;
+    createdAt: Date;
     workoutDate: Date;
     workoutName: string | null;
     gymName: string | null;
     location: string | null;
     workoutNotes: string | null;
     status: import("@prisma/client").$Enums.WorkoutStatus;
-}[]>;
+})[]>;
 export declare const updateWorkout: (id: string, userId: string, data: UpdateWorkoutDto) => Promise<{
     items: ({
         exercise: {
@@ -110,7 +139,7 @@ export declare const updateWorkout: (id: string, userId: string, data: UpdateWor
             name: string;
             muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
             description: string | null;
-            creatorUserId: string;
+            creatorUserId: string | null;
             createdAt: Date;
         };
         sets: {
@@ -134,8 +163,8 @@ export declare const updateWorkout: (id: string, userId: string, data: UpdateWor
 } & {
     id: string;
     updatedAt: Date;
-    createdAt: Date;
     userId: string;
+    createdAt: Date;
     workoutDate: Date;
     workoutName: string | null;
     gymName: string | null;
@@ -146,8 +175,8 @@ export declare const updateWorkout: (id: string, userId: string, data: UpdateWor
 export declare const deleteWorkout: (id: string, userId: string) => Promise<{
     id: string;
     updatedAt: Date;
-    createdAt: Date;
     userId: string;
+    createdAt: Date;
     workoutDate: Date;
     workoutName: string | null;
     gymName: string | null;
@@ -162,7 +191,7 @@ export declare const addExerciseToWorkout: (workoutId: string, userId: string, d
         name: string;
         muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
         description: string | null;
-        creatorUserId: string;
+        creatorUserId: string | null;
         createdAt: Date;
     };
     sets: {
@@ -190,7 +219,7 @@ export declare const updateWorkoutItem: (itemId: string, userId: string, data: U
         name: string;
         muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
         description: string | null;
-        creatorUserId: string;
+        creatorUserId: string | null;
         createdAt: Date;
     };
     sets: {
@@ -250,8 +279,8 @@ export declare const deleteWorkoutSet: (setId: string, userId: string) => Promis
 export declare const getExerciseStatsForUser: (userId: string, exerciseId: string) => Promise<{
     id: string;
     updatedAt: Date;
-    createdAt: Date;
     userId: string;
+    createdAt: Date;
     exerciseId: string;
     maxWeight: Prisma.Decimal;
     maxWeightReps: number;
@@ -268,14 +297,14 @@ export declare const getAllUserStats: (userId: string) => Promise<({
         name: string;
         muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
         description: string | null;
-        creatorUserId: string;
+        creatorUserId: string | null;
         createdAt: Date;
     };
 } & {
     id: string;
     updatedAt: Date;
-    createdAt: Date;
     userId: string;
+    createdAt: Date;
     exerciseId: string;
     maxWeight: Prisma.Decimal;
     maxWeightReps: number;

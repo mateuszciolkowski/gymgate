@@ -76,8 +76,8 @@ export const deleteWorkout = async (req, res) => {
 export const addExerciseToWorkout = async (req, res) => {
     try {
         const userId = req.userId || "1";
-        const item = await workoutService.addExerciseToWorkout(req.params.workoutId, userId, req.body);
-        res.status(201).json({ success: true, data: item });
+        const workoutItem = await workoutService.addExerciseToWorkout(req.params.workoutId, userId, req.body);
+        res.status(201).json({ success: true, data: workoutItem });
     }
     catch (error) {
         res.status(500).json({
@@ -89,8 +89,8 @@ export const addExerciseToWorkout = async (req, res) => {
 export const updateWorkoutItem = async (req, res) => {
     try {
         const userId = req.userId || "1";
-        const item = await workoutService.updateWorkoutItem(req.params.itemId, userId, req.body);
-        res.json({ success: true, data: item });
+        const updatedItem = await workoutService.updateWorkoutItem(req.params.itemId, userId, req.body);
+        res.json({ success: true, data: updatedItem });
     }
     catch (error) {
         const statusCode = error instanceof Error && error.message.includes("nie znaleziona")
@@ -121,8 +121,8 @@ export const deleteWorkoutItem = async (req, res) => {
 export const addSetToWorkoutItem = async (req, res) => {
     try {
         const userId = req.userId || "1";
-        const set = await workoutService.addSetToWorkoutItem(req.params.itemId, userId, req.body);
-        res.status(201).json({ success: true, data: set });
+        const newSet = await workoutService.addSetToWorkoutItem(req.params.itemId, userId, req.body);
+        res.status(201).json({ success: true, data: newSet });
     }
     catch (error) {
         res.status(500).json({

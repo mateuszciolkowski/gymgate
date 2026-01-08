@@ -3,33 +3,32 @@ import type { CreateExerciseDto, UpdateExerciseDto, FilterExercisesDto } from '.
 import type { MuscleGroup } from '@prisma/client';
 
 export class ExerciseRepository {
-  async findAll(filters?: FilterExercisesDto) {
-    const where: any = {};
+  async findAll(filters?: FilterExercisesDto & { userId?: string }) {
+    const orConditions = [
+      { creatorUserId: null },
+      { creatorUserId: '1' },
+      ...(filters?.userId ? [{ creatorUserId: filters.userId }] : [])
+    ];
+
+    const andConditions: any[] = [];
     
     if (filters?.muscleGroup) {
-      where.muscleGroups = { has: filters.muscleGroup };
+      andConditions.push({ muscleGroups: { has: filters.muscleGroup } });
     }
     
     if (filters?.name) {
-      where.name = { contains: filters.name, mode: 'insensitive' };
+      andConditions.push({ name: { contains: filters.name, mode: 'insensitive' } });
     }
-    
-    if (filters?.creatorUserId) {
-      where.creatorUserId = filters.creatorUserId;
-    }
+
+    const where: any = andConditions.length > 0 
+      ? { AND: [{ OR: orConditions }, ...andConditions] }
+      : { OR: orConditions };
 
     return await prisma.exercise.findMany({
       where,
       include: {
         photos: true,
-        creator: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
+        creator: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -40,14 +39,7 @@ export class ExerciseRepository {
       where: { id },
       include: {
         photos: true,
-        creator: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
+        creator: true,
       },
     });
   }

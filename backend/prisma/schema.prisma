@@ -49,13 +49,13 @@ enum WorkoutStatus {
 model Exercise {
   id              String        @id @default(uuid())
   name            String
-  muscleGroups    MuscleGroup[] // Array of muscle groups
+  muscleGroups    MuscleGroup[]
   description     String?
-  creatorUserId   String        @default("1")
+  creatorUserId   String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  creator User          @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
+  creator User?          @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
   photos  ExercisePhoto[]
   workoutItems WorkoutItem[]
   stats   ExerciseUserStats[]

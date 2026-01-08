@@ -3,7 +3,7 @@ import type { AuthRequest } from "../../common/middleware/auth.js";
 export declare class ExerciseController {
     private service;
     constructor();
-    getAll(req: Request, res: Response): Promise<void>;
+    getAll(req: AuthRequest, res: Response): Promise<void>;
     getById(req: Request, res: Response): Promise<void>;
     create(req: AuthRequest, res: Response): Promise<void>;
     update(req: AuthRequest, res: Response): Promise<void>;

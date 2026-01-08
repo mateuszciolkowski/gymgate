@@ -1,7 +1,6 @@
 import prisma from "../../config/database.js";
 import type { Prisma } from "@prisma/client";
 
-// Workout operations
 export const createWorkout = (data: Prisma.WorkoutCreateInput) => {
   return prisma.workout.create({
     data,
@@ -57,8 +56,8 @@ export const findWorkoutsByUser = (
       },
     },
     orderBy: { workoutDate: "desc" },
-    take: filters?.limit,
-    skip: filters?.offset,
+    ...(filters?.limit && { take: filters.limit }),
+    ...(filters?.offset !== undefined && { skip: filters.offset }),
   });
 };
 
@@ -84,7 +83,6 @@ export const deleteWorkout = (id: string) => {
   });
 };
 
-// WorkoutItem operations
 export const addExerciseToWorkout = (
   workoutId: string,
   exerciseId: string,
@@ -96,7 +94,7 @@ export const addExerciseToWorkout = (
       workoutId,
       exerciseId,
       orderInWorkout,
-      notes,
+      notes: notes ?? null,
     },
     include: {
       exercise: {
@@ -151,7 +149,6 @@ export const getMaxOrderInWorkout = async (
   return result._max.orderInWorkout || 0;
 };
 
-// WorkoutSet operations
 export const addSetToWorkoutItem = (
   itemId: string,
   weight: number,
@@ -165,6 +162,12 @@ export const addSetToWorkoutItem = (
       repetitions,
       setNumber,
     },
+  });
+};
+
+export const findWorkoutSetById = (id: string) => {
+  return prisma.workoutSet.findUnique({
+    where: { id },
   });
 };
 
@@ -192,7 +195,6 @@ export const getMaxSetNumber = async (itemId: string): Promise<number> => {
   return result._max.setNumber || 0;
 };
 
-// ExerciseUserStats operations
 export const getExerciseStats = (userId: string, exerciseId: string) => {
   return prisma.exerciseUserStats.findUnique({
     where: {
@@ -244,7 +246,6 @@ export const upsertExerciseStats = (
   });
 };
 
-// Active workout operations
 export const setActiveWorkout = (userId: string, workoutId: string) => {
   return prisma.user.update({
     where: { id: userId },

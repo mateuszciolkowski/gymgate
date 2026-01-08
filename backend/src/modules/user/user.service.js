@@ -1,4 +1,4 @@
-import { findUserById } from "./user.repository";
+import { findUserById } from "./user.repository.js";
 export const getUserById = async (id) => {
     const user = await findUserById(id);
     if (!user) {

@@ -91,7 +91,6 @@ export const TrainingsScreen = memo(function TrainingsScreen({
         subtitle={`${completedWorkouts.length} zakończonych`}
       />
 
-      {/* Start new workout button */}
       <div className="mt-4 flex justify-center">
         <button
           onClick={handleStartWorkout}
@@ -119,7 +118,6 @@ export const TrainingsScreen = memo(function TrainingsScreen({
         </button>
       </div>
 
-      {/* Draft workouts */}
       {draftWorkouts.length > 0 && (
         <div className="mt-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
@@ -161,7 +159,6 @@ export const TrainingsScreen = memo(function TrainingsScreen({
         </div>
       )}
 
-      {/* Completed workouts */}
       <div className="mt-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
           Historia treningów

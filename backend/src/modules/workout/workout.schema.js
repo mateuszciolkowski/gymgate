@@ -41,7 +41,6 @@ export const updateWorkoutItemSchema = z.object({
         itemId: z.string().uuid(),
     }),
 });
-// WorkoutSet schemas
 const createWorkoutSetBody = z.object({
     weight: z.number().positive(),
     repetitions: z.number().int().positive(),
@@ -63,7 +62,6 @@ export const updateWorkoutSetSchema = z.object({
         setId: z.string().uuid(),
     }),
 });
-// Query schemas
 export const getWorkoutsQuerySchema = z.object({
     query: z.object({
         status: z.enum(["DRAFT", "COMPLETED"]).optional(),

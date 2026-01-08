@@ -10,10 +10,10 @@ export const createWorkout = async (userId, data) => {
     }
     const workoutData = {
         workoutDate: data.workoutDate ? new Date(data.workoutDate) : new Date(),
-        workoutName: data.workoutName,
-        gymName: data.gymName,
-        location: data.location,
-        workoutNotes: data.workoutNotes,
+        workoutName: data.workoutName ?? null,
+        gymName: data.gymName ?? null,
+        location: data.location ?? null,
+        workoutNotes: data.workoutNotes ?? null,
         user: { connect: { id: userId } },
     };
     const workout = await workoutRepo.createWorkout(workoutData);
@@ -31,7 +31,11 @@ export const getWorkoutById = async (id, userId) => {
     return workout;
 };
 export const getUserWorkouts = async (userId, query) => {
-    return workoutRepo.findWorkoutsByUser(userId, query);
+    return workoutRepo.findWorkoutsByUser(userId, query ? {
+        ...(query.status && { status: query.status }),
+        ...(query.limit && { limit: query.limit }),
+        ...(query.offset !== undefined && { offset: query.offset })
+    } : undefined);
 };
 export const updateWorkout = async (id, userId, data) => {
     await getWorkoutById(id, userId);
@@ -74,7 +78,12 @@ export const updateWorkoutItem = async (itemId, userId, data) => {
     if (workout?.userId !== userId) {
         throw new Error("Brak uprawnień");
     }
-    return workoutRepo.updateWorkoutItem(itemId, data);
+    const updateData = {};
+    if (data.orderInWorkout !== undefined)
+        updateData.orderInWorkout = data.orderInWorkout;
+    if (data.notes !== undefined)
+        updateData.notes = data.notes ?? null;
+    return workoutRepo.updateWorkoutItem(itemId, updateData);
 };
 export const deleteWorkoutItem = async (itemId, userId) => {
     const item = await workoutRepo.findWorkoutItemById(itemId);
@@ -113,10 +122,18 @@ export const updateWorkoutSet = async (setId, userId, data) => {
     if (workout?.userId !== userId) {
         throw new Error("Brak uprawnień");
     }
-    return workoutRepo.updateWorkoutSet(setId, data);
+    const updateData = {};
+    if (data.weight !== undefined)
+        updateData.weight = data.weight;
+    if (data.repetitions !== undefined)
+        updateData.repetitions = data.repetitions;
+    return workoutRepo.updateWorkoutSet(setId, updateData);
 };
 export const deleteWorkoutSet = async (setId, userId) => {
-    const sets = await workoutRepo.updateWorkoutSet(setId, {});
+    const sets = await workoutRepo.findWorkoutSetById(setId);
+    if (!sets) {
+        throw new Error("Nie znaleziono serii");
+    }
     const item = await workoutRepo.findWorkoutItemById(sets.itemId);
     if (!item) {
         throw new Error("Nie znaleziono pozycji treningowej");

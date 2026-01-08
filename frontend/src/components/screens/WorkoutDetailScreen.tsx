@@ -42,7 +42,6 @@ export function WorkoutDetailScreen({
     updateSet,
     deleteSet,
     deleteExercise,
-    completeWorkout,
     updateWorkout,
   } = useWorkout(workoutId);
 
@@ -69,12 +68,6 @@ export function WorkoutDetailScreen({
       onExerciseAdded();
     }
   }, [pendingExerciseId, workout, onExerciseAdded, handleAddExercise]);
-
-  useEffect(() => {
-    if (workout?.items && workout.items.length > 0 && !expandedItemId) {
-      setExpandedItemId(workout.items[workout.items.length - 1].id);
-    }
-  }, [workout?.items, expandedItemId]);
 
   if (loading) {
     return (
@@ -210,20 +203,6 @@ export function WorkoutDetailScreen({
     }
   };
 
-  const handleCompleteWorkout = async () => {
-    if (isCompleted && isEditMode) {
-      setIsEditMode(false);
-      return;
-    }
-
-    if (confirm("Czy chcesz zakończyć ten trening?")) {
-      try {
-        await completeWorkout();
-        onBack();
-      } catch (error) {}
-    }
-  };
-
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("pl-PL", {
       day: "numeric",
@@ -242,49 +221,33 @@ export function WorkoutDetailScreen({
           onBack={onBack}
           actions={
             <div className="flex items-center gap-2">
-              {isCompleted && !isEditMode ? (
-                <>
-                  <button
-                    onClick={() => setIsEditMode(true)}
-                    className="text-emerald-600 dark:text-emerald-400 font-medium"
-                  >
-                    Edytuj
-                  </button>
-                  <button
-                    onClick={handleDeleteWorkout}
-                    className="text-red-600 dark:text-red-400 font-medium"
-                  >
-                    Usuń
-                  </button>
-                </>
-              ) : isCompleted && isEditMode ? (
-                <>
-                  <button
-                    onClick={() => setIsEditMode(false)}
-                    className="text-gray-600 dark:text-gray-400 font-medium"
-                  >
-                    Anuluj
-                  </button>
-                  <button
-                    onClick={handleDeleteWorkout}
-                    className="text-red-600 dark:text-red-400 font-medium"
-                  >
-                    Usuń
-                  </button>
-                </>
-              ) : (
+              {isCompleted && !isEditMode && (
                 <button
-                  onClick={handleDeleteWorkout}
-                  className="text-red-600 dark:text-red-400 font-medium"
+                  onClick={() => setIsEditMode(true)}
+                  className="text-emerald-600 dark:text-emerald-400 font-medium"
                 >
-                  Usuń
+                  Edytuj
                 </button>
               )}
+              {isCompleted && isEditMode && (
+                <button
+                  onClick={() => setIsEditMode(false)}
+                  className="text-gray-600 dark:text-gray-400 font-medium"
+                >
+                  Anuluj
+                </button>
+              )}
+              <button
+                onClick={handleDeleteWorkout}
+                className="text-red-600 dark:text-red-400 font-medium"
+              >
+                Usuń
+              </button>
             </div>
           }
         />
 
-        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           {!isEditingInfo ? (
             <>
               <div className="space-y-2 text-sm">
@@ -329,7 +292,7 @@ export function WorkoutDetailScreen({
                   </span>
                 </div>
               </div>
-              {(!isCompleted || isEditMode) && (
+              {isEditMode && !isEditingInfo && (
                 <button
                   onClick={handleStartEditInfo}
                   className="mt-3 w-full py-2 text-sm text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
@@ -394,7 +357,63 @@ export function WorkoutDetailScreen({
           )}
         </div>
 
-        <div className="space-y-6 mb-24">
+        {(!isCompleted || isEditMode) && (
+          <div className="mb-6">
+            <div className="grid grid-cols-2 gap-4 w-full items-stretch">
+              <button
+                onClick={() => setIsExerciseModalOpen(true)}
+                className="w-full px-5 py-3 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-xl hover:bg-emerald-600 hover:text-white hover:border-emerald-600 font-semibold text-sm flex items-center justify-center gap-3 shadow-sm transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.2}
+                  stroke="currentColor"
+                  className="w-7 h-7"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 4.5v15m7.5-7.5h-15"
+                  />
+                </svg>
+                Dodaj ćwiczenie
+              </button>
+              <button
+                onClick={async () => {
+                  if (confirm("Czy chcesz zakończyć ten trening?")) {
+                    try {
+                      await updateWorkout({ status: "COMPLETED" });
+                      onBack();
+                    } catch (error) {
+                      alert("Nie udało się zakończyć treningu");
+                    }
+                  }
+                }}
+                className="w-full px-5 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 font-semibold text-sm flex items-center justify-center gap-3 shadow-md"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.2}
+                  stroke="currentColor"
+                  className="w-7 h-7"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                {isEditMode ? "Zapisz zmiany" : "Zakończ trening"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-6">
           {workout.items.length === 0 ? (
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <p>Brak ćwiczeń w tym treningu</p>
@@ -430,54 +449,6 @@ export function WorkoutDetailScreen({
           )}
         </div>
 
-        {(!isCompleted || isEditMode) && (
-          <div className="fixed bottom-20 left-0 right-0 p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg">
-            <div className="max-w-md mx-auto flex gap-3">
-              <button
-                onClick={() => setIsExerciseModalOpen(true)}
-                className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium flex items-center justify-center gap-2 shadow-sm"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 4.5v15m7.5-7.5h-15"
-                  />
-                </svg>
-                Dodaj ćwiczenie
-              </button>
-              <button
-                onClick={handleCompleteWorkout}
-                className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium flex items-center justify-center gap-2 shadow-sm"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                {isCompleted && isEditMode
-                  ? "Zapisz zmiany"
-                  : "Zakończ trening"}
-              </button>
-            </div>
-          </div>
-        )}
       </ScreenContainer>
 
       {isExerciseModalOpen && (
@@ -613,7 +584,6 @@ function WorkoutItemCard({
 
       {isExpanded && (
         <div className="px-4 pb-4">
-          {/* Stats */}
           {stats && (
             <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
               <div className="grid grid-cols-2 gap-2 text-sm">
@@ -637,7 +607,6 @@ function WorkoutItemCard({
             </div>
           )}
 
-          {/* Sets List */}
           {item.sets.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
               Brak serii. Dodaj pierwszą serię poniżej.
@@ -763,7 +732,6 @@ function WorkoutItemCard({
             </div>
           )}
 
-          {/* Add Set Button */}
           {canEdit && (
             <button
               onClick={() => onAddSet(item.id)}

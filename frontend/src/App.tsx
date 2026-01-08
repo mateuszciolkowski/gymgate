@@ -221,6 +221,7 @@ function AuthenticatedApp({
           activeTab={activeTab}
           onTabChange={setActiveTab}
           onAddWorkout={handleStartWorkout}
+          isWorkoutDetail={screen === "workout-detail"}
         />
       }
     >

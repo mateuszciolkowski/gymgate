@@ -1,5 +1,4 @@
 import prisma from "../../config/database.js";
-// Workout operations
 export const createWorkout = (data) => {
     return prisma.workout.create({
         data,
@@ -50,8 +49,8 @@ export const findWorkoutsByUser = (userId, filters) => {
             },
         },
         orderBy: { workoutDate: "desc" },
-        take: filters?.limit,
-        skip: filters?.offset,
+        ...(filters?.limit && { take: filters.limit }),
+        ...(filters?.offset !== undefined && { skip: filters.offset }),
     });
 };
 export const updateWorkout = (id, data) => {
@@ -74,14 +73,13 @@ export const deleteWorkout = (id) => {
         where: { id },
     });
 };
-// WorkoutItem operations
 export const addExerciseToWorkout = (workoutId, exerciseId, orderInWorkout, notes) => {
     return prisma.workoutItem.create({
         data: {
             workoutId,
             exerciseId,
             orderInWorkout,
-            notes,
+            notes: notes ?? null,
         },
         include: {
             exercise: {
@@ -126,7 +124,6 @@ export const getMaxOrderInWorkout = async (workoutId) => {
     });
     return result._max.orderInWorkout || 0;
 };
-// WorkoutSet operations
 export const addSetToWorkoutItem = (itemId, weight, repetitions, setNumber) => {
     return prisma.workoutSet.create({
         data: {
@@ -135,6 +132,11 @@ export const addSetToWorkoutItem = (itemId, weight, repetitions, setNumber) => {
             repetitions,
             setNumber,
         },
+    });
+};
+export const findWorkoutSetById = (id) => {
+    return prisma.workoutSet.findUnique({
+        where: { id },
     });
 };
 export const updateWorkoutSet = (id, data) => {
@@ -155,7 +157,6 @@ export const getMaxSetNumber = async (itemId) => {
     });
     return result._max.setNumber || 0;
 };
-// ExerciseUserStats operations
 export const getExerciseStats = (userId, exerciseId) => {
     return prisma.exerciseUserStats.findUnique({
         where: {
@@ -192,7 +193,6 @@ export const upsertExerciseStats = (userId, exerciseId, data) => {
         update: data,
     });
 };
-// Active workout operations
 export const setActiveWorkout = (userId, workoutId) => {
     return prisma.user.update({
         where: { id: userId },

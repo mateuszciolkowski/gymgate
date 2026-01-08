@@ -3,11 +3,9 @@ import prisma from '../src/config/database.js'
 async function main() {
   console.log('🌱 Seeding database...')
 
-  // Usuń starych użytkowników (jeśli istnieją)
   await prisma.user.deleteMany()
   console.log('✓ Cleared users')
 
-  // Utwórz użytkownika testowego
   const testUser = await prisma.user.create({
     data: {
       id: '1',
@@ -15,7 +13,7 @@ async function main() {
       firstName: 'Mateusz',
       lastName: 'Ciołkowski',
       phone: '+48123456789',
-      password: 'test123', // ⚠️ W produkcji użyj bcrypt!
+      password: 'test123',
     },
   })
 
@@ -25,10 +23,8 @@ async function main() {
     name: `${testUser.firstName} ${testUser.lastName}`,
   })
 
-  // ✅ 100 najpopularniejszych ćwiczeń
   const exercises = await prisma.exercise.createMany({
     data: [
-      // === KLATKA PIERSIOWA (CHEST) - 15 ćwiczeń ===
       {
         name: 'Wyciskanie sztangi na ławce płaskiej',
         muscleGroups: ['CHEST', 'TRICEPS', 'SHOULDERS'],
@@ -120,7 +116,6 @@ async function main() {
         creatorUserId: '1',
       },
 
-      // === PLECY (BACK, LATS, MIDDLE_BACK, TRAPS) - 18 ćwiczeń ===
       {
         name: 'Martwy ciąg klasyczny',
         muscleGroups: ['BACK', 'HAMSTRINGS', 'GLUTES', 'LOWER_BACK', 'TRAPS'],
@@ -230,7 +225,6 @@ async function main() {
         creatorUserId: '1',
       },
 
-      // === BARKI (SHOULDERS) - 10 ćwiczeń ===
       {
         name: 'Wyciskanie sztangi nad głowę (OHP)',
         muscleGroups: ['SHOULDERS', 'TRICEPS'],
@@ -292,7 +286,6 @@ async function main() {
         creatorUserId: '1',
       },
 
-      // === BICEPS - 8 ćwiczeń ===
       {
         name: 'Uginanie sztangi na biceps',
         muscleGroups: ['BICEPS', 'FOREARMS'],
@@ -342,7 +335,6 @@ async function main() {
         creatorUserId: '1',
       },
 
-      // === TRICEPS - 8 ćwiczeń ===
       {
         name: 'Wyciskanie wąskim chwytem',
         muscleGroups: ['TRICEPS', 'CHEST'],
@@ -392,7 +384,6 @@ async function main() {
         creatorUserId: '1',
       },
 
-      // === NOGI (QUADS, HAMSTRINGS, GLUTES, CALVES) - 18 ćwiczeń ===
       {
         name: 'Przysiady ze sztangą na plecach',
         muscleGroups: ['QUADS', 'GLUTES', 'HAMSTRINGS'],
@@ -502,7 +493,6 @@ async function main() {
         creatorUserId: '1',
       },
 
-      // === BRZUCH (ABS, OBLIQUES) - 12 ćwiczeń ===
       {
         name: 'Plank',
         muscleGroups: ['ABS', 'OBLIQUES'],
@@ -576,7 +566,6 @@ async function main() {
         creatorUserId: '1',
       },
 
-      // === CAŁE CIAŁO (FULL_BODY) - 8 ćwiczeń ===
       {
         name: 'Burpees',
         muscleGroups: ['FULL_BODY'],
@@ -626,7 +615,6 @@ async function main() {
         creatorUserId: '1',
       },
 
-      // === POZOSTAŁE (FOREARMS, NECK) - 5 ćwiczeń ===
       {
         name: 'Zwijanie nadgarstków ze sztangą',
         muscleGroups: ['FOREARMS'],

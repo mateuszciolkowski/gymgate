@@ -18,7 +18,7 @@ export const createWorkout = async (req: AuthRequest, res: Response) => {
 export const getWorkoutById = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId || "1";
-    const workout = await workoutService.getWorkoutById(req.params.id, userId);
+    const workout = await workoutService.getWorkoutById(req.params.id!, userId);
     res.json({ success: true, data: workout });
   } catch (error) {
     const statusCode =
@@ -52,7 +52,7 @@ export const updateWorkout = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId || "1";
     const workout = await workoutService.updateWorkout(
-      req.params.id,
+      req.params.id!,
       userId,
       req.body
     );
@@ -72,7 +72,7 @@ export const updateWorkout = async (req: AuthRequest, res: Response) => {
 export const deleteWorkout = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId || "1";
-    await workoutService.deleteWorkout(req.params.id, userId);
+    await workoutService.deleteWorkout(req.params.id!, userId);
     res.json({ success: true, message: "Trening usunięty" });
   } catch (error) {
     const statusCode =
@@ -89,12 +89,12 @@ export const deleteWorkout = async (req: AuthRequest, res: Response) => {
 export const addExerciseToWorkout = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId || "1";
-    const item = await workoutService.addExerciseToWorkout(
-      req.params.workoutId,
+    const workoutItem = await workoutService.addExerciseToWorkout(
+      req.params.workoutId!,
       userId,
       req.body
     );
-    res.status(201).json({ success: true, data: item });
+    res.status(201).json({ success: true, data: workoutItem });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -106,12 +106,12 @@ export const addExerciseToWorkout = async (req: AuthRequest, res: Response) => {
 export const updateWorkoutItem = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId || "1";
-    const item = await workoutService.updateWorkoutItem(
-      req.params.itemId,
+    const updatedItem = await workoutService.updateWorkoutItem(
+      req.params.itemId!,
       userId,
       req.body
     );
-    res.json({ success: true, data: item });
+    res.json({ success: true, data: updatedItem });
   } catch (error) {
     const statusCode =
       error instanceof Error && error.message.includes("nie znaleziona")
@@ -127,7 +127,7 @@ export const updateWorkoutItem = async (req: AuthRequest, res: Response) => {
 export const deleteWorkoutItem = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId || "1";
-    await workoutService.deleteWorkoutItem(req.params.itemId, userId);
+    await workoutService.deleteWorkoutItem(req.params.itemId!, userId);
     res.json({ success: true, message: "Ćwiczenie usunięte z treningu" });
   } catch (error) {
     const statusCode =
@@ -144,12 +144,12 @@ export const deleteWorkoutItem = async (req: AuthRequest, res: Response) => {
 export const addSetToWorkoutItem = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId || "1";
-    const set = await workoutService.addSetToWorkoutItem(
-      req.params.itemId,
+    const newSet = await workoutService.addSetToWorkoutItem(
+      req.params.itemId!,
       userId,
       req.body
     );
-    res.status(201).json({ success: true, data: set });
+    res.status(201).json({ success: true, data: newSet });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -162,7 +162,7 @@ export const updateWorkoutSet = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId || "1";
     const set = await workoutService.updateWorkoutSet(
-      req.params.setId,
+      req.params.setId!,
       userId,
       req.body
     );
@@ -182,7 +182,7 @@ export const updateWorkoutSet = async (req: AuthRequest, res: Response) => {
 export const deleteWorkoutSet = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId || "1";
-    await workoutService.deleteWorkoutSet(req.params.setId, userId);
+    await workoutService.deleteWorkoutSet(req.params.setId!, userId);
     res.json({ success: true, message: "Seria usunięta" });
   } catch (error) {
     const statusCode =
@@ -201,7 +201,7 @@ export const getExerciseStats = async (req: AuthRequest, res: Response) => {
     const userId = req.userId || "1";
     const stats = await workoutService.getExerciseStatsForUser(
       userId,
-      req.params.exerciseId
+      req.params.exerciseId!
     );
     if (!stats) {
       return res.json({

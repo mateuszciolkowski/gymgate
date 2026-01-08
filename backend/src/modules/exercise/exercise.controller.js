@@ -14,7 +14,7 @@ export class ExerciseController {
             const filters = {
                 muscleGroup: req.query.muscleGroup,
                 name: req.query.name,
-                creatorUserId: req.query.creatorUserId,
+                userId: req.userId,
             };
             const exercises = await this.service.getAllExercises(filters);
             res.json({

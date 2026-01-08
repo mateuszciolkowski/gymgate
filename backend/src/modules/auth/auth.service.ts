@@ -8,25 +8,21 @@ const JWT_SECRET =
 const JWT_EXPIRES_IN = "7d";
 
 export const register = async (data: RegisterDto) => {
-  // Check if user exists
   const existingUser = await userRepo.findUserByEmail(data.email);
   if (existingUser) {
     throw new Error("Użytkownik z tym emailem już istnieje");
   }
 
-  // Hash password
   const hashedPassword = await bcrypt.hash(data.password, 10);
 
-  // Create user
   const user = await userRepo.createUser({
     email: data.email,
     password: hashedPassword,
     firstName: data.firstName,
     lastName: data.lastName,
-    phone: data.phone,
+    phone: data.phone ?? null,
   });
 
-  // Generate token
   const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
   });
@@ -37,19 +33,16 @@ export const register = async (data: RegisterDto) => {
 };
 
 export const login = async (data: LoginDto) => {
-  // Find user
   const user = await userRepo.findUserByEmail(data.email);
   if (!user) {
     throw new Error("Nieprawidłowy email lub hasło");
   }
 
-  // Check password
   const isPasswordValid = await bcrypt.compare(data.password, user.password);
   if (!isPasswordValid) {
     throw new Error("Nieprawidłowy email lub hasło");
   }
 
-  // Generate token
   const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
   });

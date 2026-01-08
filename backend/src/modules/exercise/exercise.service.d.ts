@@ -1,8 +1,10 @@
-import type { CreateExerciseDto, UpdateExerciseDto, FilterExercisesDto } from './exercise.schema.js';
+import type { CreateExerciseDto, UpdateExerciseDto, FilterExercisesDto } from "./exercise.schema.js";
 export declare class ExerciseService {
     private repository;
     constructor();
-    getAllExercises(filters?: FilterExercisesDto): Promise<({
+    getAllExercises(filters?: FilterExercisesDto & {
+        userId?: string;
+    }): Promise<({
         photos: {
             id: string;
             photoStage: import("@prisma/client").$Enums.PhotoStage;
@@ -13,16 +15,20 @@ export declare class ExerciseService {
         creator: {
             id: string;
             email: string;
+            password: string;
             firstName: string;
             lastName: string;
-        };
+            phone: string | null;
+            updatedAt: Date;
+            activeWorkoutId: string | null;
+        } | null;
     } & {
         id: string;
         updatedAt: Date;
         name: string;
         muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
         description: string | null;
-        creatorUserId: string;
+        creatorUserId: string | null;
         createdAt: Date;
     })[]>;
     getExerciseById(id: string): Promise<{
@@ -36,16 +42,20 @@ export declare class ExerciseService {
         creator: {
             id: string;
             email: string;
+            password: string;
             firstName: string;
             lastName: string;
-        };
+            phone: string | null;
+            updatedAt: Date;
+            activeWorkoutId: string | null;
+        } | null;
     } & {
         id: string;
         updatedAt: Date;
         name: string;
         muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
         description: string | null;
-        creatorUserId: string;
+        creatorUserId: string | null;
         createdAt: Date;
     }>;
     createExercise(data: CreateExerciseDto): Promise<{
@@ -61,14 +71,14 @@ export declare class ExerciseService {
             email: string;
             firstName: string;
             lastName: string;
-        };
+        } | null;
     } & {
         id: string;
         updatedAt: Date;
         name: string;
         muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
         description: string | null;
-        creatorUserId: string;
+        creatorUserId: string | null;
         createdAt: Date;
     }>;
     updateExercise(id: string, data: UpdateExerciseDto, userId: string): Promise<{
@@ -84,14 +94,14 @@ export declare class ExerciseService {
             email: string;
             firstName: string;
             lastName: string;
-        };
+        } | null;
     } & {
         id: string;
         updatedAt: Date;
         name: string;
         muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
         description: string | null;
-        creatorUserId: string;
+        creatorUserId: string | null;
         createdAt: Date;
     }>;
     deleteExercise(id: string, userId: string): Promise<{
@@ -100,7 +110,7 @@ export declare class ExerciseService {
         name: string;
         muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
         description: string | null;
-        creatorUserId: string;
+        creatorUserId: string | null;
         createdAt: Date;
     }>;
     getExercisesByMuscleGroups(muscleGroups: string[]): Promise<({
@@ -116,14 +126,14 @@ export declare class ExerciseService {
             email: string;
             firstName: string;
             lastName: string;
-        };
+        } | null;
     } & {
         id: string;
         updatedAt: Date;
         name: string;
         muscleGroups: import("@prisma/client").$Enums.MuscleGroup[];
         description: string | null;
-        creatorUserId: string;
+        creatorUserId: string | null;
         createdAt: Date;
     })[]>;
 }
