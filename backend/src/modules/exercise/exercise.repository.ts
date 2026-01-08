@@ -1,28 +1,35 @@
-import prisma from '../../config/database.js';
-import type { CreateExerciseDto, UpdateExerciseDto, FilterExercisesDto } from './exercise.schema.js';
-import type { MuscleGroup } from '@prisma/client';
+import prisma from "../../config/database.js";
+import type {
+  CreateExerciseDto,
+  UpdateExerciseDto,
+  FilterExercisesDto,
+} from "./exercise.schema.js";
+import type { MuscleGroup } from "@prisma/client";
 
 export class ExerciseRepository {
   async findAll(filters?: FilterExercisesDto & { userId?: string }) {
     const orConditions = [
       { creatorUserId: null },
-      { creatorUserId: '1' },
-      ...(filters?.userId ? [{ creatorUserId: filters.userId }] : [])
+      { creatorUserId: "1" },
+      ...(filters?.userId ? [{ creatorUserId: filters.userId }] : []),
     ];
 
     const andConditions: any[] = [];
-    
+
     if (filters?.muscleGroup) {
       andConditions.push({ muscleGroups: { has: filters.muscleGroup } });
     }
-    
+
     if (filters?.name) {
-      andConditions.push({ name: { contains: filters.name, mode: 'insensitive' } });
+      andConditions.push({
+        name: { contains: filters.name, mode: "insensitive" },
+      });
     }
 
-    const where: any = andConditions.length > 0 
-      ? { AND: [{ OR: orConditions }, ...andConditions] }
-      : { OR: orConditions };
+    const where: any =
+      andConditions.length > 0
+        ? { AND: [{ OR: orConditions }, ...andConditions] }
+        : { OR: orConditions };
 
     return await prisma.exercise.findMany({
       where,
@@ -30,7 +37,7 @@ export class ExerciseRepository {
         photos: true,
         creator: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -50,7 +57,7 @@ export class ExerciseRepository {
     const createInput: any = {
       ...exerciseData,
       description: description ?? null,
-      creatorUserId: userId || '1',
+      creatorUserId: userId || "1",
     };
 
     if (photos && photos.length > 0) {
@@ -77,15 +84,15 @@ export class ExerciseRepository {
 
   async update(id: string, data: UpdateExerciseDto) {
     const updateData: any = {};
-    
+
     if (data.name !== undefined) {
       updateData.name = data.name;
     }
-    
+
     if (data.muscleGroups !== undefined) {
       updateData.muscleGroups = data.muscleGroups;
     }
-    
+
     if (data.description !== undefined) {
       updateData.description = data.description ?? null;
     }
@@ -129,7 +136,7 @@ export class ExerciseRepository {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 }

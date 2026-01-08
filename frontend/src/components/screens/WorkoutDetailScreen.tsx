@@ -448,7 +448,6 @@ export function WorkoutDetailScreen({
               ))
           )}
         </div>
-
       </ScreenContainer>
 
       {isExerciseModalOpen && (

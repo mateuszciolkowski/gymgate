@@ -1,22 +1,27 @@
-import { memo, useCallback } from 'react'
-import type { TabType } from '@/types'
-import { ArchiveIcon, DumbbellIcon, ChartIcon, MenuIcon } from '@/components/icons'
-import { NavButton } from './NavButton'
-import { AddWorkoutButton } from './AddWorkoutButton'
+import { memo, useCallback } from "react";
+import type { TabType } from "@/types";
+import {
+  ArchiveIcon,
+  DumbbellIcon,
+  ChartIcon,
+  MenuIcon,
+} from "@/components/icons";
+import { NavButton } from "./NavButton";
+import { AddWorkoutButton } from "./AddWorkoutButton";
 
 interface BottomNavigationProps {
-  activeTab: TabType
-  onTabChange: (tab: TabType) => void
-  onAddWorkout: () => void
-  isWorkoutDetail?: boolean
+  activeTab: TabType;
+  onTabChange: (tab: TabType) => void;
+  onAddWorkout: () => void;
+  isWorkoutDetail?: boolean;
 }
 
 const navItems = [
-  { id: 'trainings' as TabType, label: 'Treningi', icon: ArchiveIcon },
-  { id: 'exercises' as TabType, label: 'Ćwiczenia', icon: DumbbellIcon },
-  { id: 'stats' as TabType, label: 'Statystyki', icon: ChartIcon },
-  { id: 'menu' as TabType, label: 'Menu', icon: MenuIcon },
-]
+  { id: "trainings" as TabType, label: "Treningi", icon: ArchiveIcon },
+  { id: "exercises" as TabType, label: "Ćwiczenia", icon: DumbbellIcon },
+  { id: "stats" as TabType, label: "Statystyki", icon: ChartIcon },
+  { id: "menu" as TabType, label: "Menu", icon: MenuIcon },
+];
 
 export const BottomNavigation = memo(function BottomNavigation({
   activeTab,
@@ -26,10 +31,10 @@ export const BottomNavigation = memo(function BottomNavigation({
 }: BottomNavigationProps) {
   const handleTabChange = useCallback(
     (tab: TabType) => {
-      onTabChange(tab)
+      onTabChange(tab);
     },
     [onTabChange]
-  )
+  );
 
   return (
     <nav
@@ -69,5 +74,5 @@ export const BottomNavigation = memo(function BottomNavigation({
         ))}
       </div>
     </nav>
-  )
-})
+  );
+});

@@ -50,11 +50,16 @@ export const getUserWorkouts = async (
   userId: string,
   query?: GetWorkoutsQuery
 ) => {
-  return workoutRepo.findWorkoutsByUser(userId, query ? {
-    ...(query.status && { status: query.status }),
-    ...(query.limit && { limit: query.limit }),
-    ...(query.offset !== undefined && { offset: query.offset })
-  } : undefined);
+  return workoutRepo.findWorkoutsByUser(
+    userId,
+    query
+      ? {
+          ...(query.status && { status: query.status }),
+          ...(query.limit && { limit: query.limit }),
+          ...(query.offset !== undefined && { offset: query.offset }),
+        }
+      : undefined
+  );
 };
 
 export const updateWorkout = async (
@@ -129,7 +134,8 @@ export const updateWorkoutItem = async (
   }
 
   const updateData: any = {};
-  if (data.orderInWorkout !== undefined) updateData.orderInWorkout = data.orderInWorkout;
+  if (data.orderInWorkout !== undefined)
+    updateData.orderInWorkout = data.orderInWorkout;
   if (data.notes !== undefined) updateData.notes = data.notes ?? null;
   return workoutRepo.updateWorkoutItem(itemId, updateData);
 };
