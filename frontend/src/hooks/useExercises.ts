@@ -68,7 +68,7 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
     async (
       exerciseData: Omit<Exercise, "id" | "creator" | "photos"> & {
         muscleGroups: string[];
-      }
+      },
     ) => {
       try {
         setError(null);
@@ -95,7 +95,7 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
         throw err;
       }
     },
-    [API_BASE]
+    [API_BASE],
   );
 
   const updateExercise = useCallback(
@@ -105,7 +105,7 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
         name?: string;
         muscleGroups?: string[];
         description?: string;
-      }
+      },
     ) => {
       try {
         setError(null);
@@ -122,7 +122,7 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
 
         const updatedExercise = await response.json();
         setExercises((prev) =>
-          prev.map((ex) => (ex.id === id ? updatedExercise.data : ex))
+          prev.map((ex) => (ex.id === id ? updatedExercise.data : ex)),
         );
         return updatedExercise.data;
       } catch (err) {
@@ -130,7 +130,7 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
         throw err;
       }
     },
-    [API_BASE]
+    [API_BASE],
   );
 
   const deleteExercise = useCallback(
@@ -152,7 +152,7 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
         throw err;
       }
     },
-    [API_BASE]
+    [API_BASE],
   );
 
   useEffect(() => {

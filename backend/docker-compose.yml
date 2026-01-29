@@ -1,17 +1,4 @@
 services:
-  # gg_db:
-  #   image: postgres:16-alpine
-  #   container_name: gg_db
-  #   restart: on-failure
-  #   environment:
-  #     POSTGRES_USER: ${DB_USERNAME}
-  #     POSTGRES_PASSWORD: ${DB_PASSWORD}
-  #     POSTGRES_DB: ${DB_NAME}
-  #   ports:
-  #     - "${DB_PORT}:5432"
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-
   gg_api:
     build: .
     container_name: gg_api
@@ -23,10 +10,6 @@ services:
       DIRECT_URL: ${DIRECT_URL}
       JWT_SECRET: ${JWT_SECRET}
       PORT: ${API_PORT}
-    # depends_on:
-    #   - gg_db
     volumes:
       - .:/app
       - /app/node_modules
-# volumes:
-#   postgres_data:

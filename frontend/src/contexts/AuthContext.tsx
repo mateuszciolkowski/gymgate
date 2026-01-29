@@ -26,7 +26,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = "http://localhost:3000/api";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = `${API_BASE}/api`;
 const TOKEN_KEY = "gymgate_token";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
