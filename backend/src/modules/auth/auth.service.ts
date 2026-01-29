@@ -3,8 +3,7 @@ import jwt from "jsonwebtoken";
 import * as userRepo from "../user/user.repository.js";
 import type { RegisterDto, LoginDto } from "./auth.schema.js";
 
-const JWT_SECRET =
-  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = "7d";
 
 export const register = async (data: RegisterDto) => {
@@ -23,11 +22,17 @@ export const register = async (data: RegisterDto) => {
     phone: data.phone ?? null,
   });
 
+  if (!JWT_SECRET) {
+    console.error(
+      "FATAL ERROR: JWT_SECRET is not defined in environment variables.",
+    );
+    throw new Error("Błąd konfiguracji serwera");
+  }
+
   const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
   });
 
-  // Return user without password
   const { password: _, ...userWithoutPassword } = user;
   return { user: userWithoutPassword, token };
 };
@@ -43,16 +48,28 @@ export const login = async (data: LoginDto) => {
     throw new Error("Nieprawidłowy email lub hasło");
   }
 
-  const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
-  });
+  if (!JWT_SECRET) {
+    console.error(
+      "FATAL ERROR: JWT_SECRET is not defined in environment variables.",
+    );
+    throw new Error("Błąd konfiguracji serwera");
+  }
 
-  // Return user without password
-  const { password: _, ...userWithoutPassword } = user;
-  return { user: userWithoutPassword, token };
+  try {
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
+
+    const { password: _, ...userWithoutPassword } = user;
+    return { user: userWithoutPassword, token };
+  } catch (err) {
+    console.error("JWT Signing Error:", err);
+    throw new Error("Błąd podczas generowania sesji");
+  }
 };
 
 export const verifyToken = (token: string) => {
+  if (!JWT_SECRET) throw new Error("Błąd konfiguracji serwera");
   try {
     return jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
   } catch (error) {

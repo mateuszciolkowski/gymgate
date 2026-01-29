@@ -1,4 +1,8 @@
-import express, { type Request, type Response } from "express";
+import express, {
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import prisma from "./config/database.js";
@@ -9,16 +13,29 @@ import authRouter from "./modules/auth/auth.routes.js";
 
 dotenv.config();
 
-const app = express();
-const PORT = Number(process.env.API_PORT) || 3000;
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
 
-const originsEnv = process.env.ALLOWED_ORIGINS || "localhost:5173";
-const allowedOrigins = originsEnv.split(",").map((origin) => origin.trim());
+const app = express();
+
+const PORT: number = Number(process.env.PORT || process.env.API_PORT) || 3000;
+
+const originsEnv: string =
+  process.env.ALLOWED_ORIGINS ||
+  "http://localhost:5173,https://gymgate.vercel.app";
+const allowedOrigins: string[] = originsEnv
+  .split(",")
+  .map((origin) => origin.trim());
 
 app.use(
   cors({
-    origin: (origin, callback) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       if (!origin) return callback(null, true);
+
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -31,7 +48,13 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
-app.options("/{*splat}", cors());
+
+(req: Request, res: Response, next: NextFunction) => {
+  res.header("Vary", "Origin");
+  next();
+};
+
+app.options("/*splat", cors() as any);
 
 app.use(express.json());
 
@@ -40,6 +63,21 @@ app.use("/api/exercises", exerciseRouter);
 app.use("/api/users", userRouter);
 app.use("/api/workouts", workoutRouter);
 
+process.on("unhandledRejection", (reason: any, promise: Promise<any>) => {
+  console.error(
+    "CRITICAL: Unhandled Rejection at:",
+    promise,
+    "reason:",
+    reason,
+  );
+});
+
+process.on("uncaughtException", (err: Error) => {
+  console.error("CRITICAL: Uncaught Exception:", err.message);
+  console.error("STACK:", err.stack);
+  process.exit(1);
+});
+
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server ready at: http://localhost:${PORT}`);
+  console.log(`🚀 GymGate API LIVE at: http://0.0.0.0:${PORT}`);
 });
