@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { ScreenContainer, ScreenHeader } from "@/components/ui";
 import { useWorkoutData } from "@/contexts/DataContext";
 import { useData } from "@/contexts/DataContext";
@@ -479,7 +479,7 @@ interface WorkoutItemCardProps {
   onDeleteExercise: (itemId: string) => void;
 }
 
-function WorkoutItemCard({
+const WorkoutItemCard = memo(function WorkoutItemCard({
   item,
   exerciseNumber,
   isCompleted,
@@ -746,4 +746,4 @@ function WorkoutItemCard({
       )}
     </div>
   );
-}
+});

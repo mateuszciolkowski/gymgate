@@ -431,8 +431,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
       ).then(async (response) => {
         if (!response.ok) throw new Error("Błąd dodawania ćwiczenia");
-        // Odśwież z serwera żeby mieć prawdziwe ID (w tle)
-        refreshWorkout(workoutId);
+        const result = await response.json();
+        // Zamień tymczasowe ID na prawdziwe z odpowiedzi
+        if (result.data) {
+          setWorkouts((prev) =>
+            prev.map((w) => {
+              if (w.id !== workoutId) return w;
+              return {
+                ...w,
+                items: w.items.map((item) =>
+                  item.id === tempItemId ? result.data : item
+                ),
+              };
+            })
+          );
+        }
       }).catch(() => {
         // Rollback przy błędzie
         setWorkouts((prev) =>
@@ -443,7 +456,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         );
       });
     },
-    [exercises, refreshWorkout]
+    [exercises]
   );
 
   const removeExerciseFromWorkout = useCallback(
