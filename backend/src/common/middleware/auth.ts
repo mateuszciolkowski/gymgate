@@ -1,8 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET =
-  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -12,9 +11,16 @@ export interface AuthRequest extends Request {
 export const authMiddleware = (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
+    if (!JWT_SECRET) {
+      console.error("FATAL: JWT_SECRET is not defined");
+      return res
+        .status(500)
+        .json({ success: false, error: "Błąd konfiguracji serwera" });
+    }
+
     const token = req.headers.authorization?.replace("Bearer ", "");
 
     if (!token) {
