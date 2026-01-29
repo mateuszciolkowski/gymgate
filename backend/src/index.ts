@@ -88,6 +88,20 @@ process.on("uncaughtException", (err: Error) => {
   console.error("STACK:", err.stack);
 });
 
-app.listen(PORT, "0.0.0.0", () => {
+// Graceful shutdown - zamknij połączenia Prisma przy wyłączeniu
+const gracefulShutdown = async (signal: string) => {
+  console.log(`\n🛑 Received ${signal}. Shutting down gracefully...`);
+  await prisma.$disconnect();
+  console.log("✅ Prisma disconnected");
+  process.exit(0);
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 GymGate API LIVE at: http://0.0.0.0:${PORT}`);
 });
+
+// Timeout dla wolnych requestów
+server.timeout = 30000;
