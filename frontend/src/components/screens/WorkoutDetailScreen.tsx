@@ -5,7 +5,7 @@ import { useData } from "@/contexts/DataContext";
 import type { ExerciseStats } from "@/types";
 import { ExerciseSelectionModal } from "./ExerciseSelectionModal";
 import { MUSCLE_GROUPS } from "@/constants";
-import type { WorkoutItem } from "@/types";
+import type { WorkoutItem, WorkoutSet } from "@/types";
 
 interface WorkoutDetailScreenProps {
   workoutId: string;
@@ -23,9 +23,6 @@ export function WorkoutDetailScreen({
   onExerciseAdded,
 }: WorkoutDetailScreenProps) {
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
-  const [editingSetId, setEditingSetId] = useState<string | null>(null);
-  const [editWeight, setEditWeight] = useState("");
-  const [editReps, setEditReps] = useState("");
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isEditingInfo, setIsEditingInfo] = useState(false);
@@ -156,38 +153,18 @@ export function WorkoutDetailScreen({
     } catch (error) {}
   };
 
-  const handleStartEditSet = (setId: string, weight: string, reps: number) => {
-    setEditingSetId(setId);
-    setEditWeight(weight);
-    setEditReps(reps.toString());
-  };
-
-  const handleSaveSet = async () => {
-    if (!editingSetId) return;
-
-    try {
-      await updateSet(editingSetId, {
-        weight: Number(editWeight),
-        repetitions: Number(editReps),
-      });
-      setEditingSetId(null);
-      setEditWeight("");
-      setEditReps("");
-    } catch (error) {}
-  };
-
-  const handleCancelEdit = () => {
-    setEditingSetId(null);
-    setEditWeight("");
-    setEditReps("");
-  };
-
   const handleDeleteSet = async (itemId: string, setId: string) => {
     if (confirm("Czy na pewno chcesz usunąć tę serię?")) {
       try {
         await deleteSet(itemId, setId);
       } catch (error) {}
     }
+  };
+
+  const handleUpdateSet = async (setId: string, weight: number, reps: number) => {
+    try {
+      await updateSet(setId, { weight, repetitions: reps });
+    } catch (error) {}
   };
 
   const handleDeleteExercise = async (itemId: string) => {
@@ -429,14 +406,7 @@ export function WorkoutDetailScreen({
                   isExpanded={expandedItemId === item.id}
                   stats={allStats.find((s) => s.exerciseId === item.exerciseId)}
                   onToggleExpand={handleToggleExpand}
-                  editingSetId={editingSetId}
-                  editWeight={editWeight}
-                  editReps={editReps}
-                  onEditWeightChange={setEditWeight}
-                  onEditRepsChange={setEditReps}
-                  onStartEditSet={handleStartEditSet}
-                  onSaveSet={handleSaveSet}
-                  onCancelEdit={handleCancelEdit}
+                  onUpdateSet={handleUpdateSet}
                   onDeleteSet={handleDeleteSet}
                   onAddSet={handleAddSet}
                   onDeleteExercise={handleDeleteExercise}
@@ -466,14 +436,7 @@ interface WorkoutItemCardProps {
   isExpanded: boolean;
   stats?: ExerciseStats;
   onToggleExpand: (itemId: string) => void;
-  editingSetId: string | null;
-  editWeight: string;
-  editReps: string;
-  onEditWeightChange: (value: string) => void;
-  onEditRepsChange: (value: string) => void;
-  onStartEditSet: (setId: string, weight: string, reps: number) => void;
-  onSaveSet: () => void;
-  onCancelEdit: () => void;
+  onUpdateSet: (setId: string, weight: number, reps: number) => void;
   onDeleteSet: (itemId: string, setId: string) => void;
   onAddSet: (itemId: string) => void;
   onDeleteExercise: (itemId: string) => void;
@@ -487,19 +450,37 @@ const WorkoutItemCard = memo(function WorkoutItemCard({
   isExpanded,
   stats,
   onToggleExpand,
-  editingSetId,
-  editWeight,
-  editReps,
-  onEditWeightChange,
-  onEditRepsChange,
-  onStartEditSet,
-  onSaveSet,
-  onCancelEdit,
+  onUpdateSet,
   onDeleteSet,
   onAddSet,
   onDeleteExercise,
 }: WorkoutItemCardProps) {
+  // Stan edycji serii - lokalny w komponencie
+  const [editingSetId, setEditingSetId] = useState<string | null>(null);
+  const [editWeight, setEditWeight] = useState("");
+  const [editReps, setEditReps] = useState("");
+  
   const canEdit = !isCompleted || isEditMode;
+
+  const handleStartEdit = (set: WorkoutSet) => {
+    setEditingSetId(set.id);
+    setEditWeight(set.weight);
+    setEditReps(set.repetitions.toString());
+  };
+
+  const handleSaveSet = () => {
+    if (!editingSetId) return;
+    onUpdateSet(editingSetId, Number(editWeight), Number(editReps));
+    setEditingSetId(null);
+    setEditWeight("");
+    setEditReps("");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingSetId(null);
+    setEditWeight("");
+    setEditReps("");
+  };
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 overflow-hidden">
@@ -624,16 +605,17 @@ const WorkoutItemCard = memo(function WorkoutItemCard({
                         <input
                           type="number"
                           value={editWeight}
-                          onChange={(e) => onEditWeightChange(e.target.value)}
+                          onChange={(e) => setEditWeight(e.target.value)}
                           placeholder="kg"
                           className="w-20 px-2 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm"
                           step="0.5"
                           min="0"
+                          autoFocus
                         />
                         <input
                           type="number"
                           value={editReps}
-                          onChange={(e) => onEditRepsChange(e.target.value)}
+                          onChange={(e) => setEditReps(e.target.value)}
                           placeholder="reps"
                           className="w-16 px-2 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm"
                           min="1"
@@ -641,13 +623,13 @@ const WorkoutItemCard = memo(function WorkoutItemCard({
                       </div>
                       <div className="flex gap-2">
                         <button
-                          onClick={onSaveSet}
+                          onClick={handleSaveSet}
                           className="p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
                         >
                           ✓
                         </button>
                         <button
-                          onClick={onCancelEdit}
+                          onClick={handleCancelEdit}
                           className="p-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                         >
                           ✕
@@ -674,13 +656,7 @@ const WorkoutItemCard = memo(function WorkoutItemCard({
                       {canEdit && (
                         <div className="flex gap-2">
                           <button
-                            onClick={() =>
-                              onStartEditSet(
-                                set.id,
-                                set.weight,
-                                set.repetitions,
-                              )
-                            }
+                            onClick={() => handleStartEdit(set)}
                             className="p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg"
                             title="Edytuj"
                           >

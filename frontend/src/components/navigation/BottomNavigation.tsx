@@ -40,7 +40,7 @@ export const BottomNavigation = memo(function BottomNavigation({
 
   return (
     <nav
-      className="absolute bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-t border-gray-300 dark:border-gray-800 px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-3 md:rounded-b-3xl z-50 transition-colors"
+      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-300 dark:border-gray-800 px-2 py-2 z-50"
       role="navigation"
       aria-label="Nawigacja główna"
     >
