@@ -103,7 +103,13 @@ function AuthenticatedApp({
   pendingExerciseAdd,
   setPendingExerciseAdd,
 }: AuthenticatedAppProps) {
-  const { createWorkout, createExercise, updateExercise, activeWorkoutId, getWorkout } = useData();
+  const {
+    createWorkout,
+    createExercise,
+    updateExercise,
+    activeWorkoutId,
+    getWorkout,
+  } = useData();
   const [isWorkoutFormOpen, setIsWorkoutFormOpen] = useState(false);
 
   const handleAddWorkoutClick = () => {

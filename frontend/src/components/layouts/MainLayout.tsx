@@ -64,9 +64,7 @@ export const MainLayout = memo(function MainLayout({
           </button>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-3 pb-20">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto p-3 pb-20">{children}</main>
 
         {bottomBar}
       </div>

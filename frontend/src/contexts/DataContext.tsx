@@ -55,20 +55,27 @@ interface DataContextType {
   // Akcje - Workout Items & Sets
   addExerciseToWorkout: (
     workoutId: string,
-    exerciseId: string
+    exerciseId: string,
   ) => Promise<void>;
-  removeExerciseFromWorkout: (workoutId: string, itemId: string) => Promise<void>;
+  removeExerciseFromWorkout: (
+    workoutId: string,
+    itemId: string,
+  ) => Promise<void>;
   addSet: (
     workoutId: string,
     itemId: string,
-    data: { weight: number; repetitions: number; setNumber: number }
+    data: { weight: number; repetitions: number; setNumber: number },
   ) => Promise<void>;
   updateSet: (
     workoutId: string,
     setId: string,
-    data: { weight?: number; repetitions?: number }
+    data: { weight?: number; repetitions?: number },
   ) => Promise<void>;
-  deleteSet: (workoutId: string, itemId: string, setId: string) => Promise<void>;
+  deleteSet: (
+    workoutId: string,
+    itemId: string,
+    setId: string,
+  ) => Promise<void>;
   completeWorkout: (id: string) => Promise<void>;
 
   // Sync
@@ -91,10 +98,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [lastSync, setLastSync] = useState(0);
 
   const initialLoadDone = useRef(false);
-  
+
   // Ref dla exercises - żeby callbacks nie zależały od exercises state
   const exercisesRef = useRef<Exercise[]>([]);
   exercisesRef.current = exercises;
+
+  // Ref dla workouts - żeby getWorkout nie zależał od workouts state
+  const workoutsRef = useRef<Workout[]>([]);
+  workoutsRef.current = workouts;
 
   // Nasłuchuj na zmiany online/offline
   useEffect(() => {
@@ -115,12 +126,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (!isOnline) return;
 
     try {
-      const [workoutsRes, exercisesRes, activeRes, statsRes] = await Promise.all([
-        authFetch(`${API_BASE}/api/workouts`).catch(() => null),
-        authFetch(`${API_BASE}/api/exercises`).catch(() => null),
-        authFetch(`${API_BASE}/api/workouts/active`).catch(() => null),
-        authFetch(`${API_BASE}/api/workouts/stats/all`).catch(() => null),
-      ]);
+      const [workoutsRes, exercisesRes, activeRes, statsRes] =
+        await Promise.all([
+          authFetch(`${API_BASE}/api/workouts`).catch(() => null),
+          authFetch(`${API_BASE}/api/exercises`).catch(() => null),
+          authFetch(`${API_BASE}/api/workouts/active`).catch(() => null),
+          authFetch(`${API_BASE}/api/workouts/stats/all`).catch(() => null),
+        ]);
 
       if (workoutsRes?.ok) {
         const data = await workoutsRes.json();
@@ -169,14 +181,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       try {
         // Załaduj z IndexedDB
-        const [localWorkouts, localExercises, localStats, localActiveId, syncTime] =
-          await Promise.all([
-            localStore.getAll<Workout>("workouts"),
-            localStore.getAll<Exercise>("exercises"),
-            localStore.getAll<ExerciseStats>("stats"),
-            localStore.getActiveWorkoutId(),
-            localStore.getLastSync(),
-          ]);
+        const [
+          localWorkouts,
+          localExercises,
+          localStats,
+          localActiveId,
+          syncTime,
+        ] = await Promise.all([
+          localStore.getAll<Workout>("workouts"),
+          localStore.getAll<Exercise>("exercises"),
+          localStore.getAll<ExerciseStats>("stats"),
+          localStore.getActiveWorkoutId(),
+          localStore.getLastSync(),
+        ]);
 
         setWorkouts(localWorkouts);
         setExercises(localExercises);
@@ -188,7 +205,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
         // Jeśli dane są stale (> 5 min) lub puste, pobierz świeże
         const isStale = Date.now() - syncTime > 5 * 60 * 1000;
-        const isEmpty = localWorkouts.length === 0 && localExercises.length === 0;
+        const isEmpty =
+          localWorkouts.length === 0 && localExercises.length === 0;
 
         if (isStale || isEmpty) {
           await fetchAllFromServer();
@@ -226,20 +244,22 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const prevJson = JSON.stringify(prev);
         return newJson !== prevJson ? localWorkouts : prev;
       });
-      
+
       setExercises((prev) => {
         const newJson = JSON.stringify(localExercises);
         const prevJson = JSON.stringify(prev);
         return newJson !== prevJson ? localExercises : prev;
       });
-      
+
       setStats((prev) => {
         const newJson = JSON.stringify(localStats);
         const prevJson = JSON.stringify(prev);
         return newJson !== prevJson ? localStats : prev;
       });
-      
-      setActiveWorkoutId((prev) => prev !== localActiveId ? localActiveId : prev);
+
+      setActiveWorkoutId((prev) =>
+        prev !== localActiveId ? localActiveId : prev,
+      );
       // Nie wywołujemy setLastSync - powoduje niepotrzebny re-render
     });
 
@@ -254,7 +274,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // === AKCJE ===
 
   const createWorkout = useCallback(
-    async (data: { workoutName?: string; gymName?: string; workoutDate?: string }) => {
+    async (data: {
+      workoutName?: string;
+      gymName?: string;
+      workoutDate?: string;
+    }) => {
       const response = await authFetch(`${API_BASE}/api/workouts`, {
         method: "POST",
         headers: getAuthHeaders(),
@@ -274,22 +298,25 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       return newWorkout;
     },
-    []
+    [],
   );
 
-  const updateWorkout = useCallback(async (id: string, data: Record<string, unknown>) => {
-    const response = await authFetch(`${API_BASE}/api/workouts/${id}`, {
-      method: "PATCH",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
+  const updateWorkout = useCallback(
+    async (id: string, data: Record<string, unknown>) => {
+      const response = await authFetch(`${API_BASE}/api/workouts/${id}`, {
+        method: "PATCH",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
 
-    if (!response.ok) throw new Error("Błąd aktualizacji treningu");
+      if (!response.ok) throw new Error("Błąd aktualizacji treningu");
 
-    const result = await response.json();
-    setWorkouts((prev) => prev.map((w) => (w.id === id ? result.data : w)));
-    await localStore.put("workouts", result.data);
-  }, []);
+      const result = await response.json();
+      setWorkouts((prev) => prev.map((w) => (w.id === id ? result.data : w)));
+      await localStore.put("workouts", result.data);
+    },
+    [],
+  );
 
   const deleteWorkout = useCallback(async (id: string) => {
     const response = await authFetch(`${API_BASE}/api/workouts/${id}`, {
@@ -300,7 +327,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     setWorkouts((prev) => prev.filter((w) => w.id !== id));
     await localStore.delete("workouts", id);
-    
+
     // Jeśli usuwamy aktywny trening, zresetuj activeWorkoutId
     setActiveWorkoutId((current) => {
       if (current === id) {
@@ -312,12 +339,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const getWorkout = useCallback(
-    (id: string) => workouts.find((w) => w.id === id),
-    [workouts]
+    (id: string) => workoutsRef.current.find((w) => w.id === id),
+    [],
   );
 
   const createExercise = useCallback(
-    async (data: { name: string; muscleGroups: string[]; description?: string }) => {
+    async (data: {
+      name: string;
+      muscleGroups: string[];
+      description?: string;
+    }) => {
       const response = await authFetch(`${API_BASE}/api/exercises`, {
         method: "POST",
         headers: getAuthHeaders(),
@@ -334,7 +365,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       return newExercise;
     },
-    []
+    [],
   );
 
   const updateExercise = useCallback(
@@ -351,7 +382,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setExercises((prev) => prev.map((e) => (e.id === id ? result.data : e)));
       await localStore.put("exercises", result.data);
     },
-    []
+    [],
   );
 
   const deleteExercise = useCallback(async (id: string) => {
@@ -385,7 +416,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       // Tymczasowe ID dla optymistycznej aktualizacji
       const tempItemId = `temp_item_${Date.now()}`;
       const tempSetId = `temp_set_${Date.now()}`;
-      
+
       // Pobierz exercise z ref (nie z state - żeby nie tworzyć zależności)
       const exercise = exercisesRef.current.find((e) => e.id === exerciseId);
       if (!exercise) throw new Error("Nie znaleziono ćwiczenia");
@@ -406,68 +437,75 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           description: exercise.description,
           photos: exercise.photos,
         },
-        sets: [{
-          id: tempSetId,
-          itemId: tempItemId,
-          setNumber: 1,
-          weight: "0",
-          repetitions: 10,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }],
+        sets: [
+          {
+            id: tempSetId,
+            itemId: tempItemId,
+            setNumber: 1,
+            weight: "0",
+            repetitions: 10,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
       };
 
       setWorkouts((prev) =>
         prev.map((w) => {
           if (w.id !== workoutId) return w;
-          const itemWithOrder = { ...newItem, orderInWorkout: w.items.length + 1 };
+          const itemWithOrder = {
+            ...newItem,
+            orderInWorkout: w.items.length + 1,
+          };
           return { ...w, items: [...w.items, itemWithOrder as any] };
-        })
+        }),
       );
 
       // Wyślij do serwera w tle (fire-and-forget)
-      authFetch(
-        `${API_BASE}/api/workouts/${workoutId}/exercises`,
-        {
-          method: "POST",
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ exerciseId }),
-        }
-      ).then(async (response) => {
-        if (!response.ok) throw new Error("Błąd dodawania ćwiczenia");
-        const result = await response.json();
-        // Zamień tymczasowe ID na prawdziwe z odpowiedzi
-        if (result.data) {
+      authFetch(`${API_BASE}/api/workouts/${workoutId}/exercises`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ exerciseId }),
+      })
+        .then(async (response) => {
+          if (!response.ok) throw new Error("Błąd dodawania ćwiczenia");
+          const result = await response.json();
+          // Zamień tymczasowe ID na prawdziwe z odpowiedzi
+          if (result.data) {
+            setWorkouts((prev) =>
+              prev.map((w) => {
+                if (w.id !== workoutId) return w;
+                return {
+                  ...w,
+                  items: w.items.map((item) =>
+                    item.id === tempItemId ? result.data : item,
+                  ),
+                };
+              }),
+            );
+          }
+        })
+        .catch(() => {
+          // Rollback przy błędzie
           setWorkouts((prev) =>
             prev.map((w) => {
               if (w.id !== workoutId) return w;
               return {
                 ...w,
-                items: w.items.map((item) =>
-                  item.id === tempItemId ? result.data : item
-                ),
+                items: w.items.filter((i) => i.id !== tempItemId),
               };
-            })
+            }),
           );
-        }
-      }).catch(() => {
-        // Rollback przy błędzie
-        setWorkouts((prev) =>
-          prev.map((w) => {
-            if (w.id !== workoutId) return w;
-            return { ...w, items: w.items.filter((i) => i.id !== tempItemId) };
-          })
-        );
-      });
+        });
     },
-    []
+    [],
   );
 
   const removeExerciseFromWorkout = useCallback(
     async (workoutId: string, itemId: string) => {
       // Zapisz oryginalny item do rollbacku
       let originalItem: any = null;
-      
+
       // Optymistyczna aktualizacja
       setWorkouts((prev) => {
         // Znajdź oryginalny item przed usunięciem
@@ -475,7 +513,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         if (workout) {
           originalItem = workout.items.find((i) => i.id === itemId);
         }
-        
+
         return prev.map((w) => {
           if (w.id !== workoutId) return w;
           return { ...w, items: w.items.filter((i) => i.id !== itemId) };
@@ -491,20 +529,25 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           setWorkouts((prev) =>
             prev.map((w) => {
               if (w.id !== workoutId) return w;
-              return { ...w, items: [...w.items, originalItem].sort((a, b) => a.orderInWorkout - b.orderInWorkout) };
-            })
+              return {
+                ...w,
+                items: [...w.items, originalItem].sort(
+                  (a, b) => a.orderInWorkout - b.orderInWorkout,
+                ),
+              };
+            }),
           );
         }
       });
     },
-    []
+    [],
   );
 
   const addSet = useCallback(
     async (
       workoutId: string,
       itemId: string,
-      data: { weight: number; repetitions: number; setNumber: number }
+      data: { weight: number; repetitions: number; setNumber: number },
     ) => {
       // Tymczasowe ID
       const tempSetId = `temp_set_${Date.now()}`;
@@ -534,7 +577,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
               };
             }),
           };
-        })
+        }),
       );
 
       // Wyślij do serwera w tle (bez await - fire and forget)
@@ -542,10 +585,32 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify(data),
-      }).then(async (response) => {
-        if (response.ok) {
-          const result = await response.json();
-          // Zamień tymczasowe ID na prawdziwe
+      })
+        .then(async (response) => {
+          if (response.ok) {
+            const result = await response.json();
+            // Zamień tymczasowe ID na prawdziwe
+            setWorkouts((prev) =>
+              prev.map((w) => {
+                if (w.id !== workoutId) return w;
+                return {
+                  ...w,
+                  items: w.items.map((item) => {
+                    if (item.id !== itemId) return item;
+                    return {
+                      ...item,
+                      sets: item.sets.map((s) =>
+                        s.id === tempSetId ? result.data : s,
+                      ),
+                    };
+                  }),
+                };
+              }),
+            );
+          }
+        })
+        .catch(() => {
+          // Rollback przy błędzie
           setWorkouts((prev) =>
             prev.map((w) => {
               if (w.id !== workoutId) return w;
@@ -555,42 +620,22 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                   if (item.id !== itemId) return item;
                   return {
                     ...item,
-                    sets: item.sets.map((s) =>
-                      s.id === tempSetId ? result.data : s
-                    ),
+                    sets: item.sets.filter((s) => s.id !== tempSetId),
                   };
                 }),
               };
-            })
+            }),
           );
-        }
-      }).catch(() => {
-        // Rollback przy błędzie
-        setWorkouts((prev) =>
-          prev.map((w) => {
-            if (w.id !== workoutId) return w;
-            return {
-              ...w,
-              items: w.items.map((item) => {
-                if (item.id !== itemId) return item;
-                return {
-                  ...item,
-                  sets: item.sets.filter((s) => s.id !== tempSetId),
-                };
-              }),
-            };
-          })
-        );
-      });
+        });
     },
-    []
+    [],
   );
 
   const updateSet = useCallback(
     async (
       workoutId: string,
       setId: string,
-      data: { weight?: number; repetitions?: number }
+      data: { weight?: number; repetitions?: number },
     ) => {
       // Zapisz oryginalne wartości do rollbacku (używamy ref do przechowania)
       let originalSet: any = null;
@@ -615,10 +660,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                 s.id === setId
                   ? {
                       ...s,
-                      weight: data.weight !== undefined ? String(data.weight) : s.weight,
-                      repetitions: data.repetitions !== undefined ? data.repetitions : s.repetitions,
+                      weight:
+                        data.weight !== undefined
+                          ? String(data.weight)
+                          : s.weight,
+                      repetitions:
+                        data.repetitions !== undefined
+                          ? data.repetitions
+                          : s.repetitions,
                     }
-                  : s
+                  : s,
               ),
             })),
           };
@@ -641,16 +692,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                 items: w.items.map((item) => ({
                   ...item,
                   sets: item.sets.map((s) =>
-                    s.id === setId ? originalSet : s
+                    s.id === setId ? originalSet : s,
                   ),
                 })),
               };
-            })
+            }),
           );
         }
       });
     },
-    []
+    [],
   );
 
   const deleteSet = useCallback(
@@ -699,17 +750,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                   return {
                     ...item,
                     sets: [...item.sets, originalSet].sort(
-                      (a, b) => a.setNumber - b.setNumber
+                      (a, b) => a.setNumber - b.setNumber,
                     ),
                   };
                 }),
               };
-            })
+            }),
           );
         }
       });
     },
-    []
+    [],
   );
 
   const completeWorkout = useCallback(async (id: string) => {
@@ -745,30 +796,56 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     await syncManager.syncNow();
   }, []);
 
-  const value: DataContextType = {
-    workouts,
-    exercises,
-    stats,
-    activeWorkoutId,
-    isLoading,
-    isOnline,
-    lastSync,
-    createWorkout,
-    updateWorkout,
-    deleteWorkout,
-    getWorkout,
-    createExercise,
-    updateExercise,
-    deleteExercise,
-    addExerciseToWorkout,
-    removeExerciseFromWorkout,
-    addSet,
-    updateSet,
-    deleteSet,
-    completeWorkout,
-    syncNow,
-    refreshWorkout,
-  };
+  const value: DataContextType = useMemo(
+    () => ({
+      workouts,
+      exercises,
+      stats,
+      activeWorkoutId,
+      isLoading,
+      isOnline,
+      lastSync,
+      createWorkout,
+      updateWorkout,
+      deleteWorkout,
+      getWorkout,
+      createExercise,
+      updateExercise,
+      deleteExercise,
+      addExerciseToWorkout,
+      removeExerciseFromWorkout,
+      addSet,
+      updateSet,
+      deleteSet,
+      completeWorkout,
+      syncNow,
+      refreshWorkout,
+    }),
+    [
+      workouts,
+      exercises,
+      stats,
+      activeWorkoutId,
+      isLoading,
+      isOnline,
+      lastSync,
+      createWorkout,
+      updateWorkout,
+      deleteWorkout,
+      getWorkout,
+      createExercise,
+      updateExercise,
+      deleteExercise,
+      addExerciseToWorkout,
+      removeExerciseFromWorkout,
+      addSet,
+      updateSet,
+      deleteSet,
+      completeWorkout,
+      syncNow,
+      refreshWorkout,
+    ],
+  );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }
@@ -783,28 +860,42 @@ export function useData() {
 
 // Pomocnicze hooki dla kompatybilności wstecznej
 export function useWorkoutsData() {
-  const { workouts, isLoading, createWorkout, updateWorkout, deleteWorkout, syncNow } =
-    useData();
+  const {
+    workouts,
+    isLoading,
+    createWorkout,
+    updateWorkout,
+    deleteWorkout,
+    syncNow,
+  } = useData();
   return {
     workouts,
     loading: isLoading,
     error: null,
     createWorkout,
-    updateWorkout: (id: string, data: Record<string, unknown>) => updateWorkout(id, data),
+    updateWorkout: (id: string, data: Record<string, unknown>) =>
+      updateWorkout(id, data),
     deleteWorkout,
     refetch: syncNow,
   };
 }
 
 export function useExercisesData() {
-  const { exercises, isLoading, createExercise, updateExercise, deleteExercise, syncNow } =
-    useData();
+  const {
+    exercises,
+    isLoading,
+    createExercise,
+    updateExercise,
+    deleteExercise,
+    syncNow,
+  } = useData();
   return {
     exercises,
     loading: isLoading,
     error: null,
     addExercise: createExercise,
-    updateExercise: (id: string, data: Record<string, unknown>) => updateExercise(id, data),
+    updateExercise: (id: string, data: Record<string, unknown>) =>
+      updateExercise(id, data),
     deleteExercise,
     refetch: syncNow,
   };
@@ -838,19 +929,37 @@ export function useWorkoutData(id: string) {
   const workout = getWorkout(id);
 
   // Memoizuj funkcje żeby nie tworzyć nowych przy każdym renderze
-  const memoizedFunctions = useMemo(() => ({
-    refetch: () => refreshWorkout(id),
-    addExercise: (data: { exerciseId: string }) =>
-      addExerciseToWorkout(id, data.exerciseId),
-    addSet: (itemId: string, data: { weight: number; repetitions: number; setNumber: number }) =>
-      addSet(id, itemId, data),
-    updateSet: (setId: string, data: { weight?: number; repetitions?: number }) =>
-      updateSet(id, setId, data),
-    deleteSet: (itemId: string, setId: string) => deleteSet(id, itemId, setId),
-    deleteExercise: (itemId: string) => removeExerciseFromWorkout(id, itemId),
-    completeWorkout: () => completeWorkout(id),
-    updateWorkout: (data: Record<string, unknown>) => updateWorkout(id, data),
-  }), [id, addExerciseToWorkout, removeExerciseFromWorkout, addSet, updateSet, deleteSet, completeWorkout, updateWorkout, refreshWorkout]);
+  const memoizedFunctions = useMemo(
+    () => ({
+      refetch: () => refreshWorkout(id),
+      addExercise: (data: { exerciseId: string }) =>
+        addExerciseToWorkout(id, data.exerciseId),
+      addSet: (
+        itemId: string,
+        data: { weight: number; repetitions: number; setNumber: number },
+      ) => addSet(id, itemId, data),
+      updateSet: (
+        setId: string,
+        data: { weight?: number; repetitions?: number },
+      ) => updateSet(id, setId, data),
+      deleteSet: (itemId: string, setId: string) =>
+        deleteSet(id, itemId, setId),
+      deleteExercise: (itemId: string) => removeExerciseFromWorkout(id, itemId),
+      completeWorkout: () => completeWorkout(id),
+      updateWorkout: (data: Record<string, unknown>) => updateWorkout(id, data),
+    }),
+    [
+      id,
+      addExerciseToWorkout,
+      removeExerciseFromWorkout,
+      addSet,
+      updateSet,
+      deleteSet,
+      completeWorkout,
+      updateWorkout,
+      refreshWorkout,
+    ],
+  );
 
   return {
     workout: workout || null,

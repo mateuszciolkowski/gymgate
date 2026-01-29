@@ -110,7 +110,9 @@ class SyncManager {
 
     if (operations.length === 0) return;
 
-    console.log(`[SyncManager] Processing ${operations.length} pending operations`);
+    console.log(
+      `[SyncManager] Processing ${operations.length} pending operations`,
+    );
 
     // Sortuj po timestamp
     operations.sort((a, b) => a.timestamp - b.timestamp);
@@ -120,13 +122,16 @@ class SyncManager {
         const fetchOptions: RequestInit = {
           method: op.method,
         };
-        
+
         if (op.data) {
           fetchOptions.headers = getAuthHeaders();
           fetchOptions.body = JSON.stringify(op.data);
         }
-        
-        const response = await authFetch(`${API_BASE}${op.endpoint}`, fetchOptions);
+
+        const response = await authFetch(
+          `${API_BASE}${op.endpoint}`,
+          fetchOptions,
+        );
 
         if (response.ok) {
           await localStore.removePendingSync(op.id);
@@ -140,10 +145,15 @@ class SyncManager {
         } else {
           // Za dużo prób - usuń
           await localStore.removePendingSync(op.id);
-          console.warn(`[SyncManager] Operation ${op.id} failed after ${MAX_RETRIES} retries`);
+          console.warn(
+            `[SyncManager] Operation ${op.id} failed after ${MAX_RETRIES} retries`,
+          );
         }
       } catch (error) {
-        console.error(`[SyncManager] Failed to process operation ${op.id}:`, error);
+        console.error(
+          `[SyncManager] Failed to process operation ${op.id}:`,
+          error,
+        );
       }
     }
   }
@@ -154,12 +164,13 @@ class SyncManager {
   private async fetchFreshData(): Promise<void> {
     try {
       // Pobierz równolegle wszystkie dane
-      const [workoutsRes, exercisesRes, activeRes, statsRes] = await Promise.all([
-        authFetch(`${API_BASE}/api/workouts`).catch(() => null),
-        authFetch(`${API_BASE}/api/exercises`).catch(() => null),
-        authFetch(`${API_BASE}/api/workouts/active`).catch(() => null),
-        authFetch(`${API_BASE}/api/workouts/stats/all`).catch(() => null),
-      ]);
+      const [workoutsRes, exercisesRes, activeRes, statsRes] =
+        await Promise.all([
+          authFetch(`${API_BASE}/api/workouts`).catch(() => null),
+          authFetch(`${API_BASE}/api/exercises`).catch(() => null),
+          authFetch(`${API_BASE}/api/workouts/active`).catch(() => null),
+          authFetch(`${API_BASE}/api/workouts/stats/all`).catch(() => null),
+        ]);
 
       // Zapisz workouty
       if (workoutsRes?.ok) {
@@ -202,7 +213,7 @@ class SyncManager {
    * Zaplanuj operację do synchronizacji (dla trybu offline)
    */
   async queueOperation(
-    operation: Omit<SyncOperation, "id" | "timestamp" | "retries">
+    operation: Omit<SyncOperation, "id" | "timestamp" | "retries">,
   ): Promise<string> {
     const id = await localStore.addPendingSync({
       ...operation,

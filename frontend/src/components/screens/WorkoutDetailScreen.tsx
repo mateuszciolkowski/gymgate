@@ -135,51 +135,63 @@ export function WorkoutDetailScreen({
     }
   };
 
-  const handleAddSet = useCallback(async (itemId: string) => {
-    const currentWorkout = workoutRef.current;
-    if (!currentWorkout) return;
-    
-    const item = currentWorkout.items.find((i) => i.id === itemId);
-    if (!item) return;
+  const handleAddSet = useCallback(
+    async (itemId: string) => {
+      const currentWorkout = workoutRef.current;
+      if (!currentWorkout) return;
 
-    const lastSet = item.sets[item.sets.length - 1];
-    const nextSetNumber = lastSet ? lastSet.setNumber + 1 : 1;
-    const defaultWeight = lastSet ? Number(lastSet.weight) : 0;
-    const defaultReps = lastSet ? lastSet.repetitions : 10;
+      const item = currentWorkout.items.find((i) => i.id === itemId);
+      if (!item) return;
 
-    try {
-      await addSet(itemId, {
-        weight: defaultWeight,
-        repetitions: defaultReps,
-        setNumber: nextSetNumber,
-      });
-    } catch (error) {}
-  }, [addSet]);
+      const lastSet = item.sets[item.sets.length - 1];
+      const nextSetNumber = lastSet ? lastSet.setNumber + 1 : 1;
+      const defaultWeight = lastSet ? Number(lastSet.weight) : 0;
+      const defaultReps = lastSet ? lastSet.repetitions : 10;
 
-  const handleDeleteSet = useCallback(async (itemId: string, setId: string) => {
-    if (confirm("Czy na pewno chcesz usunąć tę serię?")) {
       try {
-        await deleteSet(itemId, setId);
+        await addSet(itemId, {
+          weight: defaultWeight,
+          repetitions: defaultReps,
+          setNumber: nextSetNumber,
+        });
       } catch (error) {}
-    }
-  }, [deleteSet]);
+    },
+    [addSet],
+  );
 
-  const handleUpdateSet = useCallback(async (setId: string, weight: number, reps: number) => {
-    try {
-      await updateSet(setId, { weight, repetitions: reps });
-    } catch (error) {}
-  }, [updateSet]);
+  const handleDeleteSet = useCallback(
+    async (itemId: string, setId: string) => {
+      if (confirm("Czy na pewno chcesz usunąć tę serię?")) {
+        try {
+          await deleteSet(itemId, setId);
+        } catch (error) {}
+      }
+    },
+    [deleteSet],
+  );
 
-  const handleDeleteExercise = useCallback(async (itemId: string) => {
-    if (confirm("Czy na pewno chcesz usunąć to ćwiczenie z treningu?")) {
+  const handleUpdateSet = useCallback(
+    async (setId: string, weight: number, reps: number) => {
       try {
-        await deleteExercise(itemId);
+        await updateSet(setId, { weight, repetitions: reps });
       } catch (error) {}
-    }
-  }, [deleteExercise]);
+    },
+    [updateSet],
+  );
+
+  const handleDeleteExercise = useCallback(
+    async (itemId: string) => {
+      if (confirm("Czy na pewno chcesz usunąć to ćwiczenie z treningu?")) {
+        try {
+          await deleteExercise(itemId);
+        } catch (error) {}
+      }
+    },
+    [deleteExercise],
+  );
 
   const handleToggleExpand = useCallback((itemId: string) => {
-    setExpandedItemId((prev) => prev === itemId ? null : itemId);
+    setExpandedItemId((prev) => (prev === itemId ? null : itemId));
   }, []);
 
   const formatDate = (date: string) => {
@@ -449,28 +461,29 @@ interface WorkoutItemCardProps {
   onDeleteExercise: (itemId: string) => void;
 }
 
-const WorkoutItemCard = memo(function WorkoutItemCard({
-  item,
-  exerciseNumber,
-  isCompleted,
-  isEditMode,
-  isExpanded,
-  stats,
-  onToggleExpand,
-  onUpdateSet,
-  onDeleteSet,
-  onAddSet,
-  onDeleteExercise,
-}: WorkoutItemCardProps) {
-  // Stan edycji serii - lokalny w komponencie
-  const [editingSetId, setEditingSetId] = useState<string | null>(null);
-  const [editWeight, setEditWeight] = useState("");
-  const [editReps, setEditReps] = useState("");
-  
-  const canEdit = !isCompleted || isEditMode;
+const WorkoutItemCard = memo(
+  function WorkoutItemCard({
+    item,
+    exerciseNumber,
+    isCompleted,
+    isEditMode,
+    isExpanded,
+    stats,
+    onToggleExpand,
+    onUpdateSet,
+    onDeleteSet,
+    onAddSet,
+    onDeleteExercise,
+  }: WorkoutItemCardProps) {
+    // Stan edycji serii - lokalny w komponencie
+    const [editingSetId, setEditingSetId] = useState<string | null>(null);
+    const [editWeight, setEditWeight] = useState("");
+    const [editReps, setEditReps] = useState("");
 
-  const handleStartEdit = (set: WorkoutSet) => {
-    setEditingSetId(set.id);
+    const canEdit = !isCompleted || isEditMode;
+
+    const handleStartEdit = (set: WorkoutSet) => {
+      setEditingSetId(set.id);
     setEditWeight(set.weight);
     setEditReps(set.repetitions.toString());
   };
@@ -729,4 +742,27 @@ const WorkoutItemCard = memo(function WorkoutItemCard({
       )}
     </div>
   );
-});
+  },
+  // Custom comparator - porównuj głęboko item i stats, callbacks są już stabilne
+  (prevProps, nextProps) => {
+    // Jeśli referencje są takie same, nie przeładowuj
+    if (prevProps === nextProps) return true;
+    
+    // Porównaj prymitywy
+    if (prevProps.exerciseNumber !== nextProps.exerciseNumber) return false;
+    if (prevProps.isCompleted !== nextProps.isCompleted) return false;
+    if (prevProps.isEditMode !== nextProps.isEditMode) return false;
+    if (prevProps.isExpanded !== nextProps.isExpanded) return false;
+    
+    // Porównaj item po JSON (głębokie porównanie)
+    if (JSON.stringify(prevProps.item) !== JSON.stringify(nextProps.item)) return false;
+    
+    // Porównaj stats po JSON
+    if (JSON.stringify(prevProps.stats) !== JSON.stringify(nextProps.stats)) return false;
+    
+    // Callbacks - zakładamy że są stabilne (useCallback z pustymi deps)
+    // Nie porównujemy ich bo to by wymagało porównania referencji które mogą się zmieniać
+    
+    return true;
+  }
+);

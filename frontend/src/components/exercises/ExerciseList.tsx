@@ -30,14 +30,18 @@ export function ExerciseList({
   const [showOnlyMyExercises, setShowOnlyMyExercises] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { exercises: allExercises, stats: allStats, isLoading: loading } = useData();
+  const {
+    exercises: allExercises,
+    stats: allStats,
+    isLoading: loading,
+  } = useData();
   const { user } = useAuth();
 
   // Filter exercises by muscle group
   const exercises = useMemo(() => {
     if (!selectedMuscleGroup) return allExercises;
     return allExercises.filter((ex) =>
-      ex.muscleGroups.includes(selectedMuscleGroup)
+      ex.muscleGroups.includes(selectedMuscleGroup),
     );
   }, [allExercises, selectedMuscleGroup]);
 

@@ -111,7 +111,7 @@ export const localStore = {
 
   async put<T extends { id?: string }>(
     storeName: keyof StoreConfig,
-    data: T
+    data: T,
   ): Promise<void> {
     const database = await openDB();
     return new Promise((resolve, reject) => {
@@ -126,7 +126,7 @@ export const localStore = {
 
   async putMany<T extends { id?: string }>(
     storeName: keyof StoreConfig,
-    items: T[]
+    items: T[],
   ): Promise<void> {
     const database = await openDB();
     return new Promise((resolve, reject) => {
@@ -196,20 +196,23 @@ export const localStore = {
   async getLastSync(): Promise<number> {
     const meta = await this.get<{ key: string; lastSync: number }>(
       "metadata",
-      "sync"
+      "sync",
     );
     return meta?.lastSync || 0;
   },
 
   async setLastSync(timestamp: number): Promise<void> {
-    await this.put("metadata", { key: "sync", lastSync: timestamp } as unknown as { id: string });
+    await this.put("metadata", {
+      key: "sync",
+      lastSync: timestamp,
+    } as unknown as { id: string });
   },
 
   // Active workout helper
   async getActiveWorkoutId(): Promise<string | null> {
     const data = await this.get<{ key: string; workoutId: string | null }>(
       "activeWorkout",
-      "current"
+      "current",
     );
     return data?.workoutId || null;
   },
