@@ -63,19 +63,22 @@ app.use("/api/exercises", exerciseRouter);
 app.use("/api/users", userRouter);
 app.use("/api/workouts", workoutRouter);
 
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error("Express Error Handler:", err.message);
+  console.error("Stack:", err.stack);
+  res.status(500).json({
+    success: false,
+    error: "Internal server error",
+  });
+});
+
 process.on("unhandledRejection", (reason: any, promise: Promise<any>) => {
-  console.error(
-    "CRITICAL: Unhandled Rejection at:",
-    promise,
-    "reason:",
-    reason,
-  );
+  console.error("WARNING: Unhandled Rejection at:", promise, "reason:", reason);
 });
 
 process.on("uncaughtException", (err: Error) => {
-  console.error("CRITICAL: Uncaught Exception:", err.message);
+  console.error("WARNING: Uncaught Exception:", err.message);
   console.error("STACK:", err.stack);
-  process.exit(1);
 });
 
 app.listen(PORT, "0.0.0.0", () => {
