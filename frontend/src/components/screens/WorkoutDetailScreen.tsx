@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { ScreenContainer, ScreenHeader } from "@/components/ui";
-import { useWorkout } from "@/hooks";
+import { useWorkoutData } from "@/contexts/DataContext";
 import { useData } from "@/contexts/DataContext";
 import type { ExerciseStats } from "@/types";
 import { ExerciseSelectionModal } from "./ExerciseSelectionModal";
@@ -45,23 +45,17 @@ export function WorkoutDetailScreen({
     deleteSet,
     deleteExercise,
     updateWorkout,
-  } = useWorkout(workoutId);
+  } = useWorkoutData(workoutId);
 
   const handleAddExercise = useCallback(
     async (exerciseId: string) => {
       if (!workout) return;
       try {
-        const newItem = await addExercise({
-          exerciseId,
-          orderInWorkout: workout.items.length + 1,
-        });
+        await addExercise({ exerciseId });
         setIsExerciseModalOpen(false);
-        if (newItem?.id) {
-          setExpandedItemId(newItem.id);
-        }
       } catch (error) {}
     },
-    [workout, addExercise, setIsExerciseModalOpen, setExpandedItemId],
+    [workout, addExercise, setIsExerciseModalOpen],
   );
 
   useEffect(() => {
@@ -189,10 +183,10 @@ export function WorkoutDetailScreen({
     setEditReps("");
   };
 
-  const handleDeleteSet = async (setId: string) => {
+  const handleDeleteSet = async (itemId: string, setId: string) => {
     if (confirm("Czy na pewno chcesz usunąć tę serię?")) {
       try {
-        await deleteSet(setId);
+        await deleteSet(itemId, setId);
       } catch (error) {}
     }
   };
@@ -481,7 +475,7 @@ interface WorkoutItemCardProps {
   onStartEditSet: (setId: string, weight: string, reps: number) => void;
   onSaveSet: () => void;
   onCancelEdit: () => void;
-  onDeleteSet: (setId: string) => void;
+  onDeleteSet: (itemId: string, setId: string) => void;
   onAddSet: (itemId: string) => void;
   onDeleteExercise: (itemId: string) => void;
 }
@@ -707,7 +701,7 @@ function WorkoutItemCard({
                             </svg>
                           </button>
                           <button
-                            onClick={() => onDeleteSet(set.id)}
+                            onClick={() => onDeleteSet(item.id, set.id)}
                             className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
                             title="Usuń"
                           >

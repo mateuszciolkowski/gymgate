@@ -349,37 +349,108 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Workout Items & Sets
+  // Workout Items & Sets - OPTYMISTYCZNE AKTUALIZACJE
   const addExerciseToWorkout = useCallback(
     async (workoutId: string, exerciseId: string) => {
-      const response = await authFetch(
-        `${API_BASE}/api/workouts/${workoutId}/exercises`,
-        {
-          method: "POST",
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ exerciseId }),
-        }
+      // Znajdź ćwiczenie
+      const exercise = exercises.find((e) => e.id === exerciseId);
+      if (!exercise) throw new Error("Nie znaleziono ćwiczenia");
+
+      // Znajdź workout
+      const workout = workouts.find((w) => w.id === workoutId);
+      if (!workout) throw new Error("Nie znaleziono treningu");
+
+      // Tymczasowe ID dla optymistycznej aktualizacji
+      const tempItemId = `temp_item_${Date.now()}`;
+      const tempSetId = `temp_set_${Date.now()}`;
+
+      // Optymistyczna aktualizacja - dodaj od razu do UI
+      const newItem = {
+        id: tempItemId,
+        workoutId,
+        exerciseId,
+        orderInWorkout: workout.items.length + 1,
+        notes: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        exercise: {
+          id: exercise.id,
+          name: exercise.name,
+          muscleGroups: exercise.muscleGroups,
+          description: exercise.description,
+          photos: exercise.photos,
+        },
+        sets: [{
+          id: tempSetId,
+          itemId: tempItemId,
+          setNumber: 1,
+          weight: "0",
+          repetitions: 10,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }],
+      };
+
+      setWorkouts((prev) =>
+        prev.map((w) => {
+          if (w.id !== workoutId) return w;
+          return { ...w, items: [...w.items, newItem as any] };
+        })
       );
 
-      if (!response.ok) throw new Error("Błąd dodawania ćwiczenia");
+      // Wyślij do serwera w tle
+      try {
+        const response = await authFetch(
+          `${API_BASE}/api/workouts/${workoutId}/exercises`,
+          {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ exerciseId }),
+          }
+        );
 
-      // Odśwież workout
-      await refreshWorkout(workoutId);
+        if (!response.ok) throw new Error("Błąd dodawania ćwiczenia");
+
+        // Odśwież z serwera żeby mieć prawdziwe ID
+        await refreshWorkout(workoutId);
+      } catch (error) {
+        // Rollback przy błędzie
+        setWorkouts((prev) =>
+          prev.map((w) => {
+            if (w.id !== workoutId) return w;
+            return { ...w, items: w.items.filter((i) => i.id !== tempItemId) };
+          })
+        );
+        throw error;
+      }
     },
-    [refreshWorkout]
+    [exercises, workouts, refreshWorkout]
   );
 
   const removeExerciseFromWorkout = useCallback(
     async (workoutId: string, itemId: string) => {
-      const response = await authFetch(`${API_BASE}/api/workouts/items/${itemId}`, {
-        method: "DELETE",
-      });
+      // Optymistyczna aktualizacja
+      const originalWorkouts = [...workouts];
+      setWorkouts((prev) =>
+        prev.map((w) => {
+          if (w.id !== workoutId) return w;
+          return { ...w, items: w.items.filter((i) => i.id !== itemId) };
+        })
+      );
 
-      if (!response.ok) throw new Error("Błąd usuwania ćwiczenia");
+      try {
+        const response = await authFetch(`${API_BASE}/api/workouts/items/${itemId}`, {
+          method: "DELETE",
+        });
 
-      await refreshWorkout(workoutId);
+        if (!response.ok) throw new Error("Błąd usuwania ćwiczenia");
+      } catch (error) {
+        // Rollback
+        setWorkouts(originalWorkouts);
+        throw error;
+      }
     },
-    [refreshWorkout]
+    [workouts]
   );
 
   const addSet = useCallback(
@@ -388,20 +459,84 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       itemId: string,
       data: { weight: number; repetitions: number; setNumber: number }
     ) => {
-      const response = await authFetch(
-        `${API_BASE}/api/workouts/items/${itemId}/sets`,
-        {
-          method: "POST",
-          headers: getAuthHeaders(),
-          body: JSON.stringify(data),
-        }
+      // Tymczasowe ID
+      const tempSetId = `temp_set_${Date.now()}`;
+
+      // Optymistyczna aktualizacja
+      setWorkouts((prev) =>
+        prev.map((w) => {
+          if (w.id !== workoutId) return w;
+          return {
+            ...w,
+            items: w.items.map((item) => {
+              if (item.id !== itemId) return item;
+              return {
+                ...item,
+                sets: [
+                  ...item.sets,
+                  {
+                    id: tempSetId,
+                    itemId,
+                    setNumber: data.setNumber,
+                    weight: String(data.weight),
+                    repetitions: data.repetitions,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  },
+                ],
+              };
+            }),
+          };
+        })
       );
 
-      if (!response.ok) throw new Error("Błąd dodawania serii");
-
-      await refreshWorkout(workoutId);
+      // Wyślij do serwera w tle (bez await - fire and forget)
+      authFetch(`${API_BASE}/api/workouts/items/${itemId}/sets`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      }).then(async (response) => {
+        if (response.ok) {
+          const result = await response.json();
+          // Zamień tymczasowe ID na prawdziwe
+          setWorkouts((prev) =>
+            prev.map((w) => {
+              if (w.id !== workoutId) return w;
+              return {
+                ...w,
+                items: w.items.map((item) => {
+                  if (item.id !== itemId) return item;
+                  return {
+                    ...item,
+                    sets: item.sets.map((s) =>
+                      s.id === tempSetId ? result.data : s
+                    ),
+                  };
+                }),
+              };
+            })
+          );
+        }
+      }).catch(() => {
+        // Rollback przy błędzie
+        setWorkouts((prev) =>
+          prev.map((w) => {
+            if (w.id !== workoutId) return w;
+            return {
+              ...w,
+              items: w.items.map((item) => {
+                if (item.id !== itemId) return item;
+                return {
+                  ...item,
+                  sets: item.sets.filter((s) => s.id !== tempSetId),
+                };
+              }),
+            };
+          })
+        );
+      });
     },
-    [refreshWorkout]
+    []
   );
 
   const updateSet = useCallback(
@@ -410,30 +545,120 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setId: string,
       data: { weight?: number; repetitions?: number }
     ) => {
-      const response = await authFetch(`${API_BASE}/api/workouts/sets/${setId}`, {
+      // Zapisz oryginalne wartości do rollbacku
+      let originalSet: any = null;
+      workouts.forEach((w) => {
+        w.items.forEach((item) => {
+          const set = item.sets.find((s) => s.id === setId);
+          if (set) originalSet = { ...set };
+        });
+      });
+
+      // Optymistyczna aktualizacja
+      setWorkouts((prev) =>
+        prev.map((w) => {
+          if (w.id !== workoutId) return w;
+          return {
+            ...w,
+            items: w.items.map((item) => ({
+              ...item,
+              sets: item.sets.map((s) =>
+                s.id === setId
+                  ? {
+                      ...s,
+                      weight: data.weight !== undefined ? String(data.weight) : s.weight,
+                      repetitions: data.repetitions !== undefined ? data.repetitions : s.repetitions,
+                    }
+                  : s
+              ),
+            })),
+          };
+        })
+      );
+
+      // Wyślij do serwera w tle
+      authFetch(`${API_BASE}/api/workouts/sets/${setId}`, {
         method: "PATCH",
         headers: getAuthHeaders(),
         body: JSON.stringify(data),
+      }).catch(() => {
+        // Rollback przy błędzie
+        if (originalSet) {
+          setWorkouts((prev) =>
+            prev.map((w) => {
+              if (w.id !== workoutId) return w;
+              return {
+                ...w,
+                items: w.items.map((item) => ({
+                  ...item,
+                  sets: item.sets.map((s) =>
+                    s.id === setId ? originalSet : s
+                  ),
+                })),
+              };
+            })
+          );
+        }
       });
-
-      if (!response.ok) throw new Error("Błąd aktualizacji serii");
-
-      await refreshWorkout(workoutId);
     },
-    [refreshWorkout]
+    [workouts]
   );
 
   const deleteSet = useCallback(
-    async (workoutId: string, _itemId: string, setId: string) => {
-      const response = await authFetch(`${API_BASE}/api/workouts/sets/${setId}`, {
-        method: "DELETE",
+    async (workoutId: string, itemId: string, setId: string) => {
+      // Zapisz oryginalną serię do rollbacku
+      let originalSet: any = null;
+      workouts.forEach((w) => {
+        w.items.forEach((item) => {
+          const set = item.sets.find((s) => s.id === setId);
+          if (set) originalSet = { ...set };
+        });
       });
 
-      if (!response.ok) throw new Error("Błąd usuwania serii");
+      // Optymistyczna aktualizacja
+      setWorkouts((prev) =>
+        prev.map((w) => {
+          if (w.id !== workoutId) return w;
+          return {
+            ...w,
+            items: w.items.map((item) => {
+              if (item.id !== itemId) return item;
+              return {
+                ...item,
+                sets: item.sets.filter((s) => s.id !== setId),
+              };
+            }),
+          };
+        })
+      );
 
-      await refreshWorkout(workoutId);
+      // Wyślij do serwera w tle
+      authFetch(`${API_BASE}/api/workouts/sets/${setId}`, {
+        method: "DELETE",
+      }).catch(() => {
+        // Rollback przy błędzie
+        if (originalSet) {
+          setWorkouts((prev) =>
+            prev.map((w) => {
+              if (w.id !== workoutId) return w;
+              return {
+                ...w,
+                items: w.items.map((item) => {
+                  if (item.id !== itemId) return item;
+                  return {
+                    ...item,
+                    sets: [...item.sets, originalSet].sort(
+                      (a, b) => a.setNumber - b.setNumber
+                    ),
+                  };
+                }),
+              };
+            })
+          );
+        }
+      });
     },
-    [refreshWorkout]
+    [workouts]
   );
 
   const completeWorkout = useCallback(async (id: string) => {

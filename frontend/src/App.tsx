@@ -103,11 +103,13 @@ function AuthenticatedApp({
   pendingExerciseAdd,
   setPendingExerciseAdd,
 }: AuthenticatedAppProps) {
-  const { createWorkout, createExercise, updateExercise, activeWorkoutId } = useData();
+  const { createWorkout, createExercise, updateExercise, activeWorkoutId, getWorkout } = useData();
   const [isWorkoutFormOpen, setIsWorkoutFormOpen] = useState(false);
 
   const handleAddWorkoutClick = () => {
-    if (activeWorkoutId) {
+    // Sprawdź czy istnieje aktywny trening I czy jest załadowany
+    const activeWorkout = activeWorkoutId ? getWorkout(activeWorkoutId) : null;
+    if (activeWorkout) {
       // Jest aktywny trening - przejdź do niego
       setSelectedWorkoutId(activeWorkoutId);
       setScreen("workout-detail");
