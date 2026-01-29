@@ -5,13 +5,20 @@ import express, {
 } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+
+console.log("🔄 Loading environment...");
+dotenv.config();
+
+console.log("🔄 Loading database module...");
 import prisma from "./config/database.js";
+
+console.log("🔄 Loading routers...");
 import { exerciseRouter } from "./modules/exercise/exercise.routes.js";
 import userRouter from "./modules/user/user.routes.js";
 import workoutRouter from "./modules/workout/workout.routes.js";
 import authRouter from "./modules/auth/auth.routes.js";
 
-dotenv.config();
+console.log("✅ All modules loaded");
 
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
