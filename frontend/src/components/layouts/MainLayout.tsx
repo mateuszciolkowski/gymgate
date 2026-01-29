@@ -15,9 +15,9 @@ export const MainLayout = memo(function MainLayout({
   const { toggleTheme, isDark } = useTheme();
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-light-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex items-center justify-center md:p-6 lg:p-10 transition-colors">
+    <div className="min-h-screen min-h-[100dvh] bg-white dark:bg-gray-900 md:bg-light-50 md:dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex items-center justify-center md:p-6 lg:p-10 transition-colors">
       <div className="w-full h-[100dvh] md:h-[85vh] md:max-h-[900px] md:w-[430px] md:rounded-3xl md:border md:border-gray-200 dark:border-gray-800 md:shadow-2xl md:shadow-black/50 bg-white dark:bg-gray-900 relative overflow-hidden flex flex-col transition-colors">
-        <header className="px-5 pt-6 pb-4 flex items-center justify-between">
+        <header className="px-5 pt-4 pb-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white flex-1 text-center">
             Witaj,{" "}
             <span className="text-emerald-600 dark:text-emerald-500">

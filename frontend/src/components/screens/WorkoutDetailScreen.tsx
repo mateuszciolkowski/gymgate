@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect, useCallback, memo, useRef } from "react";
 import { ScreenContainer, ScreenHeader } from "@/components/ui";
 import { useWorkoutData } from "@/contexts/DataContext";
 import { useData } from "@/contexts/DataContext";
@@ -44,14 +44,18 @@ export function WorkoutDetailScreen({
     updateWorkout,
   } = useWorkoutData(workoutId);
 
+  // Ref do przechowywania aktualnego workout - nie powoduje re-renderów
+  const workoutRef = useRef(workout);
+  workoutRef.current = workout;
+
   const handleAddExercise = useCallback(
     (exerciseId: string) => {
-      if (!workout) return;
+      if (!workoutRef.current) return;
       // Fire-and-forget - nie czekaj na odpowiedź
       addExercise({ exerciseId }).catch(() => {});
       setIsExerciseModalOpen(false);
     },
-    [workout, addExercise, setIsExerciseModalOpen],
+    [addExercise],
   );
 
   useEffect(() => {
@@ -86,10 +90,6 @@ export function WorkoutDetailScreen({
   }
 
   const isCompleted = workout.status === "COMPLETED";
-
-  const handleToggleExpand = (itemId: string) => {
-    setExpandedItemId(expandedItemId === itemId ? null : itemId);
-  };
 
   const handleStartEditInfo = () => {
     setIsEditingInfo(true);
@@ -135,8 +135,11 @@ export function WorkoutDetailScreen({
     }
   };
 
-  const handleAddSet = async (itemId: string) => {
-    const item = workout.items.find((i) => i.id === itemId);
+  const handleAddSet = useCallback(async (itemId: string) => {
+    const currentWorkout = workoutRef.current;
+    if (!currentWorkout) return;
+    
+    const item = currentWorkout.items.find((i) => i.id === itemId);
     if (!item) return;
 
     const lastSet = item.sets[item.sets.length - 1];
@@ -151,29 +154,33 @@ export function WorkoutDetailScreen({
         setNumber: nextSetNumber,
       });
     } catch (error) {}
-  };
+  }, [addSet]);
 
-  const handleDeleteSet = async (itemId: string, setId: string) => {
+  const handleDeleteSet = useCallback(async (itemId: string, setId: string) => {
     if (confirm("Czy na pewno chcesz usunąć tę serię?")) {
       try {
         await deleteSet(itemId, setId);
       } catch (error) {}
     }
-  };
+  }, [deleteSet]);
 
-  const handleUpdateSet = async (setId: string, weight: number, reps: number) => {
+  const handleUpdateSet = useCallback(async (setId: string, weight: number, reps: number) => {
     try {
       await updateSet(setId, { weight, repetitions: reps });
     } catch (error) {}
-  };
+  }, [updateSet]);
 
-  const handleDeleteExercise = async (itemId: string) => {
+  const handleDeleteExercise = useCallback(async (itemId: string) => {
     if (confirm("Czy na pewno chcesz usunąć to ćwiczenie z treningu?")) {
       try {
         await deleteExercise(itemId);
       } catch (error) {}
     }
-  };
+  }, [deleteExercise]);
+
+  const handleToggleExpand = useCallback((itemId: string) => {
+    setExpandedItemId((prev) => prev === itemId ? null : itemId);
+  }, []);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("pl-PL", {
