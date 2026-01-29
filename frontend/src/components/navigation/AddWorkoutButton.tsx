@@ -4,12 +4,14 @@ import { PlusIcon } from "@/components/icons";
 interface AddWorkoutButtonProps {
   onClick: () => void;
   isActive?: boolean;
+  hasActiveWorkout?: boolean;
   className?: string;
 }
 
 export const AddWorkoutButton = memo(function AddWorkoutButton({
   onClick,
   isActive = false,
+  hasActiveWorkout = false,
   className = "",
 }: AddWorkoutButtonProps) {
   const baseClasses =
@@ -21,15 +23,35 @@ export const AddWorkoutButton = memo(function AddWorkoutButton({
   const activeClasses =
     "border-emerald-500 bg-emerald-500 text-white shadow-emerald-500/40";
 
+  // Gdy jest aktywny trening ale nie jesteśmy w jego widoku - pomarańczowy pulsujący
+  const hasActiveButNotViewingClasses =
+    "border-orange-500 bg-orange-500 text-white shadow-orange-500/40 animate-pulse";
+
+  const getButtonClasses = () => {
+    if (isActive) return activeClasses;
+    if (hasActiveWorkout) return hasActiveButNotViewingClasses;
+    return inactiveClasses;
+  };
+
   return (
     <button
       onClick={onClick}
-      className={`${baseClasses} ${
-        isActive ? activeClasses : inactiveClasses
-      } ${className}`.trim()}
-      aria-label="Dodaj nowy trening"
+      className={`${baseClasses} ${getButtonClasses()} ${className}`.trim()}
+      aria-label={hasActiveWorkout ? "Kontynuuj trening" : "Dodaj nowy trening"}
     >
-      <PlusIcon className="w-7 h-7 sm:w-8 sm:h-8" />
+      {hasActiveWorkout && !isActive ? (
+        // Ikona "play" gdy jest aktywny trening
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+          className="w-7 h-7 sm:w-8 sm:h-8"
+        >
+          <path d="M8 5v14l11-7z" />
+        </svg>
+      ) : (
+        <PlusIcon className="w-7 h-7 sm:w-8 sm:h-8" />
+      )}
     </button>
   );
 });

@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
 import { FilterChip } from "../ui";
 import { EditIcon, TrashIcon } from "../icons";
-import { useExercises, type Exercise } from "../../hooks/useExercises";
-import { useAllUserStats, type ExerciseStats } from "@/hooks";
+import { useData } from "@/contexts/DataContext";
+import type { Exercise } from "@/hooks/useExercises";
+import type { ExerciseStats } from "@/types";
 import { MUSCLE_GROUPS } from "../../constants";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -29,18 +30,24 @@ export function ExerciseList({
   const [showOnlyMyExercises, setShowOnlyMyExercises] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { exercises, loading, error } = useExercises(
-    selectedMuscleGroup ? { muscleGroup: selectedMuscleGroup } : undefined
-  );
-  const { stats: allStats } = useAllUserStats();
+  const { exercises: allExercises, stats: allStats, isLoading: loading } = useData();
   const { user } = useAuth();
+
+  // Filter exercises by muscle group
+  const exercises = useMemo(() => {
+    if (!selectedMuscleGroup) return allExercises;
+    return allExercises.filter((ex) =>
+      ex.muscleGroups.includes(selectedMuscleGroup)
+    );
+  }, [allExercises, selectedMuscleGroup]);
 
   const filteredAndSortedExercises = useMemo(() => {
     let filtered = [...exercises];
 
     if (user) {
       filtered = filtered.filter(
-        (ex) => ex.creator.id === "1" || String(ex.creator.id) === String(user.id)
+        (ex) =>
+          ex.creator.id === "1" || String(ex.creator.id) === String(user.id),
       );
     }
 
@@ -53,13 +60,13 @@ export function ExerciseList({
       filtered = filtered.filter(
         (ex) =>
           ex.name.toLowerCase().includes(query) ||
-          ex.muscleGroups.some((mg) => mg.toLowerCase().includes(query))
+          ex.muscleGroups.some((mg) => mg.toLowerCase().includes(query)),
       );
     }
 
     if (showOnlyMyExercises && user) {
       filtered = filtered.filter(
-        (ex) => String(ex.creator.id) === String(user.id)
+        (ex) => String(ex.creator.id) === String(user.id),
       );
     }
 
@@ -99,7 +106,7 @@ export function ExerciseList({
 
   const toggleFilter = (muscleGroup: string) => {
     setSelectedMuscleGroup((prev) =>
-      prev === muscleGroup ? undefined : muscleGroup
+      prev === muscleGroup ? undefined : muscleGroup,
     );
   };
 
@@ -237,10 +244,6 @@ export function ExerciseList({
                 Ładowanie...
               </p>
             </div>
-          </div>
-        ) : error ? (
-          <div className="text-center py-12 text-red-600 dark:text-red-400">
-            {error}
           </div>
         ) : filteredAndSortedExercises.length === 0 ? (
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">

@@ -14,6 +14,7 @@ interface BottomNavigationProps {
   onTabChange: (tab: TabType) => void;
   onAddWorkout: () => void;
   isWorkoutDetail?: boolean;
+  hasActiveWorkout?: boolean;
 }
 
 const navItems = [
@@ -28,12 +29,13 @@ export const BottomNavigation = memo(function BottomNavigation({
   onTabChange,
   onAddWorkout,
   isWorkoutDetail = false,
+  hasActiveWorkout = false,
 }: BottomNavigationProps) {
   const handleTabChange = useCallback(
     (tab: TabType) => {
       onTabChange(tab);
     },
-    [onTabChange]
+    [onTabChange],
   );
 
   return (
@@ -58,6 +60,7 @@ export const BottomNavigation = memo(function BottomNavigation({
           <AddWorkoutButton
             onClick={onAddWorkout}
             isActive={isWorkoutDetail}
+            hasActiveWorkout={hasActiveWorkout}
             className="justify-self-center"
           />
         </div>

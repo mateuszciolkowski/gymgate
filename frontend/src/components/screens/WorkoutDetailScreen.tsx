@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { ScreenContainer, ScreenHeader } from "@/components/ui";
-import { useWorkout, useAllUserStats, useWorkouts, type ExerciseStats } from "@/hooks";
+import { useWorkout } from "@/hooks";
+import { useData } from "@/contexts/DataContext";
+import type { ExerciseStats } from "@/types";
 import { ExerciseSelectionModal } from "./ExerciseSelectionModal";
 import { MUSCLE_GROUPS } from "@/constants";
 import type { WorkoutItem } from "@/types";
@@ -31,8 +33,7 @@ export function WorkoutDetailScreen({
   const [editGymName, setEditGymName] = useState("");
   const [editWorkoutDate, setEditWorkoutDate] = useState("");
 
-  const { deleteWorkout } = useWorkouts(undefined, false);
-  const { stats: allStats } = useAllUserStats();
+  const { deleteWorkout, stats: allStats } = useData();
 
   const {
     workout,
@@ -60,7 +61,7 @@ export function WorkoutDetailScreen({
         }
       } catch (error) {}
     },
-    [workout, addExercise, setIsExerciseModalOpen, setExpandedItemId]
+    [workout, addExercise, setIsExerciseModalOpen, setExpandedItemId],
   );
 
   useEffect(() => {
@@ -132,7 +133,7 @@ export function WorkoutDetailScreen({
   const handleDeleteWorkout = async () => {
     if (
       confirm(
-        "Czy na pewno chcesz usunąć ten trening? Tej operacji nie można cofnąć."
+        "Czy na pewno chcesz usunąć ten trening? Tej operacji nie można cofnąć.",
       )
     ) {
       try {
@@ -523,7 +524,7 @@ function WorkoutItemCard({
           <div className="flex gap-2 flex-wrap mt-1">
             {item.exercise.muscleGroups.map((group) => {
               const muscleGroup = MUSCLE_GROUPS.find(
-                (mg) => mg.value === group
+                (mg) => mg.value === group,
               );
               return (
                 <span
@@ -684,7 +685,7 @@ function WorkoutItemCard({
                               onStartEditSet(
                                 set.id,
                                 set.weight,
-                                set.repetitions
+                                set.repetitions,
                               )
                             }
                             className="p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg"

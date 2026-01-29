@@ -25,14 +25,17 @@ interface ExerciseFilters {
 }
 
 // Cache for exercises - keyed by filter string
-const exercisesCache: Map<string, { data: Exercise[]; timestamp: number }> = new Map();
+const exercisesCache: Map<string, { data: Exercise[]; timestamp: number }> =
+  new Map();
 const EXERCISES_CACHE_TTL = 60000; // 60 seconds
 
 export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
-  const cacheKey = `${filters?.muscleGroup || ''}-${filters?.name || ''}`;
+  const cacheKey = `${filters?.muscleGroup || ""}-${filters?.name || ""}`;
   const cachedData = exercisesCache.get(cacheKey);
-  
-  const [exercises, setExercises] = useState<Exercise[]>(cachedData?.data || []);
+
+  const [exercises, setExercises] = useState<Exercise[]>(
+    cachedData?.data || [],
+  );
   const [loading, setLoading] = useState(autoFetch && !cachedData);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,41 +44,51 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
   const muscleGroup = filters?.muscleGroup;
   const name = filters?.name;
 
-  const fetchExercises = useCallback(async (force = false) => {
-    // Check cache first
-    const cached = exercisesCache.get(cacheKey);
-    if (!force && cached && Date.now() - cached.timestamp < EXERCISES_CACHE_TTL) {
-      setExercises(cached.data);
-      setLoading(false);
-      return;
-    }
+  const fetchExercises = useCallback(
+    async (force = false) => {
+      // Check cache first
+      const cached = exercisesCache.get(cacheKey);
+      if (
+        !force &&
+        cached &&
+        Date.now() - cached.timestamp < EXERCISES_CACHE_TTL
+      ) {
+        setExercises(cached.data);
+        setLoading(false);
+        return;
+      }
 
-    try {
-      setLoading(true);
-      setError(null);
+      try {
+        setLoading(true);
+        setError(null);
 
-      const params = new URLSearchParams();
-      if (muscleGroup) params.append("muscleGroup", muscleGroup);
-      if (name) params.append("name", name);
+        const params = new URLSearchParams();
+        if (muscleGroup) params.append("muscleGroup", muscleGroup);
+        if (name) params.append("name", name);
 
-      const url = `${API_BASE}/api/exercises${
-        params.toString() ? `?${params.toString()}` : ""
-      }`;
+        const url = `${API_BASE}/api/exercises${
+          params.toString() ? `?${params.toString()}` : ""
+        }`;
 
-      const response = await authFetch(url);
-      if (!response.ok) throw new Error("Błąd ładowania ćwiczeń");
-      const data = await response.json();
-      const newExercises = data.data || [];
-      
-      // Update cache
-      exercisesCache.set(cacheKey, { data: newExercises, timestamp: Date.now() });
-      setExercises(newExercises);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Nieznany błąd");
-    } finally {
-      setLoading(false);
-    }
-  }, [API_BASE, muscleGroup, name, cacheKey]);
+        const response = await authFetch(url);
+        if (!response.ok) throw new Error("Błąd ładowania ćwiczeń");
+        const data = await response.json();
+        const newExercises = data.data || [];
+
+        // Update cache
+        exercisesCache.set(cacheKey, {
+          data: newExercises,
+          timestamp: Date.now(),
+        });
+        setExercises(newExercises);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Nieznany błąd");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [API_BASE, muscleGroup, name, cacheKey],
+  );
 
   useEffect(() => {
     if (autoFetch) {

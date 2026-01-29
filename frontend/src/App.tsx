@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigation, useExercises, useWorkouts } from "./hooks";
+import { useNavigation } from "./hooks";
 import { useAuth } from "./contexts/AuthContext";
+import { useData } from "./contexts/DataContext";
 import type { TabType, Screen } from "@/types";
 import {
   MainLayout,
@@ -13,6 +14,7 @@ import {
   EditExerciseScreen,
   WorkoutDetailScreen,
 } from "./components";
+import { WorkoutFormModal } from "./components/modals";
 import { LoginScreen } from "./components/screens/LoginScreen";
 import { RegisterScreen } from "./components/screens/RegisterScreen";
 import type { Exercise } from "./hooks/useExercises";
@@ -26,10 +28,10 @@ function App() {
 
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(
-    null
+    null,
   );
   const [pendingExerciseAdd, setPendingExerciseAdd] = useState<string | null>(
-    null
+    null,
   );
 
   if (isLoading) {
@@ -101,14 +103,28 @@ function AuthenticatedApp({
   pendingExerciseAdd,
   setPendingExerciseAdd,
 }: AuthenticatedAppProps) {
-  const { createWorkout } = useWorkouts(undefined, false);
-  const { addExercise, updateExercise } = useExercises(undefined, false);
+  const { createWorkout, createExercise, updateExercise, activeWorkoutId } = useData();
+  const [isWorkoutFormOpen, setIsWorkoutFormOpen] = useState(false);
 
-  const handleStartWorkout = async () => {
+  const handleAddWorkoutClick = () => {
+    if (activeWorkoutId) {
+      // Jest aktywny trening - przejdź do niego
+      setSelectedWorkoutId(activeWorkoutId);
+      setScreen("workout-detail");
+    } else {
+      // Brak aktywnego treningu - pokaż formularz
+      setIsWorkoutFormOpen(true);
+    }
+  };
+
+  const handleCreateWorkout = async (data: {
+    workoutName?: string;
+    gymName?: string;
+    workoutDate: string;
+  }) => {
     try {
-      const newWorkout = await createWorkout({
-        workoutDate: new Date().toISOString(),
-      });
+      const newWorkout = await createWorkout(data);
+      setIsWorkoutFormOpen(false);
       setSelectedWorkoutId(newWorkout.id);
       setScreen("workout-detail");
     } catch (error) {
@@ -146,7 +162,7 @@ function AuthenticatedApp({
           }}
           onAddExercise={async (data) => {
             try {
-              const newExercise = await addExercise(data);
+              const newExercise = await createExercise(data);
               if (selectedWorkoutId) {
                 setPendingExerciseAdd(newExercise.id);
                 setScreen("workout-detail");
@@ -224,12 +240,20 @@ function AuthenticatedApp({
         <BottomNavigation
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          onAddWorkout={handleStartWorkout}
+          onAddWorkout={handleAddWorkoutClick}
           isWorkoutDetail={screen === "workout-detail"}
+          hasActiveWorkout={!!activeWorkoutId}
         />
       }
     >
       {renderScreen()}
+
+      {isWorkoutFormOpen && (
+        <WorkoutFormModal
+          onClose={() => setIsWorkoutFormOpen(false)}
+          onSubmit={handleCreateWorkout}
+        />
+      )}
     </MainLayout>
   );
 }

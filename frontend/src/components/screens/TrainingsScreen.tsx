@@ -1,7 +1,7 @@
 import { memo, useState } from "react";
 import { ScreenContainer, ScreenHeader, EmptyState } from "@/components/ui";
 import { ArchiveIcon } from "@/components/icons";
-import { useWorkouts, useActiveWorkout } from "@/hooks/useWorkouts";
+import { useData } from "@/contexts/DataContext";
 import { WorkoutFormModal } from "@/components/modals";
 
 interface TrainingsScreenProps {
@@ -11,24 +11,8 @@ interface TrainingsScreenProps {
 export const TrainingsScreen = memo(function TrainingsScreen({
   onSelectWorkout,
 }: TrainingsScreenProps) {
-  const { workouts, loading, error, createWorkout } = useWorkouts();
-  const {
-    activeWorkoutId,
-    loading: activeLoading,
-    refetch: refetchActive,
-  } = useActiveWorkout();
+  const { workouts, isLoading: loading, createWorkout } = useData();
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-
-  // Usunięty useEffect - hooki już auto-fetchują przy montowaniu
-
-  const handleStartWorkout = async () => {
-    if (activeWorkoutId) {
-      onSelectWorkout(activeWorkoutId);
-      return;
-    }
-
-    setIsFormModalOpen(true);
-  };
 
   const handleFormSubmit = async (data: {
     workoutName?: string;
@@ -38,7 +22,6 @@ export const TrainingsScreen = memo(function TrainingsScreen({
     try {
       const newWorkout = await createWorkout(data);
       setIsFormModalOpen(false);
-      await refetchActive();
       onSelectWorkout(newWorkout.id);
     } catch (err) {
       alert("Błąd tworzenia treningu");
@@ -48,7 +31,7 @@ export const TrainingsScreen = memo(function TrainingsScreen({
   const draftWorkouts = workouts.filter((w) => w.status === "DRAFT");
   const completedWorkouts = workouts.filter((w) => w.status === "COMPLETED");
 
-  if (loading || activeLoading) {
+  if (loading) {
     return (
       <ScreenContainer>
         <ScreenHeader title="Treningi" subtitle="Historia Twoich treningów" />
@@ -64,56 +47,12 @@ export const TrainingsScreen = memo(function TrainingsScreen({
     );
   }
 
-  if (error) {
-    return (
-      <ScreenContainer>
-        <ScreenHeader title="Treningi" subtitle="Historia Twoich treningów" />
-        <div className="mt-6 flex flex-col items-center justify-center py-12 text-center">
-          <p className="text-red-600 dark:text-red-400 mb-2">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600"
-          >
-            Odśwież
-          </button>
-        </div>
-      </ScreenContainer>
-    );
-  }
-
   return (
     <ScreenContainer>
       <ScreenHeader
         title="Treningi"
         subtitle={`${completedWorkouts.length} zakończonych`}
       />
-
-      <div className="mt-4 flex justify-center">
-        <button
-          onClick={handleStartWorkout}
-          className={`flex items-center justify-center w-full max-w-md px-6 py-3 text-base font-medium text-white rounded-lg transition-colors shadow-md ${
-            activeWorkoutId
-              ? "bg-yellow-600 hover:bg-yellow-700"
-              : "bg-emerald-600 hover:bg-emerald-700"
-          }`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-5 h-5 mr-2"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          {activeWorkoutId ? "Kontynuuj trening" : "Rozpocznij trening"}
-        </button>
-      </div>
 
       {draftWorkouts.length > 0 && (
         <div className="mt-6">
@@ -134,14 +73,14 @@ export const TrainingsScreen = memo(function TrainingsScreen({
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {new Date(workout.workoutDate).toLocaleDateString(
-                        "pl-PL"
+                        "pl-PL",
                       )}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {workout.items.length} ćwiczeń •{" "}
                       {workout.items.reduce(
                         (sum, item) => sum + item.sets.length,
-                        0
+                        0,
                       )}{" "}
                       serii
                     </p>
@@ -190,7 +129,7 @@ export const TrainingsScreen = memo(function TrainingsScreen({
                           day: "numeric",
                           month: "long",
                           year: "numeric",
-                        }
+                        },
                       )}
                     </p>
                     {workout.gymName && (
@@ -206,7 +145,7 @@ export const TrainingsScreen = memo(function TrainingsScreen({
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {workout.items.reduce(
                         (sum, item) => sum + item.sets.length,
-                        0
+                        0,
                       )}{" "}
                       serii
                     </p>

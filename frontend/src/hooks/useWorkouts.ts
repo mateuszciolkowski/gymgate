@@ -76,7 +76,7 @@ export function useWorkouts(status?: "DRAFT" | "COMPLETED", autoFetch = true) {
         throw err;
       }
     },
-    []
+    [],
   );
 
   const deleteWorkout = useCallback(async (id: string) => {
@@ -137,7 +137,7 @@ export function useWorkout(id: string) {
             method: "POST",
             headers: getAuthHeaders(),
             body: JSON.stringify(data),
-          }
+          },
         );
         if (!response.ok) throw new Error("Błąd dodawania ćwiczenia");
 
@@ -148,7 +148,7 @@ export function useWorkout(id: string) {
         throw err;
       }
     },
-    [id, fetchWorkout]
+    [id, fetchWorkout],
   );
 
   const addSet = useCallback(
@@ -160,7 +160,7 @@ export function useWorkout(id: string) {
             method: "POST",
             headers: getAuthHeaders(),
             body: JSON.stringify(data),
-          }
+          },
         );
         if (!response.ok) throw new Error("Błąd dodawania serii");
 
@@ -171,7 +171,7 @@ export function useWorkout(id: string) {
         throw err;
       }
     },
-    [fetchWorkout]
+    [fetchWorkout],
   );
 
   const updateSet = useCallback(
@@ -183,7 +183,7 @@ export function useWorkout(id: string) {
             method: "PATCH",
             headers: getAuthHeaders(),
             body: JSON.stringify(data),
-          }
+          },
         );
         if (!response.ok) throw new Error("Błąd aktualizacji serii");
 
@@ -192,7 +192,7 @@ export function useWorkout(id: string) {
         throw err;
       }
     },
-    [fetchWorkout]
+    [fetchWorkout],
   );
 
   const deleteSet = useCallback(
@@ -202,7 +202,7 @@ export function useWorkout(id: string) {
           `${API_BASE}/api/workouts/sets/${setId}`,
           {
             method: "DELETE",
-          }
+          },
         );
         if (!response.ok) throw new Error("Błąd usuwania serii");
 
@@ -211,7 +211,7 @@ export function useWorkout(id: string) {
         throw err;
       }
     },
-    [fetchWorkout]
+    [fetchWorkout],
   );
 
   const deleteExercise = useCallback(
@@ -221,7 +221,7 @@ export function useWorkout(id: string) {
           `${API_BASE}/api/workouts/items/${itemId}`,
           {
             method: "DELETE",
-          }
+          },
         );
         if (!response.ok) throw new Error("Błąd usuwania ćwiczenia");
 
@@ -230,7 +230,7 @@ export function useWorkout(id: string) {
         throw err;
       }
     },
-    [fetchWorkout]
+    [fetchWorkout],
   );
 
   const completeWorkout = useCallback(async () => {
@@ -267,7 +267,7 @@ export function useWorkout(id: string) {
         throw err;
       }
     },
-    [id]
+    [id],
   );
 
   return {
@@ -295,7 +295,7 @@ export function useExerciseStats(exerciseId?: string) {
       setLoading(true);
       setError(null);
       const response = await authFetch(
-        `${API_BASE}/api/workouts/stats/exercise/${exId}`
+        `${API_BASE}/api/workouts/stats/exercise/${exId}`,
       );
       if (!response.ok) throw new Error("Błąd ładowania statystyk");
 
@@ -345,7 +345,7 @@ export function useAllUserStats() {
 
       const data = await response.json();
       const newStats = data.data || [];
-      
+
       // Update cache
       statsCache = { data: newStats, timestamp: Date.now() };
       setStats(newStats);
@@ -374,14 +374,18 @@ const ACTIVE_CACHE_TTL = 10000; // 10 seconds
 
 export function useActiveWorkout() {
   const [activeWorkoutId, setActiveWorkoutId] = useState<string | null>(
-    activeWorkoutCache?.id ?? null
+    activeWorkoutCache?.id ?? null,
   );
   const [loading, setLoading] = useState(!activeWorkoutCache);
   const [error, setError] = useState<string | null>(null);
 
   const fetchActiveWorkout = useCallback(async (force = false) => {
     // Use cache if fresh
-    if (!force && activeWorkoutCache && Date.now() - activeWorkoutCache.timestamp < ACTIVE_CACHE_TTL) {
+    if (
+      !force &&
+      activeWorkoutCache &&
+      Date.now() - activeWorkoutCache.timestamp < ACTIVE_CACHE_TTL
+    ) {
       setActiveWorkoutId(activeWorkoutCache.id);
       setLoading(false);
       return;
@@ -395,7 +399,7 @@ export function useActiveWorkout() {
 
       const data = await response.json();
       const id = data.data.activeWorkoutId;
-      
+
       // Update cache
       activeWorkoutCache = { id, timestamp: Date.now() };
       setActiveWorkoutId(id);
@@ -412,7 +416,7 @@ export function useActiveWorkout() {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Błąd czyszczenia aktywnego treningu");
-      
+
       // Clear cache
       activeWorkoutCache = { id: null, timestamp: Date.now() };
       setActiveWorkoutId(null);

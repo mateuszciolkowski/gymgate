@@ -27,7 +27,8 @@ console.log("✅ All modules loaded");
 const app = express();
 
 // Railway używa PORT, lokalnie API_PORT
-const PORT: number = Number(process.env.PORT) || Number(process.env.API_PORT) || 3000;
+const PORT: number =
+  Number(process.env.PORT) || Number(process.env.API_PORT) || 3000;
 console.log(`📌 Using PORT: ${PORT}`);
 
 const originsEnv: string =

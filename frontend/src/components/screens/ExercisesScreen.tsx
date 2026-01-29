@@ -1,8 +1,9 @@
 import { memo } from "react";
 import { ScreenContainer, ScreenHeader } from "../ui";
 import { PlusIcon } from "../icons";
-import { type Exercise, useExercises } from "../../hooks/useExercises";
+import { useData } from "@/contexts/DataContext";
 import { ExerciseList } from "../exercises/ExerciseList";
+import type { Exercise } from "@/hooks/useExercises";
 
 interface ExercisesScreenProps {
   onAddExercise: () => void;
@@ -13,7 +14,7 @@ export const ExercisesScreen = memo(function ExercisesScreen({
   onAddExercise,
   onEditExercise,
 }: ExercisesScreenProps) {
-  const { deleteExercise } = useExercises();
+  const { deleteExercise } = useData();
 
   const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Czy na pewno chcesz usunąć ćwiczenie "${name}"?`)) {
