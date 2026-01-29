@@ -48,12 +48,11 @@ export function WorkoutDetailScreen({
   } = useWorkoutData(workoutId);
 
   const handleAddExercise = useCallback(
-    async (exerciseId: string) => {
+    (exerciseId: string) => {
       if (!workout) return;
-      try {
-        await addExercise({ exerciseId });
-        setIsExerciseModalOpen(false);
-      } catch (error) {}
+      // Fire-and-forget - nie czekaj na odpowiedź
+      addExercise({ exerciseId }).catch(() => {});
+      setIsExerciseModalOpen(false);
     },
     [workout, addExercise, setIsExerciseModalOpen],
   );
