@@ -91,6 +91,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [lastSync, setLastSync] = useState(0);
 
   const initialLoadDone = useRef(false);
+  
+  // Ref dla exercises - żeby callbacks nie zależały od exercises state
+  const exercisesRef = useRef<Exercise[]>([]);
+  exercisesRef.current = exercises;
 
   // Nasłuchuj na zmiany online/offline
   useEffect(() => {
@@ -236,7 +240,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       });
       
       setActiveWorkoutId((prev) => prev !== localActiveId ? localActiveId : prev);
-      setLastSync(Date.now());
+      // Nie wywołujemy setLastSync - powoduje niepotrzebny re-render
     });
 
     syncManager.start();
@@ -382,8 +386,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const tempItemId = `temp_item_${Date.now()}`;
       const tempSetId = `temp_set_${Date.now()}`;
       
-      // Pobierz exercise z aktualnego stanu
-      const exercise = exercises.find((e) => e.id === exerciseId);
+      // Pobierz exercise z ref (nie z state - żeby nie tworzyć zależności)
+      const exercise = exercisesRef.current.find((e) => e.id === exerciseId);
       if (!exercise) throw new Error("Nie znaleziono ćwiczenia");
 
       // Optymistyczna aktualizacja - dodaj od razu do UI
@@ -456,7 +460,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         );
       });
     },
-    [exercises]
+    []
   );
 
   const removeExerciseFromWorkout = useCallback(
