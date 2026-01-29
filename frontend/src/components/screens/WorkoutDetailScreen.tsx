@@ -475,32 +475,37 @@ const WorkoutItemCard = memo(
     onAddSet,
     onDeleteExercise,
   }: WorkoutItemCardProps) {
-    // Stan edycji serii - lokalny w komponencie
-    const [editingSetId, setEditingSetId] = useState<string | null>(null);
+    // Stan edycji serii - używamy setNumber zamiast ID bo ID może się zmienić (temp -> real)
+    const [editingSetNumber, setEditingSetNumber] = useState<number | null>(null);
     const [editWeight, setEditWeight] = useState("");
     const [editReps, setEditReps] = useState("");
 
     const canEdit = !isCompleted || isEditMode;
 
+    // Znajdź aktualnie edytowaną serię po numerze
+    const editingSet = editingSetNumber !== null 
+      ? item.sets.find(s => s.setNumber === editingSetNumber)
+      : null;
+
     const handleStartEdit = (set: WorkoutSet) => {
-      setEditingSetId(set.id);
-    setEditWeight(set.weight);
-    setEditReps(set.repetitions.toString());
-  };
+      setEditingSetNumber(set.setNumber);
+      setEditWeight(set.weight);
+      setEditReps(set.repetitions.toString());
+    };
 
-  const handleSaveSet = () => {
-    if (!editingSetId) return;
-    onUpdateSet(editingSetId, Number(editWeight), Number(editReps));
-    setEditingSetId(null);
-    setEditWeight("");
-    setEditReps("");
-  };
+    const handleSaveSet = () => {
+      if (!editingSet) return;
+      onUpdateSet(editingSet.id, Number(editWeight), Number(editReps));
+      setEditingSetNumber(null);
+      setEditWeight("");
+      setEditReps("");
+    };
 
-  const handleCancelEdit = () => {
-    setEditingSetId(null);
-    setEditWeight("");
-    setEditReps("");
-  };
+    const handleCancelEdit = () => {
+      setEditingSetNumber(null);
+      setEditWeight("");
+      setEditReps("");
+    };
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 overflow-hidden">
@@ -619,7 +624,7 @@ const WorkoutItemCard = memo(
                     #{set.setNumber}
                   </span>
 
-                  {editingSetId === set.id ? (
+                  {editingSetNumber === set.setNumber ? (
                     <>
                       <div className="flex-1 flex gap-2">
                         <input

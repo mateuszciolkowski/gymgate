@@ -589,7 +589,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         .then(async (response) => {
           if (response.ok) {
             const result = await response.json();
-            // Zamień tymczasowe ID na prawdziwe
+            // Zamień tylko tymczasowe ID na prawdziwe - nie nadpisuj całego obiektu!
+            // To ważne bo user mógł już zacząć edytować wartości
             setWorkouts((prev) =>
               prev.map((w) => {
                 if (w.id !== workoutId) return w;
@@ -600,7 +601,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                     return {
                       ...item,
                       sets: item.sets.map((s) =>
-                        s.id === tempSetId ? result.data : s,
+                        s.id === tempSetId 
+                          ? { ...s, id: result.data.id } // tylko ID, reszta bez zmian
+                          : s,
                       ),
                     };
                   }),
