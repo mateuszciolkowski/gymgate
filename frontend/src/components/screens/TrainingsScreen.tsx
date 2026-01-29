@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useState } from "react";
 import { ScreenContainer, ScreenHeader, EmptyState } from "@/components/ui";
 import { ArchiveIcon } from "@/components/icons";
 import { useWorkouts, useActiveWorkout } from "@/hooks/useWorkouts";
@@ -11,7 +11,7 @@ interface TrainingsScreenProps {
 export const TrainingsScreen = memo(function TrainingsScreen({
   onSelectWorkout,
 }: TrainingsScreenProps) {
-  const { workouts, loading, error, createWorkout, refetch } = useWorkouts();
+  const { workouts, loading, error, createWorkout } = useWorkouts();
   const {
     activeWorkoutId,
     loading: activeLoading,
@@ -19,10 +19,7 @@ export const TrainingsScreen = memo(function TrainingsScreen({
   } = useActiveWorkout();
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
 
-  useEffect(() => {
-    refetch();
-    refetchActive();
-  }, [refetch, refetchActive]);
+  // Usunięty useEffect - hooki już auto-fetchują przy montowaniu
 
   const handleStartWorkout = async () => {
     if (activeWorkoutId) {

@@ -24,9 +24,16 @@ interface ExerciseFilters {
   name?: string;
 }
 
+// Cache for exercises - keyed by filter string
+const exercisesCache: Map<string, { data: Exercise[]; timestamp: number }> = new Map();
+const EXERCISES_CACHE_TTL = 60000; // 60 seconds
+
 export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [loading, setLoading] = useState(autoFetch);
+  const cacheKey = `${filters?.muscleGroup || ''}-${filters?.name || ''}`;
+  const cachedData = exercisesCache.get(cacheKey);
+  
+  const [exercises, setExercises] = useState<Exercise[]>(cachedData?.data || []);
+  const [loading, setLoading] = useState(autoFetch && !cachedData);
   const [error, setError] = useState<string | null>(null);
 
   const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -34,7 +41,15 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
   const muscleGroup = filters?.muscleGroup;
   const name = filters?.name;
 
-  const fetchExercises = useCallback(async () => {
+  const fetchExercises = useCallback(async (force = false) => {
+    // Check cache first
+    const cached = exercisesCache.get(cacheKey);
+    if (!force && cached && Date.now() - cached.timestamp < EXERCISES_CACHE_TTL) {
+      setExercises(cached.data);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -50,13 +65,17 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
       const response = await authFetch(url);
       if (!response.ok) throw new Error("Błąd ładowania ćwiczeń");
       const data = await response.json();
-      setExercises(data.data || []);
+      const newExercises = data.data || [];
+      
+      // Update cache
+      exercisesCache.set(cacheKey, { data: newExercises, timestamp: Date.now() });
+      setExercises(newExercises);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nieznany błąd");
     } finally {
       setLoading(false);
     }
-  }, [API_BASE, muscleGroup, name]);
+  }, [API_BASE, muscleGroup, name, cacheKey]);
 
   useEffect(() => {
     if (autoFetch) {
@@ -88,6 +107,8 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
         }
 
         const newExercise = await response.json();
+        // Clear all cache entries (new exercise may appear in multiple filters)
+        exercisesCache.clear();
         setExercises((prev) => [newExercise.data, ...prev]);
         return newExercise.data;
       } catch (err) {
@@ -121,6 +142,8 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
         }
 
         const updatedExercise = await response.json();
+        // Clear all cache entries
+        exercisesCache.clear();
         setExercises((prev) =>
           prev.map((ex) => (ex.id === id ? updatedExercise.data : ex)),
         );
@@ -137,7 +160,7 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
     async (id: string) => {
       try {
         setError(null);
-        const response = await fetch(`${API_BASE}/api/exercises/${id}`, {
+        const response = await authFetch(`${API_BASE}/api/exercises/${id}`, {
           method: "DELETE",
         });
 
@@ -146,6 +169,8 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
           throw new Error(errorData.error || "Błąd usuwania ćwiczenia");
         }
 
+        // Clear all cache entries
+        exercisesCache.clear();
         setExercises((prev) => prev.filter((ex) => ex.id !== id));
       } catch (err) {
         setError(err instanceof Error ? err.message : "Nieznany błąd");

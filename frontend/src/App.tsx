@@ -191,7 +191,11 @@ function AuthenticatedApp({
       case "exercises":
         return (
           <ExercisesScreen
-            onAddExercise={() => setScreen("add-exercise")}
+            onAddExercise={() => {
+              // Wyczyść selectedWorkoutId żeby nowe ćwiczenie nie dodało się do treningu
+              setSelectedWorkoutId(null);
+              setScreen("add-exercise");
+            }}
             onEditExercise={(exercise) => {
               setEditingExercise(exercise);
               setScreen("edit-exercise");

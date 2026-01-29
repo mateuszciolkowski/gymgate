@@ -320,12 +320,23 @@ export function useExerciseStats(exerciseId?: string) {
   };
 }
 
+// Simple cache for stats to prevent duplicate fetches
+let statsCache: { data: ExerciseStats[]; timestamp: number } | null = null;
+const CACHE_TTL = 30000; // 30 seconds
+
 export function useAllUserStats() {
-  const [stats, setStats] = useState<ExerciseStats[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<ExerciseStats[]>(statsCache?.data || []);
+  const [loading, setLoading] = useState(!statsCache);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchStats = useCallback(async () => {
+  const fetchStats = useCallback(async (force = false) => {
+    // Use cache if fresh
+    if (!force && statsCache && Date.now() - statsCache.timestamp < CACHE_TTL) {
+      setStats(statsCache.data);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -333,7 +344,11 @@ export function useAllUserStats() {
       if (!response.ok) throw new Error("Błąd ładowania statystyk");
 
       const data = await response.json();
-      setStats(data.data || []);
+      const newStats = data.data || [];
+      
+      // Update cache
+      statsCache = { data: newStats, timestamp: Date.now() };
+      setStats(newStats);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nieznany błąd");
     } finally {
@@ -349,16 +364,29 @@ export function useAllUserStats() {
     stats,
     loading,
     error,
-    refetch: fetchStats,
+    refetch: () => fetchStats(true), // Force refetch
   };
 }
 
+// Simple cache for active workout
+let activeWorkoutCache: { id: string | null; timestamp: number } | null = null;
+const ACTIVE_CACHE_TTL = 10000; // 10 seconds
+
 export function useActiveWorkout() {
-  const [activeWorkoutId, setActiveWorkoutId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [activeWorkoutId, setActiveWorkoutId] = useState<string | null>(
+    activeWorkoutCache?.id ?? null
+  );
+  const [loading, setLoading] = useState(!activeWorkoutCache);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchActiveWorkout = useCallback(async () => {
+  const fetchActiveWorkout = useCallback(async (force = false) => {
+    // Use cache if fresh
+    if (!force && activeWorkoutCache && Date.now() - activeWorkoutCache.timestamp < ACTIVE_CACHE_TTL) {
+      setActiveWorkoutId(activeWorkoutCache.id);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -366,7 +394,11 @@ export function useActiveWorkout() {
       if (!response.ok) throw new Error("Błąd ładowania aktywnego treningu");
 
       const data = await response.json();
-      setActiveWorkoutId(data.data.activeWorkoutId);
+      const id = data.data.activeWorkoutId;
+      
+      // Update cache
+      activeWorkoutCache = { id, timestamp: Date.now() };
+      setActiveWorkoutId(id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nieznany błąd");
     } finally {
@@ -380,6 +412,9 @@ export function useActiveWorkout() {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Błąd czyszczenia aktywnego treningu");
+      
+      // Clear cache
+      activeWorkoutCache = { id: null, timestamp: Date.now() };
       setActiveWorkoutId(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nieznany błąd");
@@ -395,7 +430,7 @@ export function useActiveWorkout() {
     activeWorkoutId,
     loading,
     error,
-    refetch: fetchActiveWorkout,
+    refetch: () => fetchActiveWorkout(true),
     clearActiveWorkout,
   };
 }
