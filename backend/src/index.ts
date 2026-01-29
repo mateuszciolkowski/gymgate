@@ -26,7 +26,9 @@ console.log("✅ All modules loaded");
 
 const app = express();
 
-const PORT: number = Number(process.env.API_PORT) || 3000;
+// Railway używa PORT, lokalnie API_PORT
+const PORT: number = Number(process.env.PORT) || Number(process.env.API_PORT) || 3000;
+console.log(`📌 Using PORT: ${PORT}`);
 
 const originsEnv: string =
   process.env.ALLOWED_ORIGINS ||
@@ -64,6 +66,15 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.options("/*splat", cors() as any);
 
 app.use(express.json());
+
+// Health check endpoint
+app.get("/", (req: Request, res: Response) => {
+  res.json({ status: "ok", message: "GymGate API is running" });
+});
+
+app.get("/health", (req: Request, res: Response) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
 
 app.use("/api/auth", authRouter);
 app.use("/api/exercises", exerciseRouter);

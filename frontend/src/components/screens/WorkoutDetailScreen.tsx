@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { ScreenContainer, ScreenHeader } from "@/components/ui";
-import { useWorkout, useExerciseStats, useWorkouts } from "@/hooks";
+import { useWorkout, useAllUserStats, useWorkouts, type ExerciseStats } from "@/hooks";
 import { ExerciseSelectionModal } from "./ExerciseSelectionModal";
 import { MUSCLE_GROUPS } from "@/constants";
 import type { WorkoutItem } from "@/types";
@@ -32,6 +32,7 @@ export function WorkoutDetailScreen({
   const [editWorkoutDate, setEditWorkoutDate] = useState("");
 
   const { deleteWorkout } = useWorkouts(undefined, false);
+  const { stats: allStats } = useAllUserStats();
 
   const {
     workout,
@@ -432,6 +433,7 @@ export function WorkoutDetailScreen({
                   isCompleted={isCompleted}
                   isEditMode={isEditMode}
                   isExpanded={expandedItemId === item.id}
+                  stats={allStats.find((s) => s.exerciseId === item.exerciseId)}
                   onToggleExpand={handleToggleExpand}
                   editingSetId={editingSetId}
                   editWeight={editWeight}
@@ -468,6 +470,7 @@ interface WorkoutItemCardProps {
   isCompleted: boolean;
   isEditMode: boolean;
   isExpanded: boolean;
+  stats?: ExerciseStats;
   onToggleExpand: (itemId: string) => void;
   editingSetId: string | null;
   editWeight: string;
@@ -488,6 +491,7 @@ function WorkoutItemCard({
   isCompleted,
   isEditMode,
   isExpanded,
+  stats,
   onToggleExpand,
   editingSetId,
   editWeight,
@@ -501,7 +505,6 @@ function WorkoutItemCard({
   onAddSet,
   onDeleteExercise,
 }: WorkoutItemCardProps) {
-  const { stats } = useExerciseStats(item.exerciseId);
   const canEdit = !isCompleted || isEditMode;
 
   return (

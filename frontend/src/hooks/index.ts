@@ -8,3 +8,4 @@ export {
   useAllUserStats,
   useActiveWorkout,
 } from "./useWorkouts";
+export type { ExerciseStats } from "@/types";

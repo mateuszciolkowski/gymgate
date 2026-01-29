@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { FilterChip } from "../ui";
 import { EditIcon, TrashIcon } from "../icons";
 import { useExercises, type Exercise } from "../../hooks/useExercises";
-import { useAllUserStats, useExerciseStats } from "@/hooks";
+import { useAllUserStats, type ExerciseStats } from "@/hooks";
 import { MUSCLE_GROUPS } from "../../constants";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -255,6 +255,7 @@ export function ExerciseList({
                 key={exercise.id}
                 exercise={exercise}
                 mode={mode}
+                stats={allStats.find((s) => s.exerciseId === exercise.id)}
                 onSelect={onSelectExercise}
                 onEdit={onEditExercise}
                 onDelete={onDeleteExercise}
@@ -270,6 +271,7 @@ export function ExerciseList({
 interface ExerciseItemProps {
   exercise: Exercise;
   mode: "select" | "manage";
+  stats?: ExerciseStats;
   onSelect?: (exerciseId: string) => void;
   onEdit?: (exercise: Exercise) => void;
   onDelete?: (id: string, name: string) => void;
@@ -278,11 +280,11 @@ interface ExerciseItemProps {
 function ExerciseItem({
   exercise,
   mode,
+  stats,
   onSelect,
   onEdit,
   onDelete,
 }: ExerciseItemProps) {
-  const { stats } = useExerciseStats(exercise.id);
   const { user } = useAuth();
 
   const canEdit = user && String(exercise.creator.id) === String(user.id);
