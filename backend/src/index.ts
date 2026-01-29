@@ -19,7 +19,7 @@ dotenv.config();
 
 const app = express();
 
-const PORT: number = Number(process.env.PORT || process.env.API_PORT) || 3000;
+const PORT: number = Number(process.env.API_PORT) || 3000;
 
 const originsEnv: string =
   process.env.ALLOWED_ORIGINS ||
@@ -49,10 +49,10 @@ app.use(
   }),
 );
 
-(req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   res.header("Vary", "Origin");
   next();
-};
+});
 
 app.options("/*splat", cors() as any);
 
