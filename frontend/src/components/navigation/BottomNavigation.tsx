@@ -40,11 +40,11 @@ export const BottomNavigation = memo(function BottomNavigation({
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-300 dark:border-gray-800 px-2 py-2 z-50"
+      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-300 dark:border-gray-800 px-2 py-4 pb-6 z-50"
       role="navigation"
       aria-label="Nawigacja główna"
     >
-      <div className="grid grid-cols-5 items-center justify-items-center max-w-xl mx-auto gap-0">
+      <div className="grid grid-cols-5 items-end justify-items-center max-w-xl mx-auto gap-0">
         {navItems.slice(0, 2).map((item) => (
           <NavButton
             key={item.id}

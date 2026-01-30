@@ -15,7 +15,7 @@ export const AddWorkoutButton = memo(function AddWorkoutButton({
   className = "",
 }: AddWorkoutButtonProps) {
   const baseClasses =
-    "flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full -mt-6 border transition-colors touch-manipulation shadow-md";
+    "flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full -mt-8 sm:-mt-10 border-4 transition-colors touch-manipulation shadow-lg";
 
   const inactiveClasses =
     "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:bg-emerald-500 hover:border-emerald-500 hover:text-white";
@@ -37,7 +37,7 @@ export const AddWorkoutButton = memo(function AddWorkoutButton({
     <button
       onClick={onClick}
       className={`${baseClasses} ${getButtonClasses()} ${className}`.trim()}
-      aria-label={hasActiveWorkout ? "Kontynuuj trening" : "Dodaj nowy trening"}
+      aria-label={hasActiveWorkout ? "Kontynuuj trening" : "Rozpocznij trening"}
     >
       {hasActiveWorkout && !isActive ? (
         // Ikona "play" gdy jest aktywny trening
@@ -45,12 +45,12 @@ export const AddWorkoutButton = memo(function AddWorkoutButton({
           xmlns="http://www.w3.org/2000/svg"
           fill="currentColor"
           viewBox="0 0 24 24"
-          className="w-7 h-7 sm:w-8 sm:h-8"
+          className="w-8 h-8 sm:w-10 sm:h-10"
         >
           <path d="M8 5v14l11-7z" />
         </svg>
       ) : (
-        <PlusIcon className="w-7 h-7 sm:w-8 sm:h-8" />
+        <PlusIcon className="w-8 h-8 sm:w-10 sm:h-10" />
       )}
     </button>
   );
