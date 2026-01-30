@@ -113,14 +113,14 @@ function AuthenticatedApp({
   const [isWorkoutFormOpen, setIsWorkoutFormOpen] = useState(false);
 
   const handleAddWorkoutClick = () => {
-    // Sprawdź czy istnieje aktywny trening I czy jest załadowany
+    // Sprawdź czy istnieje aktywny trening I czy jest załadowany I czy jest w trakcie (nie zakończony)
     const activeWorkout = activeWorkoutId ? getWorkout(activeWorkoutId) : null;
-    if (activeWorkout) {
-      // Jest aktywny trening - przejdź do niego
+    if (activeWorkout && activeWorkout.status !== "COMPLETED") {
+      // Jest aktywny trening w trakcie - przejdź do niego
       setSelectedWorkoutId(activeWorkoutId);
       setScreen("workout-detail");
     } else {
-      // Brak aktywnego treningu - pokaż formularz
+      // Brak aktywnego treningu lub jest zakończony - pokaż formularz
       setIsWorkoutFormOpen(true);
     }
   };

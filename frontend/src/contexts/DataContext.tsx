@@ -470,16 +470,31 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         .then(async (response) => {
           if (!response.ok) throw new Error("Błąd dodawania ćwiczenia");
           const result = await response.json();
-          // Zamień tymczasowe ID na prawdziwe z odpowiedzi
+          // Zamień tylko tymczasowe ID na prawdziwe - nie nadpisuj całego obiektu!
+          // User mógł już zacząć edytować wartości serii
           if (result.data) {
             setWorkouts((prev) =>
               prev.map((w) => {
                 if (w.id !== workoutId) return w;
                 return {
                   ...w,
-                  items: w.items.map((item) =>
-                    item.id === tempItemId ? result.data : item,
-                  ),
+                  items: w.items.map((item) => {
+                    if (item.id !== tempItemId) return item;
+                    // Aktualizuj tylko ID itema i mapuj ID setów
+                    const serverSets = result.data.sets || [];
+                    return {
+                      ...item,
+                      id: result.data.id,
+                      sets: item.sets.map((localSet, index) => {
+                        // Jeśli serwer zwrócił odpowiadający set, weź jego ID
+                        const serverSet = serverSets[index];
+                        if (serverSet && localSet.id === tempSetId) {
+                          return { ...localSet, id: serverSet.id };
+                        }
+                        return localSet;
+                      }),
+                    };
+                  }),
                 };
               }),
             );
