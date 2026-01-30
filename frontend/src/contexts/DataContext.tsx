@@ -469,36 +469,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       })
         .then(async (response) => {
           if (!response.ok) throw new Error("Błąd dodawania ćwiczenia");
-          const result = await response.json();
-          // Zamień tylko tymczasowe ID na prawdziwe - nie nadpisuj całego obiektu!
-          // User mógł już zacząć edytować wartości serii
-          if (result.data) {
-            setWorkouts((prev) =>
-              prev.map((w) => {
-                if (w.id !== workoutId) return w;
-                return {
-                  ...w,
-                  items: w.items.map((item) => {
-                    if (item.id !== tempItemId) return item;
-                    // Aktualizuj tylko ID itema i mapuj ID setów
-                    const serverSets = result.data.sets || [];
-                    return {
-                      ...item,
-                      id: result.data.id,
-                      sets: item.sets.map((localSet, index) => {
-                        // Jeśli serwer zwrócił odpowiadający set, weź jego ID
-                        const serverSet = serverSets[index];
-                        if (serverSet && localSet.id === tempSetId) {
-                          return { ...localSet, id: serverSet.id };
-                        }
-                        return localSet;
-                      }),
-                    };
-                  }),
-                };
-              }),
-            );
-          }
+          // Sukces - nie aktualizujemy stanu, tymczasowe ID działają lokalnie
+          // Przy następnej synchronizacji dane się odświeżą
         })
         .catch(() => {
           // Rollback przy błędzie
@@ -535,25 +507,28 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         });
       });
 
-      // Wyślij do serwera w tle (fire-and-forget)
-      authFetch(`${API_BASE}/api/workouts/items/${itemId}`, {
-        method: "DELETE",
-      }).catch(() => {
-        // Rollback - przywróć item
-        if (originalItem) {
-          setWorkouts((prev) =>
-            prev.map((w) => {
-              if (w.id !== workoutId) return w;
-              return {
-                ...w,
-                items: [...w.items, originalItem].sort(
-                  (a, b) => a.orderInWorkout - b.orderInWorkout,
-                ),
-              };
-            }),
-          );
-        }
-      });
+      // Wyślij do serwera w tle - ale tylko jeśli ID nie jest tymczasowe
+      if (!itemId.startsWith('temp_')) {
+        authFetch(`${API_BASE}/api/workouts/items/${itemId}`, {
+          method: "DELETE",
+        }).catch(() => {
+          // Rollback - przywróć item
+          if (originalItem) {
+            setWorkouts((prev) =>
+              prev.map((w) => {
+                if (w.id !== workoutId) return w;
+                return {
+                  ...w,
+                  items: [...w.items, originalItem].sort(
+                    (a, b) => a.orderInWorkout - b.orderInWorkout,
+                  ),
+                };
+              }),
+            );
+          }
+        });
+      }
+      // Jeśli ID tymczasowe - usunięcie jest tylko lokalne
     },
     [],
   );
@@ -602,30 +577,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify(data),
       })
         .then(async (response) => {
-          if (response.ok) {
-            const result = await response.json();
-            // Zamień tylko tymczasowe ID na prawdziwe - nie nadpisuj całego obiektu!
-            // To ważne bo user mógł już zacząć edytować wartości
-            setWorkouts((prev) =>
-              prev.map((w) => {
-                if (w.id !== workoutId) return w;
-                return {
-                  ...w,
-                  items: w.items.map((item) => {
-                    if (item.id !== itemId) return item;
-                    return {
-                      ...item,
-                      sets: item.sets.map((s) =>
-                        s.id === tempSetId 
-                          ? { ...s, id: result.data.id } // tylko ID, reszta bez zmian
-                          : s,
-                      ),
-                    };
-                  }),
-                };
-              }),
-            );
-          }
+          if (!response.ok) throw new Error("Błąd dodawania serii");
+          // Sukces - nie aktualizujemy stanu, tymczasowe ID działają lokalnie
+          // Przy następnej synchronizacji dane się odświeżą
         })
         .catch(() => {
           // Rollback przy błędzie
@@ -694,30 +648,34 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         });
       });
 
-      // Wyślij do serwera w tle
-      authFetch(`${API_BASE}/api/workouts/sets/${setId}`, {
-        method: "PATCH",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      }).catch(() => {
-        // Rollback przy błędzie
-        if (originalSet) {
-          setWorkouts((prev) =>
-            prev.map((w) => {
-              if (w.id !== workoutId) return w;
-              return {
-                ...w,
-                items: w.items.map((item) => ({
-                  ...item,
-                  sets: item.sets.map((s) =>
-                    s.id === setId ? originalSet : s,
-                  ),
-                })),
-              };
-            }),
-          );
-        }
-      });
+      // Wyślij do serwera w tle - ale tylko jeśli ID nie jest tymczasowe
+      // Tymczasowe ID (temp_) oznacza że set nie został jeszcze zapisany na serwerze
+      if (!setId.startsWith('temp_')) {
+        authFetch(`${API_BASE}/api/workouts/sets/${setId}`, {
+          method: "PATCH",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(data),
+        }).catch(() => {
+          // Rollback przy błędzie
+          if (originalSet) {
+            setWorkouts((prev) =>
+              prev.map((w) => {
+                if (w.id !== workoutId) return w;
+                return {
+                  ...w,
+                  items: w.items.map((item) => ({
+                    ...item,
+                    sets: item.sets.map((s) =>
+                      s.id === setId ? originalSet : s,
+                    ),
+                  })),
+                };
+              }),
+            );
+          }
+        });
+      }
+      // Jeśli ID tymczasowe - zmiany są tylko lokalne, zostaną zsynchronizowane później
     },
     [],
   );
@@ -752,31 +710,34 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         });
       });
 
-      // Wyślij do serwera w tle
-      authFetch(`${API_BASE}/api/workouts/sets/${setId}`, {
-        method: "DELETE",
-      }).catch(() => {
-        // Rollback przy błędzie
-        if (originalSet) {
-          setWorkouts((prev) =>
-            prev.map((w) => {
-              if (w.id !== workoutId) return w;
-              return {
-                ...w,
-                items: w.items.map((item) => {
-                  if (item.id !== itemId) return item;
-                  return {
-                    ...item,
-                    sets: [...item.sets, originalSet].sort(
-                      (a, b) => a.setNumber - b.setNumber,
-                    ),
-                  };
-                }),
-              };
-            }),
-          );
-        }
-      });
+      // Wyślij do serwera w tle - ale tylko jeśli ID nie jest tymczasowe
+      if (!setId.startsWith('temp_')) {
+        authFetch(`${API_BASE}/api/workouts/sets/${setId}`, {
+          method: "DELETE",
+        }).catch(() => {
+          // Rollback przy błędzie
+          if (originalSet) {
+            setWorkouts((prev) =>
+              prev.map((w) => {
+                if (w.id !== workoutId) return w;
+                return {
+                  ...w,
+                  items: w.items.map((item) => {
+                    if (item.id !== itemId) return item;
+                    return {
+                      ...item,
+                      sets: [...item.sets, originalSet].sort(
+                        (a, b) => a.setNumber - b.setNumber,
+                      ),
+                    };
+                  }),
+                };
+              }),
+            );
+          }
+        });
+      }
+      // Jeśli ID tymczasowe - usunięcie jest tylko lokalne
     },
     [],
   );

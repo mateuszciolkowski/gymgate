@@ -748,7 +748,7 @@ const WorkoutItemCard = memo(
     </div>
   );
   },
-  // Custom comparator - porównuj głęboko item i stats, callbacks są już stabilne
+  // Custom comparator - porównuj tylko istotne dane, ignoruj zmiany ID
   (prevProps, nextProps) => {
     // Jeśli referencje są takie same, nie przeładowuj
     if (prevProps === nextProps) return true;
@@ -759,14 +759,33 @@ const WorkoutItemCard = memo(
     if (prevProps.isEditMode !== nextProps.isEditMode) return false;
     if (prevProps.isExpanded !== nextProps.isExpanded) return false;
     
-    // Porównaj item po JSON (głębokie porównanie)
-    if (JSON.stringify(prevProps.item) !== JSON.stringify(nextProps.item)) return false;
+    // Porównaj item - ale ignoruj ID (bo może się zmienić z temp na real)
+    const prevItem = prevProps.item;
+    const nextItem = nextProps.item;
     
-    // Porównaj stats po JSON
-    if (JSON.stringify(prevProps.stats) !== JSON.stringify(nextProps.stats)) return false;
+    // Porównaj podstawowe dane ćwiczenia
+    if (prevItem.exerciseId !== nextItem.exerciseId) return false;
+    if (prevItem.exercise.name !== nextItem.exercise.name) return false;
+    if (prevItem.sets.length !== nextItem.sets.length) return false;
     
-    // Callbacks - zakładamy że są stabilne (useCallback z pustymi deps)
-    // Nie porównujemy ich bo to by wymagało porównania referencji które mogą się zmieniać
+    // Porównaj każdą serię - ale tylko wartości, nie ID
+    for (let i = 0; i < prevItem.sets.length; i++) {
+      const prevSet = prevItem.sets[i];
+      const nextSet = nextItem.sets[i];
+      if (prevSet.setNumber !== nextSet.setNumber) return false;
+      if (prevSet.weight !== nextSet.weight) return false;
+      if (prevSet.repetitions !== nextSet.repetitions) return false;
+    }
+    
+    // Porównaj stats - ale tylko istotne wartości
+    const prevStats = prevProps.stats;
+    const nextStats = nextProps.stats;
+    if ((!prevStats && nextStats) || (prevStats && !nextStats)) return false;
+    if (prevStats && nextStats) {
+      if (prevStats.maxWeight !== nextStats.maxWeight) return false;
+      if (prevStats.lastWeight !== nextStats.lastWeight) return false;
+      if (prevStats.totalWorkouts !== nextStats.totalWorkouts) return false;
+    }
     
     return true;
   }
