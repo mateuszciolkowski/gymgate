@@ -15,8 +15,10 @@ export function useTheme(): UseThemeReturn {
 
     if (initialTheme === "dark") {
       document.documentElement.classList.add("dark");
+      document.body.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
+      document.body.classList.remove("dark");
     }
 
     return initialTheme;
@@ -27,8 +29,10 @@ export function useTheme(): UseThemeReturn {
 
     if (theme === "dark") {
       document.documentElement.classList.add("dark");
+      document.body.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
+      document.body.classList.remove("dark");
     }
   }, [theme]);
 

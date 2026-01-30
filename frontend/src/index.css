@@ -21,6 +21,14 @@
   box-sizing: border-box;
 }
 
+html {
+  background-color: #ffffff; /* white for light mode */
+}
+
+html.dark {
+  background-color: #111827; /* dark gray-900 for dark mode */
+}
+
 body {
   font-family:
     system-ui,
@@ -33,6 +41,13 @@ body {
   min-height: 100dvh; /* Dynamic viewport height for mobile */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #ffffff; /* white for light mode */
+  margin: 0;
+  padding: 0;
+}
+
+body.dark {
+  background-color: #111827; /* dark gray-900 for dark mode */
 }
 
 /* Mobile optimizations */
