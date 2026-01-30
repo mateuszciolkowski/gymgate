@@ -107,6 +107,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const workoutsRef = useRef<Workout[]>([]);
   workoutsRef.current = workouts;
 
+  // Mapowanie tymczasowych ID na prawdziwe - nie powoduje re-renderów
+  const idMappingRef = useRef<Map<string, string>>(new Map());
+
+  // Funkcja pomocnicza - pobierz prawdziwe ID (lub tymczasowe jeśli nie ma mapowania)
+  const getRealId = (tempId: string): string => {
+    return idMappingRef.current.get(tempId) || tempId;
+  };
+
   // Nasłuchuj na zmiany online/offline
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -469,8 +477,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       })
         .then(async (response) => {
           if (!response.ok) throw new Error("Błąd dodawania ćwiczenia");
-          // Sukces - nie aktualizujemy stanu, tymczasowe ID działają lokalnie
-          // Przy następnej synchronizacji dane się odświeżą
+          const result = await response.json();
+          // Zapisz mapowanie tymczasowych ID na prawdziwe (w ref, bez re-renderu)
+          if (result.data) {
+            idMappingRef.current.set(tempItemId, result.data.id);
+            // Mapuj też ID setów
+            const serverSets = result.data.sets || [];
+            if (serverSets[0]) {
+              idMappingRef.current.set(tempSetId, serverSets[0].id);
+            }
+          }
         })
         .catch(() => {
           // Rollback przy błędzie
@@ -507,9 +523,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         });
       });
 
-      // Wyślij do serwera w tle - ale tylko jeśli ID nie jest tymczasowe
-      if (!itemId.startsWith('temp_')) {
-        authFetch(`${API_BASE}/api/workouts/items/${itemId}`, {
+      // Wyślij do serwera w tle - użyj prawdziwego ID jeśli mamy mapowanie
+      const realItemId = getRealId(itemId);
+      
+      if (!realItemId.startsWith('temp_')) {
+        authFetch(`${API_BASE}/api/workouts/items/${realItemId}`, {
           method: "DELETE",
         }).catch(() => {
           // Rollback - przywróć item
@@ -570,35 +588,45 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }),
       );
 
-      // Wyślij do serwera w tle (bez await - fire and forget)
-      authFetch(`${API_BASE}/api/workouts/items/${itemId}/sets`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      })
-        .then(async (response) => {
-          if (!response.ok) throw new Error("Błąd dodawania serii");
-          // Sukces - nie aktualizujemy stanu, tymczasowe ID działają lokalnie
-          // Przy następnej synchronizacji dane się odświeżą
+      // Wyślij do serwera w tle
+      // Użyj prawdziwego ID jeśli mamy mapowanie, w przeciwnym razie sprawdź czy to temp
+      const realItemId = getRealId(itemId);
+      
+      if (!realItemId.startsWith('temp_')) {
+        authFetch(`${API_BASE}/api/workouts/items/${realItemId}/sets`, {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(data),
         })
-        .catch(() => {
-          // Rollback przy błędzie
-          setWorkouts((prev) =>
-            prev.map((w) => {
-              if (w.id !== workoutId) return w;
-              return {
-                ...w,
-                items: w.items.map((item) => {
-                  if (item.id !== itemId) return item;
-                  return {
-                    ...item,
-                    sets: item.sets.filter((s) => s.id !== tempSetId),
-                  };
-                }),
-              };
-            }),
-          );
-        });
+          .then(async (response) => {
+            if (!response.ok) throw new Error("Błąd dodawania serii");
+            const result = await response.json();
+            // Zapisz mapowanie ID seta
+            if (result.data) {
+              idMappingRef.current.set(tempSetId, result.data.id);
+            }
+          })
+          .catch(() => {
+            // Rollback przy błędzie
+            setWorkouts((prev) =>
+              prev.map((w) => {
+                if (w.id !== workoutId) return w;
+                return {
+                  ...w,
+                  items: w.items.map((item) => {
+                    if (item.id !== itemId) return item;
+                    return {
+                      ...item,
+                      sets: item.sets.filter((s) => s.id !== tempSetId),
+                    };
+                  }),
+                };
+              }),
+            );
+          });
+      }
+      // Jeśli realItemId nadal tymczasowe - to znaczy że serwer jeszcze nie odpowiedział
+      // Seria zostanie zapisana gdy serwer odpowie (TODO: kolejka operacji)
     },
     [],
   );
@@ -648,10 +676,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         });
       });
 
-      // Wyślij do serwera w tle - ale tylko jeśli ID nie jest tymczasowe
-      // Tymczasowe ID (temp_) oznacza że set nie został jeszcze zapisany na serwerze
-      if (!setId.startsWith('temp_')) {
-        authFetch(`${API_BASE}/api/workouts/sets/${setId}`, {
+      // Wyślij do serwera w tle - użyj prawdziwego ID jeśli mamy mapowanie
+      const realSetId = getRealId(setId);
+      
+      if (!realSetId.startsWith('temp_')) {
+        authFetch(`${API_BASE}/api/workouts/sets/${realSetId}`, {
           method: "PATCH",
           headers: getAuthHeaders(),
           body: JSON.stringify(data),
@@ -675,7 +704,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           }
         });
       }
-      // Jeśli ID tymczasowe - zmiany są tylko lokalne, zostaną zsynchronizowane później
+      // Jeśli ID tymczasowe - zmiany są tylko lokalne
     },
     [],
   );
@@ -710,9 +739,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         });
       });
 
-      // Wyślij do serwera w tle - ale tylko jeśli ID nie jest tymczasowe
-      if (!setId.startsWith('temp_')) {
-        authFetch(`${API_BASE}/api/workouts/sets/${setId}`, {
+      // Wyślij do serwera w tle - użyj prawdziwego ID jeśli mamy mapowanie
+      const realSetId = getRealId(setId);
+      
+      if (!realSetId.startsWith('temp_')) {
+        authFetch(`${API_BASE}/api/workouts/sets/${realSetId}`, {
           method: "DELETE",
         }).catch(() => {
           // Rollback przy błędzie
