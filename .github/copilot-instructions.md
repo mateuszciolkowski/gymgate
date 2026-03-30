@@ -1,70 +1,90 @@
 # Copilot Instructions for GymGate
 
-Ten dokument pomaga Copilotowi szybciej i trafniej pracować w tym repozytorium.
+This document defines the expected Copilot workflow and standards for this repository.
 
-## 1) Cel projektu
+## 1) Project Mission
 
-GymGate to aplikacja do prowadzenia treningów siłowych:
+GymGate is a strength-training tracking app:
 
-- frontend: React + TypeScript + Vite,
-- backend: Express + TypeScript + Prisma,
-- auth: JWT,
-- dane: PostgreSQL,
-- UX: offline-first + synchronizacja w tle.
+- Frontend: React + TypeScript + Vite
+- Backend: Express + TypeScript + Prisma
+- Auth: JWT
+- Database: PostgreSQL
+- UX: offline-first with background synchronization
 
-## 2) Priorytety podczas zmian
+Critical product flow:
+`start workout -> add exercises -> add sets -> complete workout -> update stats`
 
-1. Nie psuj flow treningu: create workout -> add exercises -> add sets -> complete workout.
-2. Zachowuj kompatybilność API frontend <-> backend.
-3. Szanuj podejście offline-first (lokalne dane + sync).
-4. Zmieniaj kod chirurgicznie, bez refaktorów „przy okazji”.
+## 2) Domain Invariants (DO NOT BREAK)
 
-## 3) Mapa kodu (szybki onboarding)
+1. A user can have only one active workout (`activeWorkoutId`) at a time.
+2. Adding an exercise to a workout must create a default set (`0 kg`, `1 rep`).
+3. Marking a workout as `COMPLETED` must update exercise stats and clear `activeWorkoutId`.
+4. Frontend behavior must remain stable in unstable network conditions (local cache + deferred sync).
+5. API contracts between frontend and backend must remain consistent.
+
+## 3) Code Map
 
 ### Backend
 
-- `backend/src/index.ts` – uruchomienie API, CORS, routery.
-- `backend/src/modules/auth/*` – logowanie/rejestracja/token.
-- `backend/src/modules/user/*` – użytkownicy.
-- `backend/src/modules/exercise/*` – CRUD ćwiczeń.
-- `backend/src/modules/workout/*` – treningi, serie, statystyki.
-- `backend/prisma/schema.prisma` – model domeny.
+- `backend/src/index.ts` - API bootstrap, CORS, routers, health endpoints
+- `backend/src/modules/auth/*` - register/login/me, JWT handling
+- `backend/src/modules/user/*` - user operations
+- `backend/src/modules/exercise/*` - exercise CRUD
+- `backend/src/modules/workout/*` - workouts, sets, stats
+- `backend/prisma/schema.prisma` - domain model
 
 ### Frontend
 
-- `frontend/src/contexts/AuthContext.tsx` – sesja użytkownika.
-- `frontend/src/contexts/DataContext.tsx` – globalny stan i operacje danych.
-- `frontend/src/utils/localStore.ts` – cache lokalny.
-- `frontend/src/utils/syncManager.ts` – synchronizacja online/offline.
-- `frontend/src/components/screens/*` – główne ekrany.
+- `frontend/src/contexts/AuthContext.tsx` - auth/session state
+- `frontend/src/contexts/DataContext.tsx` - domain state and actions
+- `frontend/src/utils/localStore.ts` - IndexedDB/local cache
+- `frontend/src/utils/syncManager.ts` - online/offline synchronization
 
-## 4) Zasady implementacyjne
+## 4) Implementation Rules
 
-- Używaj TypeScript bez `any` (chyba że to absolutnie konieczne i lokalnie ograniczone).
-- Zachowuj istniejący styl nazw i strukturę modułów.
-- Walidację requestów trzymaj w schematach (`*.schema.ts`), nie w kontrolerach.
-- Logikę biznesową trzymaj w `service`, nie w `controller`.
-- Przy zmianie modelu danych aktualizuj Prisma + miejsca użycia.
+1. Preserve layer separation: `routes -> controller -> service -> repository`.
+2. Keep request validation in `*.schema.ts` (Zod), not in controllers.
+3. Keep business logic in `service`; database access in `repository`.
+4. Use strict TypeScript; avoid `any` and silent fallbacks.
+5. Make surgical changes only; no incidental refactors.
+6. Do not change endpoint semantics without updating docs and frontend usage.
 
-## 5) API i kontrakty
+## 5) API Contracts and Documentation
 
-Przed zmianą endpointów sprawdź:
+Before changing endpoints, review:
 
 - `backend/src/modules/user/API.md`
 - `backend/src/modules/exercise/API.md`
 - `backend/src/modules/workout/API.md`
 
-Jeśli zmieniasz request/response, zaktualizuj te pliki i frontendowe typy.
+If request/response changes:
 
-## 6) Workflow jakości
+1. Update the relevant `API.md`.
+2. Update frontend types and API usage.
+3. Verify sync compatibility (`syncManager` + `localStore`).
 
-Po zmianach uruchamiaj tylko istniejące skrypty projektu:
+## 6) Offline-First Guardrails
+
+1. Never assume constant online connectivity.
+2. Data mutations must remain safe for queued sync operations.
+3. Do not bypass/remove pending-sync behavior without a complete replacement flow.
+4. If endpoint behavior changes, verify sync fetch paths still work:
+   - `/api/workouts`
+   - `/api/exercises`
+   - `/api/workouts/active`
+   - `/api/workouts/stats/all`
+
+## 7) Testing and Validation
+
+Use existing project tooling only.
 
 ### Backend
 
 ```bash
 cd backend
 npm run build
+npx vitest run
 ```
 
 ### Frontend
@@ -74,31 +94,33 @@ cd frontend
 npm run build
 ```
 
-Jeśli dotykasz logiki backendu, uruchom także testy jeśli są dostępne dla zmienianego modułu.
+Minimum standard:
 
-## 7) Bezpieczeństwo i sekrety
+- Any `service` logic change should include/adjust unit tests.
+- Any endpoint contract change requires tests and API docs updates.
 
-- Nigdy nie commituj prawdziwych sekretów do repo.
-- Korzystaj z `.env.example` jako szablonu, a nie źródła danych produkcyjnych.
-- Nie loguj tokenów, haseł ani pełnych danych uwierzytelniających.
+## 8) Security
 
-## 8) Preferowany styl odpowiedzi Copilota
+1. Never commit real secrets.
+2. Never log tokens, passwords, or sensitive authentication data.
+3. Treat `.env.example` as a template only.
+4. Surface errors explicitly; do not hide operational failures.
 
-- Najpierw krótko: *co zmieniono i dlaczego*.
-- Potem lista plików i wpływ na zachowanie.
-- Na końcu: jak zweryfikować (konkretne komendy).
+## 9) Preferred Copilot Response Format
 
-## 9) Gotowe prompty dla szybszej współpracy
+After making changes, always report:
 
-### Analiza błędu
+1. What changed and why.
+2. Which files were touched and behavioral impact.
+3. How to verify with concrete commands.
+4. Any follow-up risks or regression checks.
 
-`Przeanalizuj błąd w [plik/moduł], wskaż przyczynę źródłową i zaproponuj minimalny patch bez naruszania kontraktów API.`
+## 10) Pre-Completion Checklist
 
-### Dodanie funkcji
-
-`Dodaj funkcję [nazwa] w module [x], zachowując strukturę controller/service/repository oraz aktualizując typy frontendu i dokumentację API.`
-
-### Bezpieczny refaktor
-
-`Zrefaktoruj [fragment] bez zmiany zachowania. Pokaż, które testy/build potwierdzają brak regresji.`
-
+- [ ] Does the workout flow still work end-to-end?
+- [ ] Are frontend/backend API contracts still aligned?
+- [ ] Is offline/sync behavior still intact?
+- [ ] Does backend build pass?
+- [ ] Do backend tests pass?
+- [ ] Does frontend build pass?
+- [ ] Is API documentation updated when required?

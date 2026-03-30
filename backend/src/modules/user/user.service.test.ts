@@ -26,13 +26,14 @@ describe("User Service", () => {
     expect(findUserById).toHaveBeenCalledWith("1");
     expect(user).not.toHaveProperty("password");
     expect(user).toEqual({
-      id: "1",
+      id: "123",
       email: "test@example.com",
       firstName: "Test",
       lastName: "User",
-      phone: "123456789",
+      phone: "1234567890",
       createdAt: mockUser.createdAt,
       updatedAt: mockUser.updatedAt,
+      activeWorkoutId: null,
     });
   });
 
