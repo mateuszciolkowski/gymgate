@@ -33,7 +33,7 @@ console.log(`📌 Using PORT: ${PORT}`);
 
 const originsEnv: string =
   process.env.ALLOWED_ORIGINS ||
-  "http://localhost:5173,https://gymgate.vercel.app";
+  "http://localhost:5173,http://127.0.0.1:5173,https://gymgate.vercel.app";
 const allowedOrigins: string[] = originsEnv
   .split(",")
   .map((origin) => origin.trim());

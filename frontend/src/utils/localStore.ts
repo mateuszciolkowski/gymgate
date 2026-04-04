@@ -12,7 +12,7 @@ interface StoreConfig {
   activeWorkout: { key: string; data: unknown };
   stats: { key: string; data: unknown };
   pendingSync: { key: string; data: SyncOperation };
-  metadata: { key: string; data: { lastSync: number } };
+  metadata: { key: string; data: { lastSync?: number; value?: unknown } };
 }
 
 export interface SyncOperation {
@@ -173,6 +173,10 @@ export const localStore = {
     return id;
   },
 
+  async updatePendingSync(operation: SyncOperation): Promise<void> {
+    await this.put("pendingSync", operation as unknown as { id: string });
+  },
+
   async getPendingSyncOperations(): Promise<SyncOperation[]> {
     return this.getAll<SyncOperation>("pendingSync");
   },
@@ -194,6 +198,18 @@ export const localStore = {
     await this.put("metadata", {
       key: "sync",
       lastSync: timestamp,
+    } as unknown as { id: string });
+  },
+
+  async getMetadata<T>(key: string): Promise<T | null> {
+    const meta = await this.get<{ key: string; value: T }>("metadata", key);
+    return meta?.value ?? null;
+  },
+
+  async setMetadata<T>(key: string, value: T): Promise<void> {
+    await this.put("metadata", {
+      key,
+      value,
     } as unknown as { id: string });
   },
 
