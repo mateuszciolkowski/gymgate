@@ -145,7 +145,7 @@ export function WorkoutDetailScreen({
 
       const lastSet = item.sets[item.sets.length - 1];
       const nextSetNumber = lastSet ? lastSet.setNumber + 1 : 1;
-      const defaultWeight = lastSet ? Number(lastSet.weight) : 0;
+      const defaultWeight = lastSet ? Math.max(Number(lastSet.weight), 1) : 1;
       const defaultReps = lastSet ? lastSet.repetitions : 10;
 
       try {

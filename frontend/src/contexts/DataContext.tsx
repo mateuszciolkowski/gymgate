@@ -115,6 +115,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return idMappingRef.current.get(tempId) || tempId;
   };
 
+  const isOfflineError = useCallback(
+    (error: unknown): boolean => !navigator.onLine || error instanceof TypeError,
+    [],
+  );
+
+  const queueSyncOperation = useCallback(
+    async (operation: {
+      type: "create" | "update" | "delete";
+      entity: "workout" | "exercise" | "set" | "workoutItem";
+      endpoint: string;
+      method: string;
+      data?: unknown;
+    }) => {
+      await syncManager.queueOperation(operation);
+    },
+    [],
+  );
+
   // Nasłuchuj na zmiany online/offline
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -303,56 +321,136 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       gymName?: string;
       workoutDate?: string;
     }) => {
-      const response = await authFetch(`${API_BASE}/api/workouts`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      });
+      try {
+        const response = await authFetch(`${API_BASE}/api/workouts`, {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(data),
+        });
 
-      if (!response.ok) throw new Error("Błąd tworzenia treningu");
+        if (!response.ok) throw new Error("Błąd tworzenia treningu");
 
-      const result = await response.json();
-      const newWorkout = result.data;
+        const result = await response.json();
+        const newWorkout = result.data;
 
-      // Aktualizuj stan i lokalne dane
-      setWorkouts((prev) => [newWorkout, ...prev]);
-      setActiveWorkoutId(newWorkout.id);
-      await localStore.put("workouts", newWorkout);
-      await localStore.setActiveWorkoutId(newWorkout.id);
+        setWorkouts((prev) => [newWorkout, ...prev]);
+        setActiveWorkoutId(newWorkout.id);
+        await localStore.put("workouts", newWorkout);
+        await localStore.setActiveWorkoutId(newWorkout.id);
 
-      return newWorkout;
+        return newWorkout;
+      } catch (error) {
+        if (!isOfflineError(error)) throw error;
+
+        const tempWorkoutId = `temp_workout_${Date.now()}`;
+        const nowIso = new Date().toISOString();
+        const tempWorkout: Workout = {
+          id: tempWorkoutId,
+          userId: user?.id || "offline-user",
+          workoutDate: data.workoutDate || nowIso,
+          status: "DRAFT",
+          workoutName: data.workoutName || null,
+          gymName: data.gymName || null,
+          location: null,
+          workoutNotes: null,
+          items: [],
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        };
+
+        setWorkouts((prev) => [tempWorkout, ...prev]);
+        setActiveWorkoutId(tempWorkoutId);
+        await localStore.put("workouts", tempWorkout);
+        await localStore.setActiveWorkoutId(tempWorkoutId);
+
+        await queueSyncOperation({
+          type: "create",
+          entity: "workout",
+          endpoint: "/api/workouts",
+          method: "POST",
+          data: {
+            ...data,
+            clientTempId: tempWorkoutId,
+          },
+        });
+
+        return tempWorkout;
+      }
     },
-    [],
+    [isOfflineError, queueSyncOperation, user?.id],
   );
 
   const updateWorkout = useCallback(
     async (id: string, data: Record<string, unknown>) => {
-      const response = await authFetch(`${API_BASE}/api/workouts/${id}`, {
-        method: "PATCH",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      });
+      try {
+        const response = await authFetch(`${API_BASE}/api/workouts/${id}`, {
+          method: "PATCH",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(data),
+        });
 
-      if (!response.ok) throw new Error("Błąd aktualizacji treningu");
+        if (!response.ok) throw new Error("Błąd aktualizacji treningu");
 
-      const result = await response.json();
-      setWorkouts((prev) => prev.map((w) => (w.id === id ? result.data : w)));
-      await localStore.put("workouts", result.data);
+        const result = await response.json();
+        setWorkouts((prev) => prev.map((w) => (w.id === id ? result.data : w)));
+        await localStore.put("workouts", result.data);
+      } catch (error) {
+        if (!isOfflineError(error)) throw error;
+
+        let updatedWorkout: Workout | null = null;
+        setWorkouts((prev) =>
+          prev.map((w) => {
+            if (w.id !== id) return w;
+            updatedWorkout = {
+              ...w,
+              ...data,
+              updatedAt: new Date().toISOString(),
+            } as Workout;
+            return updatedWorkout;
+          }),
+        );
+
+        if (updatedWorkout) {
+          await localStore.put("workouts", updatedWorkout);
+        }
+
+        if (data.status === "COMPLETED") {
+          setActiveWorkoutId(null);
+          await localStore.setActiveWorkoutId(null);
+        }
+
+        await queueSyncOperation({
+          type: "update",
+          entity: "workout",
+          endpoint: `/api/workouts/${id}`,
+          method: "PATCH",
+          data,
+        });
+      }
     },
-    [],
+    [isOfflineError, queueSyncOperation],
   );
 
   const deleteWorkout = useCallback(async (id: string) => {
-    const response = await authFetch(`${API_BASE}/api/workouts/${id}`, {
-      method: "DELETE",
-    });
+    try {
+      const response = await authFetch(`${API_BASE}/api/workouts/${id}`, {
+        method: "DELETE",
+      });
 
-    if (!response.ok) throw new Error("Błąd usuwania treningu");
+      if (!response.ok) throw new Error("Błąd usuwania treningu");
+    } catch (error) {
+      if (!isOfflineError(error)) throw error;
+      await queueSyncOperation({
+        type: "delete",
+        entity: "workout",
+        endpoint: `/api/workouts/${id}`,
+        method: "DELETE",
+      });
+    }
 
     setWorkouts((prev) => prev.filter((w) => w.id !== id));
     await localStore.delete("workouts", id);
 
-    // Jeśli usuwamy aktywny trening, zresetuj activeWorkoutId
     setActiveWorkoutId((current) => {
       if (current === id) {
         localStore.setActiveWorkoutId(null);
@@ -360,7 +458,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
       return current;
     });
-  }, []);
+  }, [isOfflineError, queueSyncOperation]);
 
   const getWorkout = useCallback(
     (id: string) => workoutsRef.current.find((w) => w.id === id),
@@ -373,52 +471,125 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       muscleGroups: string[];
       description?: string;
     }) => {
-      const response = await authFetch(`${API_BASE}/api/exercises`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      });
+      try {
+        const response = await authFetch(`${API_BASE}/api/exercises`, {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(data),
+        });
 
-      if (!response.ok) throw new Error("Błąd tworzenia ćwiczenia");
+        if (!response.ok) throw new Error("Błąd tworzenia ćwiczenia");
 
-      const result = await response.json();
-      const newExercise = result.data;
+        const result = await response.json();
+        const newExercise = result.data;
 
-      setExercises((prev) => [newExercise, ...prev]);
-      await localStore.put("exercises", newExercise);
+        setExercises((prev) => [newExercise, ...prev]);
+        await localStore.put("exercises", newExercise);
 
-      return newExercise;
+        return newExercise;
+      } catch (error) {
+        if (!isOfflineError(error)) throw error;
+
+        const tempExerciseId = `temp_exercise_${Date.now()}`;
+        const tempExercise: Exercise = {
+          id: tempExerciseId,
+          name: data.name,
+          muscleGroups: data.muscleGroups,
+          description: data.description || undefined,
+          photos: [],
+          creator: {
+            id: user?.id || "offline-user",
+            firstName: user?.firstName || "Offline",
+            lastName: user?.lastName || "User",
+            email: user?.email || "offline@example.com",
+          },
+        };
+
+        setExercises((prev) => [tempExercise, ...prev]);
+        await localStore.put("exercises", tempExercise);
+
+        await queueSyncOperation({
+          type: "create",
+          entity: "exercise",
+          endpoint: "/api/exercises",
+          method: "POST",
+          data: {
+            ...data,
+            clientTempId: tempExerciseId,
+          },
+        });
+
+        return tempExercise;
+      }
     },
-    [],
+    [isOfflineError, queueSyncOperation, user?.email, user?.firstName, user?.id, user?.lastName],
   );
 
   const updateExercise = useCallback(
     async (id: string, data: Record<string, unknown>) => {
-      const response = await authFetch(`${API_BASE}/api/exercises/${id}`, {
-        method: "PATCH",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      });
+      try {
+        const response = await authFetch(`${API_BASE}/api/exercises/${id}`, {
+          method: "PATCH",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(data),
+        });
 
-      if (!response.ok) throw new Error("Błąd aktualizacji ćwiczenia");
+        if (!response.ok) throw new Error("Błąd aktualizacji ćwiczenia");
 
-      const result = await response.json();
-      setExercises((prev) => prev.map((e) => (e.id === id ? result.data : e)));
-      await localStore.put("exercises", result.data);
+        const result = await response.json();
+        setExercises((prev) => prev.map((e) => (e.id === id ? result.data : e)));
+        await localStore.put("exercises", result.data);
+      } catch (error) {
+        if (!isOfflineError(error)) throw error;
+
+        let updatedExercise: Exercise | null = null;
+        setExercises((prev) =>
+          prev.map((e) => {
+            if (e.id !== id) return e;
+            updatedExercise = {
+              ...e,
+              ...data,
+              updatedAt: new Date().toISOString(),
+            } as Exercise;
+            return updatedExercise;
+          }),
+        );
+        if (updatedExercise) {
+          await localStore.put("exercises", updatedExercise);
+        }
+
+        await queueSyncOperation({
+          type: "update",
+          entity: "exercise",
+          endpoint: `/api/exercises/${id}`,
+          method: "PATCH",
+          data,
+        });
+      }
     },
-    [],
+    [isOfflineError, queueSyncOperation],
   );
 
   const deleteExercise = useCallback(async (id: string) => {
-    const response = await authFetch(`${API_BASE}/api/exercises/${id}`, {
-      method: "DELETE",
-    });
+    try {
+      const response = await authFetch(`${API_BASE}/api/exercises/${id}`, {
+        method: "DELETE",
+      });
 
-    if (!response.ok) throw new Error("Błąd usuwania ćwiczenia");
+      if (!response.ok) throw new Error("Błąd usuwania ćwiczenia");
+    } catch (error) {
+      if (!isOfflineError(error)) throw error;
+      await queueSyncOperation({
+        type: "delete",
+        entity: "exercise",
+        endpoint: `/api/exercises/${id}`,
+        method: "DELETE",
+      });
+    }
 
     setExercises((prev) => prev.filter((e) => e.id !== id));
     await localStore.delete("exercises", id);
-  }, []);
+  }, [isOfflineError, queueSyncOperation]);
 
   // Odśwież pojedynczy workout
   const refreshWorkout = useCallback(async (id: string) => {
@@ -467,13 +638,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             itemId: tempItemId,
             setNumber: 1,
             weight: "0",
-            repetitions: 10,
+            repetitions: 1,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },
         ],
       };
 
+      let updatedWorkout: Workout | null = null;
       setWorkouts((prev) =>
         prev.map((w) => {
           if (w.id !== workoutId) return w;
@@ -481,43 +653,104 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             ...newItem,
             orderInWorkout: w.items.length + 1,
           };
-          return { ...w, items: [...w.items, itemWithOrder as any] };
+          updatedWorkout = { ...w, items: [...w.items, itemWithOrder as any] };
+          return updatedWorkout;
         }),
       );
+      if (updatedWorkout) {
+        await localStore.put("workouts", updatedWorkout);
+      }
 
-      // Wyślij do serwera w tle (fire-and-forget)
-      authFetch(`${API_BASE}/api/workouts/${workoutId}/exercises`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ exerciseId }),
-      })
-        .then(async (response) => {
-          if (!response.ok) throw new Error("Błąd dodawania ćwiczenia");
-          const result = await response.json();
-          // Zapisz mapowanie tymczasowych ID na prawdziwe (w ref, bez re-renderu)
-          if (result.data) {
-            idMappingRef.current.set(tempItemId, result.data.id);
-            // Mapuj też ID setów
-            const serverSets = result.data.sets || [];
-            if (serverSets[0]) {
-              idMappingRef.current.set(tempSetId, serverSets[0].id);
-            }
+      const syncPayload = {
+        exerciseId,
+        clientTempItemId: tempItemId,
+        clientTempSetId: tempSetId,
+      };
+
+      if (!navigator.onLine) {
+        await queueSyncOperation({
+          type: "create",
+          entity: "workoutItem",
+          endpoint: `/api/workouts/${workoutId}/exercises`,
+          method: "POST",
+          data: syncPayload,
+        });
+        return;
+      }
+
+      try {
+        const response = await authFetch(
+          `${API_BASE}/api/workouts/${workoutId}/exercises`,
+          {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ exerciseId }),
+          },
+        );
+        if (!response.ok) throw new Error("Błąd dodawania ćwiczenia");
+        const result = await response.json();
+
+        if (result.data) {
+          idMappingRef.current.set(tempItemId, result.data.id);
+          const serverSets = result.data.sets || [];
+          if (serverSets[0]) {
+            idMappingRef.current.set(tempSetId, serverSets[0].id);
           }
-        })
-        .catch(() => {
-          // Rollback przy błędzie
+
+          let remappedWorkout: Workout | null = null;
           setWorkouts((prev) =>
             prev.map((w) => {
               if (w.id !== workoutId) return w;
-              return {
+              remappedWorkout = {
                 ...w,
-                items: w.items.filter((i) => i.id !== tempItemId),
+                items: w.items.map((item) => {
+                  if (item.id !== tempItemId) return item;
+                  return {
+                    ...item,
+                    id: result.data.id,
+                    sets: item.sets.map((set, index) =>
+                      index === 0 && serverSets[0]
+                        ? {
+                            ...set,
+                            id: serverSets[0].id,
+                            repetitions: serverSets[0].repetitions,
+                          }
+                        : set,
+                    ),
+                  };
+                }),
               };
+              return remappedWorkout;
             }),
           );
-        });
+          if (remappedWorkout) {
+            await localStore.put("workouts", remappedWorkout);
+          }
+        }
+      } catch (error) {
+        if (isOfflineError(error)) {
+          await queueSyncOperation({
+            type: "create",
+            entity: "workoutItem",
+            endpoint: `/api/workouts/${workoutId}/exercises`,
+            method: "POST",
+            data: syncPayload,
+          });
+          return;
+        }
+
+        setWorkouts((prev) =>
+          prev.map((w) => {
+            if (w.id !== workoutId) return w;
+            return {
+              ...w,
+              items: w.items.filter((i) => i.id !== tempItemId),
+            };
+          }),
+        );
+      }
     },
-    [],
+    [isOfflineError, queueSyncOperation],
   );
 
   const removeExerciseFromWorkout = useCallback(
@@ -526,6 +759,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       let originalItem: any = null;
 
       // Optymistyczna aktualizacja
+      let updatedWorkout: Workout | null = null;
       setWorkouts((prev) => {
         // Znajdź oryginalny item przed usunięciem
         const workout = prev.find((w) => w.id === workoutId);
@@ -535,18 +769,43 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
         return prev.map((w) => {
           if (w.id !== workoutId) return w;
-          return { ...w, items: w.items.filter((i) => i.id !== itemId) };
+          updatedWorkout = { ...w, items: w.items.filter((i) => i.id !== itemId) };
+          return updatedWorkout;
         });
       });
+      if (updatedWorkout) {
+        await localStore.put("workouts", updatedWorkout);
+      }
 
       // Wyślij do serwera w tle - użyj prawdziwego ID jeśli mamy mapowanie
       const realItemId = getRealId(itemId);
       
       if (!realItemId.startsWith('temp_')) {
-        authFetch(`${API_BASE}/api/workouts/items/${realItemId}`, {
-          method: "DELETE",
-        }).catch(() => {
-          // Rollback - przywróć item
+        if (!navigator.onLine) {
+          await queueSyncOperation({
+            type: "delete",
+            entity: "workoutItem",
+            endpoint: `/api/workouts/items/${realItemId}`,
+            method: "DELETE",
+          });
+          return;
+        }
+
+        try {
+          await authFetch(`${API_BASE}/api/workouts/items/${realItemId}`, {
+            method: "DELETE",
+          });
+        } catch (error) {
+          if (isOfflineError(error)) {
+            await queueSyncOperation({
+              type: "delete",
+              entity: "workoutItem",
+              endpoint: `/api/workouts/items/${realItemId}`,
+              method: "DELETE",
+            });
+            return;
+          }
+
           if (originalItem) {
             setWorkouts((prev) =>
               prev.map((w) => {
@@ -560,11 +819,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
               }),
             );
           }
-        });
+        }
       }
       // Jeśli ID tymczasowe - usunięcie jest tylko lokalne
     },
-    [],
+    [isOfflineError, queueSyncOperation],
   );
 
   const addSet = useCallback(
@@ -577,10 +836,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const tempSetId = `temp_set_${Date.now()}`;
 
       // Optymistyczna aktualizacja
+      let updatedWorkout: Workout | null = null;
       setWorkouts((prev) =>
         prev.map((w) => {
           if (w.id !== workoutId) return w;
-          return {
+          updatedWorkout = {
             ...w,
             items: w.items.map((item) => {
               if (item.id !== itemId) return item;
@@ -601,50 +861,77 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
               };
             }),
           };
+          return updatedWorkout;
         }),
       );
+      if (updatedWorkout) {
+        await localStore.put("workouts", updatedWorkout);
+      }
 
       // Wyślij do serwera w tle
       // Użyj prawdziwego ID jeśli mamy mapowanie, w przeciwnym razie sprawdź czy to temp
       const realItemId = getRealId(itemId);
       
-      if (!realItemId.startsWith('temp_')) {
-        authFetch(`${API_BASE}/api/workouts/items/${realItemId}/sets`, {
+      const syncPayload = {
+        ...data,
+        clientTempSetId: tempSetId,
+      };
+
+      if (realItemId.startsWith("temp_") || !navigator.onLine) {
+        await queueSyncOperation({
+          type: "create",
+          entity: "set",
+          endpoint: `/api/workouts/items/${realItemId}/sets`,
           method: "POST",
-          headers: getAuthHeaders(),
-          body: JSON.stringify(data),
-        })
-          .then(async (response) => {
-            if (!response.ok) throw new Error("Błąd dodawania serii");
-            const result = await response.json();
-            // Zapisz mapowanie ID seta
-            if (result.data) {
-              idMappingRef.current.set(tempSetId, result.data.id);
-            }
-          })
-          .catch(() => {
-            // Rollback przy błędzie
-            setWorkouts((prev) =>
-              prev.map((w) => {
-                if (w.id !== workoutId) return w;
+          data: syncPayload,
+        });
+        return;
+      }
+
+      try {
+        const response = await authFetch(
+          `${API_BASE}/api/workouts/items/${realItemId}/sets`,
+          {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data),
+          },
+        );
+        if (!response.ok) throw new Error("Błąd dodawania serii");
+        const result = await response.json();
+        if (result.data) {
+          idMappingRef.current.set(tempSetId, result.data.id);
+        }
+      } catch (error) {
+        if (isOfflineError(error)) {
+          await queueSyncOperation({
+            type: "create",
+            entity: "set",
+            endpoint: `/api/workouts/items/${realItemId}/sets`,
+            method: "POST",
+            data: syncPayload,
+          });
+          return;
+        }
+
+        setWorkouts((prev) =>
+          prev.map((w) => {
+            if (w.id !== workoutId) return w;
+            return {
+              ...w,
+              items: w.items.map((item) => {
+                if (item.id !== itemId) return item;
                 return {
-                  ...w,
-                  items: w.items.map((item) => {
-                    if (item.id !== itemId) return item;
-                    return {
-                      ...item,
-                      sets: item.sets.filter((s) => s.id !== tempSetId),
-                    };
-                  }),
+                  ...item,
+                  sets: item.sets.filter((s) => s.id !== tempSetId),
                 };
               }),
-            );
-          });
+            };
+          }),
+        );
       }
-      // Jeśli realItemId nadal tymczasowe - to znaczy że serwer jeszcze nie odpowiedział
-      // Seria zostanie zapisana gdy serwer odpowie (TODO: kolejka operacji)
     },
-    [],
+    [isOfflineError, queueSyncOperation],
   );
 
   const updateSet = useCallback(
@@ -657,6 +944,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       let originalSet: any = null;
 
       // Optymistyczna aktualizacja - znajdź original w callback
+      let updatedWorkout: Workout | null = null;
       setWorkouts((prev) => {
         // Znajdź oryginał przed modyfikacją
         prev.forEach((w) => {
@@ -668,7 +956,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
         return prev.map((w) => {
           if (w.id !== workoutId) return w;
-          return {
+          updatedWorkout = {
             ...w,
             items: w.items.map((item) => ({
               ...item,
@@ -689,40 +977,62 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
               ),
             })),
           };
+          return updatedWorkout;
         });
       });
+      if (updatedWorkout) {
+        await localStore.put("workouts", updatedWorkout);
+      }
 
       // Wyślij do serwera w tle - użyj prawdziwego ID jeśli mamy mapowanie
       const realSetId = getRealId(setId);
       
-      if (!realSetId.startsWith('temp_')) {
-        authFetch(`${API_BASE}/api/workouts/sets/${realSetId}`, {
+      if (realSetId.startsWith("temp_") || !navigator.onLine) {
+        await queueSyncOperation({
+          type: "update",
+          entity: "set",
+          endpoint: `/api/workouts/sets/${realSetId}`,
+          method: "PATCH",
+          data,
+        });
+        return;
+      }
+
+      try {
+        await authFetch(`${API_BASE}/api/workouts/sets/${realSetId}`, {
           method: "PATCH",
           headers: getAuthHeaders(),
           body: JSON.stringify(data),
-        }).catch(() => {
-          // Rollback przy błędzie
-          if (originalSet) {
-            setWorkouts((prev) =>
-              prev.map((w) => {
-                if (w.id !== workoutId) return w;
-                return {
-                  ...w,
-                  items: w.items.map((item) => ({
-                    ...item,
-                    sets: item.sets.map((s) =>
-                      s.id === setId ? originalSet : s,
-                    ),
-                  })),
-                };
-              }),
-            );
-          }
         });
+      } catch (error) {
+        if (isOfflineError(error)) {
+          await queueSyncOperation({
+            type: "update",
+            entity: "set",
+            endpoint: `/api/workouts/sets/${realSetId}`,
+            method: "PATCH",
+            data,
+          });
+          return;
+        }
+
+        if (originalSet) {
+          setWorkouts((prev) =>
+            prev.map((w) => {
+              if (w.id !== workoutId) return w;
+              return {
+                ...w,
+                items: w.items.map((item) => ({
+                  ...item,
+                  sets: item.sets.map((s) => (s.id === setId ? originalSet : s)),
+                })),
+              };
+            }),
+          );
+        }
       }
-      // Jeśli ID tymczasowe - zmiany są tylko lokalne
     },
-    [],
+    [isOfflineError, queueSyncOperation],
   );
 
   const deleteSet = useCallback(
@@ -731,6 +1041,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       let originalSet: any = null;
 
       // Optymistyczna aktualizacja - znajdź original w callback
+      let updatedWorkout: Workout | null = null;
       setWorkouts((prev) => {
         // Znajdź oryginał przed modyfikacją
         prev.forEach((w) => {
@@ -742,7 +1053,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
         return prev.map((w) => {
           if (w.id !== workoutId) return w;
-          return {
+          updatedWorkout = {
             ...w,
             items: w.items.map((item) => {
               if (item.id !== itemId) return item;
@@ -752,71 +1063,89 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
               };
             }),
           };
+          return updatedWorkout;
         });
       });
+      if (updatedWorkout) {
+        await localStore.put("workouts", updatedWorkout);
+      }
 
       // Wyślij do serwera w tle - użyj prawdziwego ID jeśli mamy mapowanie
       const realSetId = getRealId(setId);
       
-      if (!realSetId.startsWith('temp_')) {
-        authFetch(`${API_BASE}/api/workouts/sets/${realSetId}`, {
-          method: "DELETE",
-        }).catch(() => {
-          // Rollback przy błędzie
-          if (originalSet) {
-            setWorkouts((prev) =>
-              prev.map((w) => {
-                if (w.id !== workoutId) return w;
-                return {
-                  ...w,
-                  items: w.items.map((item) => {
-                    if (item.id !== itemId) return item;
-                    return {
-                      ...item,
-                      sets: [...item.sets, originalSet].sort(
-                        (a, b) => a.setNumber - b.setNumber,
-                      ),
-                    };
-                  }),
-                };
-              }),
-            );
-          }
-        });
+      if (realSetId.startsWith("temp_")) {
+        return;
       }
-      // Jeśli ID tymczasowe - usunięcie jest tylko lokalne
+
+      if (!navigator.onLine) {
+        await queueSyncOperation({
+          type: "delete",
+          entity: "set",
+          endpoint: `/api/workouts/sets/${realSetId}`,
+          method: "DELETE",
+        });
+        return;
+      }
+
+      try {
+        await authFetch(`${API_BASE}/api/workouts/sets/${realSetId}`, {
+          method: "DELETE",
+        });
+      } catch (error) {
+        if (isOfflineError(error)) {
+          await queueSyncOperation({
+            type: "delete",
+            entity: "set",
+            endpoint: `/api/workouts/sets/${realSetId}`,
+            method: "DELETE",
+          });
+          return;
+        }
+
+        if (originalSet) {
+          setWorkouts((prev) =>
+            prev.map((w) => {
+              if (w.id !== workoutId) return w;
+              return {
+                ...w,
+                items: w.items.map((item) => {
+                  if (item.id !== itemId) return item;
+                  return {
+                    ...item,
+                    sets: [...item.sets, originalSet].sort(
+                      (a, b) => a.setNumber - b.setNumber,
+                    ),
+                  };
+                }),
+              };
+            }),
+          );
+        }
+      }
     },
-    [],
+    [isOfflineError, queueSyncOperation],
   );
 
-  const completeWorkout = useCallback(async (id: string) => {
-    const response = await authFetch(`${API_BASE}/api/workouts/${id}`, {
-      method: "PATCH",
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ status: "COMPLETED" }),
-    });
+  const completeWorkout = useCallback(
+    async (id: string) => {
+      await updateWorkout(id, { status: "COMPLETED" });
 
-    if (!response.ok) throw new Error("Błąd kończenia treningu");
+      if (!navigator.onLine) return;
 
-    const result = await response.json();
-    setWorkouts((prev) => prev.map((w) => (w.id === id ? result.data : w)));
-    setActiveWorkoutId(null);
-    await localStore.put("workouts", result.data);
-    await localStore.setActiveWorkoutId(null);
-
-    // Odśwież statystyki
-    try {
-      const statsRes = await authFetch(`${API_BASE}/api/workouts/stats/all`);
-      if (statsRes.ok) {
-        const data = await statsRes.json();
-        setStats(data.data || []);
-        await localStore.clear("stats");
-        await localStore.putMany("stats", data.data || []);
+      try {
+        const statsRes = await authFetch(`${API_BASE}/api/workouts/stats/all`);
+        if (statsRes.ok) {
+          const data = await statsRes.json();
+          setStats(data.data || []);
+          await localStore.clear("stats");
+          await localStore.putMany("stats", data.data || []);
+        }
+      } catch (error) {
+        console.error("[DataProvider] Failed to refresh stats:", error);
       }
-    } catch (error) {
-      console.error("[DataProvider] Failed to refresh stats:", error);
-    }
-  }, []);
+    },
+    [updateWorkout],
+  );
 
   const syncNow = useCallback(async () => {
     await syncManager.syncNow();

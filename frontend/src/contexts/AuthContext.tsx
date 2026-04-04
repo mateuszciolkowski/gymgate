@@ -29,6 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const API_URL = `${API_BASE}/api`;
 const TOKEN_KEY = "gymgate_token";
+const USER_KEY = "gymgate_user";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -41,6 +42,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const savedToken = localStorage.getItem(TOKEN_KEY);
 
       if (savedToken) {
+        const cachedUserRaw = localStorage.getItem(USER_KEY);
+        let cachedUser: User | null = null;
+        if (cachedUserRaw) {
+          try {
+            cachedUser = JSON.parse(cachedUserRaw) as User;
+          } catch {
+            localStorage.removeItem(USER_KEY);
+          }
+        }
+
         try {
           const response = await fetch(`${API_URL}/auth/me`, {
             headers: {
@@ -52,11 +63,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const result = await response.json();
             setToken(savedToken);
             setUser(result.data);
+            localStorage.setItem(USER_KEY, JSON.stringify(result.data));
           } else {
             localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
           }
         } catch (error) {
-          localStorage.removeItem(TOKEN_KEY);
+          // Pozostaw token i odtwórz użytkownika z cache, aby umożliwić tryb offline
+          if (cachedUser) {
+            setToken(savedToken);
+            setUser(cachedUser);
+          }
         }
       }
 
@@ -84,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { token, user } = result.data;
 
     localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
     setToken(token);
     setUser(user);
   };
@@ -113,6 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Auto-login after successful registration
     localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
     setToken(token);
     setUser(user);
 
@@ -121,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     setToken(null);
     setUser(null);
   };

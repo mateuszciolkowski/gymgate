@@ -11,6 +11,67 @@ const SYNC_INTERVAL = 2 * 60 * 1000; // 2 minuty
 const MAX_RETRIES = 3;
 
 type SyncCallback = () => void;
+type TempIdMap = Map<string, string>;
+
+const TEMP_ID_GLOBAL_PATTERN = /temp_[a-z]+_[a-z0-9_]+/gi;
+const TEMP_ID_PATTERN = /temp_[a-z]+_[a-z0-9_]+/i;
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === "object" && !Array.isArray(value);
+
+const replaceTempIdsInString = (input: string, tempIdMap: TempIdMap): string =>
+  input.replace(TEMP_ID_GLOBAL_PATTERN, (match) => tempIdMap.get(match) || match);
+
+const replaceTempIdsDeep = (value: unknown, tempIdMap: TempIdMap): unknown => {
+  if (typeof value === "string") {
+    return replaceTempIdsInString(value, tempIdMap);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => replaceTempIdsDeep(item, tempIdMap));
+  }
+
+  if (isPlainObject(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [
+        key,
+        replaceTempIdsDeep(nestedValue, tempIdMap),
+      ]),
+    );
+  }
+
+  return value;
+};
+
+const hasUnresolvedTempIds = (value: unknown): boolean => {
+  if (typeof value === "string") {
+    return TEMP_ID_PATTERN.test(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.some((item) => hasUnresolvedTempIds(item));
+  }
+
+  if (isPlainObject(value)) {
+    return Object.values(value).some((nestedValue) =>
+      hasUnresolvedTempIds(nestedValue),
+    );
+  }
+
+  return false;
+};
+
+const stripInternalSyncFields = (
+  payload: Record<string, unknown>,
+): Record<string, unknown> => {
+  const {
+    clientTempId: _clientTempId,
+    clientTempItemId: _clientTempItemId,
+    clientTempSetId: _clientTempSetId,
+    ...apiPayload
+  } = payload;
+  return apiPayload;
+};
 
 class SyncManager {
   private syncInterval: number | null = null;
@@ -107,6 +168,7 @@ class SyncManager {
    */
   private async processPendingOperations(): Promise<void> {
     const operations = await localStore.getPendingSyncOperations();
+    const tempIdMap: TempIdMap = new Map();
 
     if (operations.length === 0) return;
 
@@ -119,29 +181,51 @@ class SyncManager {
 
     for (const op of operations) {
       try {
+        const resolvedEndpoint = replaceTempIdsInString(op.endpoint, tempIdMap);
+        const resolvedData = replaceTempIdsDeep(op.data, tempIdMap);
+        const apiData = isPlainObject(resolvedData)
+          ? stripInternalSyncFields(resolvedData)
+          : resolvedData;
+
+        if (
+          hasUnresolvedTempIds(resolvedEndpoint) ||
+          hasUnresolvedTempIds(apiData)
+        ) {
+          continue;
+        }
+
         const fetchOptions: RequestInit = {
           method: op.method,
         };
 
-        if (op.data) {
+        if (apiData) {
           fetchOptions.headers = getAuthHeaders();
-          fetchOptions.body = JSON.stringify(op.data);
+          fetchOptions.body = JSON.stringify(apiData);
         }
 
         const response = await authFetch(
-          `${API_BASE}${op.endpoint}`,
+          `${API_BASE}${resolvedEndpoint}`,
           fetchOptions,
         );
 
         if (response.ok) {
+          const responseBody = await response
+            .clone()
+            .json()
+            .catch(() => null);
+          await this.captureTempIdMappings(
+            isPlainObject(resolvedData) ? resolvedData : null,
+            responseBody?.data,
+            tempIdMap,
+          );
           await localStore.removePendingSync(op.id);
           console.log(`[SyncManager] Operation ${op.id} completed`);
         } else if (op.retries < MAX_RETRIES) {
           // Zwiększ licznik prób
-          await localStore.put("pendingSync", {
+          await localStore.updatePendingSync({
             ...op,
             retries: op.retries + 1,
-          } as unknown as { id: string });
+          });
         } else {
           // Za dużo prób - usuń
           await localStore.removePendingSync(op.id);
@@ -154,6 +238,44 @@ class SyncManager {
           `[SyncManager] Failed to process operation ${op.id}:`,
           error,
         );
+      }
+    }
+  }
+
+  private async captureTempIdMappings(
+    resolvedData: Record<string, unknown> | null,
+    responseData: unknown,
+    tempIdMap: TempIdMap,
+  ): Promise<void> {
+    if (!resolvedData || !isPlainObject(responseData)) return;
+
+    const responseSets = responseData.sets;
+    const firstSetId =
+      Array.isArray(responseSets) && responseSets[0]
+        ? (responseSets[0] as Record<string, unknown>).id
+        : undefined;
+
+    const mappings: Array<{ tempId?: unknown; realId?: unknown }> = [
+      {
+        tempId: resolvedData.clientTempId,
+        realId: responseData.id,
+      },
+      {
+        tempId: resolvedData.clientTempItemId,
+        realId: responseData.id,
+      },
+      {
+        tempId: resolvedData.clientTempSetId,
+        realId: firstSetId ?? responseData.id,
+      },
+    ];
+
+    for (const mapping of mappings) {
+      if (
+        typeof mapping.tempId === "string" &&
+        typeof mapping.realId === "string"
+      ) {
+        tempIdMap.set(mapping.tempId, mapping.realId);
       }
     }
   }

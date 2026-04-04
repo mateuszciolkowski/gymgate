@@ -72,3 +72,7 @@ yarn-debug.log*
 .idea
 *.sublime-project
 *.sublime-workspace
+
+# Keep service worker source in VCS for offline shell support
+!/public/
+!/public/sw.js
