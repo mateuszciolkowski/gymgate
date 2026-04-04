@@ -124,3 +124,7 @@ After making changes, always report:
 - [ ] Do backend tests pass?
 - [ ] Does frontend build pass?
 - [ ] Is API documentation updated when required?
+
+## 10) README updates
+
+Before updating main README in root folder every time ask user if he wants to update it and what to add.
