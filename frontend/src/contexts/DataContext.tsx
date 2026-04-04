@@ -142,39 +142,55 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           authFetch(`${API_BASE}/api/workouts/stats/all`).catch(() => null),
         ]);
 
+      const persistenceJobs: Array<Promise<void>> = [];
+
       if (workoutsRes?.ok) {
         const data = await workoutsRes.json();
         const newWorkouts = data.data || [];
         setWorkouts(newWorkouts);
-        await localStore.clear("workouts");
-        await localStore.putMany("workouts", newWorkouts);
+        persistenceJobs.push(
+          (async () => {
+            await localStore.clear("workouts");
+            await localStore.putMany("workouts", newWorkouts);
+          })(),
+        );
       }
 
       if (exercisesRes?.ok) {
         const data = await exercisesRes.json();
         const newExercises = data.data || [];
         setExercises(newExercises);
-        await localStore.clear("exercises");
-        await localStore.putMany("exercises", newExercises);
+        persistenceJobs.push(
+          (async () => {
+            await localStore.clear("exercises");
+            await localStore.putMany("exercises", newExercises);
+          })(),
+        );
       }
 
       if (activeRes?.ok) {
         const data = await activeRes.json();
         const id = data.data?.activeWorkoutId || null;
         setActiveWorkoutId(id);
-        await localStore.setActiveWorkoutId(id);
+        persistenceJobs.push(localStore.setActiveWorkoutId(id));
       }
 
       if (statsRes?.ok) {
         const data = await statsRes.json();
         const newStats = data.data || [];
         setStats(newStats);
-        await localStore.clear("stats");
-        await localStore.putMany("stats", newStats);
+        persistenceJobs.push(
+          (async () => {
+            await localStore.clear("stats");
+            await localStore.putMany("stats", newStats);
+          })(),
+        );
       }
 
-      await localStore.setLastSync(Date.now());
-      setLastSync(Date.now());
+      await Promise.all(persistenceJobs);
+      const syncTimestamp = Date.now();
+      await localStore.setLastSync(syncTimestamp);
+      setLastSync(syncTimestamp);
     } catch (error) {
       console.error("[DataProvider] Failed to fetch from server:", error);
     }
