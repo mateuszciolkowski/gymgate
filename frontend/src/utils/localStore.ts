@@ -132,23 +132,12 @@ export const localStore = {
     return new Promise((resolve, reject) => {
       const transaction = database.transaction(storeName, "readwrite");
       const store = transaction.objectStore(storeName);
-
-      let completed = 0;
-      const total = items.length;
-
-      if (total === 0) {
-        resolve();
-        return;
-      }
-
       items.forEach((item) => {
-        const request = store.put(item);
-        request.onsuccess = () => {
-          completed++;
-          if (completed === total) resolve();
-        };
-        request.onerror = () => reject(request.error);
+        store.put(item);
       });
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
     });
   },
 
