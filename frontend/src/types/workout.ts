@@ -87,6 +87,30 @@ export interface ExerciseStats {
   };
 }
 
+export interface StatsOverview {
+  workoutsLastMonth: number;
+  workoutsLastYear: number;
+  totalSets: number;
+  totalVolume: number;
+}
+
+export type StatsProgressMetric = "maxSetWeight" | "volume";
+
+export interface ExerciseProgressPoint {
+  workoutId: string;
+  workoutDate: string;
+  maxSetWeight: number;
+  repetitionsAtMaxSet: number;
+  volume: number;
+  value: number;
+}
+
+export interface ExerciseProgression {
+  exerciseId: string;
+  metric: StatsProgressMetric;
+  points: ExerciseProgressPoint[];
+}
+
 export interface CreateWorkoutDto {
   workoutDate?: string;
   workoutName?: string;

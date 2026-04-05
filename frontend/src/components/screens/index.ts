@@ -3,6 +3,7 @@ export { ExercisesScreen } from "./ExercisesScreen";
 export { AddExerciseScreen } from "./AddExerciseScreen";
 export { EditExerciseScreen } from "./EditExerciseScreen";
 export { StatsScreen } from "./StatsScreen";
+export { StatsExerciseDetailScreen } from "./StatsExerciseDetailScreen";
 export { MenuScreen } from "./MenuScreen";
 export { WorkoutDetailScreen } from "./WorkoutDetailScreen";
 export { ExerciseSelectionModal } from "./ExerciseSelectionModal";

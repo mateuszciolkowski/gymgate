@@ -1,6 +1,19 @@
 import prisma from "../../config/database.js";
 import type { Prisma } from "@prisma/client";
 
+interface ProgressionQueryFilters {
+  from?: Date;
+  to?: Date;
+}
+
+export interface ExerciseProgressionPoint {
+  workoutId: string;
+  workoutDate: Date;
+  maxSetWeight: number;
+  repetitionsAtMaxSet: number;
+  volume: number;
+}
+
 export const createWorkout = (data: Prisma.WorkoutCreateInput) => {
   return prisma.workout.create({
     data,
@@ -214,6 +227,140 @@ export const getAllUserStats = (userId: string) => {
     },
     orderBy: { maxWeight: "desc" },
   });
+};
+
+export const getStatsOverview = async (userId: string) => {
+  const now = new Date();
+  const monthAgo = new Date(now);
+  monthAgo.setMonth(monthAgo.getMonth() - 1);
+  const yearAgo = new Date(now);
+  yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+
+  const [workoutsLastMonth, workoutsLastYear, totalSets, totalVolumeRows] =
+    await Promise.all([
+      prisma.workout.count({
+        where: {
+          userId,
+          status: "COMPLETED",
+          workoutDate: { gte: monthAgo },
+        },
+      }),
+      prisma.workout.count({
+        where: {
+          userId,
+          status: "COMPLETED",
+          workoutDate: { gte: yearAgo },
+        },
+      }),
+      prisma.workoutSet.count({
+        where: {
+          item: {
+            workout: {
+              userId,
+              status: "COMPLETED",
+            },
+          },
+        },
+      }),
+      prisma.$queryRaw<Array<{ totalVolume: string | number | null }>>`
+        SELECT COALESCE(SUM(CAST(ws."weight" AS numeric) * ws."repetitions"), 0) AS "totalVolume"
+        FROM "workout_sets" ws
+        INNER JOIN "workout_items" wi ON wi."id" = ws."itemId"
+        INNER JOIN "workouts" w ON w."id" = wi."workoutId"
+        WHERE w."userId" = ${userId}
+          AND w."status" = 'COMPLETED'
+      `,
+    ]);
+
+  const totalVolumeRaw = totalVolumeRows[0]?.totalVolume ?? 0;
+  const totalVolume = Number(totalVolumeRaw);
+
+  return {
+    workoutsLastMonth,
+    workoutsLastYear,
+    totalSets,
+    totalVolume,
+  };
+};
+
+export const getExerciseProgression = async (
+  userId: string,
+  exerciseId: string,
+  filters?: ProgressionQueryFilters,
+): Promise<ExerciseProgressionPoint[]> => {
+  const sets = await prisma.workoutSet.findMany({
+    where: {
+      item: {
+        exerciseId,
+        workout: {
+          userId,
+          status: "COMPLETED",
+          ...(filters?.from || filters?.to
+            ? {
+                workoutDate: {
+                  ...(filters.from ? { gte: filters.from } : {}),
+                  ...(filters.to ? { lte: filters.to } : {}),
+                },
+              }
+            : {}),
+        },
+      },
+    },
+    select: {
+      weight: true,
+      repetitions: true,
+      item: {
+        select: {
+          workout: {
+            select: {
+              id: true,
+              workoutDate: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: [
+      {
+        item: {
+          workout: {
+            workoutDate: "asc",
+          },
+        },
+      },
+    ],
+  });
+
+  const byWorkout = new Map<string, ExerciseProgressionPoint>();
+
+  for (const set of sets) {
+    const workoutId = set.item.workout.id;
+    const weight = Number(set.weight);
+    const repetitions = set.repetitions;
+    const setVolume = weight * repetitions;
+    const existing = byWorkout.get(workoutId);
+
+    if (!existing) {
+      byWorkout.set(workoutId, {
+        workoutId,
+        workoutDate: set.item.workout.workoutDate,
+        maxSetWeight: weight,
+        repetitionsAtMaxSet: repetitions,
+        volume: setVolume,
+      });
+      continue;
+    }
+
+    existing.volume += setVolume;
+    if (weight > existing.maxSetWeight) {
+      existing.maxSetWeight = weight;
+      existing.repetitionsAtMaxSet = repetitions;
+    }
+  }
+
+  return [...byWorkout.values()].sort(
+    (a, b) => a.workoutDate.getTime() - b.workoutDate.getTime(),
+  );
 };
 
 export const upsertExerciseStats = (

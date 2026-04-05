@@ -8,8 +8,9 @@ import {
   BottomNavigation,
   TrainingsScreen,
   ExercisesScreen,
-  StatsScreen,
-  MenuScreen,
+    StatsScreen,
+    StatsExerciseDetailScreen,
+    MenuScreen,
   AddExerciseScreen,
   EditExerciseScreen,
   WorkoutDetailScreen,
@@ -33,6 +34,9 @@ function App() {
   const [pendingExerciseAdd, setPendingExerciseAdd] = useState<string | null>(
     null,
   );
+  const [selectedStatsExerciseId, setSelectedStatsExerciseId] = useState<
+    string | null
+  >(null);
 
   if (isLoading) {
     return (
@@ -74,6 +78,8 @@ function App() {
       setSelectedWorkoutId={setSelectedWorkoutId}
       pendingExerciseAdd={pendingExerciseAdd}
       setPendingExerciseAdd={setPendingExerciseAdd}
+      selectedStatsExerciseId={selectedStatsExerciseId}
+      setSelectedStatsExerciseId={setSelectedStatsExerciseId}
     />
   );
 }
@@ -89,6 +95,8 @@ interface AuthenticatedAppProps {
   setSelectedWorkoutId: (id: string | null) => void;
   pendingExerciseAdd: string | null;
   setPendingExerciseAdd: (id: string | null) => void;
+  selectedStatsExerciseId: string | null;
+  setSelectedStatsExerciseId: (id: string | null) => void;
 }
 
 function AuthenticatedApp({
@@ -102,6 +110,8 @@ function AuthenticatedApp({
   setSelectedWorkoutId,
   pendingExerciseAdd,
   setPendingExerciseAdd,
+  selectedStatsExerciseId,
+  setSelectedStatsExerciseId,
 }: AuthenticatedAppProps) {
   const {
     createWorkout,
@@ -202,6 +212,18 @@ function AuthenticatedApp({
       );
     }
 
+    if (screen === "stats-exercise-detail" && selectedStatsExerciseId) {
+      return (
+        <StatsExerciseDetailScreen
+          exerciseId={selectedStatsExerciseId}
+          onBack={() => {
+            setSelectedStatsExerciseId(null);
+            setScreen("stats");
+          }}
+        />
+      );
+    }
+
     switch (screen) {
       case "trainings":
         return (
@@ -227,7 +249,14 @@ function AuthenticatedApp({
           />
         );
       case "stats":
-        return <StatsScreen />;
+        return (
+          <StatsScreen
+            onOpenExerciseDetails={(exerciseId) => {
+              setSelectedStatsExerciseId(exerciseId);
+              setScreen("stats-exercise-detail");
+            }}
+          />
+        );
       case "menu":
         return <MenuScreen />;
       default:

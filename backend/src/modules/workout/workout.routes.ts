@@ -10,6 +10,8 @@ import {
   createWorkoutSetSchema,
   updateWorkoutSetSchema,
   getWorkoutsQuerySchema,
+  getStatsOverviewSchema,
+  getStatsProgressionSchema,
 } from "./workout.schema.js";
 
 const router = Router();
@@ -62,6 +64,16 @@ router.patch(
 );
 router.delete("/sets/:setId", workoutController.deleteWorkoutSet);
 
+router.get(
+  "/stats/overview",
+  validate(getStatsOverviewSchema),
+  workoutController.getStatsOverview,
+);
+router.get(
+  "/stats/progression/:exerciseId",
+  validate(getStatsProgressionSchema),
+  workoutController.getExerciseProgression,
+);
 router.get("/stats/all", workoutController.getAllUserStats);
 router.get("/stats/exercise/:exerciseId", workoutController.getExerciseStats);
 

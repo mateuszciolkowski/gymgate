@@ -219,7 +219,61 @@ Base URL: `/api/workouts`
 
 ## Statistics Endpoints
 
-### 12. Get Exercise Stats (Personal Records + Last Workout)
+**Record definition in whole app:** personal record is always the **highest lifted weight** (`maxWeight`). Repetitions (`maxWeightReps`) are additional context for that top weight, not the primary ranking metric.
+
+### 12. Get Stats Overview (global metrics)
+
+**GET** `/api/workouts/stats/overview`
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "workoutsLastMonth": 8,
+    "workoutsLastYear": 73,
+    "totalSets": 1240,
+    "totalVolume": 182430.5
+  }
+}
+```
+
+All values are calculated only from workouts with status `COMPLETED`.
+
+### 13. Get Exercise Progression Timeline
+
+**GET** `/api/workouts/stats/progression/:exerciseId?metric=maxSetWeight&from=2025-01-01T00:00:00.000Z&to=2026-01-01T00:00:00.000Z`
+
+**Query Parameters:**
+
+- `metric` (optional): `maxSetWeight` (default) or `volume`
+- `from` (optional): ISO datetime lower bound
+- `to` (optional): ISO datetime upper bound
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "exerciseId": "uuid",
+    "metric": "maxSetWeight",
+    "points": [
+      {
+        "workoutId": "uuid",
+        "workoutDate": "2025-12-30T10:00:00Z",
+        "maxSetWeight": 95,
+        "repetitionsAtMaxSet": 6,
+        "volume": 3120,
+        "value": 95
+      }
+    ]
+  }
+}
+```
+
+### 14. Get Exercise Stats (Personal Records + Last Workout)
 
 **GET** `/api/workouts/stats/exercise/:exerciseId`
 
@@ -253,7 +307,7 @@ Base URL: `/api/workouts`
 }
 ```
 
-### 13. Get All User Stats
+### 15. Get All User Stats
 
 **GET** `/api/workouts/stats/all`
 

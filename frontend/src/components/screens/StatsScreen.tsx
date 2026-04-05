@@ -1,20 +1,16 @@
-import { memo } from 'react'
-import { ScreenContainer, ScreenHeader } from '@/components/ui'
-import { ChartIcon } from '@/components/icons'
+import { memo, useMemo } from "react";
+import { ScreenContainer, ScreenHeader } from "@/components/ui";
+import { ChartIcon } from "@/components/icons";
+import { useStatsData } from "@/contexts/DataContext";
 
-const mockStats = {
-  totalWorkouts: 0,
-  thisWeek: 0,
-  thisMonth: 0,
-  totalTime: '0h',
-  favoriteExercise: '-',
-  streak: 0,
+interface StatsScreenProps {
+  onOpenExerciseDetails: (exerciseId: string) => void;
 }
 
 interface StatCardProps {
-  label: string
-  value: string | number
-  icon?: React.ReactNode
+  label: string;
+  value: string | number;
+  icon?: React.ReactNode;
 }
 
 const StatCard = memo(function StatCard({ label, value, icon }: StatCardProps) {
@@ -26,68 +22,76 @@ const StatCard = memo(function StatCard({ label, value, icon }: StatCardProps) {
       </div>
       <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
     </div>
-  )
-})
+  );
+});
 
-export const StatsScreen = memo(function StatsScreen() {
+export const StatsScreen = memo(function StatsScreen({
+  onOpenExerciseDetails,
+}: StatsScreenProps) {
+  const { stats, overview } = useStatsData();
+  const sortedStats = useMemo(
+    () => [...stats].sort((a, b) => Number(b.maxWeight) - Number(a.maxWeight)),
+    [stats],
+  );
+
   return (
     <ScreenContainer>
       <ScreenHeader title="Statystyki" subtitle="Śledź swoje postępy" />
-      
+
       <div className="mt-6 space-y-5">
         <div className="grid grid-cols-2 gap-3">
-        <StatCard 
-          label="Wszystkie treningi" 
-          value={mockStats.totalWorkouts}
-          icon={<ChartIcon className="w-5 h-5" />}
-        />
-        <StatCard 
-          label="Ten tydzień" 
-          value={mockStats.thisWeek}
-        />
-        <StatCard 
-          label="Ten miesiąc" 
-          value={mockStats.thisMonth}
-        />
-        <StatCard 
-          label="Łączny czas" 
-          value={mockStats.totalTime}
-        />
-        <StatCard 
-          label="Seria dni" 
-          value={`${mockStats.streak} dni`}
-        />
-        <StatCard 
-          label="Ulubione ćwiczenie" 
-          value={mockStats.favoriteExercise}
-        />
+          <StatCard
+            label="Treningi (miesiąc)"
+            value={overview?.workoutsLastMonth ?? 0}
+            icon={<ChartIcon className="w-5 h-5" />}
+          />
+          <StatCard label="Treningi (rok)" value={overview?.workoutsLastYear ?? 0} />
+          <StatCard label="Łączna liczba serii" value={overview?.totalSets ?? 0} />
+          <StatCard
+            label="Objętość (kg)"
+            value={(overview?.totalVolume ?? 0).toLocaleString("pl-PL")}
+          />
+        </div>
+
+        <div className="bg-accent-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-300 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300">
+          Wykresy są dostępne po wejściu w szczegóły konkretnego ćwiczenia.
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Aktywność tygodniowa</h2>
-          <div className="bg-accent-50 dark:bg-gray-900 rounded-xl h-40 flex items-center justify-center border border-gray-300 dark:border-gray-700 transition-colors">
-            <p className="text-gray-600 dark:text-gray-500 text-sm">Wykres pojawi się po dodaniu treningów</p>
-          </div>
-        </div>
-
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Twoje postępy</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            Rekordy osobiste
+          </h2>
           <div className="space-y-3">
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-300 dark:border-gray-700 transition-colors">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600 dark:text-gray-400 text-sm">Cel tygodniowy</span>
-                <span className="text-emerald-600 dark:text-emerald-500 text-sm font-medium">0/3 treningi</span>
+            {sortedStats.map((entry) => (
+              <button
+                key={entry.id}
+                onClick={() => onOpenExerciseDetails(entry.exerciseId)}
+                className="w-full text-left bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-300 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors"
+              >
+                <div className="grid grid-cols-[1fr_auto_auto] items-center gap-3">
+                  <p className="text-gray-900 dark:text-white">
+                    {entry.exercise?.name ?? "Ćwiczenie"}
+                  </p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white text-center tabular-nums">
+                    {Number(entry.maxWeight).toLocaleString("pl-PL")}
+                    <span className="ml-1 text-sm font-semibold text-gray-600 dark:text-gray-400">
+                      kg
+                    </span>
+                  </p>
+                  <span className="text-sm text-emerald-600 dark:text-emerald-500">
+                    Szczegóły
+                  </span>
+                </div>
+              </button>
+            ))}
+            {sortedStats.length === 0 && (
+              <div className="bg-accent-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-300 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-500">
+                Brak statystyk. Zakończ pierwszy trening, aby zobaczyć rekordy.
               </div>
-              <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                  style={{ width: '0%' }}
-                />
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
     </ScreenContainer>
-  )
-})
+  );
+});

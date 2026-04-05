@@ -91,6 +91,23 @@ export const getWorkoutsQuerySchema = z.object({
   }),
 });
 
+const getStatsProgressionQuery = z.object({
+  metric: z.enum(["maxSetWeight", "volume"]).optional(),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+});
+
+export const getStatsOverviewSchema = z.object({
+  query: z.object({}),
+});
+
+export const getStatsProgressionSchema = z.object({
+  params: z.object({
+    exerciseId: z.string().uuid(),
+  }),
+  query: getStatsProgressionQuery,
+});
+
 export type CreateWorkoutDto = z.infer<typeof createWorkoutBody>;
 export type UpdateWorkoutDto = z.infer<typeof updateWorkoutBody>;
 export type AddExerciseToWorkoutDto = z.infer<typeof addExerciseToWorkoutBody>;
@@ -98,3 +115,4 @@ export type UpdateWorkoutItemDto = z.infer<typeof updateWorkoutItemBody>;
 export type CreateWorkoutSetDto = z.infer<typeof createWorkoutSetBody>;
 export type UpdateWorkoutSetDto = z.infer<typeof updateWorkoutSetBody>;
 export type GetWorkoutsQuery = z.infer<typeof getWorkoutsQuerySchema>["query"];
+export type GetStatsProgressionQuery = z.infer<typeof getStatsProgressionQuery>;

@@ -286,12 +286,13 @@ class SyncManager {
   private async fetchFreshData(): Promise<void> {
     try {
       // Pobierz równolegle wszystkie dane
-      const [workoutsRes, exercisesRes, activeRes, statsRes] =
+      const [workoutsRes, exercisesRes, activeRes, statsRes, overviewRes] =
         await Promise.all([
           authFetch(`${API_BASE}/api/workouts`).catch(() => null),
           authFetch(`${API_BASE}/api/exercises`).catch(() => null),
           authFetch(`${API_BASE}/api/workouts/active`).catch(() => null),
           authFetch(`${API_BASE}/api/workouts/stats/all`).catch(() => null),
+          authFetch(`${API_BASE}/api/workouts/stats/overview`).catch(() => null),
         ]);
 
       // Zapisz workouty
@@ -325,6 +326,11 @@ class SyncManager {
           await localStore.clear("stats");
           await localStore.putMany("stats", data.data);
         }
+      }
+
+      if (overviewRes?.ok) {
+        const data = await overviewRes.json();
+        await localStore.setMetadata("statsOverview", data.data || null);
       }
     } catch (error) {
       console.error("[SyncManager] Failed to fetch fresh data:", error);
