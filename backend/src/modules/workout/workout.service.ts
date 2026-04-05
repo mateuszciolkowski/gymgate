@@ -6,9 +6,12 @@ import type {
   CreateWorkoutSetDto,
   UpdateWorkoutSetDto,
   GetWorkoutsQuery,
+  GetStatsProgressionQuery,
 } from "./workout.schema.js";
 import * as workoutRepo from "./workout.repository.js";
 import { Prisma } from "@prisma/client";
+
+type StatsProgressMetric = "maxSetWeight" | "volume";
 
 export const createWorkout = async (userId: string, data: CreateWorkoutDto) => {
   const existingActive = await workoutRepo.getActiveWorkout(userId);
@@ -232,6 +235,38 @@ export const getExerciseStatsForUser = async (
 
 export const getAllUserStats = async (userId: string) => {
   return workoutRepo.getAllUserStats(userId);
+};
+
+export const getStatsOverview = async (userId: string) => {
+  return workoutRepo.getStatsOverview(userId);
+};
+
+export const getExerciseProgression = async (
+  userId: string,
+  exerciseId: string,
+  query: GetStatsProgressionQuery,
+) => {
+  const metric: StatsProgressMetric = query.metric ?? "maxSetWeight";
+  const filters = {
+    ...(query.from ? { from: new Date(query.from) } : {}),
+    ...(query.to ? { to: new Date(query.to) } : {}),
+  };
+  const points = await workoutRepo.getExerciseProgression(userId, exerciseId, {
+    ...filters,
+  });
+
+  return {
+    exerciseId,
+    metric,
+    points: points.map((point) => ({
+      workoutId: point.workoutId,
+      workoutDate: point.workoutDate,
+      maxSetWeight: point.maxSetWeight,
+      repetitionsAtMaxSet: point.repetitionsAtMaxSet,
+      volume: point.volume,
+      value: metric === "volume" ? point.volume : point.maxSetWeight,
+    })),
+  };
 };
 
 const updateStatsAfterWorkoutCompletion = async (

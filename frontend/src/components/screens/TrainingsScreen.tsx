@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { ScreenContainer, ScreenHeader, EmptyState } from "@/components/ui";
 import { ArchiveIcon } from "@/components/icons";
 import { useData } from "@/contexts/DataContext";
@@ -13,6 +13,7 @@ export const TrainingsScreen = memo(function TrainingsScreen({
 }: TrainingsScreenProps) {
   const { workouts, isLoading: loading, createWorkout } = useData();
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [dateSort, setDateSort] = useState<"desc" | "asc">("desc");
 
   const handleFormSubmit = async (data: {
     workoutName?: string;
@@ -28,8 +29,20 @@ export const TrainingsScreen = memo(function TrainingsScreen({
     }
   };
 
-  const draftWorkouts = workouts.filter((w) => w.status === "DRAFT");
-  const completedWorkouts = workouts.filter((w) => w.status === "COMPLETED");
+  const sortByWorkoutDate = (a: { workoutDate: string }, b: { workoutDate: string }) => {
+    const first = new Date(a.workoutDate).getTime();
+    const second = new Date(b.workoutDate).getTime();
+    return dateSort === "desc" ? second - first : first - second;
+  };
+
+  const draftWorkouts = useMemo(
+    () => workouts.filter((w) => w.status === "DRAFT").sort(sortByWorkoutDate),
+    [workouts, dateSort],
+  );
+  const completedWorkouts = useMemo(
+    () => workouts.filter((w) => w.status === "COMPLETED").sort(sortByWorkoutDate),
+    [workouts, dateSort],
+  );
 
   if (loading) {
     return (
@@ -96,9 +109,35 @@ export const TrainingsScreen = memo(function TrainingsScreen({
       )}
 
       <div className="mt-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-          Historia treningów
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Historia treningów
+          </h3>
+          <div className="inline-flex rounded-md border border-gray-300 dark:border-gray-700 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setDateSort("desc")}
+              className={`px-2 py-1 text-xs transition-colors ${
+                dateSort === "desc"
+                  ? "bg-emerald-500 text-white"
+                  : "bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
+              }`}
+            >
+              Data ↓
+            </button>
+            <button
+              type="button"
+              onClick={() => setDateSort("asc")}
+              className={`px-2 py-1 text-xs transition-colors border-l border-gray-300 dark:border-gray-700 ${
+                dateSort === "asc"
+                  ? "bg-emerald-500 text-white"
+                  : "bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
+              }`}
+            >
+              Data ↑
+            </button>
+          </div>
+        </div>
         {completedWorkouts.length === 0 && draftWorkouts.length === 0 ? (
           <EmptyState
             title="Brak zapisanych treningów"

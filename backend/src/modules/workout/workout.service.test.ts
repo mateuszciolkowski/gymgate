@@ -12,6 +12,8 @@ vi.mock("./workout.repository.js", () => ({
   clearActiveWorkout: vi.fn(),
   getExerciseStats: vi.fn(),
   upsertExerciseStats: vi.fn(),
+  getStatsOverview: vi.fn(),
+  getExerciseProgression: vi.fn(),
   getMaxOrderInWorkout: vi.fn(),
   addExerciseToWorkout: vi.fn(),
   addSetToWorkoutItem: vi.fn(),
@@ -178,5 +180,61 @@ describe("workout.service", () => {
       5,
     );
     expect(result).toEqual({ id: "set-5", setNumber: 5 });
+  });
+
+  it("getStatsOverview: returns aggregated stats from repository", async () => {
+    vi.mocked(workoutRepo.getStatsOverview).mockResolvedValue({
+      workoutsLastMonth: 3,
+      workoutsLastYear: 22,
+      totalSets: 240,
+      totalVolume: 18540,
+    });
+
+    const result = await workoutService.getStatsOverview("u1");
+
+    expect(workoutRepo.getStatsOverview).toHaveBeenCalledWith("u1");
+    expect(result).toEqual({
+      workoutsLastMonth: 3,
+      workoutsLastYear: 22,
+      totalSets: 240,
+      totalVolume: 18540,
+    });
+  });
+
+  it("getExerciseProgression: maps selected metric to chart value", async () => {
+    const workoutDate = new Date("2026-02-02T10:00:00.000Z");
+
+    vi.mocked(workoutRepo.getExerciseProgression).mockResolvedValue([
+      {
+        workoutId: "w1",
+        workoutDate,
+        maxSetWeight: 90,
+        repetitionsAtMaxSet: 5,
+        volume: 1800,
+      },
+    ]);
+
+    const result = await workoutService.getExerciseProgression("u1", "e1", {
+      metric: "volume",
+    });
+
+    expect(workoutRepo.getExerciseProgression).toHaveBeenCalledWith("u1", "e1", {
+      from: undefined,
+      to: undefined,
+    });
+    expect(result).toEqual({
+      exerciseId: "e1",
+      metric: "volume",
+      points: [
+        {
+          workoutId: "w1",
+          workoutDate,
+          maxSetWeight: 90,
+          repetitionsAtMaxSet: 5,
+          volume: 1800,
+          value: 1800,
+        },
+      ],
+    });
   });
 });

@@ -16,7 +16,13 @@ import { localStore } from "../utils/localStore";
 import { syncManager } from "../utils/syncManager";
 import { authFetch, getAuthHeaders } from "../utils/auth";
 import { useAuth } from "./AuthContext";
-import type { Workout, ExerciseStats } from "@/types";
+import type {
+  Workout,
+  ExerciseStats,
+  ExerciseProgression,
+  StatsOverview,
+  StatsProgressMetric,
+} from "@/types";
 import type { Exercise } from "@/hooks/useExercises";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -26,6 +32,7 @@ interface DataContextType {
   workouts: Workout[];
   exercises: Exercise[];
   stats: ExerciseStats[];
+  statsOverview: StatsOverview | null;
   activeWorkoutId: string | null;
 
   // Stan
@@ -61,6 +68,11 @@ interface DataContextType {
     workoutId: string,
     itemId: string,
   ) => Promise<void>;
+  updateWorkoutItem: (
+    workoutId: string,
+    itemId: string,
+    data: { notes?: string | null },
+  ) => Promise<void>;
   addSet: (
     workoutId: string,
     itemId: string,
@@ -81,6 +93,10 @@ interface DataContextType {
   // Sync
   syncNow: () => Promise<void>;
   refreshWorkout: (id: string) => Promise<void>;
+  getExerciseProgression: (
+    exerciseId: string,
+    metric?: StatsProgressMetric,
+  ) => Promise<ExerciseProgression>;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -92,12 +108,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [stats, setStats] = useState<ExerciseStats[]>([]);
+  const [statsOverview, setStatsOverview] = useState<StatsOverview | null>(null);
   const [activeWorkoutId, setActiveWorkoutId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastSync, setLastSync] = useState(0);
 
   const initialLoadDone = useRef(false);
+  const progressionCacheRef = useRef<Map<string, ExerciseProgression>>(new Map());
 
   // Ref dla exercises - żeby callbacks nie zależały od exercises state
   const exercisesRef = useRef<Exercise[]>([]);
@@ -152,12 +170,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (!isOnline) return;
 
     try {
-      const [workoutsRes, exercisesRes, activeRes, statsRes] =
+      const [workoutsRes, exercisesRes, activeRes, statsRes, overviewRes] =
         await Promise.all([
           authFetch(`${API_BASE}/api/workouts`).catch(() => null),
           authFetch(`${API_BASE}/api/exercises`).catch(() => null),
           authFetch(`${API_BASE}/api/workouts/active`).catch(() => null),
           authFetch(`${API_BASE}/api/workouts/stats/all`).catch(() => null),
+          authFetch(`${API_BASE}/api/workouts/stats/overview`).catch(() => null),
         ]);
 
       const persistenceJobs: Array<Promise<void>> = [];
@@ -205,6 +224,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         );
       }
 
+      if (overviewRes?.ok) {
+        const data = await overviewRes.json();
+        const overview = data.data || null;
+        setStatsOverview(overview);
+        persistenceJobs.push(localStore.setMetadata("statsOverview", overview));
+      }
+
       await Promise.all(persistenceJobs);
       const syncTimestamp = Date.now();
       await localStore.setLastSync(syncTimestamp);
@@ -227,12 +253,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           localWorkouts,
           localExercises,
           localStats,
+          localStatsOverview,
           localActiveId,
           syncTime,
         ] = await Promise.all([
           localStore.getAll<Workout>("workouts"),
           localStore.getAll<Exercise>("exercises"),
           localStore.getAll<ExerciseStats>("stats"),
+          localStore.getMetadata<StatsOverview | null>("statsOverview"),
           localStore.getActiveWorkoutId(),
           localStore.getLastSync(),
         ]);
@@ -240,6 +268,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         setWorkouts(localWorkouts);
         setExercises(localExercises);
         setStats(localStats);
+        setStatsOverview(localStatsOverview ?? null);
         setActiveWorkoutId(localActiveId);
         setLastSync(syncTime);
 
@@ -272,11 +301,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     // Nasłuchuj na zakończenie synchronizacji
     const unsubscribe = syncManager.onSync(async () => {
       // Po synchronizacji odśwież dane z lokalnego store
-      const [localWorkouts, localExercises, localStats, localActiveId] =
+      const [
+        localWorkouts,
+        localExercises,
+        localStats,
+        localStatsOverview,
+        localActiveId,
+      ] =
         await Promise.all([
           localStore.getAll<Workout>("workouts"),
           localStore.getAll<Exercise>("exercises"),
           localStore.getAll<ExerciseStats>("stats"),
+          localStore.getMetadata<StatsOverview | null>("statsOverview"),
           localStore.getActiveWorkoutId(),
         ]);
 
@@ -297,6 +333,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const newJson = JSON.stringify(localStats);
         const prevJson = JSON.stringify(prev);
         return newJson !== prevJson ? localStats : prev;
+      });
+
+      setStatsOverview((prev) => {
+        const newJson = JSON.stringify(localStatsOverview ?? null);
+        const prevJson = JSON.stringify(prev ?? null);
+        return newJson !== prevJson ? (localStatsOverview ?? null) : prev;
       });
 
       setActiveWorkoutId((prev) =>
@@ -826,6 +868,84 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [isOfflineError, queueSyncOperation],
   );
 
+  const updateWorkoutItem = useCallback(
+    async (workoutId: string, itemId: string, data: { notes?: string | null }) => {
+      const originalWorkout = workoutsRef.current.find((w) => w.id === workoutId);
+      const originalItem = originalWorkout?.items.find((i) => i.id === itemId);
+
+      let updatedWorkout: Workout | null = null;
+      setWorkouts((prev) =>
+        prev.map((w) => {
+          if (w.id !== workoutId) return w;
+          updatedWorkout = {
+            ...w,
+            items: w.items.map((item) => {
+              if (item.id !== itemId) return item;
+              return {
+                ...item,
+                notes: data.notes ?? null,
+                updatedAt: new Date().toISOString(),
+              };
+            }),
+          };
+          return updatedWorkout;
+        }),
+      );
+      if (updatedWorkout) {
+        await localStore.put("workouts", updatedWorkout);
+      }
+
+      const realItemId = getRealId(itemId);
+      if (realItemId.startsWith("temp_")) return;
+
+      if (!navigator.onLine) {
+        await queueSyncOperation({
+          type: "update",
+          entity: "workoutItem",
+          endpoint: `/api/workouts/items/${realItemId}`,
+          method: "PATCH",
+          data,
+        });
+        return;
+      }
+
+      try {
+        const response = await authFetch(`${API_BASE}/api/workouts/items/${realItemId}`, {
+          method: "PATCH",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          throw new Error("Błąd aktualizacji notatek ćwiczenia");
+        }
+      } catch (error) {
+        if (isOfflineError(error)) {
+          await queueSyncOperation({
+            type: "update",
+            entity: "workoutItem",
+            endpoint: `/api/workouts/items/${realItemId}`,
+            method: "PATCH",
+            data,
+          });
+          return;
+        }
+
+        if (!originalItem) return;
+        setWorkouts((prev) =>
+          prev.map((w) => {
+            if (w.id !== workoutId) return w;
+            return {
+              ...w,
+              items: w.items.map((item) => (item.id === itemId ? originalItem : item)),
+            };
+          }),
+        );
+      }
+    },
+    [isOfflineError, queueSyncOperation],
+  );
+
   const addSet = useCallback(
     async (
       workoutId: string,
@@ -1126,6 +1246,38 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [isOfflineError, queueSyncOperation],
   );
 
+  const getExerciseProgression = useCallback(
+    async (
+      exerciseId: string,
+      metric: StatsProgressMetric = "maxSetWeight",
+    ): Promise<ExerciseProgression> => {
+      const cacheKey = `${exerciseId}:${metric}`;
+      const cached = progressionCacheRef.current.get(cacheKey);
+      if (cached) return cached;
+
+      const metadataKey = `statsProgression:${cacheKey}`;
+      const localCached = await localStore.getMetadata<ExerciseProgression | null>(
+        metadataKey,
+      );
+      if (localCached) {
+        progressionCacheRef.current.set(cacheKey, localCached);
+        return localCached;
+      }
+
+      const response = await authFetch(
+        `${API_BASE}/api/workouts/stats/progression/${exerciseId}?metric=${metric}`,
+      );
+      if (!response.ok) throw new Error("Błąd ładowania progresu ćwiczenia");
+
+      const payload = await response.json();
+      const progression: ExerciseProgression = payload.data;
+      progressionCacheRef.current.set(cacheKey, progression);
+      await localStore.setMetadata(metadataKey, progression);
+      return progression;
+    },
+    [],
+  );
+
   const completeWorkout = useCallback(
     async (id: string) => {
       await updateWorkout(id, { status: "COMPLETED" });
@@ -1140,6 +1292,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           await localStore.clear("stats");
           await localStore.putMany("stats", data.data || []);
         }
+
+        const overviewRes = await authFetch(
+          `${API_BASE}/api/workouts/stats/overview`,
+        );
+        if (overviewRes.ok) {
+          const data = await overviewRes.json();
+          setStatsOverview(data.data || null);
+          await localStore.setMetadata("statsOverview", data.data || null);
+        }
+        progressionCacheRef.current.clear();
       } catch (error) {
         console.error("[DataProvider] Failed to refresh stats:", error);
       }
@@ -1156,6 +1318,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       workouts,
       exercises,
       stats,
+      statsOverview,
       activeWorkoutId,
       isLoading,
       isOnline,
@@ -1169,17 +1332,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       deleteExercise,
       addExerciseToWorkout,
       removeExerciseFromWorkout,
+      updateWorkoutItem,
       addSet,
       updateSet,
       deleteSet,
       completeWorkout,
       syncNow,
       refreshWorkout,
+      getExerciseProgression,
     }),
     [
       workouts,
       exercises,
       stats,
+      statsOverview,
       activeWorkoutId,
       isLoading,
       isOnline,
@@ -1193,12 +1359,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       deleteExercise,
       addExerciseToWorkout,
       removeExerciseFromWorkout,
+      updateWorkoutItem,
       addSet,
       updateSet,
       deleteSet,
       completeWorkout,
       syncNow,
       refreshWorkout,
+      getExerciseProgression,
     ],
   );
 
@@ -1272,6 +1440,7 @@ export function useWorkoutData(id: string) {
     getWorkout,
     addExerciseToWorkout,
     removeExerciseFromWorkout,
+    updateWorkoutItem,
     addSet,
     updateSet,
     deleteSet,
@@ -1300,6 +1469,8 @@ export function useWorkoutData(id: string) {
       deleteSet: (itemId: string, setId: string) =>
         deleteSet(id, itemId, setId),
       deleteExercise: (itemId: string) => removeExerciseFromWorkout(id, itemId),
+      updateExerciseNotes: (itemId: string, notes: string) =>
+        updateWorkoutItem(id, itemId, { notes }),
       completeWorkout: () => completeWorkout(id),
       updateWorkout: (data: Record<string, unknown>) => updateWorkout(id, data),
     }),
@@ -1307,6 +1478,7 @@ export function useWorkoutData(id: string) {
       id,
       addExerciseToWorkout,
       removeExerciseFromWorkout,
+      updateWorkoutItem,
       addSet,
       updateSet,
       deleteSet,
@@ -1325,11 +1497,19 @@ export function useWorkoutData(id: string) {
 }
 
 export function useStatsData() {
-  const { stats, isLoading, syncNow } = useData();
+  const {
+    stats,
+    statsOverview,
+    isLoading,
+    syncNow,
+    getExerciseProgression,
+  } = useData();
   return {
     stats,
+    overview: statsOverview,
     loading: isLoading,
     error: null,
     refetch: syncNow,
+    getExerciseProgression,
   };
 }

@@ -232,6 +232,43 @@ export const getAllUserStats = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const getStatsOverview = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId || "1";
+    const overview = await workoutService.getStatsOverview(userId);
+    res.json({ success: true, data: overview });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+export const getExerciseProgression = async (
+  req: AuthRequest,
+  res: Response,
+) => {
+  try {
+    const userId = req.userId || "1";
+    const progression = await workoutService.getExerciseProgression(
+      userId,
+      req.params.exerciseId!,
+      req.query as {
+        metric?: "maxSetWeight" | "volume";
+        from?: string;
+        to?: string;
+      },
+    );
+    res.json({ success: true, data: progression });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
 export const getActiveWorkout = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId || "1";

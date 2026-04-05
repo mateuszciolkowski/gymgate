@@ -3,7 +3,8 @@ export type Screen =
   | TabType
   | "add-exercise"
   | "edit-exercise"
-  | "workout-detail";
+  | "workout-detail"
+  | "stats-exercise-detail";
 
 export interface NavItem {
   id: TabType;
