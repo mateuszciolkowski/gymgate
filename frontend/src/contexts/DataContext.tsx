@@ -68,6 +68,11 @@ interface DataContextType {
     workoutId: string,
     itemId: string,
   ) => Promise<void>;
+  updateWorkoutItem: (
+    workoutId: string,
+    itemId: string,
+    data: { notes?: string | null },
+  ) => Promise<void>;
   addSet: (
     workoutId: string,
     itemId: string,
@@ -863,6 +868,84 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [isOfflineError, queueSyncOperation],
   );
 
+  const updateWorkoutItem = useCallback(
+    async (workoutId: string, itemId: string, data: { notes?: string | null }) => {
+      const originalWorkout = workoutsRef.current.find((w) => w.id === workoutId);
+      const originalItem = originalWorkout?.items.find((i) => i.id === itemId);
+
+      let updatedWorkout: Workout | null = null;
+      setWorkouts((prev) =>
+        prev.map((w) => {
+          if (w.id !== workoutId) return w;
+          updatedWorkout = {
+            ...w,
+            items: w.items.map((item) => {
+              if (item.id !== itemId) return item;
+              return {
+                ...item,
+                notes: data.notes ?? null,
+                updatedAt: new Date().toISOString(),
+              };
+            }),
+          };
+          return updatedWorkout;
+        }),
+      );
+      if (updatedWorkout) {
+        await localStore.put("workouts", updatedWorkout);
+      }
+
+      const realItemId = getRealId(itemId);
+      if (realItemId.startsWith("temp_")) return;
+
+      if (!navigator.onLine) {
+        await queueSyncOperation({
+          type: "update",
+          entity: "workoutItem",
+          endpoint: `/api/workouts/items/${realItemId}`,
+          method: "PATCH",
+          data,
+        });
+        return;
+      }
+
+      try {
+        const response = await authFetch(`${API_BASE}/api/workouts/items/${realItemId}`, {
+          method: "PATCH",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          throw new Error("Błąd aktualizacji notatek ćwiczenia");
+        }
+      } catch (error) {
+        if (isOfflineError(error)) {
+          await queueSyncOperation({
+            type: "update",
+            entity: "workoutItem",
+            endpoint: `/api/workouts/items/${realItemId}`,
+            method: "PATCH",
+            data,
+          });
+          return;
+        }
+
+        if (!originalItem) return;
+        setWorkouts((prev) =>
+          prev.map((w) => {
+            if (w.id !== workoutId) return w;
+            return {
+              ...w,
+              items: w.items.map((item) => (item.id === itemId ? originalItem : item)),
+            };
+          }),
+        );
+      }
+    },
+    [isOfflineError, queueSyncOperation],
+  );
+
   const addSet = useCallback(
     async (
       workoutId: string,
@@ -1249,6 +1332,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       deleteExercise,
       addExerciseToWorkout,
       removeExerciseFromWorkout,
+      updateWorkoutItem,
       addSet,
       updateSet,
       deleteSet,
@@ -1275,6 +1359,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       deleteExercise,
       addExerciseToWorkout,
       removeExerciseFromWorkout,
+      updateWorkoutItem,
       addSet,
       updateSet,
       deleteSet,
@@ -1355,6 +1440,7 @@ export function useWorkoutData(id: string) {
     getWorkout,
     addExerciseToWorkout,
     removeExerciseFromWorkout,
+    updateWorkoutItem,
     addSet,
     updateSet,
     deleteSet,
@@ -1383,6 +1469,8 @@ export function useWorkoutData(id: string) {
       deleteSet: (itemId: string, setId: string) =>
         deleteSet(id, itemId, setId),
       deleteExercise: (itemId: string) => removeExerciseFromWorkout(id, itemId),
+      updateExerciseNotes: (itemId: string, notes: string) =>
+        updateWorkoutItem(id, itemId, { notes }),
       completeWorkout: () => completeWorkout(id),
       updateWorkout: (data: Record<string, unknown>) => updateWorkout(id, data),
     }),
@@ -1390,6 +1478,7 @@ export function useWorkoutData(id: string) {
       id,
       addExerciseToWorkout,
       removeExerciseFromWorkout,
+      updateWorkoutItem,
       addSet,
       updateSet,
       deleteSet,

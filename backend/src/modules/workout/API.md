@@ -344,8 +344,11 @@ All values are calculated only from workouts with status `COMPLETED`.
 1. **Start workout:** `POST /api/workouts` → Returns workout with status `DRAFT`
 2. **Add exercises:** `POST /api/workouts/:id/exercises` (multiple times)
 3. **Add sets:** `POST /api/workouts/items/:itemId/sets` (multiple times per exercise)
-4. **Update sets:** `PATCH /api/workouts/sets/:setId` (if needed)
-5. **Complete workout:** `PATCH /api/workouts/:id` with `{"status": "COMPLETED"}`
+4. **Optional notes updates:**
+   - workout notes: `PATCH /api/workouts/:id` with `{"workoutNotes": "..."}`
+   - exercise-in-workout notes: `PATCH /api/workouts/items/:itemId` with `{"notes": "..."}`
+5. **Update sets:** `PATCH /api/workouts/sets/:setId` (if needed)
+6. **Complete workout:** `PATCH /api/workouts/:id` with `{"status": "COMPLETED"}`
    - System automatically updates stats and records
 
 ## Error Responses

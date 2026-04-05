@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo, useRef } from "react";
+import { useState, useEffect, useCallback, memo, useRef, useMemo } from "react";
 import { ScreenContainer, ScreenHeader } from "@/components/ui";
 import { useWorkoutData } from "@/contexts/DataContext";
 import { useData } from "@/contexts/DataContext";
@@ -26,11 +26,13 @@ export function WorkoutDetailScreen({
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isEditingInfo, setIsEditingInfo] = useState(false);
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [editWorkoutName, setEditWorkoutName] = useState("");
   const [editGymName, setEditGymName] = useState("");
   const [editWorkoutDate, setEditWorkoutDate] = useState("");
+  const [editWorkoutNotes, setEditWorkoutNotes] = useState("");
 
-  const { deleteWorkout, stats: allStats } = useData();
+  const { deleteWorkout, stats: allStats, workouts } = useData();
 
   const {
     workout,
@@ -41,6 +43,7 @@ export function WorkoutDetailScreen({
     updateSet,
     deleteSet,
     deleteExercise,
+    updateExerciseNotes,
     updateWorkout,
   } = useWorkoutData(workoutId);
 
@@ -90,9 +93,33 @@ export function WorkoutDetailScreen({
   }
 
   const isCompleted = workout.status === "COMPLETED";
+  const canEditWorkout = !isCompleted || isEditMode;
+  const latestSetsByExerciseId = useMemo(() => {
+    const map = new Map<string, string>();
+    const sortedCompletedWorkouts = [...workouts]
+      .filter((entry) => entry.status === "COMPLETED")
+      .sort(
+        (a, b) =>
+          new Date(b.workoutDate).getTime() - new Date(a.workoutDate).getTime(),
+      );
+
+    sortedCompletedWorkouts.forEach((entry) => {
+      entry.items.forEach((item) => {
+        if (map.has(item.exerciseId) || item.sets.length === 0) return;
+        const summary = [...item.sets]
+          .sort((a, b) => a.setNumber - b.setNumber)
+          .map((set) => `${set.weight} kg × ${set.repetitions}`)
+          .join(", ");
+        map.set(item.exerciseId, summary);
+      });
+    });
+
+    return map;
+  }, [workouts]);
 
   const handleStartEditInfo = () => {
     setIsEditingInfo(true);
+    setIsEditingNotes(false);
     setEditWorkoutName(workout?.workoutName || "");
     setEditGymName(workout?.gymName || "");
     const date = new Date(workout?.workoutDate || new Date());
@@ -118,6 +145,29 @@ export function WorkoutDetailScreen({
 
   const handleCancelEditInfo = () => {
     setIsEditingInfo(false);
+  };
+
+  const handleStartEditNotes = () => {
+    setIsEditingNotes(true);
+    setIsEditingInfo(false);
+    setEditWorkoutNotes(workout?.workoutNotes || "");
+  };
+
+  const handleSaveWorkoutNotes = async () => {
+    const notes = editWorkoutNotes.trim();
+    setIsEditingNotes(false);
+    try {
+      await updateWorkout({
+        workoutNotes: notes,
+      });
+    } catch (error) {
+      setIsEditingNotes(true);
+      alert("Nie udało się zapisać notatek");
+    }
+  };
+
+  const handleCancelEditNotes = () => {
+    setIsEditingNotes(false);
   };
 
   const handleDeleteWorkout = async () => {
@@ -222,7 +272,11 @@ export function WorkoutDetailScreen({
               )}
               {isCompleted && isEditMode && (
                 <button
-                  onClick={() => setIsEditMode(false)}
+                  onClick={() => {
+                    setIsEditMode(false);
+                    setIsEditingInfo(false);
+                    setIsEditingNotes(false);
+                  }}
                   className="text-gray-600 dark:text-gray-400 font-medium"
                 >
                   Anuluj
@@ -239,7 +293,7 @@ export function WorkoutDetailScreen({
         />
 
         <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          {!isEditingInfo ? (
+          {!isEditingInfo && !isEditingNotes ? (
             <>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -282,17 +336,61 @@ export function WorkoutDetailScreen({
                       : "W trakcie"}
                   </span>
                 </div>
+                {workout.workoutNotes && (
+                  <div>
+                    <span className="text-gray-600 dark:text-gray-400">Notatki:</span>
+                    <p className="mt-1 text-gray-900 dark:text-white whitespace-pre-wrap">
+                      {workout.workoutNotes}
+                    </p>
+                  </div>
+                )}
               </div>
-              {isEditMode && !isEditingInfo && (
-                <button
-                  onClick={handleStartEditInfo}
-                  className="mt-3 w-full py-2 text-sm text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
-                >
-                  ✏️ Edytuj informacje
-                </button>
+              {canEditWorkout && (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    onClick={handleStartEditInfo}
+                    className="w-full py-2 text-sm text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.8}
+                      stroke="currentColor"
+                      className="w-4 h-4"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"
+                      />
+                    </svg>
+                    <span>Edytuj informacje</span>
+                  </button>
+                  <button
+                    onClick={handleStartEditNotes}
+                    className="w-full py-2 text-sm text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.8}
+                      stroke="currentColor"
+                      className="w-4 h-4"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19.5 14.25v-8.25A2.25 2.25 0 0017.25 3.75H6.75A2.25 2.25 0 004.5 6v12A2.25 2.25 0 006.75 20.25h6.879a2.25 2.25 0 001.591-.659l3.621-3.621a2.25 2.25 0 00.659-1.591z"
+                      />
+                    </svg>
+                    <span>Notatki</span>
+                  </button>
+                </div>
               )}
             </>
-          ) : (
+          ) : isEditingInfo ? (
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -342,6 +440,36 @@ export function WorkoutDetailScreen({
                   className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
                 >
                   Zapisz
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  Notatki do treningu
+                </label>
+                <textarea
+                  value={editWorkoutNotes}
+                  onChange={(e) => setEditWorkoutNotes(e.target.value)}
+                  placeholder="Dodaj notatki do treningu..."
+                  rows={4}
+                  autoFocus
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm"
+                />
+              </div>
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={handleCancelEditNotes}
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                >
+                  Anuluj
+                </button>
+                <button
+                  onClick={handleSaveWorkoutNotes}
+                  className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+                >
+                  Zapisz notatki
                 </button>
               </div>
             </div>
@@ -424,11 +552,13 @@ export function WorkoutDetailScreen({
                   isEditMode={isEditMode}
                   isExpanded={expandedItemId === item.id}
                   stats={allStats.find((s) => s.exerciseId === item.exerciseId)}
+                  lastSetsSummary={latestSetsByExerciseId.get(item.exerciseId)}
                   onToggleExpand={handleToggleExpand}
                   onUpdateSet={handleUpdateSet}
                   onDeleteSet={handleDeleteSet}
                   onAddSet={handleAddSet}
                   onDeleteExercise={handleDeleteExercise}
+                  onUpdateExerciseNotes={updateExerciseNotes}
                 />
               ))
           )}
@@ -454,11 +584,13 @@ interface WorkoutItemCardProps {
   isEditMode: boolean;
   isExpanded: boolean;
   stats?: ExerciseStats;
+  lastSetsSummary?: string;
   onToggleExpand: (itemId: string) => void;
   onUpdateSet: (setId: string, weight: number, reps: number) => void;
   onDeleteSet: (itemId: string, setId: string) => void;
   onAddSet: (itemId: string) => void;
   onDeleteExercise: (itemId: string) => void;
+  onUpdateExerciseNotes: (itemId: string, notes: string) => Promise<void>;
 }
 
 const WorkoutItemCard = memo(
@@ -469,18 +601,32 @@ const WorkoutItemCard = memo(
     isEditMode,
     isExpanded,
     stats,
+    lastSetsSummary,
     onToggleExpand,
     onUpdateSet,
     onDeleteSet,
     onAddSet,
     onDeleteExercise,
+    onUpdateExerciseNotes,
   }: WorkoutItemCardProps) {
     // Stan edycji serii - używamy setNumber zamiast ID bo ID może się zmienić (temp -> real)
     const [editingSetNumber, setEditingSetNumber] = useState<number | null>(null);
     const [editWeight, setEditWeight] = useState("");
     const [editReps, setEditReps] = useState("");
+    const [isEditingNotes, setIsEditingNotes] = useState(false);
+    const [editNotesValue, setEditNotesValue] = useState(item.notes ?? "");
+    const [displayedNotes, setDisplayedNotes] = useState(item.notes ?? "");
 
     const canEdit = !isCompleted || isEditMode;
+
+    useEffect(() => {
+      if (!isEditingNotes) {
+        setEditNotesValue(item.notes ?? "");
+      }
+    }, [item.notes, isEditingNotes]);
+    useEffect(() => {
+      setDisplayedNotes(item.notes ?? "");
+    }, [item.notes]);
 
     // Znajdź aktualnie edytowaną serię po numerze
     const editingSet = editingSetNumber !== null 
@@ -505,6 +651,13 @@ const WorkoutItemCard = memo(
       setEditingSetNumber(null);
       setEditWeight("");
       setEditReps("");
+    };
+
+    const handleSaveExerciseNotes = async () => {
+      const notes = editNotesValue.trim();
+      setDisplayedNotes(notes);
+      setIsEditingNotes(false);
+      await onUpdateExerciseNotes(item.id, notes);
     };
 
   return (
@@ -588,22 +741,25 @@ const WorkoutItemCard = memo(
         <div className="px-4 pb-4">
           {stats && (
             <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
+              <div className="text-sm text-center">
+                <div className="flex flex-col items-center gap-1">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Ostatnio:
+                    Ostatnie serie:
                   </span>
-                  <span className="ml-2 font-medium">
-                    {stats.lastWeight} kg × {stats.lastReps}
-                  </span>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {lastSetsSummary ?? `${stats.lastWeight} kg × ${stats.lastReps}`}
+                  </p>
                 </div>
-                <div>
+                <div className="my-3 flex justify-center" aria-hidden="true">
+                  <span className="h-px w-28 rounded-full bg-gradient-to-r from-purple-300 via-emerald-400 to-purple-300 dark:from-purple-700 dark:via-emerald-500 dark:to-purple-700" />
+                </div>
+                <div className="flex flex-col items-center gap-1">
                   <span className="text-gray-600 dark:text-gray-400">
                     Rekord:
                   </span>
-                  <span className="ml-2 font-medium">
+                  <p className="font-medium text-gray-900 dark:text-white">
                     {stats.maxWeight} kg × {stats.maxWeightReps}
-                  </span>
+                  </p>
                 </div>
               </div>
             </div>
@@ -730,17 +886,58 @@ const WorkoutItemCard = memo(
           )}
 
           {canEdit && (
-            <button
-              onClick={() => onAddSet(item.id)}
-              className="w-full py-2 border-2 border-dashed border-emerald-600 text-emerald-600 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-sm font-medium"
-            >
-              + Dodaj serię
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => onAddSet(item.id)}
+                className="w-full py-2 border-2 border-dashed border-emerald-600 text-emerald-600 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-sm font-medium"
+              >
+                + Dodaj serię
+              </button>
+              <button
+                onClick={() => setIsEditingNotes((prev) => !prev)}
+                className="w-full py-2 border-2 border-dashed border-gray-400 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium"
+              >
+                Notatki ćwiczenia
+              </button>
+            </div>
           )}
 
-          {item.notes && (
+          {isEditingNotes && (
+            <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                Notatki ćwiczenia
+              </label>
+              <textarea
+                value={editNotesValue}
+                onChange={(e) => setEditNotesValue(e.target.value)}
+                rows={3}
+                placeholder="Dodaj notatki do tego ćwiczenia..."
+                autoFocus
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm"
+              />
+              <div className="mt-2 flex gap-2">
+                <button
+                  onClick={() => {
+                    setEditNotesValue(item.notes ?? "");
+                    setIsEditingNotes(false);
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 text-sm"
+                >
+                  Anuluj
+                </button>
+                <button
+                  onClick={handleSaveExerciseNotes}
+                  className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+                >
+                  Zapisz notatki
+                </button>
+              </div>
+            </div>
+          )}
+
+          {displayedNotes && !isEditingNotes && (
             <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm">
-              <span className="font-medium">Notatki:</span> {item.notes}
+              <span className="font-medium">Notatki:</span> {displayedNotes}
             </div>
           )}
         </div>
@@ -766,6 +963,7 @@ const WorkoutItemCard = memo(
     // Porównaj podstawowe dane ćwiczenia
     if (prevItem.exerciseId !== nextItem.exerciseId) return false;
     if (prevItem.exercise.name !== nextItem.exercise.name) return false;
+    if ((prevItem.notes ?? null) !== (nextItem.notes ?? null)) return false;
     if (prevItem.sets.length !== nextItem.sets.length) return false;
     
     // Porównaj każdą serię - ale tylko wartości, nie ID
@@ -786,6 +984,7 @@ const WorkoutItemCard = memo(
       if (prevStats.lastWeight !== nextStats.lastWeight) return false;
       if (prevStats.totalWorkouts !== nextStats.totalWorkouts) return false;
     }
+    if (prevProps.lastSetsSummary !== nextProps.lastSetsSummary) return false;
     
     return true;
   }

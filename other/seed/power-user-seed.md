@@ -19,21 +19,24 @@ Jesli seed byl odpalony starsza wersja pliku, uruchom go ponownie, aby nadpisac 
 ## Jak wrzucic SQL do bazy
 
 1. Upewnij sie, ze masz ustawione `DATABASE_URL` i wykonane migracje.
-2. Wykonaj:
+2. Zalecana metoda (dziala dobrze z Docker + Supabase):
 
 ```bash
 cd backend
-psql "$DATABASE_URL" -f ../other/seed/power-user-seed.sql
+npx prisma db execute --schema prisma/schema.prisma --file ../other/seed/power-user-seed.sql
 ```
 
 ### Docker + Supabase
 
 W tym repo usluga compose nazywa sie `gg_api` (nie `backend`).
-Najpewniejsza metoda (bez `psql` w kontenerze) to Prisma:
+
+### Import przez `psql` (opcjonalnie)
+
+Jesli masz lokalnie `psql`, mozesz tez uzyc:
 
 ```bash
 cd backend
-npx prisma db execute --schema prisma/schema.prisma --file ../other/seed/power-user-seed.sql
+psql "$DATABASE_URL" -f ../other/seed/power-user-seed.sql
 ```
 
 Jesli chcesz uruchomic import przez `psql`, uzyj tymczasowego kontenera Postgresa:
