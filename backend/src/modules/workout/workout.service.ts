@@ -92,8 +92,20 @@ export const updateWorkout = async (
 };
 
 export const deleteWorkout = async (id: string, userId: string) => {
-  await getWorkoutById(id, userId);
-  return workoutRepo.deleteWorkout(id);
+  const workout = await getWorkoutById(id, userId);
+  const affectedExerciseIds = [
+    ...new Set(workout.items.map((item) => item.exerciseId)),
+  ];
+
+  const deletedWorkout = await workoutRepo.deleteWorkout(id);
+
+  if (workout.status === "COMPLETED") {
+    for (const exerciseId of affectedExerciseIds) {
+      await rebuildExerciseStatsFromCompletedWorkouts(userId, exerciseId);
+    }
+  }
+
+  return deletedWorkout;
 };
 
 export const addExerciseToWorkout = async (
@@ -317,6 +329,33 @@ const updateStatsAfterWorkoutCompletion = async (
       });
     }
   }
+};
+
+const rebuildExerciseStatsFromCompletedWorkouts = async (
+  userId: string,
+  exerciseId: string
+) => {
+  const progression = await workoutRepo.getExerciseProgression(userId, exerciseId);
+
+  if (progression.length === 0) {
+    await workoutRepo.deleteExerciseStats(userId, exerciseId);
+    return;
+  }
+
+  const lastPoint = progression[progression.length - 1]!;
+  const maxPoint = progression.reduce((currentMax, point) =>
+    point.maxSetWeight > currentMax.maxSetWeight ? point : currentMax
+  );
+
+  await workoutRepo.upsertExerciseStats(userId, exerciseId, {
+    maxWeight: maxPoint.maxSetWeight,
+    maxWeightReps: maxPoint.repetitionsAtMaxSet,
+    maxWeightDate: maxPoint.workoutDate,
+    lastWeight: lastPoint.maxSetWeight,
+    lastReps: lastPoint.repetitionsAtMaxSet,
+    lastWorkoutDate: lastPoint.workoutDate,
+    totalWorkouts: progression.length,
+  });
 };
 
 export const getActiveWorkoutId = async (userId: string) => {

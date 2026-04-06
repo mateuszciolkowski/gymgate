@@ -9,11 +9,13 @@ vi.mock("./workout.repository.js", () => ({
   setActiveWorkout: vi.fn(),
   findWorkoutsByUser: vi.fn(),
   updateWorkout: vi.fn(),
+  deleteWorkout: vi.fn(),
   clearActiveWorkout: vi.fn(),
   getExerciseStats: vi.fn(),
   upsertExerciseStats: vi.fn(),
   getStatsOverview: vi.fn(),
   getExerciseProgression: vi.fn(),
+  deleteExerciseStats: vi.fn(),
   getMaxOrderInWorkout: vi.fn(),
   addExerciseToWorkout: vi.fn(),
   addSetToWorkoutItem: vi.fn(),
@@ -123,6 +125,74 @@ describe("workout.service", () => {
       }),
     );
     expect(workoutRepo.clearActiveWorkout).toHaveBeenCalledWith("u1");
+  });
+
+  it("deleteWorkout: deletes workout after ownership check", async () => {
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "DRAFT",
+      items: [],
+    } as any);
+    vi.mocked(workoutRepo.deleteWorkout).mockResolvedValue({
+      id: "w1",
+    } as any);
+
+    const result = await workoutService.deleteWorkout("w1", "u1");
+
+    expect(workoutRepo.deleteWorkout).toHaveBeenCalledWith("w1");
+    expect(workoutRepo.getExerciseProgression).not.toHaveBeenCalled();
+    expect(result).toEqual({ id: "w1" });
+  });
+
+  it("deleteWorkout: for COMPLETED workout recalculates stats for affected exercises", async () => {
+    const workoutDate1 = new Date("2026-01-01T10:00:00.000Z");
+    const workoutDate2 = new Date("2026-01-10T10:00:00.000Z");
+
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "COMPLETED",
+      items: [
+        { exerciseId: "e1" },
+        { exerciseId: "e1" },
+        { exerciseId: "e2" },
+      ],
+    } as any);
+    vi.mocked(workoutRepo.deleteWorkout).mockResolvedValue({ id: "w1" } as any);
+    vi.mocked(workoutRepo.getExerciseProgression)
+      .mockResolvedValueOnce([
+        {
+          workoutId: "w-old",
+          workoutDate: workoutDate1,
+          maxSetWeight: 85,
+          repetitionsAtMaxSet: 6,
+          volume: 2200,
+        },
+        {
+          workoutId: "w-latest",
+          workoutDate: workoutDate2,
+          maxSetWeight: 80,
+          repetitionsAtMaxSet: 8,
+          volume: 2000,
+        },
+      ] as any)
+      .mockResolvedValueOnce([]);
+
+    await workoutService.deleteWorkout("w1", "u1");
+
+    expect(workoutRepo.getExerciseProgression).toHaveBeenCalledWith("u1", "e1");
+    expect(workoutRepo.getExerciseProgression).toHaveBeenCalledWith("u1", "e2");
+    expect(workoutRepo.upsertExerciseStats).toHaveBeenCalledWith("u1", "e1", {
+      maxWeight: 85,
+      maxWeightReps: 6,
+      maxWeightDate: workoutDate1,
+      lastWeight: 80,
+      lastReps: 8,
+      lastWorkoutDate: workoutDate2,
+      totalWorkouts: 2,
+    });
+    expect(workoutRepo.deleteExerciseStats).toHaveBeenCalledWith("u1", "e2");
   });
 
   it("addExerciseToWorkout: auto-assigns order and creates default set", async () => {

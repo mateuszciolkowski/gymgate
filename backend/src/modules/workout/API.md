@@ -125,6 +125,16 @@ Base URL: `/api/workouts`
 
 **DELETE** `/api/workouts/:id`
 
+**Behavior:**
+
+- Removes the workout record.
+- Removes all workout items assigned to that workout.
+- Removes all sets assigned to those workout items.
+- Cleanup is executed in one backend transaction, so app state stays consistent.
+- If deleted workout had status `COMPLETED`, `ExerciseUserStats` are recalculated for affected exercises:
+  - records are recomputed from remaining completed workouts,
+  - and stats row is removed when no completed workouts remain for that exercise.
+
 ## Exercise Management in Workout
 
 ### 6. Add Exercise to Workout
@@ -350,6 +360,8 @@ All values are calculated only from workouts with status `COMPLETED`.
 5. **Update sets:** `PATCH /api/workouts/sets/:setId` (if needed)
 6. **Complete workout:** `PATCH /api/workouts/:id` with `{"status": "COMPLETED"}`
    - System automatically updates stats and records
+7. **Delete workout (optional path):** `DELETE /api/workouts/:id`
+   - System also removes nested workout items and sets.
 
 ## Error Responses
 
