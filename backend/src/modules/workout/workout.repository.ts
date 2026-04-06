@@ -91,8 +91,22 @@ export const updateWorkout = (id: string, data: Prisma.WorkoutUpdateInput) => {
 };
 
 export const deleteWorkout = (id: string) => {
-  return prisma.workout.delete({
-    where: { id },
+  return prisma.$transaction(async (tx) => {
+    await tx.workoutSet.deleteMany({
+      where: {
+        item: {
+          workoutId: id,
+        },
+      },
+    });
+
+    await tx.workoutItem.deleteMany({
+      where: { workoutId: id },
+    });
+
+    return tx.workout.delete({
+      where: { id },
+    });
   });
 };
 
@@ -390,6 +404,15 @@ export const upsertExerciseStats = (
       totalWorkouts: data.totalWorkouts || 1,
     },
     update: data,
+  });
+};
+
+export const deleteExerciseStats = (userId: string, exerciseId: string) => {
+  return prisma.exerciseUserStats.deleteMany({
+    where: {
+      userId,
+      exerciseId,
+    },
   });
 };
 
