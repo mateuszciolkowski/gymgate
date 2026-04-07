@@ -150,8 +150,21 @@ function AuthenticatedApp({
     }
   };
 
+  const renderTrainingsScreen = () => (
+    <TrainingsScreen
+      onSelectWorkout={(workoutId) => {
+        setSelectedWorkoutId(workoutId);
+        setScreen("workout-detail");
+      }}
+    />
+  );
+
   const renderScreen = () => {
-    if (screen === "workout-detail" && selectedWorkoutId) {
+    if (screen === "workout-detail") {
+      if (!selectedWorkoutId || !getWorkout(selectedWorkoutId)) {
+        return renderTrainingsScreen();
+      }
+
       return (
         <WorkoutDetailScreen
           workoutId={selectedWorkoutId}
@@ -226,14 +239,7 @@ function AuthenticatedApp({
 
     switch (screen) {
       case "trainings":
-        return (
-          <TrainingsScreen
-            onSelectWorkout={(workoutId) => {
-              setSelectedWorkoutId(workoutId);
-              setScreen("workout-detail");
-            }}
-          />
-        );
+        return renderTrainingsScreen();
       case "exercises":
         return (
           <ExercisesScreen
@@ -260,14 +266,7 @@ function AuthenticatedApp({
       case "menu":
         return <MenuScreen />;
       default:
-        return (
-          <TrainingsScreen
-            onSelectWorkout={(workoutId) => {
-              setSelectedWorkoutId(workoutId);
-              setScreen("workout-detail");
-            }}
-          />
-        );
+        return renderTrainingsScreen();
     }
   };
 
