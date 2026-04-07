@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { ExerciseList } from "../exercises/ExerciseList";
 
 interface ExerciseSelectionModalProps {
@@ -13,20 +14,49 @@ export function ExerciseSelectionModal({
   existingExerciseIds,
   onCreateNewExercise,
 }: ExerciseSelectionModalProps) {
+  const blurActiveElement = useCallback(() => {
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement) {
+      activeElement.blur();
+    }
+  }, []);
+
+  const handleClose = useCallback(() => {
+    blurActiveElement();
+    onClose();
+  }, [blurActiveElement, onClose]);
+
+  const handleSelectExercise = useCallback(
+    (exerciseId: string) => {
+      blurActiveElement();
+      onSelectExercise(exerciseId);
+    },
+    [blurActiveElement, onSelectExercise],
+  );
+
+  const handleCreateNewExercise = useCallback(() => {
+    blurActiveElement();
+    onCreateNewExercise?.();
+  }, [blurActiveElement, onCreateNewExercise]);
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50"
-      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
+      onClick={handleClose}
+      role="presentation"
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Wybierz ćwiczenie"
       >
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-xl font-bold">Wybierz ćwiczenie</h2>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
             >
               ✕
@@ -34,7 +64,7 @@ export function ExerciseSelectionModal({
           </div>
           {onCreateNewExercise && (
             <button
-              onClick={onCreateNewExercise}
+              onClick={handleCreateNewExercise}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
             >
               <svg
@@ -56,11 +86,13 @@ export function ExerciseSelectionModal({
           )}
         </div>
 
-        <ExerciseList
-          mode="select"
-          onSelectExercise={onSelectExercise}
-          excludeExerciseIds={existingExerciseIds}
-        />
+        <div className="min-h-0 flex-1 overflow-y-scroll overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
+          <ExerciseList
+            mode="select"
+            onSelectExercise={handleSelectExercise}
+            excludeExerciseIds={existingExerciseIds}
+          />
+        </div>
       </div>
     </div>
   );
