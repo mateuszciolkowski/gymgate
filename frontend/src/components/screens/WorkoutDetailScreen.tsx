@@ -68,6 +68,12 @@ export function WorkoutDetailScreen({
     }
   }, [pendingExerciseId, workout, onExerciseAdded, handleAddExercise]);
 
+  useEffect(() => {
+    if (!loading && !workout) {
+      onBack();
+    }
+  }, [loading, workout, onBack]);
+
   if (loading) {
     return (
       <ScreenContainer>
