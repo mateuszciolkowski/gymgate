@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { ExerciseList } from "../exercises/ExerciseList";
 
 interface ExerciseSelectionModalProps {
@@ -14,6 +14,35 @@ export function ExerciseSelectionModal({
   existingExerciseIds,
   onCreateNewExercise,
 }: ExerciseSelectionModalProps) {
+  useEffect(() => {
+    const scrollY = window.scrollY;
+    const previousBodyStyle = {
+      position: document.body.style.position,
+      top: document.body.style.top,
+      left: document.body.style.left,
+      right: document.body.style.right,
+      width: document.body.style.width,
+      overflow: document.body.style.overflow,
+    };
+
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.position = previousBodyStyle.position;
+      document.body.style.top = previousBodyStyle.top;
+      document.body.style.left = previousBodyStyle.left;
+      document.body.style.right = previousBodyStyle.right;
+      document.body.style.width = previousBodyStyle.width;
+      document.body.style.overflow = previousBodyStyle.overflow;
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
   const blurActiveElement = useCallback(() => {
     const activeElement = document.activeElement;
     if (activeElement instanceof HTMLElement) {
@@ -41,12 +70,12 @@ export function ExerciseSelectionModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
+      className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4 overflow-hidden"
       onClick={handleClose}
       role="presentation"
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden"
+        className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl h-[90svh] sm:h-auto sm:max-h-[90dvh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -86,7 +115,7 @@ export function ExerciseSelectionModal({
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-scroll overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y pb-24 sm:pb-0 [-webkit-overflow-scrolling:touch]">
           <ExerciseList
             mode="select"
             onSelectExercise={handleSelectExercise}
