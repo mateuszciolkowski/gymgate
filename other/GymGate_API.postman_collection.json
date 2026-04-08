@@ -1,0 +1,536 @@
+{
+  "info": {
+    "_postman_id": "gymgate-e2e-test-suite-v4",
+    "name": "GymGate API – E2E Test Suite",
+    "description": "# GymGate E2E Test Suite\n\n## Uruchomienie przez Newman (terminal):\n```\nnewman run GymGate_API.postman_collection.json --delay-request 150\n```\n\n## Uruchomienie przez Postman GUI:\nKliknij prawym → Run collection → Run\n\n38 requestów. Jeśli wszystkie przejdą → cała aplikacja działa.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "authToken", "value": "", "type": "string" },
+    { "key": "userId", "value": "", "type": "string" },
+    { "key": "exerciseId", "value": "", "type": "string" },
+    { "key": "workoutId", "value": "", "type": "string" },
+    { "key": "workoutItemId", "value": "", "type": "string" },
+    { "key": "setId1", "value": "", "type": "string" },
+    { "key": "setId2", "value": "", "type": "string" },
+    { "key": "setId3", "value": "", "type": "string" },
+    { "key": "testEmail", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "[01] Health check – API online",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[01] API odpowiada na GET /', () => pm.response.to.have.status(200));",
+        "pm.test('[01] Zawiera status ok', () => pm.expect(pm.response.json().status).to.eql('ok'));",
+        "pm.test('[01] Zawiera GymGate w message', () => pm.expect(pm.response.json().message).to.include('GymGate'));"
+      ], "type": "text/javascript" }}],
+      "request": { "method": "GET", "header": [],
+        "url": { "raw": "{{baseUrl}}/", "host": ["{{baseUrl}}"], "path": [""] }
+      }
+    },
+    {
+      "name": "[02] Health check – /health endpoint",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[02] /health zwraca 200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('[02] Zawiera timestamp', () => { const j = pm.response.json(); pm.expect(j.status).to.eql('ok'); pm.expect(j.timestamp).to.be.a('string'); });"
+      ], "type": "text/javascript" }}],
+      "request": { "method": "GET", "header": [],
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      }
+    },
+    {
+      "name": "[03] AUTH – Rejestracja nowego użytkownika",
+      "event": [
+        { "listen": "prerequest", "script": { "exec": [
+          "const email = 'e2e_' + Date.now() + '@gymgate.pl';",
+          "pm.collectionVariables.set('testEmail', email);",
+          "pm.collectionVariables.set('authToken', '');",
+          "console.log('Test email:', email);"
+        ], "type": "text/javascript" }},
+        { "listen": "test", "script": { "exec": [
+          "pm.test('[03] Rejestracja zwraca 201 Created', () => pm.response.to.have.status(201));",
+          "pm.test('[03] success=true', () => pm.expect(pm.response.json().success).to.be.true);",
+          "pm.test('[03] Zawiera token JWT', () => {",
+          "  const j = pm.response.json();",
+          "  pm.expect(j.data.token).to.be.a('string').and.have.length.above(10);",
+          "  pm.collectionVariables.set('authToken', j.data.token);",
+          "});",
+          "pm.test('[03] Zawiera dane użytkownika', () => {",
+          "  const j = pm.response.json();",
+          "  pm.expect(j.data.user.id).to.be.a('string');",
+          "  pm.expect(j.data.user.email).to.eql(pm.collectionVariables.get('testEmail'));",
+          "  pm.collectionVariables.set('userId', j.data.user.id);",
+          "});"
+        ], "type": "text/javascript" }}
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"e2eTestPass123\",\n  \"firstName\": \"E2E\",\n  \"lastName\": \"Tester\",\n  \"phone\": \"+48100200300\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] }
+      }
+    },
+    {
+      "name": "[04] AUTH – Walidacja: duplikat emaila → 409",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[04] Duplikat emaila zwraca 409 Conflict', () => pm.response.to.have.status(409));",
+        "pm.test('[04] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"e2eTestPass123\",\n  \"firstName\": \"E2E\",\n  \"lastName\": \"Tester\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] }
+      }
+    },
+    {
+      "name": "[05] AUTH – Walidacja: nieprawidlowy email → 400",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[05] Zly email zwraca 400', () => pm.response.to.have.status(400));",
+        "pm.test('[05] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"to-nie-jest-email\",\n  \"password\": \"e2eTestPass123\",\n  \"firstName\": \"Jan\",\n  \"lastName\": \"Kowalski\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] }
+      }
+    },
+    {
+      "name": "[06] AUTH – Logowanie z poprawnymi danymi",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[06] Login zwraca 200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('[06] success=true', () => pm.expect(pm.response.json().success).to.be.true);",
+        "pm.test('[06] Login zwraca token JWT', () => {",
+        "  const j = pm.response.json();",
+        "  pm.expect(j.data.token).to.be.a('string').and.have.length.above(10);",
+        "  pm.collectionVariables.set('authToken', j.data.token);",
+        "});",
+        "pm.test('[06] Login zwraca poprawny email', () => pm.expect(pm.response.json().data.user.email).to.eql(pm.collectionVariables.get('testEmail')));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"e2eTestPass123\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+      }
+    },
+    {
+      "name": "[07] AUTH – Walidacja: zle haslo → 401",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[07] Zle haslo zwraca 401', () => pm.response.to.have.status(401));",
+        "pm.test('[07] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"ZUPELNIE_ZLE_HASLO\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+      }
+    },
+    {
+      "name": "[08] AUTH – GET /me (z tokenem)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[08] GET /me zwraca 200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('[08] Zawiera email uzytkownika', () => { const j = pm.response.json(); pm.expect(j.success).to.be.true; pm.expect(j.data.email).to.eql(pm.collectionVariables.get('testEmail')); });",
+        "pm.test('[08] Nie zawiera hasla', () => pm.expect(pm.response.json().data).to.not.have.property('password'));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api","auth","me"] }
+      }
+    },
+    {
+      "name": "[09] AUTH – Brak tokenu → 401",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[09] Brak tokenu zwraca 401', () => pm.response.to.have.status(401));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api","auth","me"] }
+      }
+    },
+    {
+      "name": "[10] EXERCISES – Stworzenie cwiczenia",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[10] Tworzenie cwiczenia zwraca 201 Created', () => pm.response.to.have.status(201));",
+        "pm.test('[10] Zawiera id cwiczenia', () => {",
+        "  const j = pm.response.json();",
+        "  pm.expect(j.success).to.be.true;",
+        "  pm.expect(j.data.id).to.be.a('string');",
+        "  pm.collectionVariables.set('exerciseId', j.data.id);",
+        "  console.log('exerciseId:', j.data.id);",
+        "});",
+        "pm.test('[10] Cwiczenie ma poprawna nazwe', () => pm.expect(pm.response.json().data.name).to.eql('E2E Exercise'));",
+        "pm.test('[10] Cwiczenie ma grupy miesniowe', () => pm.expect(pm.response.json().data.muscleGroups).to.be.an('array').with.length.above(0));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"E2E Exercise\",\n  \"muscleGroups\": [\"CHEST\", \"BICEPS\"],\n  \"description\": \"E2E test suite exercise\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/exercises", "host": ["{{baseUrl}}"], "path": ["api","exercises"] }
+      }
+    },
+    {
+      "name": "[11] EXERCISES – Pobieranie listy cwiczen",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[11] Lista cwiczen zwraca 200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('[11] Zawiera tablice i count', () => { const j = pm.response.json(); pm.expect(j.data).to.be.an('array'); pm.expect(j.count).to.be.a('number'); });",
+        "pm.test('[11] Lista zawiera nowe cwiczenie E2E', () => {",
+        "  const j = pm.response.json();",
+        "  const found = j.data.find(e => e.id === pm.collectionVariables.get('exerciseId'));",
+        "  pm.expect(found, 'Cwiczenie E2E nie znalezione').to.not.be.undefined;",
+        "});"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/exercises", "host": ["{{baseUrl}}"], "path": ["api","exercises"] }
+      }
+    },
+    {
+      "name": "[12] EXERCISES – Pobieranie cwiczenia po ID",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[12] Pobieranie cwiczenia po ID zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[12] Cwiczenie ma poprawne ID', () => pm.expect(pm.response.json().data.id).to.eql(pm.collectionVariables.get('exerciseId')));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/exercises/{{exerciseId}}", "host": ["{{baseUrl}}"], "path": ["api","exercises","{{exerciseId}}"] }
+      }
+    },
+    {
+      "name": "[13] EXERCISES – Filtrowanie po CHEST",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[13] Filtrowanie zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[13] Wszystkie wyniki maja CHEST', () => { pm.response.json().data.forEach(ex => pm.expect(ex.muscleGroups).to.include('CHEST')); });",
+        "pm.test('[13] Wyniki zawieraja cwiczenie E2E', () => { pm.expect(pm.response.json().data.find(e => e.id === pm.collectionVariables.get('exerciseId'))).to.not.be.undefined; });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/exercises?muscleGroup=CHEST", "host": ["{{baseUrl}}"], "path": ["api","exercises"], "query": [{ "key": "muscleGroup", "value": "CHEST" }] }
+      }
+    },
+    {
+      "name": "[14] EXERCISES – Aktualizacja cwiczenia",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[14] Aktualizacja cwiczenia zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[14] Opis zostal zaktualizowany', () => pm.expect(pm.response.json().data.description).to.eql('Zaktualizowany opis E2E'));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"description\": \"Zaktualizowany opis E2E\",\n  \"muscleGroups\": [\"CHEST\"]\n}" },
+        "url": { "raw": "{{baseUrl}}/api/exercises/{{exerciseId}}", "host": ["{{baseUrl}}"], "path": ["api","exercises","{{exerciseId}}"] }
+      }
+    },
+    {
+      "name": "[15] WORKOUTS – Stworzenie treningu",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[15] Tworzenie treningu zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[15] Zawiera id treningu', () => { const j = pm.response.json(); pm.expect(j.data.id).to.be.a('string'); pm.collectionVariables.set('workoutId', j.data.id); console.log('workoutId:', j.data.id); });",
+        "pm.test('[15] Status DRAFT', () => pm.expect(pm.response.json().data.status).to.eql('DRAFT'));",
+        "pm.test('[15] Poprawna nazwa', () => pm.expect(pm.response.json().data.workoutName).to.eql('E2E Trening Push'));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"workoutName\": \"E2E Trening Push\",\n  \"workoutDate\": \"2026-04-08T10:00:00.000Z\",\n  \"gymName\": \"Silownia E2E\",\n  \"location\": \"Testowo\",\n  \"workoutNotes\": \"Automatyczny trening E2E\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts", "host": ["{{baseUrl}}"], "path": ["api","workouts"] }
+      }
+    },
+    {
+      "name": "[16] WORKOUTS – Pobieranie listy treningow",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[16] Lista treningow zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[16] Zawiera tablice i count', () => { const j = pm.response.json(); pm.expect(j.data).to.be.an('array'); pm.expect(j.count).to.be.a('number'); });",
+        "pm.test('[16] Lista zawiera nowy trening', () => pm.expect(pm.response.json().data.find(w => w.id === pm.collectionVariables.get('workoutId'))).to.not.be.undefined);"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts", "host": ["{{baseUrl}}"], "path": ["api","workouts"] }
+      }
+    },
+    {
+      "name": "[17] WORKOUTS – Pobieranie treningu po ID",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[17] Pobieranie treningu po ID zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[17] Trening ma poprawne ID', () => pm.expect(pm.response.json().data.id).to.eql(pm.collectionVariables.get('workoutId')));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutId}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutId}}"] }
+      }
+    },
+    {
+      "name": "[18] WORKOUT ITEMS – Dodanie cwiczenia do treningu",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[18] Dodanie cwiczenia zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[18] Zawiera id workout item', () => { const j = pm.response.json(); pm.expect(j.data.id).to.be.a('string'); pm.collectionVariables.set('workoutItemId', j.data.id); console.log('workoutItemId:', j.data.id); });",
+        "pm.test('[18] Workout item powiazany z cwiczeniem', () => pm.expect(pm.response.json().data.exerciseId).to.eql(pm.collectionVariables.get('exerciseId')));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"exerciseId\": \"{{exerciseId}}\",\n  \"orderInWorkout\": 1,\n  \"notes\": \"Pierwsza seria z rozgrzewki\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutId}}/exercises", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutId}}","exercises"] }
+      }
+    },
+    {
+      "name": "[19] SETS – Dodanie serii 1 (80kg x 10)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[19] Dodanie serii 1 zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[19] Seria 1 ma ciez 80 i 10 powtorzen', () => { const j = pm.response.json(); pm.collectionVariables.set('setId1', j.data.id); console.log('setId1:', j.data.id); pm.expect(parseFloat(j.data.weight)).to.eql(80); pm.expect(j.data.repetitions).to.eql(10); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"weight\": 80,\n  \"repetitions\": 10,\n  \"setNumber\": 1\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts/items/{{workoutItemId}}/sets", "host": ["{{baseUrl}}"], "path": ["api","workouts","items","{{workoutItemId}}","sets"] }
+      }
+    },
+    {
+      "name": "[20] SETS – Dodanie serii 2 (85kg x 8)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[20] Dodanie serii 2 zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[20] Seria 2 ma ciez 85 i 8 powtorzen', () => { const j = pm.response.json(); pm.collectionVariables.set('setId2', j.data.id); console.log('setId2:', j.data.id); pm.expect(parseFloat(j.data.weight)).to.eql(85); pm.expect(j.data.repetitions).to.eql(8); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"weight\": 85,\n  \"repetitions\": 8,\n  \"setNumber\": 2\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts/items/{{workoutItemId}}/sets", "host": ["{{baseUrl}}"], "path": ["api","workouts","items","{{workoutItemId}}","sets"] }
+      }
+    },
+    {
+      "name": "[21] SETS – Dodanie serii 3 (90kg x 6)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[21] Dodanie serii 3 zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[21] Seria 3 ma ciez 90 i 6 powtorzen', () => { const j = pm.response.json(); pm.collectionVariables.set('setId3', j.data.id); console.log('setId3:', j.data.id); pm.expect(parseFloat(j.data.weight)).to.eql(90); pm.expect(j.data.repetitions).to.eql(6); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"weight\": 90,\n  \"repetitions\": 6,\n  \"setNumber\": 3\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts/items/{{workoutItemId}}/sets", "host": ["{{baseUrl}}"], "path": ["api","workouts","items","{{workoutItemId}}","sets"] }
+      }
+    },
+    {
+      "name": "[22] SETS – Aktualizacja serii 2 (87.5kg x 7)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[22] Aktualizacja serii zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[22] Seria ma 87.5 i 7 powtorzen', () => { const j = pm.response.json(); pm.expect(parseFloat(j.data.weight)).to.eql(87.5); pm.expect(j.data.repetitions).to.eql(7); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"weight\": 87.5,\n  \"repetitions\": 7\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts/sets/{{setId2}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","sets","{{setId2}}"] }
+      }
+    },
+    {
+      "name": "[23] WORKOUT ITEMS – Aktualizacja notatek",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[23] Aktualizacja workout item zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[23] Notatki zaktualizowane', () => pm.expect(pm.response.json().data.notes).to.eql('Zaktualizowane notatki E2E'));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"orderInWorkout\": 1,\n  \"notes\": \"Zaktualizowane notatki E2E\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts/items/{{workoutItemId}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","items","{{workoutItemId}}"] }
+      }
+    },
+    {
+      "name": "[24] WORKOUTS – Oznaczenie jako COMPLETED",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[24] Aktualizacja treningu zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[24] Status = COMPLETED', () => pm.expect(pm.response.json().data.status).to.eql('COMPLETED'));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"COMPLETED\",\n  \"workoutNotes\": \"E2E zakonczone pomyslnie!\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutId}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutId}}"] }
+      }
+    },
+    {
+      "name": "[25] WORKOUTS – Filtrowanie po COMPLETED",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[25] Filtr COMPLETED zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[25] Wszystkie wyniki maja COMPLETED', () => pm.response.json().data.forEach(w => pm.expect(w.status).to.eql('COMPLETED')));",
+        "pm.test('[25] Lista zawiera nowy trening', () => pm.expect(pm.response.json().data.find(w => w.id === pm.collectionVariables.get('workoutId'))).to.not.be.undefined);"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts?status=COMPLETED", "host": ["{{baseUrl}}"], "path": ["api","workouts"], "query": [{ "key": "status", "value": "COMPLETED" }] }
+      }
+    },
+    {
+      "name": "[26] STATS – Ogolny przeglad statystyk",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[26] Stats overview zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[26] Zawiera dane statystyk', () => { const j = pm.response.json(); pm.expect(j.success).to.be.true; pm.expect(j.data).to.not.be.null; });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/stats/overview", "host": ["{{baseUrl}}"], "path": ["api","workouts","stats","overview"] }
+      }
+    },
+    {
+      "name": "[27] STATS – Wszystkie statystyki uzytkownika",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[27] All stats zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[27] Zawiera tablice i count', () => { const j = pm.response.json(); pm.expect(j.data).to.be.an('array'); pm.expect(j.count).to.be.a('number'); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/stats/all", "host": ["{{baseUrl}}"], "path": ["api","workouts","stats","all"] }
+      }
+    },
+    {
+      "name": "[28] STATS – Progresja cwiczenia (maxSetWeight)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[28] Progresja cwiczenia zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[28] Zawiera dane progresji', () => { const j = pm.response.json(); pm.expect(j.success).to.be.true; pm.expect(j.data).to.be.an('object'); pm.expect(j.data).to.have.property('points'); pm.expect(j.data.points).to.be.an('array'); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/stats/progression/{{exerciseId}}?metric=maxSetWeight", "host": ["{{baseUrl}}"], "path": ["api","workouts","stats","progression","{{exerciseId}}"], "query": [{ "key": "metric", "value": "maxSetWeight" }] }
+      }
+    },
+    {
+      "name": "[29] STATS – Statystyki konkretnego cwiczenia",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[29] Stats cwiczenia zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[29] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/stats/exercise/{{exerciseId}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","stats","exercise","{{exerciseId}}"] }
+      }
+    },
+    {
+      "name": "[30] WORKOUTS – Weryfikacja szczegolow (serie w treningu)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[30] Szczegoly treningu zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[30] Status = COMPLETED', () => pm.expect(pm.response.json().data.status).to.eql('COMPLETED'));",
+        "pm.test('[30] Trening ma pozycje cwiczen', () => { const j = pm.response.json(); const items = j.data.workoutItems || j.data.items || []; pm.expect(items).to.be.an('array').with.length.above(0); pm.collectionVariables.set('_items', JSON.stringify(items)); });",
+        "pm.test('[30] Pozycja ma 4 serie', () => { const j = pm.response.json(); const items = j.data.workoutItems || j.data.items || []; const item = items[0]; pm.expect(item.sets).to.be.an('array').with.length(4); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutId}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutId}}"] }
+      }
+    },
+    {
+      "name": "[31] CLEANUP – Usun serie 3",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[31] Usuniecie serii 3 zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[31] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/sets/{{setId3}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","sets","{{setId3}}"] }
+      }
+    },
+    {
+      "name": "[32] CLEANUP – Usun serie 2",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[32] Usuniecie serii 2 zwraca 200', () => pm.response.to.have.status(200));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/sets/{{setId2}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","sets","{{setId2}}"] }
+      }
+    },
+    {
+      "name": "[33] CLEANUP – Usun serie 1",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[33] Usuniecie serii 1 zwraca 200', () => pm.response.to.have.status(200));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/sets/{{setId1}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","sets","{{setId1}}"] }
+      }
+    },
+    {
+      "name": "[34] CLEANUP – Usun workout item",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[34] Usuniecie workout item zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[34] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/items/{{workoutItemId}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","items","{{workoutItemId}}"] }
+      }
+    },
+    {
+      "name": "[35] CLEANUP – Usun trening",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[35] Usuniecie treningu zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[35] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutId}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutId}}"] }
+      }
+    },
+    {
+      "name": "[36] CLEANUP – Usun cwiczenie",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[36] Usuniecie cwiczenia zwraca 204', () => pm.response.to.have.status(204));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/exercises/{{exerciseId}}", "host": ["{{baseUrl}}"], "path": ["api","exercises","{{exerciseId}}"] }
+      }
+    },
+    {
+      "name": "[37] VERIFY – Usuniety trening zwraca 404",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[37] Usuniety trening zwraca 404', () => pm.response.to.have.status(404));",
+        "pm.test('[37] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutId}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutId}}"] }
+      }
+    },
+    {
+      "name": "[38] VERIFY – Usuniete cwiczenie zwraca 404",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[38] Usuniete cwiczenie zwraca 404', () => pm.response.to.have.status(404));",
+        "pm.test('[38] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/exercises/{{exerciseId}}", "host": ["{{baseUrl}}"], "path": ["api","exercises","{{exerciseId}}"] }
+      }
+    }
+  ]
+}
