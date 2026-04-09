@@ -122,6 +122,13 @@ export function WorkoutDetailScreen({
 
     return map;
   }, [workouts]);
+  const orderedWorkoutItems = useMemo(
+    () =>
+      [...workout.items].sort(
+        (a, b) => a.orderInWorkout - b.orderInWorkout,
+      ),
+    [workout.items],
+  );
 
   const handleStartEditInfo = () => {
     setIsEditingInfo(true);
@@ -547,26 +554,24 @@ export function WorkoutDetailScreen({
               </p>
             </div>
           ) : (
-            [...workout.items]
-              .reverse()
-              .map((item, index) => (
-                <WorkoutItemCard
-                  key={item.id}
-                  item={item}
-                  exerciseNumber={index + 1}
-                  isCompleted={isCompleted}
-                  isEditMode={isEditMode}
-                  isExpanded={expandedItemId === item.id}
-                  stats={allStats.find((s) => s.exerciseId === item.exerciseId)}
-                  lastSetsSummary={latestSetsByExerciseId.get(item.exerciseId)}
-                  onToggleExpand={handleToggleExpand}
-                  onUpdateSet={handleUpdateSet}
-                  onDeleteSet={handleDeleteSet}
-                  onAddSet={handleAddSet}
-                  onDeleteExercise={handleDeleteExercise}
-                  onUpdateExerciseNotes={updateExerciseNotes}
-                />
-              ))
+            orderedWorkoutItems.map((item, index) => (
+              <WorkoutItemCard
+                key={item.id}
+                item={item}
+                exerciseNumber={index + 1}
+                isCompleted={isCompleted}
+                isEditMode={isEditMode}
+                isExpanded={expandedItemId === item.id}
+                stats={allStats.find((s) => s.exerciseId === item.exerciseId)}
+                lastSetsSummary={latestSetsByExerciseId.get(item.exerciseId)}
+                onToggleExpand={handleToggleExpand}
+                onUpdateSet={handleUpdateSet}
+                onDeleteSet={handleDeleteSet}
+                onAddSet={handleAddSet}
+                onDeleteExercise={handleDeleteExercise}
+                onUpdateExerciseNotes={updateExerciseNotes}
+              />
+            ))
           )}
         </div>
       </ScreenContainer>

@@ -11,7 +11,8 @@ interface UseThemeReturn {
 export function useTheme(): UseThemeReturn {
   const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem("theme");
-    const initialTheme = (stored as Theme) || "light";
+    const initialTheme: Theme =
+      stored === "dark" || stored === "light" ? stored : "dark";
 
     if (initialTheme === "dark") {
       document.documentElement.classList.add("dark");

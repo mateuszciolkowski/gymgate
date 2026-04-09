@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigation } from "./hooks";
+import { useNavigation, useTheme } from "./hooks";
 import { useAuth } from "./contexts/AuthContext";
 import { useData } from "./contexts/DataContext";
 import type { TabType, Screen } from "@/types";
@@ -22,6 +22,7 @@ import type { Exercise } from "./hooks/useExercises";
 
 function App() {
   const { user, isLoading, login, register } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const [authScreen, setAuthScreen] = useState<"login" | "register">("login");
 
   const { activeTab, setActiveTab, screen, setScreen } =
@@ -80,6 +81,8 @@ function App() {
       setPendingExerciseAdd={setPendingExerciseAdd}
       selectedStatsExerciseId={selectedStatsExerciseId}
       setSelectedStatsExerciseId={setSelectedStatsExerciseId}
+      isDark={isDark}
+      toggleTheme={toggleTheme}
     />
   );
 }
@@ -97,6 +100,8 @@ interface AuthenticatedAppProps {
   setPendingExerciseAdd: (id: string | null) => void;
   selectedStatsExerciseId: string | null;
   setSelectedStatsExerciseId: (id: string | null) => void;
+  isDark: boolean;
+  toggleTheme: () => void;
 }
 
 function AuthenticatedApp({
@@ -112,6 +117,8 @@ function AuthenticatedApp({
   setPendingExerciseAdd,
   selectedStatsExerciseId,
   setSelectedStatsExerciseId,
+  isDark,
+  toggleTheme,
 }: AuthenticatedAppProps) {
   const {
     createWorkout,
@@ -264,7 +271,7 @@ function AuthenticatedApp({
           />
         );
       case "menu":
-        return <MenuScreen />;
+        return <MenuScreen isDark={isDark} toggleTheme={toggleTheme} />;
       default:
         return renderTrainingsScreen();
     }
