@@ -173,7 +173,7 @@ export const TrainingsScreen = memo(function TrainingsScreen({
                     </p>
                     {workout.gymName && (
                       <p className="text-xs text-gray-500 mt-1">
-                        📍 {workout.gymName}
+                        {workout.gymName}
                       </p>
                     )}
                   </div>

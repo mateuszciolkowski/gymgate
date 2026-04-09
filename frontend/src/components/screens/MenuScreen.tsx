@@ -1,7 +1,6 @@
 import { memo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ScreenContainer, ScreenHeader } from "@/components/ui";
-import { useTheme } from "@/hooks";
 
 interface MenuItemProps {
   label: string;
@@ -79,9 +78,16 @@ const MenuItem = memo(function MenuItem({
   );
 });
 
-export const MenuScreen = memo(function MenuScreen() {
+interface MenuScreenProps {
+  isDark: boolean;
+  toggleTheme: () => void;
+}
+
+export const MenuScreen = memo(function MenuScreen({
+  isDark,
+  toggleTheme,
+}: MenuScreenProps) {
   const { user, logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
 
   return (
     <ScreenContainer>
