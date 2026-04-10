@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigation, useTheme } from "./hooks";
 import { useAuth } from "./contexts/AuthContext";
 import { useData } from "./contexts/DataContext";
@@ -128,6 +128,17 @@ function AuthenticatedApp({
     getWorkout,
   } = useData();
   const [isWorkoutFormOpen, setIsWorkoutFormOpen] = useState(false);
+
+  useEffect(() => {
+    if (
+      screen === "workout-detail" &&
+      selectedWorkoutId &&
+      !getWorkout(selectedWorkoutId)
+    ) {
+      setSelectedWorkoutId(null);
+      setScreen("trainings");
+    }
+  }, [screen, selectedWorkoutId, getWorkout, setScreen, setSelectedWorkoutId]);
 
   const handleAddWorkoutClick = () => {
     // Sprawdź czy istnieje aktywny trening I czy jest załadowany I czy jest w trakcie (nie zakończony)
