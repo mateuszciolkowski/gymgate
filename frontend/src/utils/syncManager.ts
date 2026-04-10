@@ -285,12 +285,23 @@ class SyncManager {
    */
   private async fetchFreshData(): Promise<void> {
     try {
+      const pendingOperations = await localStore.getPendingSyncOperations();
+      const hasPendingWorkoutMutations = pendingOperations.some((operation) =>
+        operation.entity === "set" ||
+        operation.entity === "workoutItem" ||
+        operation.entity === "workout",
+      );
+
       // Pobierz równolegle wszystkie dane
       const [workoutsRes, exercisesRes, activeRes, statsRes, overviewRes] =
         await Promise.all([
-          authFetch(`${API_BASE}/api/workouts`).catch(() => null),
+          hasPendingWorkoutMutations
+            ? Promise.resolve(null)
+            : authFetch(`${API_BASE}/api/workouts`).catch(() => null),
           authFetch(`${API_BASE}/api/exercises`).catch(() => null),
-          authFetch(`${API_BASE}/api/workouts/active`).catch(() => null),
+          hasPendingWorkoutMutations
+            ? Promise.resolve(null)
+            : authFetch(`${API_BASE}/api/workouts/active`).catch(() => null),
           authFetch(`${API_BASE}/api/workouts/stats/all`).catch(() => null),
           authFetch(`${API_BASE}/api/workouts/stats/overview`).catch(() => null),
         ]);

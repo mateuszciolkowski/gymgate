@@ -1017,7 +1017,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             body: JSON.stringify(data),
           },
         );
-        if (!response.ok) throw new Error("Błąd dodawania serii");
+        if (!response.ok) {
+          await queueSyncOperation({
+            type: "create",
+            entity: "set",
+            endpoint: `/api/workouts/items/${realItemId}/sets`,
+            method: "POST",
+            data: syncPayload,
+          });
+          return;
+        }
         const result = await response.json();
         if (result.data) {
           idMappingRef.current.set(tempSetId, result.data.id);
@@ -1119,11 +1128,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        await authFetch(`${API_BASE}/api/workouts/sets/${realSetId}`, {
+        const response = await authFetch(`${API_BASE}/api/workouts/sets/${realSetId}`, {
           method: "PATCH",
           headers: getAuthHeaders(),
           body: JSON.stringify(data),
         });
+        if (!response.ok) {
+          await queueSyncOperation({
+            type: "update",
+            entity: "set",
+            endpoint: `/api/workouts/sets/${realSetId}`,
+            method: "PATCH",
+            data,
+          });
+          return;
+        }
       } catch (error) {
         if (isOfflineError(error)) {
           await queueSyncOperation({
@@ -1208,9 +1227,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        await authFetch(`${API_BASE}/api/workouts/sets/${realSetId}`, {
+        const response = await authFetch(`${API_BASE}/api/workouts/sets/${realSetId}`, {
           method: "DELETE",
         });
+        if (!response.ok) {
+          await queueSyncOperation({
+            type: "delete",
+            entity: "set",
+            endpoint: `/api/workouts/sets/${realSetId}`,
+            method: "DELETE",
+          });
+          return;
+        }
       } catch (error) {
         if (isOfflineError(error)) {
           await queueSyncOperation({

@@ -223,6 +223,11 @@ Base URL: `/api/workouts`
 }
 ```
 
+**Validation rules:**
+
+- `weight` (optional): number `>= 0`
+- `repetitions` (optional): positive integer
+
 ### 11. Delete Set
 
 **DELETE** `/api/workouts/sets/:setId`
