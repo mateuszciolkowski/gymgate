@@ -1,0 +1,40 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Gemini AI Review
+        uses: anc95/automated-code-review@v1
+        with:
+          # Using gemini-1.5-flash for speed and high free tier limits
+          model: "gemini-1.5-flash"
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # System instructions in English for better model reasoning
+          # Final output instruction in Polish
+          PROMPT: |
+            Act as a Senior Fullstack Developer and Architect. You are reviewing a PR for the GymGate project, which is a monorepo (React/Vite frontend, Express/Prisma backend).
+
+            Focus on:
+            1. **Monorepo Integrity**: Ensure changes in `backend/prisma/schema.prisma` are aligned with `frontend/src/types`.
+            2. **Offline-First Logic**: Check if mutations preserve the `syncManager` and `localStore` flow. Avoid any logic that breaks deferred synchronization.
+            3. **Security & Validation**: Every new Express route MUST have a Zod schema validation.
+            4. **Clean Code**: Check for DRY, SOLID principles, and strict TypeScript usage (no 'any').
+
+            IMPORTANT INSTRUCTIONS:
+            - Provide your feedback EXCLUSIVELY in POLISH.
+            - Be concise and technical.
+            - If the code is high quality, provide a brief positive summary.
+            - Use markdown for code snippets.
