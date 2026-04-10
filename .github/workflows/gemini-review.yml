@@ -1,4 +1,4 @@
-name: Gemini AI Code Review
+name: Gemini Code Review
 
 on:
   pull_request:
@@ -14,23 +14,19 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Gemini Code Review
-        # Ta akcja jest oficjalnie utrzymywana i stabilna
-        uses: google-gemini/generative-ai-code-review@v1
+      - name: Gemini AI Review
+        uses: sshnaidm/gemini-code-review-action@v2
         with:
-          node-version: "20"
-          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          model: "gemini-1.5-flash" # Darmowy i szybki
-          # Twój prompt po angielsku (dla logiki) i polsku (dla wyniku)
-          custom_prompt: |
+          gemini-key: ${{ secrets.GEMINI_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          model: "gemini-1.5-flash"
+          prompt: |
             You are a Senior Fullstack Developer. Review this PR for the GymGate monorepo.
             Check:
-            1. Consistency between Prisma schema and Frontend types.
-            2. Offline-first logic (syncManager/localStore).
+            1. Consistency between Prisma schema (backend/prisma/schema.prisma) and Frontend types.
+            2. Offline-first logic (syncManager/localStore) - ensure no logic breaks deferred sync.
             3. Zod validation in Express routes.
+            4. General Clean Code and TypeScript best practices.
 
-            IMPORTANT: Write your review in POLISH. Be concise.
+            IMPORTANT: Provide your review EXCLUSIVELY in POLISH. Be concise and helpful.
