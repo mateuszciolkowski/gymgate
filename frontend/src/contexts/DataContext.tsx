@@ -128,6 +128,63 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Mapowanie tymczasowych ID na prawdziwe - nie powoduje re-renderów
   const idMappingRef = useRef<Map<string, string>>(new Map());
 
+  const invalidateProgressionCache = useCallback(
+    async (exerciseId?: string) => {
+      const keysToDelete = Array.from(progressionCacheRef.current.keys()).filter(
+        (key) => !exerciseId || key.startsWith(`${exerciseId}:`),
+      );
+      keysToDelete.forEach((key) => progressionCacheRef.current.delete(key));
+
+      try {
+        const metadataEntries = await localStore.getAll<{ key?: string }>("metadata");
+        const metadataPrefix = "statsProgression:";
+        const targetPrefix = exerciseId
+          ? `${metadataPrefix}${exerciseId}:`
+          : metadataPrefix;
+        const keys = metadataEntries
+          .map((entry) => entry?.key)
+          .filter(
+            (key): key is string => !!key && key.startsWith(targetPrefix),
+          );
+
+        if (keys.length > 0) {
+          await Promise.all(keys.map((key) => localStore.delete("metadata", key)));
+        }
+      } catch (error) {
+        console.error("[DataProvider] Failed to invalidate progression cache:", error);
+      }
+    },
+    [],
+  );
+
+  const refreshStatsData = useCallback(async () => {
+    if (!navigator.onLine) return;
+
+    try {
+      const [statsRes, overviewRes] = await Promise.all([
+        authFetch(`${API_BASE}/api/workouts/stats/all`),
+        authFetch(`${API_BASE}/api/workouts/stats/overview`),
+      ]);
+
+      if (statsRes.ok) {
+        const data = await statsRes.json();
+        const statsPayload = data.data || [];
+        setStats(statsPayload);
+        await localStore.clear("stats");
+        await localStore.putMany("stats", statsPayload);
+      }
+
+      if (overviewRes.ok) {
+        const data = await overviewRes.json();
+        const overviewPayload = data.data || null;
+        setStatsOverview(overviewPayload);
+        await localStore.setMetadata("statsOverview", overviewPayload);
+      }
+    } catch (error) {
+      console.error("[DataProvider] Failed to refresh stats:", error);
+    }
+  }, []);
+
   // Funkcja pomocnicza - pobierz prawdziwe ID (lub tymczasowe jeśli nie ma mapowania)
   const getRealId = (tempId: string): string => {
     return idMappingRef.current.get(tempId) || tempId;
@@ -344,6 +401,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setActiveWorkoutId((prev) =>
         prev !== localActiveId ? localActiveId : prev,
       );
+      await invalidateProgressionCache();
       // Nie wywołujemy setLastSync - powoduje niepotrzebny re-render
     });
 
@@ -353,7 +411,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       unsubscribe();
       syncManager.stop();
     };
-  }, [user]);
+  }, [user, invalidateProgressionCache]);
 
   // === AKCJE ===
 
@@ -650,6 +708,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Workout Items & Sets - OPTYMISTYCZNE AKTUALIZACJE
   const addExerciseToWorkout = useCallback(
     async (workoutId: string, exerciseId: string) => {
+      const shouldRefreshStats =
+        workoutsRef.current.find((workout) => workout.id === workoutId)?.status ===
+        "COMPLETED";
       // Tymczasowe ID dla optymistycznej aktualizacji
       const tempItemId = `temp_item_${Date.now()}`;
       const tempSetId = `temp_set_${Date.now()}`;
@@ -769,6 +830,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             await localStore.put("workouts", remappedWorkout);
           }
         }
+        if (shouldRefreshStats) {
+          await refreshStatsData();
+          await invalidateProgressionCache(exerciseId);
+        }
       } catch (error) {
         if (isOfflineError(error)) {
           await queueSyncOperation({
@@ -792,11 +857,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         );
       }
     },
-    [isOfflineError, queueSyncOperation],
+    [invalidateProgressionCache, isOfflineError, queueSyncOperation, refreshStatsData],
   );
 
   const removeExerciseFromWorkout = useCallback(
     async (workoutId: string, itemId: string) => {
+      const originalWorkout = workoutsRef.current.find((workout) => workout.id === workoutId);
+      const removedItem = originalWorkout?.items.find((item) => item.id === itemId);
+      const shouldRefreshStats = originalWorkout?.status === "COMPLETED";
       // Zapisz oryginalny item do rollbacku
       let originalItem: any = null;
 
@@ -864,8 +932,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
       }
       // Jeśli ID tymczasowe - usunięcie jest tylko lokalne
+      if (shouldRefreshStats) {
+        await refreshStatsData();
+        await invalidateProgressionCache(removedItem?.exerciseId);
+      }
     },
-    [isOfflineError, queueSyncOperation],
+    [invalidateProgressionCache, isOfflineError, queueSyncOperation, refreshStatsData],
   );
 
   const updateWorkoutItem = useCallback(
@@ -952,6 +1024,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       itemId: string,
       data: { weight: number; repetitions: number; setNumber: number },
     ) => {
+      const shouldRefreshStats =
+        workoutsRef.current.find((workout) => workout.id === workoutId)?.status ===
+        "COMPLETED";
+      const exerciseId = workoutsRef.current
+        .find((workout) => workout.id === workoutId)
+        ?.items.find((item) => item.id === itemId)?.exerciseId;
       // Tymczasowe ID
       const tempSetId = `temp_set_${Date.now()}`;
 
@@ -1031,6 +1109,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         if (result.data) {
           idMappingRef.current.set(tempSetId, result.data.id);
         }
+        if (shouldRefreshStats) {
+          await refreshStatsData();
+          await invalidateProgressionCache(exerciseId);
+        }
       } catch (error) {
         if (isOfflineError(error)) {
           await queueSyncOperation({
@@ -1060,7 +1142,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         );
       }
     },
-    [isOfflineError, queueSyncOperation],
+    [invalidateProgressionCache, isOfflineError, queueSyncOperation, refreshStatsData],
   );
 
   const updateSet = useCallback(
@@ -1069,6 +1151,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setId: string,
       data: { weight?: number; repetitions?: number },
     ) => {
+      const shouldRefreshStats =
+        workoutsRef.current.find((workout) => workout.id === workoutId)?.status ===
+        "COMPLETED";
+      const exerciseId = workoutsRef.current
+        .find((workout) => workout.id === workoutId)
+        ?.items.find((item) => item.sets.some((set) => set.id === setId))?.exerciseId;
       // Zapisz oryginalne wartości do rollbacku (używamy ref do przechowania)
       let originalSet: any = null;
 
@@ -1143,6 +1231,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           });
           return;
         }
+        if (shouldRefreshStats) {
+          await refreshStatsData();
+          await invalidateProgressionCache(exerciseId);
+        }
       } catch (error) {
         if (isOfflineError(error)) {
           await queueSyncOperation({
@@ -1171,11 +1263,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
       }
     },
-    [isOfflineError, queueSyncOperation],
+    [invalidateProgressionCache, isOfflineError, queueSyncOperation, refreshStatsData],
   );
 
   const deleteSet = useCallback(
     async (workoutId: string, itemId: string, setId: string) => {
+      const shouldRefreshStats =
+        workoutsRef.current.find((workout) => workout.id === workoutId)?.status ===
+        "COMPLETED";
+      const exerciseId = workoutsRef.current
+        .find((workout) => workout.id === workoutId)
+        ?.items.find((item) => item.id === itemId)?.exerciseId;
       // Zapisz oryginalną serię do rollbacku (w callback)
       let originalSet: any = null;
 
@@ -1270,8 +1368,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           );
         }
       }
+      if (shouldRefreshStats) {
+        await refreshStatsData();
+        await invalidateProgressionCache(exerciseId);
+      }
     },
-    [isOfflineError, queueSyncOperation],
+    [invalidateProgressionCache, isOfflineError, queueSyncOperation, refreshStatsData],
   );
 
   const getExerciseProgression = useCallback(
@@ -1284,12 +1386,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       if (cached) return cached;
 
       const metadataKey = `statsProgression:${cacheKey}`;
-      const localCached = await localStore.getMetadata<ExerciseProgression | null>(
-        metadataKey,
-      );
-      if (localCached) {
-        progressionCacheRef.current.set(cacheKey, localCached);
-        return localCached;
+      if (!navigator.onLine) {
+        const localCached = await localStore.getMetadata<ExerciseProgression | null>(
+          metadataKey,
+        );
+        if (localCached) {
+          progressionCacheRef.current.set(cacheKey, localCached);
+          return localCached;
+        }
       }
 
       const response = await authFetch(
@@ -1309,32 +1413,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const completeWorkout = useCallback(
     async (id: string) => {
       await updateWorkout(id, { status: "COMPLETED" });
-
-      if (!navigator.onLine) return;
-
-      try {
-        const statsRes = await authFetch(`${API_BASE}/api/workouts/stats/all`);
-        if (statsRes.ok) {
-          const data = await statsRes.json();
-          setStats(data.data || []);
-          await localStore.clear("stats");
-          await localStore.putMany("stats", data.data || []);
-        }
-
-        const overviewRes = await authFetch(
-          `${API_BASE}/api/workouts/stats/overview`,
-        );
-        if (overviewRes.ok) {
-          const data = await overviewRes.json();
-          setStatsOverview(data.data || null);
-          await localStore.setMetadata("statsOverview", data.data || null);
-        }
-        progressionCacheRef.current.clear();
-      } catch (error) {
-        console.error("[DataProvider] Failed to refresh stats:", error);
-      }
+      await refreshStatsData();
+      await invalidateProgressionCache();
     },
-    [updateWorkout],
+    [invalidateProgressionCache, refreshStatsData, updateWorkout],
   );
 
   const syncNow = useCallback(async () => {

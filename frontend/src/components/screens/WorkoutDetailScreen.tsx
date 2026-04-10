@@ -44,6 +44,7 @@ export function WorkoutDetailScreen({
     deleteSet,
     deleteExercise,
     updateExerciseNotes,
+    completeWorkout,
     updateWorkout,
   } = useWorkoutData(workoutId);
 
@@ -516,7 +517,7 @@ export function WorkoutDetailScreen({
                 onClick={async () => {
                   if (confirm("Czy chcesz zakończyć ten trening?")) {
                     try {
-                      await updateWorkout({ status: "COMPLETED" });
+                      await completeWorkout();
                       onBack();
                     } catch (error) {
                       alert("Nie udało się zakończyć treningu");
