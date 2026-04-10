@@ -1,0 +1,25 @@
+# Dependencies
+**/node_modules/**
+
+# Build outputs
+frontend/dist/**
+backend/dist/**
+
+# Tool caches
+**/.vite/**
+**/.cache/**
+**/coverage/**
+
+# Generated artifacts committed near sources (backend)
+backend/src/**/*.d.ts
+backend/src/**/*.d.ts.map
+backend/src/**/*.js.map
+
+# Prisma generated artifacts in repo
+backend/prisma/seed.js
+backend/prisma/seed.d.ts
+backend/prisma/seed.js.map
+backend/prisma/seed.d.ts.map
+
+# Logs
+**/*.log
