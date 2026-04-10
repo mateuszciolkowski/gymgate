@@ -64,7 +64,7 @@ export const createWorkoutSetSchema = z.object({
 });
 
 const updateWorkoutSetBody = z.object({
-  weight: z.number().positive().optional(),
+  weight: z.number().nonnegative().optional(),
   repetitions: z.number().int().positive().optional(),
 });
 

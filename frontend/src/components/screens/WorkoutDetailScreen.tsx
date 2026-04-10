@@ -234,9 +234,9 @@ export function WorkoutDetailScreen({
   );
 
   const handleUpdateSet = useCallback(
-    async (setId: string, weight: number, reps: number) => {
+    async (setId: string, data: { weight?: number; repetitions?: number }) => {
       try {
-        await updateSet(setId, { weight, repetitions: reps });
+        await updateSet(setId, data);
       } catch (error) {}
     },
     [updateSet],
@@ -597,7 +597,10 @@ interface WorkoutItemCardProps {
   stats?: ExerciseStats;
   lastSetsSummary?: string;
   onToggleExpand: (itemId: string) => void;
-  onUpdateSet: (setId: string, weight: number, reps: number) => void;
+  onUpdateSet: (
+    setId: string,
+    data: { weight?: number; repetitions?: number },
+  ) => void;
   onDeleteSet: (itemId: string, setId: string) => void;
   onAddSet: (itemId: string) => void;
   onDeleteExercise: (itemId: string) => void;
@@ -652,7 +655,18 @@ const WorkoutItemCard = memo(
 
     const handleSaveSet = () => {
       if (!editingSet) return;
-      onUpdateSet(editingSet.id, Number(editWeight), Number(editReps));
+      const nextWeight = Number(editWeight);
+      const nextReps = Number(editReps);
+      const currentWeight = Number(editingSet.weight);
+      const currentReps = editingSet.repetitions;
+
+      const payload: { weight?: number; repetitions?: number } = {};
+      if (nextWeight !== currentWeight) payload.weight = nextWeight;
+      if (nextReps !== currentReps) payload.repetitions = nextReps;
+
+      if (Object.keys(payload).length > 0) {
+        onUpdateSet(editingSet.id, payload);
+      }
       setEditingSetNumber(null);
       setEditWeight("");
       setEditReps("");
