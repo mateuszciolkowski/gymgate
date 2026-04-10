@@ -551,13 +551,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setWorkouts((prev) => prev.filter((w) => w.id !== id));
     await localStore.delete("workouts", id);
 
+    let removedActiveWorkout = false;
     setActiveWorkoutId((current) => {
-      if (current === id) {
-        localStore.setActiveWorkoutId(null);
-        return null;
-      }
-      return current;
+      if (current !== id) return current;
+      removedActiveWorkout = true;
+      return null;
     });
+
+    if (removedActiveWorkout) {
+      await localStore.setActiveWorkoutId(null);
+    }
   }, [isOfflineError, queueSyncOperation]);
 
   const getWorkout = useCallback(
