@@ -1,4 +1,4 @@
-name: AI Code Review
+name: Gemini AI Code Review
 
 on:
   pull_request:
@@ -10,31 +10,27 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+
     steps:
-      - name: Checkout Repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Gemini AI Review
-        uses: anc95/automated-code-review@v1
         with:
-          # Using gemini-1.5-flash for speed and high free tier limits
-          model: "gemini-1.5-flash"
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # System instructions in English for better model reasoning
-          # Final output instruction in Polish
-          PROMPT: |
-            Act as a Senior Fullstack Developer and Architect. You are reviewing a PR for the GymGate project, which is a monorepo (React/Vite frontend, Express/Prisma backend).
+          fetch-depth: 0
 
-            Focus on:
-            1. **Monorepo Integrity**: Ensure changes in `backend/prisma/schema.prisma` are aligned with `frontend/src/types`.
-            2. **Offline-First Logic**: Check if mutations preserve the `syncManager` and `localStore` flow. Avoid any logic that breaks deferred synchronization.
-            3. **Security & Validation**: Every new Express route MUST have a Zod schema validation.
-            4. **Clean Code**: Check for DRY, SOLID principles, and strict TypeScript usage (no 'any').
+      - name: Gemini Code Review
+        # Ta akcja jest oficjalnie utrzymywana i stabilna
+        uses: google-gemini/generative-ai-code-review@v1
+        with:
+          node-version: "20"
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          model: "gemini-1.5-flash" # Darmowy i szybki
+          # Twój prompt po angielsku (dla logiki) i polsku (dla wyniku)
+          custom_prompt: |
+            You are a Senior Fullstack Developer. Review this PR for the GymGate monorepo.
+            Check:
+            1. Consistency between Prisma schema and Frontend types.
+            2. Offline-first logic (syncManager/localStore).
+            3. Zod validation in Express routes.
 
-            IMPORTANT INSTRUCTIONS:
-            - Provide your feedback EXCLUSIVELY in POLISH.
-            - Be concise and technical.
-            - If the code is high quality, provide a brief positive summary.
-            - Use markdown for code snippets.
+            IMPORTANT: Write your review in POLISH. Be concise.
