@@ -11,6 +11,7 @@ export async function authFetch(url: string, options: RequestInit = {}) {
 
   const response = await fetch(url, {
     ...options,
+    cache: options.cache ?? "no-store",
     headers: {
       ...options.headers,
       ...(token && { Authorization: `Bearer ${token}` }),

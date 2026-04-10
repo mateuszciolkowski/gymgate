@@ -20,9 +20,13 @@ vi.mock("./workout.repository.js", () => ({
   addExerciseToWorkout: vi.fn(),
   addSetToWorkoutItem: vi.fn(),
   findWorkoutItemById: vi.fn(),
+  deleteWorkoutItem: vi.fn(),
+  updateWorkoutItem: vi.fn(),
   getMaxSetNumber: vi.fn(),
   findWorkoutSetById: vi.fn(),
+  updateWorkoutSet: vi.fn(),
   deleteWorkoutSet: vi.fn(),
+  getAllUserStats: vi.fn(),
 }));
 
 describe("workout.service", () => {
@@ -250,6 +254,93 @@ describe("workout.service", () => {
       5,
     );
     expect(result).toEqual({ id: "set-5", setNumber: 5 });
+  });
+
+  it("addSetToWorkoutItem: recalculates stats for completed workouts", async () => {
+    const workoutDate = new Date("2026-01-12T10:00:00.000Z");
+
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+      exerciseId: "e1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "COMPLETED",
+    } as any);
+    vi.mocked(workoutRepo.getMaxSetNumber).mockResolvedValue(2);
+    vi.mocked(workoutRepo.addSetToWorkoutItem).mockResolvedValue({
+      id: "set-3",
+      setNumber: 3,
+    } as any);
+    vi.mocked(workoutRepo.getExerciseProgression).mockResolvedValue([
+      {
+        workoutId: "w1",
+        workoutDate,
+        maxSetWeight: 100,
+        repetitionsAtMaxSet: 3,
+        volume: 900,
+      },
+    ] as any);
+
+    await workoutService.addSetToWorkoutItem("item-1", "u1", {
+      weight: 100,
+      repetitions: 3,
+    });
+
+    expect(workoutRepo.upsertExerciseStats).toHaveBeenCalledWith("u1", "e1", {
+      maxWeight: 100,
+      maxWeightReps: 3,
+      maxWeightDate: workoutDate,
+      lastWeight: 100,
+      lastReps: 3,
+      lastWorkoutDate: workoutDate,
+      totalWorkouts: 1,
+    });
+  });
+
+  it("updateWorkoutSet: recalculates stats for completed workouts", async () => {
+    const workoutDate = new Date("2026-02-11T10:00:00.000Z");
+
+    vi.mocked(workoutRepo.updateWorkoutSet)
+      .mockResolvedValueOnce({ id: "set-1", itemId: "item-1" } as any)
+      .mockResolvedValueOnce({ id: "set-1", itemId: "item-1" } as any);
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+      exerciseId: "e1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "COMPLETED",
+    } as any);
+    vi.mocked(workoutRepo.getExerciseProgression).mockResolvedValue([
+      {
+        workoutId: "w1",
+        workoutDate,
+        maxSetWeight: 95,
+        repetitionsAtMaxSet: 5,
+        volume: 1900,
+      },
+    ] as any);
+
+    await workoutService.updateWorkoutSet("set-1", "u1", { weight: 95 });
+
+    expect(workoutRepo.updateWorkoutSet).toHaveBeenNthCalledWith(1, "set-1", {});
+    expect(workoutRepo.updateWorkoutSet).toHaveBeenNthCalledWith(2, "set-1", {
+      weight: 95,
+    });
+    expect(workoutRepo.upsertExerciseStats).toHaveBeenCalledWith("u1", "e1", {
+      maxWeight: 95,
+      maxWeightReps: 5,
+      maxWeightDate: workoutDate,
+      lastWeight: 95,
+      lastReps: 5,
+      lastWorkoutDate: workoutDate,
+      totalWorkouts: 1,
+    });
   });
 
   it("getStatsOverview: returns aggregated stats from repository", async () => {

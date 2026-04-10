@@ -113,7 +113,7 @@ export const addExerciseToWorkout = async (
   userId: string,
   data: AddExerciseToWorkoutDto
 ) => {
-  await getWorkoutById(workoutId, userId);
+  const workout = await getWorkoutById(workoutId, userId);
 
   let orderInWorkout = data.orderInWorkout;
   if (!orderInWorkout) {
@@ -129,6 +129,10 @@ export const addExerciseToWorkout = async (
   );
 
   await workoutRepo.addSetToWorkoutItem(item.id, 0, 1, 1);
+
+  if (workout.status === "COMPLETED") {
+    await rebuildExerciseStatsFromCompletedWorkouts(userId, data.exerciseId);
+  }
 
   return workoutRepo.findWorkoutItemById(item.id);
 };
@@ -166,7 +170,12 @@ export const deleteWorkoutItem = async (itemId: string, userId: string) => {
     throw new Error("Brak uprawnień");
   }
 
-  return workoutRepo.deleteWorkoutItem(itemId);
+  const deletedItem = await workoutRepo.deleteWorkoutItem(itemId);
+  if (workout.status === "COMPLETED") {
+    await rebuildExerciseStatsFromCompletedWorkouts(userId, item.exerciseId);
+  }
+
+  return deletedItem;
 };
 
 export const addSetToWorkoutItem = async (
@@ -190,12 +199,18 @@ export const addSetToWorkoutItem = async (
     setNumber = maxSetNumber + 1;
   }
 
-  return workoutRepo.addSetToWorkoutItem(
+  const createdSet = await workoutRepo.addSetToWorkoutItem(
     itemId,
     data.weight,
     data.repetitions,
     setNumber
   );
+
+  if (workout.status === "COMPLETED") {
+    await rebuildExerciseStatsFromCompletedWorkouts(userId, item.exerciseId);
+  }
+
+  return createdSet;
 };
 
 export const updateWorkoutSet = async (
@@ -217,7 +232,12 @@ export const updateWorkoutSet = async (
   const updateData: any = {};
   if (data.weight !== undefined) updateData.weight = data.weight;
   if (data.repetitions !== undefined) updateData.repetitions = data.repetitions;
-  return workoutRepo.updateWorkoutSet(setId, updateData);
+  const updatedSet = await workoutRepo.updateWorkoutSet(setId, updateData);
+  if (workout.status === "COMPLETED") {
+    await rebuildExerciseStatsFromCompletedWorkouts(userId, item.exerciseId);
+  }
+
+  return updatedSet;
 };
 
 export const deleteWorkoutSet = async (setId: string, userId: string) => {
@@ -235,7 +255,12 @@ export const deleteWorkoutSet = async (setId: string, userId: string) => {
     throw new Error("Brak uprawnień");
   }
 
-  return workoutRepo.deleteWorkoutSet(setId);
+  const deletedSet = await workoutRepo.deleteWorkoutSet(setId);
+  if (workout.status === "COMPLETED") {
+    await rebuildExerciseStatsFromCompletedWorkouts(userId, item.exerciseId);
+  }
+
+  return deletedSet;
 };
 
 export const getExerciseStatsForUser = async (
