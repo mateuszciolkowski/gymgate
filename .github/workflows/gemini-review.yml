@@ -14,19 +14,22 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          # To naprawi błąd "git diff" - pobierze całą historię do porównania
+          fetch-depth: 0
 
       - name: Gemini AI Review
         uses: sshnaidm/gemini-code-review-action@v2
         with:
           gemini-key: ${{ secrets.GEMINI_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          model: "gemini-1.5-flash"
+          # Zmieniamy na wersję 'latest', która jest lepiej wspierana przez API v1
+          model: "gemini-1.5-flash-latest"
           prompt: |
-            You are a Senior Fullstack Developer. Review this PR for the GymGate monorepo.
-            Check:
-            1. Consistency between Prisma schema (backend/prisma/schema.prisma) and Frontend types.
-            2. Offline-first logic (syncManager/localStore) - ensure no logic breaks deferred sync.
+            Act as a Senior Fullstack Developer. Review this PR for the GymGate monorepo.
+            Focus on:
+            1. Consistency between Prisma schema and Frontend types.
+            2. Offline-first logic (syncManager/localStore).
             3. Zod validation in Express routes.
-            4. General Clean Code and TypeScript best practices.
 
-            IMPORTANT: Provide your review EXCLUSIVELY in POLISH. Be concise and helpful.
+            IMPORTANT: Provide your review EXCLUSIVELY in POLISH. Be concise.
