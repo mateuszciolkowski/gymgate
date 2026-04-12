@@ -70,7 +70,12 @@ export const updateWorkout = async (
   userId: string,
   data: UpdateWorkoutDto
 ) => {
-  await getWorkoutById(id, userId);
+  const existingWorkout = await getWorkoutById(id, userId);
+  const previousStatus = existingWorkout.status;
+  const nextStatus = data.status ?? previousStatus;
+  const affectedExerciseIds = [
+    ...new Set(existingWorkout.items.map((item) => item.exerciseId)),
+  ];
 
   const updateData: Prisma.WorkoutUpdateInput = {
     ...(data.workoutDate && { workoutDate: new Date(data.workoutDate) }),
@@ -83,8 +88,16 @@ export const updateWorkout = async (
 
   const updatedWorkout = await workoutRepo.updateWorkout(id, updateData);
 
-  if (data.status === "COMPLETED") {
-    await updateStatsAfterWorkoutCompletion(id, userId);
+  if (
+    previousStatus !== nextStatus &&
+    (previousStatus === "COMPLETED" || nextStatus === "COMPLETED")
+  ) {
+    for (const exerciseId of affectedExerciseIds) {
+      await rebuildExerciseStatsFromCompletedWorkouts(userId, exerciseId);
+    }
+  }
+
+  if (nextStatus === "COMPLETED") {
     await workoutRepo.clearActiveWorkout(userId);
   }
 
@@ -99,10 +112,8 @@ export const deleteWorkout = async (id: string, userId: string) => {
 
   const deletedWorkout = await workoutRepo.deleteWorkout(id);
 
-  if (workout.status === "COMPLETED") {
-    for (const exerciseId of affectedExerciseIds) {
-      await rebuildExerciseStatsFromCompletedWorkouts(userId, exerciseId);
-    }
+  for (const exerciseId of affectedExerciseIds) {
+    await rebuildExerciseStatsFromCompletedWorkouts(userId, exerciseId);
   }
 
   return deletedWorkout;
@@ -304,56 +315,6 @@ export const getExerciseProgression = async (
       value: metric === "volume" ? point.volume : point.maxSetWeight,
     })),
   };
-};
-
-const updateStatsAfterWorkoutCompletion = async (
-  workoutId: string,
-  userId: string
-) => {
-  const workout = await workoutRepo.findWorkoutById(workoutId);
-  if (!workout) return;
-
-  const workoutDate = workout.workoutDate;
-
-  for (const item of workout.items) {
-    if (item.sets.length === 0) continue;
-
-    const heaviestSet = item.sets.reduce((max, set) =>
-      Number(set.weight) > Number(max.weight) ? set : max
-    );
-
-    const lastWeight = Number(heaviestSet.weight);
-    const lastReps = heaviestSet.repetitions;
-
-    const currentStats = await workoutRepo.getExerciseStats(
-      userId,
-      item.exerciseId
-    );
-
-    if (!currentStats) {
-      await workoutRepo.upsertExerciseStats(userId, item.exerciseId, {
-        maxWeight: lastWeight,
-        maxWeightReps: lastReps,
-        maxWeightDate: workoutDate,
-        lastWeight,
-        lastReps,
-        lastWorkoutDate: workoutDate,
-        totalWorkouts: 1,
-      });
-    } else {
-      const isNewRecord = lastWeight > Number(currentStats.maxWeight);
-
-      await workoutRepo.upsertExerciseStats(userId, item.exerciseId, {
-        maxWeight: isNewRecord ? lastWeight : Number(currentStats.maxWeight),
-        maxWeightReps: isNewRecord ? lastReps : currentStats.maxWeightReps,
-        maxWeightDate: isNewRecord ? workoutDate : currentStats.maxWeightDate,
-        lastWeight,
-        lastReps,
-        lastWorkoutDate: workoutDate,
-        totalWorkouts: currentStats.totalWorkouts + 1,
-      });
-    }
-  }
 };
 
 const rebuildExerciseStatsFromCompletedWorkouts = async (

@@ -223,11 +223,19 @@ export const getMaxSetNumber = async (itemId: string): Promise<number> => {
 };
 
 export const getExerciseStats = (userId: string, exerciseId: string) => {
-  return prisma.exerciseUserStats.findUnique({
+  return prisma.exerciseUserStats.findFirst({
     where: {
-      userId_exerciseId: {
-        userId,
-        exerciseId,
+      userId,
+      exerciseId,
+      exercise: {
+        workoutItems: {
+          some: {
+            workout: {
+              userId,
+              status: "COMPLETED",
+            },
+          },
+        },
       },
     },
   });
@@ -235,7 +243,19 @@ export const getExerciseStats = (userId: string, exerciseId: string) => {
 
 export const getAllUserStats = (userId: string) => {
   return prisma.exerciseUserStats.findMany({
-    where: { userId },
+    where: {
+      userId,
+      exercise: {
+        workoutItems: {
+          some: {
+            workout: {
+              userId,
+              status: "COMPLETED",
+            },
+          },
+        },
+      },
+    },
     include: {
       exercise: true,
     },

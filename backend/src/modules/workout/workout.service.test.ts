@@ -80,39 +80,30 @@ describe("workout.service", () => {
     );
   });
 
-  it("updateWorkout: on COMPLETED updates stats and clears active workout", async () => {
+  it("updateWorkout: on transition to COMPLETED recalculates stats and clears active workout", async () => {
     const workoutDate = new Date("2026-01-10T10:00:00.000Z");
 
-    vi.mocked(workoutRepo.findWorkoutById)
-      .mockResolvedValueOnce({
-        id: "w1",
-        userId: "u1",
-      } as any)
-      .mockResolvedValueOnce({
-        id: "w1",
-        userId: "u1",
-        workoutDate,
-        items: [
-          {
-            exerciseId: "e1",
-            sets: [
-              { weight: 80, repetitions: 5 },
-              { weight: 85, repetitions: 3 },
-            ],
-          },
-        ],
-      } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "DRAFT",
+      workoutDate,
+      items: [{ exerciseId: "e1" }],
+    } as any);
 
     vi.mocked(workoutRepo.updateWorkout).mockResolvedValue({
       id: "w1",
       status: "COMPLETED",
     } as any);
-    vi.mocked(workoutRepo.getExerciseStats).mockResolvedValue({
-      maxWeight: 82,
-      maxWeightReps: 4,
-      maxWeightDate: new Date("2025-12-01T10:00:00.000Z"),
-      totalWorkouts: 2,
-    } as any);
+    vi.mocked(workoutRepo.getExerciseProgression).mockResolvedValue([
+      {
+        workoutId: "w1",
+        workoutDate,
+        maxSetWeight: 85,
+        repetitionsAtMaxSet: 3,
+        volume: 1400,
+      },
+    ] as any);
 
     const result = await workoutService.updateWorkout("w1", "u1", {
       status: "COMPLETED",
@@ -122,13 +113,42 @@ describe("workout.service", () => {
     expect(workoutRepo.upsertExerciseStats).toHaveBeenCalledWith(
       "u1",
       "e1",
-      expect.objectContaining({
+      {
         maxWeight: 85,
         maxWeightReps: 3,
-        totalWorkouts: 3,
-      }),
+        maxWeightDate: workoutDate,
+        lastWeight: 85,
+        lastReps: 3,
+        lastWorkoutDate: workoutDate,
+        totalWorkouts: 1,
+      },
     );
     expect(workoutRepo.clearActiveWorkout).toHaveBeenCalledWith("u1");
+  });
+
+  it("updateWorkout: on transition from COMPLETED to DRAFT recalculates stats and does not clear active workout", async () => {
+    const workoutDate = new Date("2026-01-10T10:00:00.000Z");
+
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "COMPLETED",
+      workoutDate,
+      items: [{ exerciseId: "e1" }],
+    } as any);
+    vi.mocked(workoutRepo.updateWorkout).mockResolvedValue({
+      id: "w1",
+      status: "DRAFT",
+    } as any);
+    vi.mocked(workoutRepo.getExerciseProgression).mockResolvedValue([]);
+
+    await workoutService.updateWorkout("w1", "u1", {
+      status: "DRAFT",
+    });
+
+    expect(workoutRepo.getExerciseProgression).toHaveBeenCalledWith("u1", "e1");
+    expect(workoutRepo.deleteExerciseStats).toHaveBeenCalledWith("u1", "e1");
+    expect(workoutRepo.clearActiveWorkout).not.toHaveBeenCalled();
   });
 
   it("deleteWorkout: deletes workout after ownership check", async () => {
@@ -147,6 +167,22 @@ describe("workout.service", () => {
     expect(workoutRepo.deleteWorkout).toHaveBeenCalledWith("w1");
     expect(workoutRepo.getExerciseProgression).not.toHaveBeenCalled();
     expect(result).toEqual({ id: "w1" });
+  });
+
+  it("deleteWorkout: recalculates stats for affected exercises regardless of workout status", async () => {
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "DRAFT",
+      items: [{ exerciseId: "e1" }],
+    } as any);
+    vi.mocked(workoutRepo.deleteWorkout).mockResolvedValue({ id: "w1" } as any);
+    vi.mocked(workoutRepo.getExerciseProgression).mockResolvedValue([]);
+
+    await workoutService.deleteWorkout("w1", "u1");
+
+    expect(workoutRepo.getExerciseProgression).toHaveBeenCalledWith("u1", "e1");
+    expect(workoutRepo.deleteExerciseStats).toHaveBeenCalledWith("u1", "e1");
   });
 
   it("deleteWorkout: for COMPLETED workout recalculates stats for affected exercises", async () => {

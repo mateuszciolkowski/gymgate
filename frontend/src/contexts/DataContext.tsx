@@ -579,6 +579,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const deleteWorkout = useCallback(async (id: string) => {
     const realWorkoutId = getRealId(id);
     const workoutToDelete = workoutsRef.current.find((workout) => workout.id === id);
+    let deletedOnServer = false;
 
     if (!realWorkoutId.startsWith("temp_")) {
       try {
@@ -590,6 +591,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         );
 
         if (!response.ok) throw new Error("Błąd usuwania treningu");
+        deletedOnServer = true;
       } catch (error) {
         if (!isOfflineError(error)) throw error;
         await queueSyncOperation({
@@ -634,9 +636,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (removedActiveWorkout) {
       await localStore.setActiveWorkoutId(null);
     }
+
+    if (deletedOnServer) {
+      await refreshStatsData();
+      await invalidateProgressionCache();
+    }
   }, [
+    invalidateProgressionCache,
     isOfflineError,
     queueSyncOperation,
+    refreshStatsData,
     removePendingOperationsReferencingTempId,
   ]);
 

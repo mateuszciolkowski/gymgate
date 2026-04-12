@@ -143,6 +143,14 @@ Szczegółowa dokumentacja endpointów znajduje się w:
 - `backend/src/modules/exercise/API.md`
 - `backend/src/modules/workout/API.md`
 
+### Zasada aktualizacji dokumentacji i Postmana
+
+Jeśli zmieniasz logikę systemu (backend lub frontend), zaktualizuj:
+
+- plik opisujący działanie systemu i kontrakty API (odpowiednie `API.md`),
+- kolekcję Postmana `other/GymGate_API.postman_collection.json` (jeżeli logika requestów/odpowiedzi lub flow testowy się zmienił),
+- informację o tych aktualizacjach w opisie zmiany/PR.
+
 ---
 
 ## 👥 Autor
