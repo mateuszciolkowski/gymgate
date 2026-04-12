@@ -24,7 +24,7 @@ jobs:
           gemini-key: ${{ secrets.GEMINI_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # Zmieniamy na wersję 'latest', która jest lepiej wspierana przez API v1
-          model: "gemini-1.5-flash-latest"
+          model: "gemini-2.5-flash-latest"
           prompt: |
             Act as a Senior Fullstack Developer. Review this PR for the GymGate monorepo.
             Focus on:
