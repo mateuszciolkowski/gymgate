@@ -119,6 +119,8 @@ If request/response changes:
 1. Update the relevant `API.md`.
 2. Update frontend types and API usage.
 3. Verify sync compatibility (`syncManager` + `localStore`).
+4. If logic/flow changed, update the Postman collection: `other/GymGate_API.postman_collection.json`.
+5. In final summary/PR description, explicitly mention that docs and Postman were updated (or why no update was needed).
 
 ## 9) Offline-First Guardrails
 
