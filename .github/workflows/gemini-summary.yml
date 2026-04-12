@@ -1,11 +1,11 @@
-name: Gemini Code Review
+name: Gemini Summary
 
 on:
   pull_request:
     types: [opened, synchronize]
 
 jobs:
-  review:
+  gemini-summary:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -17,17 +17,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Gemini AI Review
+      - name: Gemini AI Summary
         uses: sshnaidm/gemini-code-review-action@v2
         with:
           gemini-key: ${{ secrets.GEMINI_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           model: "gemini-2.5-flash"
           prompt: |
-            Act as a Senior Fullstack Developer. Review this PR for the GymGate monorepo.
-            Focus on:
-            1. Consistency between Prisma schema and Frontend types.
-            2. Offline-first logic (syncManager/localStore).
-            3. Zod validation in Express routes.
+            Act as a Senior Fullstack Developer for the GymGate monorepo.
+            Prepare a concise CHANGE SUMMARY for this pull request.
 
-            IMPORTANT: Provide your review EXCLUSIVELY in POLISH. Be concise.
+            For every important change, explain:
+            1. What was changed.
+            2. How it was changed.
+            3. Why this change was made.
+            4. What benefit/result it gives.
+
+            IMPORTANT: Write EXCLUSIVELY in POLISH. Keep it concise and concrete.
