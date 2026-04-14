@@ -134,6 +134,59 @@ export const addExerciseToWorkout = (
   });
 };
 
+export const addExerciseToWorkoutWithPendingNote = (
+  workoutId: string,
+  userId: string,
+  exerciseId: string,
+  orderInWorkout: number,
+  notes?: string,
+) => {
+  return prisma.$transaction(async (tx) => {
+    const pendingNote = await tx.exercisePendingNote.findUnique({
+      where: {
+        userId_exerciseId: {
+          userId,
+          exerciseId,
+        },
+      },
+      select: {
+        note: true,
+      },
+    });
+
+    const createdItem = await tx.workoutItem.create({
+      data: {
+        workoutId,
+        exerciseId,
+        orderInWorkout,
+        notes: notes ?? null,
+        previousNote: pendingNote?.note ?? null,
+      },
+      include: {
+        exercise: {
+          include: {
+            photos: true,
+          },
+        },
+        sets: true,
+      },
+    });
+
+    if (pendingNote) {
+      await tx.exercisePendingNote.delete({
+        where: {
+          userId_exerciseId: {
+            userId,
+            exerciseId,
+          },
+        },
+      });
+    }
+
+    return createdItem;
+  });
+};
+
 export const findWorkoutItemById = (id: string) => {
   return prisma.workoutItem.findUnique({
     where: { id },
@@ -414,6 +467,38 @@ export const getLastWorkoutNote = async (userId: string, exerciseId: string): Pr
     select: { notes: true },
   });
   return lastItem?.notes || null;
+};
+
+export const setPendingExerciseNote = (
+  userId: string,
+  exerciseId: string,
+  note: string,
+) => {
+  return prisma.exercisePendingNote.upsert({
+    where: {
+      userId_exerciseId: {
+        userId,
+        exerciseId,
+      },
+    },
+    create: {
+      userId,
+      exerciseId,
+      note,
+    },
+    update: {
+      note,
+    },
+  });
+};
+
+export const clearPendingExerciseNote = (userId: string, exerciseId: string) => {
+  return prisma.exercisePendingNote.deleteMany({
+    where: {
+      userId,
+      exerciseId,
+    },
+  });
 };
 
 export const upsertExerciseStats = (

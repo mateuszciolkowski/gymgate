@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "gymgate-e2e-test-suite-v4",
     "name": "GymGate API – E2E Test Suite",
-    "description": "# GymGate E2E Test Suite\n\n## Uruchomienie przez Newman (terminal):\n```\nnewman run GymGate_API.postman_collection.json --delay-request 150\n```\n\n## Uruchomienie przez Postman GUI:\nKliknij prawym → Run collection → Run\n\n38 requestów. Jeśli wszystkie przejdą → cała aplikacja działa.",
+    "description": "# GymGate E2E Test Suite\n\n## Uruchomienie przez Newman (terminal):\n```\nnewman run GymGate_API.postman_collection.json --delay-request 150\n```\n\n## Uruchomienie przez Postman GUI:\nKliknij prawym → Run collection → Run\n\nScenariusze obejmują flow podstawowy i jednorazowe notatki ćwiczeń.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -15,7 +15,14 @@
     { "key": "setId1", "value": "", "type": "string" },
     { "key": "setId2", "value": "", "type": "string" },
     { "key": "setId3", "value": "", "type": "string" },
-    { "key": "testEmail", "value": "", "type": "string" }
+    { "key": "testEmail", "value": "", "type": "string" },
+    { "key": "workoutIdA", "value": "", "type": "string" },
+    { "key": "workoutIdB", "value": "", "type": "string" },
+    { "key": "workoutIdC", "value": "", "type": "string" },
+    { "key": "workoutItemIdA", "value": "", "type": "string" },
+    { "key": "workoutItemIdB", "value": "", "type": "string" },
+    { "key": "workoutItemIdC", "value": "", "type": "string" },
+    { "key": "sourceExerciseNote", "value": "", "type": "string" }
   ],
   "item": [
     {
@@ -277,7 +284,8 @@
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[18] Dodanie cwiczenia zwraca 201', () => pm.response.to.have.status(201));",
         "pm.test('[18] Zawiera id workout item', () => { const j = pm.response.json(); pm.expect(j.data.id).to.be.a('string'); pm.collectionVariables.set('workoutItemId', j.data.id); console.log('workoutItemId:', j.data.id); });",
-        "pm.test('[18] Workout item powiazany z cwiczeniem', () => pm.expect(pm.response.json().data.exerciseId).to.eql(pm.collectionVariables.get('exerciseId')));"
+        "pm.test('[18] Workout item powiazany z cwiczeniem', () => pm.expect(pm.response.json().data.exerciseId).to.eql(pm.collectionVariables.get('exerciseId')));",
+        "pm.test('[18] previousNote ma poprawny typ', () => { const n = pm.response.json().data.previousNote; pm.expect(n === null || typeof n === 'string').to.eql(true); });"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "POST",
@@ -443,10 +451,210 @@
       }
     },
     {
-      "name": "[31] CLEANUP – Usun serie 3",
+      "name": "[31] NOTES E2E – A: Stworzenie treningu z notatka zrodlowa (DRAFT)",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[31] Usuniecie serii 3 zwraca 200', () => pm.response.to.have.status(200));",
-        "pm.test('[31] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
+        "pm.test('[31] Tworzenie treningu A zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[31] Zapis workoutIdA', () => { const j = pm.response.json(); pm.collectionVariables.set('workoutIdA', j.data.id); pm.expect(j.data.status).to.eql('DRAFT'); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"workoutName\": \"E2E Notes A\",\n  \"workoutDate\": \"2026-04-10T10:00:00.000Z\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts", "host": ["{{baseUrl}}"], "path": ["api","workouts"] }
+      }
+    },
+    {
+      "name": "[32] NOTES E2E – A: Dodanie cwiczenia",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[32] Dodanie cwiczenia do A zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[32] Zapis workoutItemIdA', () => { const j = pm.response.json(); pm.collectionVariables.set('workoutItemIdA', j.data.id); pm.expect(j.data.id).to.be.a('string'); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"exerciseId\": \"{{exerciseId}}\",\n  \"orderInWorkout\": 1\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutIdA}}/exercises", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutIdA}}","exercises"] }
+      }
+    },
+    {
+      "name": "[33] NOTES E2E – A: Zapis notatki zrodlowej",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[33] Aktualizacja notatki A zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[33] Zapis sourceExerciseNote', () => { const j = pm.response.json(); pm.collectionVariables.set('sourceExerciseNote', j.data.notes); pm.expect(j.data.notes).to.eql('Skup sie na stabilizacji kolana'); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"notes\": \"Skup sie na stabilizacji kolana\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts/items/{{workoutItemIdA}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","items","{{workoutItemIdA}}"] }
+      }
+    },
+    {
+      "name": "[34] NOTES E2E – A: Zwolnienie active workout (A zostaje DRAFT)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[34] DELETE /active zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[34] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/active", "host": ["{{baseUrl}}"], "path": ["api","workouts","active"] }
+      }
+    },
+    {
+      "name": "[35] NOTES E2E – B: Stworzenie treningu i dodanie tego samego cwiczenia",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[35] Tworzenie treningu B zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[35] Zapis workoutIdB', () => { const j = pm.response.json(); pm.collectionVariables.set('workoutIdB', j.data.id); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"workoutName\": \"E2E Notes B\",\n  \"workoutDate\": \"2026-04-11T10:00:00.000Z\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts", "host": ["{{baseUrl}}"], "path": ["api","workouts"] }
+      }
+    },
+    {
+      "name": "[36] NOTES E2E – B: previousNote widoczna jednorazowo",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[36] Dodanie cwiczenia do B zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[36] previousNote = sourceExerciseNote', () => { const j = pm.response.json(); pm.collectionVariables.set('workoutItemIdB', j.data.id); pm.expect(j.data.previousNote).to.eql(pm.collectionVariables.get('sourceExerciseNote')); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"exerciseId\": \"{{exerciseId}}\",\n  \"orderInWorkout\": 1\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutIdB}}/exercises", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutIdB}}","exercises"] }
+      }
+    },
+    {
+      "name": "[37] NOTES E2E – B: Zakonczenie i weryfikacja utrzymania previousNote",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[37] Zakonczenie treningu B zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[37] Status = COMPLETED', () => pm.expect(pm.response.json().data.status).to.eql('COMPLETED'));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"COMPLETED\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutIdB}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutIdB}}"] }
+      }
+    },
+    {
+      "name": "[38] NOTES E2E – B: previousNote nadal widoczna w szczegolach tego treningu",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[38] GET treningu B zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[38] previousNote zostaje przypisana do itemu B', () => {",
+        "  const j = pm.response.json();",
+        "  const items = j.data.workoutItems || j.data.items || [];",
+        "  const item = items.find(i => i.id === pm.collectionVariables.get('workoutItemIdB'));",
+        "  pm.expect(item).to.not.be.undefined;",
+        "  pm.expect(item.previousNote).to.eql(pm.collectionVariables.get('sourceExerciseNote'));",
+        "});"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutIdB}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutIdB}}"] }
+      }
+    },
+    {
+      "name": "[39] NOTES E2E – C: Stworzenie treningu C",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[39] Tworzenie treningu C zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[39] Zapis workoutIdC', () => { const j = pm.response.json(); pm.collectionVariables.set('workoutIdC', j.data.id); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"workoutName\": \"E2E Notes C\",\n  \"workoutDate\": \"2026-04-12T10:00:00.000Z\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts", "host": ["{{baseUrl}}"], "path": ["api","workouts"] }
+      }
+    },
+    {
+      "name": "[40] NOTES E2E – C: previousNote nie pojawia sie drugi raz",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[40] Dodanie cwiczenia do C zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[40] previousNote jest puste po jednorazowej konsumpcji', () => { const j = pm.response.json(); pm.collectionVariables.set('workoutItemIdC', j.data.id); pm.expect(j.data.previousNote === null || j.data.previousNote === '').to.eql(true); });"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"exerciseId\": \"{{exerciseId}}\",\n  \"orderInWorkout\": 1\n}" },
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutIdC}}/exercises", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutIdC}}","exercises"] }
+      }
+    },
+    {
+      "name": "[41] NOTES E2E CLEANUP – Usun workout item C",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[41] Usuniecie workout item C zwraca 200', () => pm.response.to.have.status(200));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/items/{{workoutItemIdC}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","items","{{workoutItemIdC}}"] }
+      }
+    },
+    {
+      "name": "[42] NOTES E2E CLEANUP – Usun trening C",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[42] Usuniecie treningu C zwraca 200', () => pm.response.to.have.status(200));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutIdC}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutIdC}}"] }
+      }
+    },
+    {
+      "name": "[43] NOTES E2E CLEANUP – Usun workout item B",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[43] Usuniecie workout item B zwraca 200', () => pm.response.to.have.status(200));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/items/{{workoutItemIdB}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","items","{{workoutItemIdB}}"] }
+      }
+    },
+    {
+      "name": "[44] NOTES E2E CLEANUP – Usun trening B",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[44] Usuniecie treningu B zwraca 200', () => pm.response.to.have.status(200));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutIdB}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutIdB}}"] }
+      }
+    },
+    {
+      "name": "[45] NOTES E2E CLEANUP – Usun workout item A",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[45] Usuniecie workout item A zwraca 200', () => pm.response.to.have.status(200));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/items/{{workoutItemIdA}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","items","{{workoutItemIdA}}"] }
+      }
+    },
+    {
+      "name": "[46] NOTES E2E CLEANUP – Usun trening A",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[46] Usuniecie treningu A zwraca 200', () => pm.response.to.have.status(200));"
+      ], "type": "text/javascript" }}],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutIdA}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutIdA}}"] }
+      }
+    },
+    {
+      "name": "[47] CLEANUP – Usun serie 3",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('[47] Usuniecie serii 3 zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[47] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -455,9 +663,9 @@
       }
     },
     {
-      "name": "[32] CLEANUP – Usun serie 2",
+      "name": "[48] CLEANUP – Usun serie 2",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[32] Usuniecie serii 2 zwraca 200', () => pm.response.to.have.status(200));"
+        "pm.test('[48] Usuniecie serii 2 zwraca 200', () => pm.response.to.have.status(200));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -466,9 +674,9 @@
       }
     },
     {
-      "name": "[33] CLEANUP – Usun serie 1",
+      "name": "[49] CLEANUP – Usun serie 1",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[33] Usuniecie serii 1 zwraca 200', () => pm.response.to.have.status(200));"
+        "pm.test('[49] Usuniecie serii 1 zwraca 200', () => pm.response.to.have.status(200));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -477,10 +685,10 @@
       }
     },
     {
-      "name": "[34] CLEANUP – Usun workout item",
+      "name": "[50] CLEANUP – Usun workout item",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[34] Usuniecie workout item zwraca 200', () => pm.response.to.have.status(200));",
-        "pm.test('[34] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
+        "pm.test('[50] Usuniecie workout item zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[50] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -489,10 +697,10 @@
       }
     },
     {
-      "name": "[35] CLEANUP – Usun trening",
+      "name": "[51] CLEANUP – Usun trening",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[35] Usuniecie treningu zwraca 200', () => pm.response.to.have.status(200));",
-        "pm.test('[35] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
+        "pm.test('[51] Usuniecie treningu zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[51] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -501,9 +709,9 @@
       }
     },
     {
-      "name": "[36] CLEANUP – Usun cwiczenie",
+      "name": "[52] CLEANUP – Usun cwiczenie",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[36] Usuniecie cwiczenia zwraca 204', () => pm.response.to.have.status(204));"
+        "pm.test('[52] Usuniecie cwiczenia zwraca 204', () => pm.response.to.have.status(204));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -512,10 +720,10 @@
       }
     },
     {
-      "name": "[37] VERIFY – Usuniety trening zwraca 404",
+      "name": "[53] VERIFY – Usuniety trening zwraca 404",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[37] Usuniety trening zwraca 404', () => pm.response.to.have.status(404));",
-        "pm.test('[37] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
+        "pm.test('[53] Usuniety trening zwraca 404', () => pm.response.to.have.status(404));",
+        "pm.test('[53] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "GET",
@@ -524,10 +732,10 @@
       }
     },
     {
-      "name": "[38] VERIFY – Usuniete cwiczenie zwraca 404",
+      "name": "[54] VERIFY – Usuniete cwiczenie zwraca 404",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[38] Usuniete cwiczenie zwraca 404', () => pm.response.to.have.status(404));",
-        "pm.test('[38] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
+        "pm.test('[54] Usuniete cwiczenie zwraca 404', () => pm.response.to.have.status(404));",
+        "pm.test('[54] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "GET",

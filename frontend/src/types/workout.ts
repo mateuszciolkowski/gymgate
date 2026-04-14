@@ -39,6 +39,7 @@ export interface WorkoutItem {
   exerciseId: string;
   orderInWorkout: number;
   notes?: string | null;
+  previousNote?: string | null;
   createdAt: string;
   updatedAt: string;
   exercise: {
