@@ -15,6 +15,7 @@ vi.mock("./workout.repository.js", () => ({
   upsertExerciseStats: vi.fn(),
   getStatsOverview: vi.fn(),
   getExerciseProgression: vi.fn(),
+  getLastWorkoutNote: vi.fn(),
   deleteExerciseStats: vi.fn(),
   getMaxOrderInWorkout: vi.fn(),
   addExerciseToWorkout: vi.fn(),
@@ -32,6 +33,7 @@ vi.mock("./workout.repository.js", () => ({
 describe("workout.service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(workoutRepo.getLastWorkoutNote).mockResolvedValue(null);
   });
 
   it("createWorkout: returns active workout when one already exists", async () => {
@@ -121,6 +123,7 @@ describe("workout.service", () => {
         lastReps: 3,
         lastWorkoutDate: workoutDate,
         totalWorkouts: 1,
+        lastNote: null,
       },
     );
     expect(workoutRepo.clearActiveWorkout).toHaveBeenCalledWith("u1");
@@ -231,6 +234,7 @@ describe("workout.service", () => {
       lastReps: 8,
       lastWorkoutDate: workoutDate2,
       totalWorkouts: 2,
+      lastNote: null,
     });
     expect(workoutRepo.deleteExerciseStats).toHaveBeenCalledWith("u1", "e2");
   });
@@ -261,6 +265,55 @@ describe("workout.service", () => {
     );
     expect(workoutRepo.addSetToWorkoutItem).toHaveBeenCalledWith("item-1", 0, 1, 1);
     expect(result).toEqual({ id: "item-1", workoutId: "w1" });
+  });
+
+  it("updateWorkoutItem: recalculates stats after note change in completed workout", async () => {
+    const workoutDate = new Date("2026-03-10T10:00:00.000Z");
+
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+      exerciseId: "e1",
+      notes: "stara notatka",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "COMPLETED",
+    } as any);
+    vi.mocked(workoutRepo.updateWorkoutItem).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+      notes: "nowa notatka",
+    } as any);
+    vi.mocked(workoutRepo.getExerciseProgression).mockResolvedValue([
+      {
+        workoutId: "w1",
+        workoutDate,
+        maxSetWeight: 90,
+        repetitionsAtMaxSet: 5,
+        volume: 1800,
+      },
+    ] as any);
+    vi.mocked(workoutRepo.getLastWorkoutNote).mockResolvedValue("nowa notatka");
+
+    await workoutService.updateWorkoutItem("item-1", "u1", {
+      notes: "nowa notatka",
+    });
+
+    expect(workoutRepo.updateWorkoutItem).toHaveBeenCalledWith("item-1", {
+      notes: "nowa notatka",
+    });
+    expect(workoutRepo.upsertExerciseStats).toHaveBeenCalledWith("u1", "e1", {
+      maxWeight: 90,
+      maxWeightReps: 5,
+      maxWeightDate: workoutDate,
+      lastWeight: 90,
+      lastReps: 5,
+      lastWorkoutDate: workoutDate,
+      totalWorkouts: 1,
+      lastNote: "nowa notatka",
+    });
   });
 
   it("addSetToWorkoutItem: computes next setNumber when omitted", async () => {
@@ -333,6 +386,7 @@ describe("workout.service", () => {
       lastReps: 3,
       lastWorkoutDate: workoutDate,
       totalWorkouts: 1,
+      lastNote: null,
     });
   });
 
@@ -376,6 +430,7 @@ describe("workout.service", () => {
       lastReps: 5,
       lastWorkoutDate: workoutDate,
       totalWorkouts: 1,
+      lastNote: null,
     });
   });
 

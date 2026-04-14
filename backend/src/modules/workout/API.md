@@ -41,6 +41,8 @@ Base URL: `/api/workouts`
 }
 ```
 
+`lastNote` can be `null` when the latest completed workout item for this exercise had no note.
+
 ### 2. Get User Workouts
 
 **GET** `/api/workouts?status=DRAFT&limit=10&offset=0`
@@ -60,6 +62,8 @@ Base URL: `/api/workouts`
   "count": 10
 }
 ```
+
+Each stats entry may include `lastNote: null` if no note was saved on the latest completed workout item.
 
 ### 3. Get Workout by ID
 
@@ -307,7 +311,8 @@ All values are calculated only from workouts with status `COMPLETED`.
     "lastWeight": 95.0,
     "lastReps": 8,
     "lastWorkoutDate": "2025-12-28T10:00:00Z",
-    "totalWorkouts": 15
+    "totalWorkouts": 15,
+    "lastNote": "Skupić się na wolniejszym opuszczaniu sztangi"
   }
 }
 ```
@@ -347,7 +352,8 @@ All values are calculated only from workouts with status `COMPLETED`.
       "lastWeight": 95.0,
       "lastReps": 8,
       "lastWorkoutDate": "2025-12-28T10:00:00Z",
-      "totalWorkouts": 15
+      "totalWorkouts": 15,
+      "lastNote": "Skupić się na wolniejszym opuszczaniu sztangi"
     }
   ],
   "count": 25

@@ -155,6 +155,7 @@ model ExerciseUserStats {
   lastReps        Int
   lastWorkoutDate DateTime
   totalWorkouts   Int      @default(1)
+  lastNote        String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
