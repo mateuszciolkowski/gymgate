@@ -342,7 +342,8 @@
       "name": "[23] WORKOUT ITEMS – Aktualizacja notatek",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[23] Aktualizacja workout item zwraca 200', () => pm.response.to.have.status(200));",
-        "pm.test('[23] Notatki zaktualizowane', () => pm.expect(pm.response.json().data.notes).to.eql('Zaktualizowane notatki E2E'));"
+        "pm.test('[23] Notatki zaktualizowane', () => pm.expect(pm.response.json().data.notes).to.eql('Zaktualizowane notatki E2E'));",
+        "pm.collectionVariables.set('expectedLastNote', pm.response.json().data.notes);"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "PATCH",
@@ -417,7 +418,9 @@
       "name": "[29] STATS – Statystyki konkretnego cwiczenia",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[29] Stats cwiczenia zwraca 200', () => pm.response.to.have.status(200));",
-        "pm.test('[29] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
+        "pm.test('[29] success=true', () => pm.expect(pm.response.json().success).to.be.true);",
+        "pm.test('[29] Zawiera lastNote', () => pm.expect(pm.response.json().data.lastNote).to.be.a('string'));",
+        "pm.test('[29] lastNote zgodna z notatka z workout item', () => pm.expect(pm.response.json().data.lastNote).to.eql(pm.collectionVariables.get('expectedLastNote')));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "GET",
