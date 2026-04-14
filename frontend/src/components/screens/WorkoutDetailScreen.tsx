@@ -136,7 +136,7 @@ export function WorkoutDetailScreen({
       .filter((entry) => entry.status === "COMPLETED")
       .sort(
         (a, b) =>
-          new Date(a.workoutDate).getTime() - new Date(b.workoutDate).getTime(),
+          b.workoutDate.localeCompare(a.workoutDate),
       );
     const currentWorkoutTime = new Date(workout.workoutDate).getTime();
 
