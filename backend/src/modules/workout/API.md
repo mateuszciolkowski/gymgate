@@ -85,6 +85,7 @@ Each stats entry may include `lastNote: null` if no note was saved on the latest
         "exerciseId": "uuid",
         "orderInWorkout": 1,
         "notes": "Długa rozgrzewka",
+        "previousNote": "Zostań przy wolnym negatywie",
         "exercise": {
           "id": "uuid",
           "name": "Wyciskanie sztangi",
@@ -166,6 +167,7 @@ Each stats entry may include `lastNote: null` if no note was saved on the latest
     "exerciseId": "uuid",
     "orderInWorkout": 1,
     "notes": "Optional notes",
+    "previousNote": "Notatka z ostatniego zakończonego treningu z tym ćwiczeniem",
     "exercise": {...},
     "sets": [
       {
@@ -180,6 +182,12 @@ Each stats entry may include `lastNote: null` if no note was saved on the latest
 ```
 
 **Note:** First set is created automatically with default values (0 kg, 1 rep)
+
+**One-time previous note behavior:**
+
+- `previousNote` comes from the latest saved note for this exercise (also from draft workouts).
+- It is assigned when the exercise is added to a workout and consumed immediately (one-time use).
+- After consumption it will not appear on further occurrences unless a new note is saved later for this exercise.
 
 ### 7. Update Workout Item
 

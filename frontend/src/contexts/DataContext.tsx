@@ -839,6 +839,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         exerciseId,
         orderInWorkout: 0, // będzie obliczone w callback
         notes: null,
+        previousNote: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         exercise: {
@@ -924,6 +925,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                   return {
                     ...item,
                     id: result.data.id,
+                    previousNote: result.data.previousNote ?? null,
                     sets: item.sets.map((set, index) =>
                       index === 0 && serverSets[0]
                         ? {

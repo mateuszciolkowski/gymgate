@@ -130,53 +130,6 @@ export function WorkoutDetailScreen({
       ),
     [workout.items],
   );
-  const previousExerciseNoteByItemId = useMemo(() => {
-    const map = new Map<string, string>();
-    const completedByDateAsc = [...workouts]
-      .filter((entry) => entry.status === "COMPLETED")
-      .sort(
-        (a, b) =>
-          b.workoutDate.localeCompare(a.workoutDate),
-      );
-    const currentWorkoutTime = new Date(workout.workoutDate).getTime();
-
-    orderedWorkoutItems.forEach((item) => {
-      // The previous note is useful as a reference even if a new note is being written
-
-      const occurrences = completedByDateAsc.filter((entry) =>
-        entry.items.some((entryItem) => entryItem.exerciseId === item.exerciseId),
-      );
-
-      if (occurrences.length === 0) return;
-
-      const currentCompletedIndex = occurrences.findIndex(
-        (entry) => entry.id === workout.id,
-      );
-
-      let previousOccurrence = null as (typeof occurrences)[number] | null;
-      if (currentCompletedIndex > 0) {
-        previousOccurrence = occurrences[currentCompletedIndex - 1]!;
-      } else if (currentCompletedIndex === -1) {
-        previousOccurrence =
-          occurrences.filter(
-            (entry) => new Date(entry.workoutDate).getTime() < currentWorkoutTime,
-          ).at(-1) ?? null;
-      }
-
-      if (!previousOccurrence) return;
-
-      const previousItem = [...previousOccurrence.items]
-        .sort((a, b) => a.orderInWorkout - b.orderInWorkout)
-        .find((entryItem) => entryItem.exerciseId === item.exerciseId);
-      const previousNote = previousItem?.notes?.trim();
-      if (!previousNote) return;
-
-      map.set(item.id, previousNote);
-    });
-
-    return map;
-  }, [orderedWorkoutItems, workout.id, workout.workoutDate, workouts]);
-
   const handleStartEditInfo = () => {
     setIsEditingInfo(true);
     setIsEditingNotes(false);
@@ -611,7 +564,7 @@ export function WorkoutDetailScreen({
                 isExpanded={expandedItemId === item.id}
                 stats={allStats.find((s) => s.exerciseId === item.exerciseId)}
                 lastSetsSummary={latestSetsByExerciseId.get(item.exerciseId)}
-                lastExerciseNote={previousExerciseNoteByItemId.get(item.id)}
+                lastExerciseNote={item.previousNote ?? undefined}
                 onToggleExpand={handleToggleExpand}
                 onUpdateSet={handleUpdateSet}
                 onDeleteSet={handleDeleteSet}

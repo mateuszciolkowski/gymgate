@@ -19,6 +19,7 @@ vi.mock("./workout.repository.js", () => ({
   deleteExerciseStats: vi.fn(),
   getMaxOrderInWorkout: vi.fn(),
   addExerciseToWorkout: vi.fn(),
+  addExerciseToWorkoutWithPendingNote: vi.fn(),
   addSetToWorkoutItem: vi.fn(),
   findWorkoutItemById: vi.fn(),
   deleteWorkoutItem: vi.fn(),
@@ -28,6 +29,8 @@ vi.mock("./workout.repository.js", () => ({
   updateWorkoutSet: vi.fn(),
   deleteWorkoutSet: vi.fn(),
   getAllUserStats: vi.fn(),
+  setPendingExerciseNote: vi.fn(),
+  clearPendingExerciseNote: vi.fn(),
 }));
 
 describe("workout.service", () => {
@@ -126,6 +129,7 @@ describe("workout.service", () => {
         lastNote: null,
       },
     );
+    expect(workoutRepo.clearPendingExerciseNote).toHaveBeenCalledWith("u1", "e1");
     expect(workoutRepo.clearActiveWorkout).toHaveBeenCalledWith("u1");
   });
 
@@ -245,7 +249,7 @@ describe("workout.service", () => {
       userId: "u1",
     } as any);
     vi.mocked(workoutRepo.getMaxOrderInWorkout).mockResolvedValue(2);
-    vi.mocked(workoutRepo.addExerciseToWorkout).mockResolvedValue({
+    vi.mocked(workoutRepo.addExerciseToWorkoutWithPendingNote).mockResolvedValue({
       id: "item-1",
     } as any);
     vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
@@ -257,8 +261,9 @@ describe("workout.service", () => {
       exerciseId: "e1",
     });
 
-    expect(workoutRepo.addExerciseToWorkout).toHaveBeenCalledWith(
+    expect(workoutRepo.addExerciseToWorkoutWithPendingNote).toHaveBeenCalledWith(
       "w1",
+      "u1",
       "e1",
       3,
       undefined,
@@ -314,6 +319,68 @@ describe("workout.service", () => {
       totalWorkouts: 1,
       lastNote: "nowa notatka",
     });
+    expect(workoutRepo.setPendingExerciseNote).toHaveBeenCalledWith(
+      "u1",
+      "e1",
+      "nowa notatka",
+    );
+  });
+
+  it("updateWorkoutItem: clears pending note when completed workout note becomes empty", async () => {
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+      exerciseId: "e1",
+      notes: "stara notatka",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "COMPLETED",
+    } as any);
+    vi.mocked(workoutRepo.updateWorkoutItem).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+      notes: "",
+    } as any);
+    vi.mocked(workoutRepo.getExerciseProgression).mockResolvedValue([]);
+
+    await workoutService.updateWorkoutItem("item-1", "u1", {
+      notes: "   ",
+    });
+
+    expect(workoutRepo.clearPendingExerciseNote).toHaveBeenCalledWith("u1", "e1");
+    expect(workoutRepo.setPendingExerciseNote).not.toHaveBeenCalled();
+  });
+
+  it("updateWorkoutItem: updates pending note even when workout is DRAFT", async () => {
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+      exerciseId: "e1",
+      notes: "stara notatka",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "DRAFT",
+    } as any);
+    vi.mocked(workoutRepo.updateWorkoutItem).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+      notes: "skup sie na tempie",
+    } as any);
+
+    await workoutService.updateWorkoutItem("item-1", "u1", {
+      notes: "skup sie na tempie",
+    });
+
+    expect(workoutRepo.setPendingExerciseNote).toHaveBeenCalledWith(
+      "u1",
+      "e1",
+      "skup sie na tempie",
+    );
+    expect(workoutRepo.getExerciseProgression).not.toHaveBeenCalled();
   });
 
   it("addSetToWorkoutItem: computes next setNumber when omitted", async () => {

@@ -97,6 +97,12 @@ export const updateWorkout = async (
     }
   }
 
+  if (previousStatus !== "COMPLETED" && nextStatus === "COMPLETED") {
+    for (const item of existingWorkout.items) {
+      await syncPendingNoteForExercise(userId, item.exerciseId, item.notes ?? null);
+    }
+  }
+
   if (nextStatus === "COMPLETED") {
     await workoutRepo.clearActiveWorkout(userId);
   }
@@ -132,8 +138,9 @@ export const addExerciseToWorkout = async (
     orderInWorkout = maxOrder + 1;
   }
 
-  const item = await workoutRepo.addExerciseToWorkout(
+  const item = await workoutRepo.addExerciseToWorkoutWithPendingNote(
     workoutId,
+    userId,
     data.exerciseId,
     orderInWorkout,
     data.notes
@@ -168,6 +175,10 @@ export const updateWorkoutItem = async (
     updateData.orderInWorkout = data.orderInWorkout;
   if (data.notes !== undefined) updateData.notes = data.notes ?? null;
   const updatedItem = await workoutRepo.updateWorkoutItem(itemId, updateData);
+
+  if (data.notes !== undefined) {
+    await syncPendingNoteForExercise(userId, item.exerciseId, data.notes ?? null);
+  }
 
   if (workout.status === "COMPLETED" && data.notes !== undefined) {
     await rebuildExerciseStatsFromCompletedWorkouts(userId, item.exerciseId);
@@ -351,6 +362,29 @@ const rebuildExerciseStatsFromCompletedWorkouts = async (
     totalWorkouts: progression.length,
     lastNote,
   });
+};
+
+const normalizeExerciseNote = (note: string | null | undefined): string | null => {
+  if (note === null || note === undefined) {
+    return null;
+  }
+
+  const normalized = note.trim();
+  return normalized.length > 0 ? normalized : null;
+};
+
+const syncPendingNoteForExercise = async (
+  userId: string,
+  exerciseId: string,
+  note: string | null | undefined,
+) => {
+  const normalized = normalizeExerciseNote(note);
+  if (!normalized) {
+    await workoutRepo.clearPendingExerciseNote(userId, exerciseId);
+    return;
+  }
+
+  await workoutRepo.setPendingExerciseNote(userId, exerciseId, normalized);
 };
 
 export const getActiveWorkoutId = async (userId: string) => {

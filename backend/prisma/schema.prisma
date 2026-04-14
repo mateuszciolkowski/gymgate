@@ -57,10 +57,11 @@ model Exercise {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  creator User?          @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
-  photos  ExercisePhoto[]
+  creator      User?                 @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
+  photos       ExercisePhoto[]
   workoutItems WorkoutItem[]
-  stats   ExerciseUserStats[]
+  stats        ExerciseUserStats[]
+  pendingNotes ExercisePendingNote[]
 
   @@map("exercises")
 }
@@ -87,10 +88,11 @@ model User {
   activeWorkoutId String?  @unique
   updatedAt       DateTime @updatedAt
 
-  exercises       Exercise[]
-  workouts        Workout[]
-  stats           ExerciseUserStats[]
-  activeWorkout   Workout?  @relation("ActiveWorkout", fields: [activeWorkoutId], references: [id], onDelete: SetNull)
+  exercises     Exercise[]
+  workouts      Workout[]
+  stats         ExerciseUserStats[]
+  pendingNotes  ExercisePendingNote[]
+  activeWorkout Workout?               @relation("ActiveWorkout", fields: [activeWorkoutId], references: [id], onDelete: SetNull)
 
   @@map("users")
 }
@@ -120,6 +122,7 @@ model WorkoutItem {
   exerciseId     String
   orderInWorkout Int
   notes          String?
+  previousNote   String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
@@ -128,6 +131,21 @@ model WorkoutItem {
   sets     WorkoutSet[]
 
   @@map("workout_items")
+}
+
+model ExercisePendingNote {
+  id         String   @id @default(uuid())
+  userId     String
+  exerciseId String
+  note       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, exerciseId])
+  @@map("exercise_pending_notes")
 }
 
 model WorkoutSet {
