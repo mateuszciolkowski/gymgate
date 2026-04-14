@@ -129,7 +129,7 @@ export function WorkoutDetailScreen({
       .filter((entry) => entry.status === "COMPLETED")
       .sort(
         (a, b) =>
-          new Date(b.workoutDate).getTime() - new Date(a.workoutDate).getTime(),
+          b.workoutDate.localeCompare(a.workoutDate),
       );
 
     sortedCompletedWorkouts.forEach((entry) => {
