@@ -141,7 +141,7 @@ export function WorkoutDetailScreen({
     const currentWorkoutTime = new Date(workout.workoutDate).getTime();
 
     orderedWorkoutItems.forEach((item) => {
-      if (item.notes?.trim()) return;
+      // The previous note is useful as a reference even if a new note is being written
 
       const occurrences = completedByDateAsc.filter((entry) =>
         entry.items.some((entryItem) => entryItem.exerciseId === item.exerciseId),
