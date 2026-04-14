@@ -4,6 +4,7 @@ services:
     build: .
     container_name: gymgate_api
     restart: on-failure
+    command: sh -c "npm run prisma:deploy && npm run build && npm run start"
     ports:
       - "${API_PORT}:${API_PORT}"
     environment:

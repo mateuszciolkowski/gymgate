@@ -29,13 +29,15 @@
     "vitest": "^4.0.16"
   },
   "scripts": {
-    "dev": "nodemon --exec tsx src/index.ts",
+    "dev": "prisma generate && nodemon --exec tsx src/index.ts",
     "build": "prisma generate && tsc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "start": "node dist/index.js",
+    "start:railway": "prisma migrate deploy && node dist/index.js",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
+    "prisma:deploy": "prisma migrate deploy",
     "prisma:migrate": "prisma migrate dev",
     "seed": "tsx prisma/seed.ts"
   },

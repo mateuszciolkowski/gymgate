@@ -123,6 +123,26 @@ export function WorkoutDetailScreen({
 
     return map;
   }, [workouts]);
+  const latestNotesByExerciseId = useMemo(() => {
+    const map = new Map<string, string>();
+    const sortedCompletedWorkouts = [...workouts]
+      .filter((entry) => entry.status === "COMPLETED")
+      .sort(
+        (a, b) =>
+          new Date(b.workoutDate).getTime() - new Date(a.workoutDate).getTime(),
+      );
+
+    sortedCompletedWorkouts.forEach((entry) => {
+      entry.items.forEach((item) => {
+        if (map.has(item.exerciseId)) return;
+        const note = item.notes?.trim();
+        if (!note) return;
+        map.set(item.exerciseId, note);
+      });
+    });
+
+    return map;
+  }, [workouts]);
   const orderedWorkoutItems = useMemo(
     () =>
       [...workout.items].sort(
@@ -565,6 +585,7 @@ export function WorkoutDetailScreen({
                 isExpanded={expandedItemId === item.id}
                 stats={allStats.find((s) => s.exerciseId === item.exerciseId)}
                 lastSetsSummary={latestSetsByExerciseId.get(item.exerciseId)}
+                lastExerciseNote={latestNotesByExerciseId.get(item.exerciseId)}
                 onToggleExpand={handleToggleExpand}
                 onUpdateSet={handleUpdateSet}
                 onDeleteSet={handleDeleteSet}
@@ -597,6 +618,7 @@ interface WorkoutItemCardProps {
   isExpanded: boolean;
   stats?: ExerciseStats;
   lastSetsSummary?: string;
+  lastExerciseNote?: string;
   onToggleExpand: (itemId: string) => void;
   onUpdateSet: (
     setId: string,
@@ -617,6 +639,7 @@ const WorkoutItemCard = memo(
     isExpanded,
     stats,
     lastSetsSummary,
+    lastExerciseNote,
     onToggleExpand,
     onUpdateSet,
     onDeleteSet,
@@ -633,6 +656,7 @@ const WorkoutItemCard = memo(
     const [displayedNotes, setDisplayedNotes] = useState(item.notes ?? "");
 
     const canEdit = !isCompleted || isEditMode;
+    const noteToDisplay = stats?.lastNote?.trim() || lastExerciseNote;
 
     useEffect(() => {
       if (!isEditingNotes) {
@@ -787,6 +811,24 @@ const WorkoutItemCard = memo(
                     {stats.maxWeight} kg × {stats.maxWeightReps}
                   </p>
                 </div>
+                {noteToDisplay && (
+                  <>
+                    <div className="my-3 flex justify-center" aria-hidden="true">
+                      <span className="h-px w-28 rounded-full bg-gradient-to-r from-purple-300 via-emerald-400 to-purple-300 dark:from-purple-700 dark:via-emerald-500 dark:to-purple-700" />
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-8.25A2.25 2.25 0 0017.25 3.75H6.75A2.25 2.25 0 004.5 6v12A2.25 2.25 0 006.75 20.25h6.879a2.25 2.25 0 001.591-.659l3.621-3.621a2.25 2.25 0 00.659-1.591z" />
+                        </svg>
+                        Notatka z ostatniego treningu:
+                      </span>
+                      <p className="font-medium text-gray-900 dark:text-white italic whitespace-pre-wrap max-w-full text-left break-words mt-1">
+                        "{noteToDisplay}"
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -1009,8 +1051,10 @@ const WorkoutItemCard = memo(
       if (prevStats.maxWeight !== nextStats.maxWeight) return false;
       if (prevStats.lastWeight !== nextStats.lastWeight) return false;
       if (prevStats.totalWorkouts !== nextStats.totalWorkouts) return false;
+      if ((prevStats.lastNote ?? null) !== (nextStats.lastNote ?? null)) return false;
     }
     if (prevProps.lastSetsSummary !== nextProps.lastSetsSummary) return false;
+    if ((prevProps.lastExerciseNote ?? null) !== (nextProps.lastExerciseNote ?? null)) return false;
     
     return true;
   }

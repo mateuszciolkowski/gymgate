@@ -80,6 +80,7 @@ export interface ExerciseStats {
   lastReps: number;
   lastWorkoutDate: string;
   totalWorkouts: number;
+  lastNote?: string | null;
   exercise?: {
     id: string;
     name: string;

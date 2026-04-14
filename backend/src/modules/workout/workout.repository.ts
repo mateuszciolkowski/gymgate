@@ -397,6 +397,25 @@ export const getExerciseProgression = async (
   );
 };
 
+export const getLastWorkoutNote = async (userId: string, exerciseId: string): Promise<string | null> => {
+  const lastItem = await prisma.workoutItem.findFirst({
+    where: {
+      exerciseId,
+      workout: {
+        userId,
+        status: "COMPLETED",
+      },
+    },
+    orderBy: {
+      workout: {
+        workoutDate: "desc",
+      },
+    },
+    select: { notes: true },
+  });
+  return lastItem?.notes || null;
+};
+
 export const upsertExerciseStats = (
   userId: string,
   exerciseId: string,
@@ -408,6 +427,7 @@ export const upsertExerciseStats = (
     lastReps: number;
     lastWorkoutDate: Date;
     totalWorkouts?: number;
+    lastNote?: string | null;
   }
 ) => {
   return prisma.exerciseUserStats.upsert({

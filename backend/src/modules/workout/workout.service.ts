@@ -167,7 +167,13 @@ export const updateWorkoutItem = async (
   if (data.orderInWorkout !== undefined)
     updateData.orderInWorkout = data.orderInWorkout;
   if (data.notes !== undefined) updateData.notes = data.notes ?? null;
-  return workoutRepo.updateWorkoutItem(itemId, updateData);
+  const updatedItem = await workoutRepo.updateWorkoutItem(itemId, updateData);
+
+  if (workout.status === "COMPLETED" && data.notes !== undefined) {
+    await rebuildExerciseStatsFromCompletedWorkouts(userId, item.exerciseId);
+  }
+
+  return updatedItem;
 };
 
 export const deleteWorkoutItem = async (itemId: string, userId: string) => {
@@ -328,6 +334,8 @@ const rebuildExerciseStatsFromCompletedWorkouts = async (
     return;
   }
 
+  const lastNote = await workoutRepo.getLastWorkoutNote(userId, exerciseId);
+
   const lastPoint = progression[progression.length - 1]!;
   const maxPoint = progression.reduce((currentMax, point) =>
     point.maxSetWeight > currentMax.maxSetWeight ? point : currentMax
@@ -341,6 +349,7 @@ const rebuildExerciseStatsFromCompletedWorkouts = async (
     lastReps: lastPoint.repetitionsAtMaxSet,
     lastWorkoutDate: lastPoint.workoutDate,
     totalWorkouts: progression.length,
+    lastNote,
   });
 };
 
