@@ -123,26 +123,6 @@ export function WorkoutDetailScreen({
 
     return map;
   }, [workouts]);
-  const latestNotesByExerciseId = useMemo(() => {
-    const map = new Map<string, string>();
-    const sortedCompletedWorkouts = [...workouts]
-      .filter((entry) => entry.status === "COMPLETED")
-      .sort(
-        (a, b) =>
-          b.workoutDate.localeCompare(a.workoutDate),
-      );
-
-    sortedCompletedWorkouts.forEach((entry) => {
-      entry.items.forEach((item) => {
-        if (map.has(item.exerciseId)) return;
-        const note = item.notes?.trim();
-        if (!note) return;
-        map.set(item.exerciseId, note);
-      });
-    });
-
-    return map;
-  }, [workouts]);
   const orderedWorkoutItems = useMemo(
     () =>
       [...workout.items].sort(
@@ -150,6 +130,52 @@ export function WorkoutDetailScreen({
       ),
     [workout.items],
   );
+  const previousExerciseNoteByItemId = useMemo(() => {
+    const map = new Map<string, string>();
+    const completedByDateAsc = [...workouts]
+      .filter((entry) => entry.status === "COMPLETED")
+      .sort(
+        (a, b) =>
+          b.workoutDate.localeCompare(a.workoutDate),
+      );
+    const currentWorkoutTime = new Date(workout.workoutDate).getTime();
+
+    orderedWorkoutItems.forEach((item) => {
+      // The previous note is useful as a reference even if a new note is being written
+
+      const occurrences = completedByDateAsc.filter((entry) =>
+        entry.items.some((entryItem) => entryItem.exerciseId === item.exerciseId),
+      );
+
+      if (occurrences.length === 0) return;
+
+      const currentCompletedIndex = occurrences.findIndex(
+        (entry) => entry.id === workout.id,
+      );
+
+      let previousOccurrence = null as (typeof occurrences)[number] | null;
+      if (currentCompletedIndex > 0) {
+        previousOccurrence = occurrences[currentCompletedIndex - 1]!;
+      } else if (currentCompletedIndex === -1) {
+        previousOccurrence =
+          occurrences.filter(
+            (entry) => new Date(entry.workoutDate).getTime() < currentWorkoutTime,
+          ).at(-1) ?? null;
+      }
+
+      if (!previousOccurrence) return;
+
+      const previousItem = [...previousOccurrence.items]
+        .sort((a, b) => a.orderInWorkout - b.orderInWorkout)
+        .find((entryItem) => entryItem.exerciseId === item.exerciseId);
+      const previousNote = previousItem?.notes?.trim();
+      if (!previousNote) return;
+
+      map.set(item.id, previousNote);
+    });
+
+    return map;
+  }, [orderedWorkoutItems, workout.id, workout.workoutDate, workouts]);
 
   const handleStartEditInfo = () => {
     setIsEditingInfo(true);
@@ -585,7 +611,7 @@ export function WorkoutDetailScreen({
                 isExpanded={expandedItemId === item.id}
                 stats={allStats.find((s) => s.exerciseId === item.exerciseId)}
                 lastSetsSummary={latestSetsByExerciseId.get(item.exerciseId)}
-                lastExerciseNote={latestNotesByExerciseId.get(item.exerciseId)}
+                lastExerciseNote={previousExerciseNoteByItemId.get(item.id)}
                 onToggleExpand={handleToggleExpand}
                 onUpdateSet={handleUpdateSet}
                 onDeleteSet={handleDeleteSet}
@@ -656,7 +682,7 @@ const WorkoutItemCard = memo(
     const [displayedNotes, setDisplayedNotes] = useState(item.notes ?? "");
 
     const canEdit = !isCompleted || isEditMode;
-    const noteToDisplay = stats?.lastNote?.trim() || lastExerciseNote;
+    const noteToDisplay = lastExerciseNote;
 
     useEffect(() => {
       if (!isEditingNotes) {
@@ -1051,7 +1077,6 @@ const WorkoutItemCard = memo(
       if (prevStats.maxWeight !== nextStats.maxWeight) return false;
       if (prevStats.lastWeight !== nextStats.lastWeight) return false;
       if (prevStats.totalWorkouts !== nextStats.totalWorkouts) return false;
-      if ((prevStats.lastNote ?? null) !== (nextStats.lastNote ?? null)) return false;
     }
     if (prevProps.lastSetsSummary !== nextProps.lastSetsSummary) return false;
     if ((prevProps.lastExerciseNote ?? null) !== (nextProps.lastExerciseNote ?? null)) return false;
