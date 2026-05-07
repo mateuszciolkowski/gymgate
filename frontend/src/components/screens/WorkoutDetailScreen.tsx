@@ -214,6 +214,32 @@ export function WorkoutDetailScreen({
     }
   };
 
+  const handleStartEditCompleted = () => {
+    setEditWorkoutName(workout?.workoutName || "");
+    setEditGymName(workout?.gymName || "");
+    setEditWorkoutNotes(workout?.workoutNotes || "");
+    const date = new Date(workout?.workoutDate || new Date());
+    setEditWorkoutDate(date.toISOString().split("T")[0]);
+    setIsEditMode(true);
+  };
+
+  const handleSaveCompletedEdits = async () => {
+    try {
+      const dateObj = new Date(editWorkoutDate);
+      dateObj.setHours(new Date(workout!.workoutDate).getHours());
+      dateObj.setMinutes(new Date(workout!.workoutDate).getMinutes());
+      await updateWorkout({
+        workoutName: editWorkoutName.trim() || undefined,
+        gymName: editGymName.trim() || undefined,
+        workoutDate: dateObj.toISOString(),
+        workoutNotes: editWorkoutNotes.trim() || undefined,
+      });
+      setIsEditMode(false);
+    } catch {
+      alert("Nie udało się zapisać zmian");
+    }
+  };
+
   const handleDeleteWorkout = async () => {
     if (confirm("Czy na pewno chcesz usunąć ten trening? Tej operacji nie można cofnąć.")) {
       try {
@@ -319,57 +345,153 @@ export function WorkoutDetailScreen({
           </button>
         </div>
 
-        {/* Timer / Duration hero card */}
+        {/* Timer card (DRAFT) / Unified info card (COMPLETED) */}
         {!isCompleted ? (
-          <div
-            className="relative overflow-hidden mb-4 rounded-[22px]"
-            style={{
-              padding: 20,
-              background: "var(--gg-grad)",
-              boxShadow: "0 8px 36px var(--gg-glow)",
-            }}
-          >
+          <>
             <div
-              className="absolute rounded-full"
-              style={{ right: -20, top: -20, width: 100, height: 100, background: "rgba(255,255,255,0.07)" }}
-            />
-            <div className="relative">
+              className="relative overflow-hidden mb-4 rounded-[22px]"
+              style={{
+                padding: 20,
+                background: "var(--gg-grad)",
+                boxShadow: "0 8px 36px var(--gg-glow)",
+              }}
+            >
               <div
-                className="text-[11px] font-bold uppercase tracking-[0.10em] mb-1"
-                style={{ color: "rgba(255,255,255,0.65)" }}
-              >
-                Czas treningu
-              </div>
-              <div
-                className="font-barlow-condensed font-black leading-none mb-2"
-                style={{ fontSize: 52, color: "#fff", letterSpacing: "-0.02em" }}
-              >
-                {fmtTimer(elapsed)}
-              </div>
-              <div className="flex gap-4">
-                <div className="flex items-center gap-1.5">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                  </svg>
-                  <span className="text-[12px] font-semibold" style={{ color: "rgba(255,255,255,0.75)" }}>
-                    W trakcie
-                  </span>
+                className="absolute rounded-full"
+                style={{ right: -20, top: -20, width: 100, height: 100, background: "rgba(255,255,255,0.07)" }}
+              />
+              <div className="relative flex items-center justify-between gap-3">
+                <div>
+                  <div
+                    className="text-[11px] font-bold uppercase tracking-[0.10em] mb-1"
+                    style={{ color: "rgba(255,255,255,0.65)" }}
+                  >
+                    Czas treningu
+                  </div>
+                  <div
+                    className="font-barlow-condensed font-black leading-none mb-2"
+                    style={{ fontSize: 52, color: "#fff", letterSpacing: "-0.02em" }}
+                  >
+                    {fmtTimer(elapsed)}
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex items-center gap-1.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                      </svg>
+                      <span className="text-[12px] font-semibold" style={{ color: "rgba(255,255,255,0.75)" }}>
+                        W trakcie
+                      </span>
+                    </div>
+                    {workout.gymName && (
+                      <div className="flex items-center gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                          <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span className="text-[12px]" style={{ color: "rgba(255,255,255,0.75)" }}>
+                          {workout.gymName}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                {workout.gymName && (
-                  <div className="flex items-center gap-1.5">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
-                      <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                    <span className="text-[12px]" style={{ color: "rgba(255,255,255,0.75)" }}>
-                      {workout.gymName}
-                    </span>
+                {workout.workoutName && (
+                  <div className="text-right flex-shrink-0 max-w-[40%]">
+                    <div
+                      className="font-barlow font-black leading-tight"
+                      style={{ fontSize: 22, color: "var(--gg-a1)", letterSpacing: "-0.02em", wordBreak: "break-word" }}
+                    >
+                      {workout.workoutName}
+                    </div>
                   </div>
                 )}
               </div>
             </div>
-          </div>
+
+            {/* Info card — DRAFT only */}
+            <div
+              className="mb-4 rounded-[18px]"
+              style={{
+                padding: "14px 16px",
+                background: "var(--gg-surface)",
+                border: "1.5px solid var(--gg-border)",
+                boxShadow: "var(--gg-shadow)",
+              }}
+            >
+              {!isEditingInfo && !isEditingNotes ? (
+                <>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Status</span>
+                    <span className="text-[13px] font-bold" style={{ color: "var(--gg-active-border)" }}>W trakcie</span>
+                  </div>
+                  {workout.workoutNotes && (
+                    <div className="mb-3">
+                      <span className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--gg-text-muted)" }}>Notatki</span>
+                      <p className="text-[13px] mt-1 whitespace-pre-wrap" style={{ color: "var(--gg-text)" }}>{workout.workoutNotes}</p>
+                    </div>
+                  )}
+                  <div className="flex gap-4 mt-1">
+                    <button
+                      onClick={handleStartEditInfo}
+                      className="flex items-center gap-1.5 text-[13px] font-semibold border-none bg-transparent cursor-pointer"
+                      style={{ color: "var(--gg-a2)" }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Edytuj
+                    </button>
+                    <button
+                      onClick={handleStartEditNotes}
+                      className="flex items-center gap-1.5 text-[13px] font-semibold border-none bg-transparent cursor-pointer"
+                      style={{ color: "var(--gg-a2)" }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <rect x="9" y="3" width="6" height="4" rx="1" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M9 12h6M9 16h4" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Notatki
+                    </button>
+                  </div>
+                </>
+              ) : isEditingInfo ? (
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Nazwa treningu</label>
+                    <input type="text" value={editWorkoutName} onChange={(e) => setEditWorkoutName(e.target.value)} placeholder="np. Trening nóg" style={inputStyle} />
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Siłownia</label>
+                    <input type="text" value={editGymName} onChange={(e) => setEditGymName(e.target.value)} placeholder="np. McFit" style={inputStyle} />
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Data treningu</label>
+                    <input type="date" value={editWorkoutDate} onChange={(e) => setEditWorkoutDate(e.target.value)} max={new Date().toISOString().split("T")[0]} style={inputStyle} />
+                  </div>
+                  <div className="flex gap-2 mt-1">
+                    <button onClick={() => setIsEditingInfo(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer" style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text-sub)" }}>Anuluj</button>
+                    <button onClick={handleSaveWorkoutInfo} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer text-white border-none" style={{ background: "var(--gg-grad-btn)", boxShadow: "0 3px 14px var(--gg-glow)" }}>Zapisz</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Notatki do treningu</label>
+                    <textarea value={editWorkoutNotes} onChange={(e) => setEditWorkoutNotes(e.target.value)} placeholder="Dodaj notatki do treningu..." rows={4} autoFocus style={{ ...inputStyle, resize: "none" }} />
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setIsEditingNotes(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer" style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text-sub)" }}>Anuluj</button>
+                    <button onClick={handleSaveWorkoutNotes} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer text-white border-none" style={{ background: "var(--gg-grad-btn)", boxShadow: "0 3px 14px var(--gg-glow)" }}>Zapisz notatki</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
         ) : (
+          /* Unified card — COMPLETED */
           <div
             className="mb-4 rounded-[18px]"
             style={{
@@ -379,63 +501,31 @@ export function WorkoutDetailScreen({
               boxShadow: "var(--gg-shadow)",
             }}
           >
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Czas treningu</span>
-              <span className="text-[13px] font-bold" style={{ color: "var(--gg-a2)" }}>
-                {fmtDuration(workout.durationSeconds)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Data</span>
-              <span className="text-[13px] font-bold" style={{ color: "var(--gg-text)" }}>
-                {fmtDate(workout.workoutDate)}
-              </span>
-            </div>
-            {workout.gymName && (
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Siłownia</span>
-                <span className="text-[13px] font-bold" style={{ color: "var(--gg-text)" }}>
-                  {workout.gymName}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Info card (editable) */}
-        <div
-          className="mb-4 rounded-[18px]"
-          style={{
-            padding: "14px 16px",
-            background: "var(--gg-surface)",
-            border: "1.5px solid var(--gg-border)",
-            boxShadow: "var(--gg-shadow)",
-          }}
-        >
-          {!isEditingInfo && !isEditingNotes ? (
-            <>
-              {!isCompleted && (
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Status</span>
-                  <span className="text-[13px] font-bold" style={{ color: "var(--gg-active-border)" }}>
-                    W trakcie
-                  </span>
+            {!isEditMode ? (
+              <>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Czas treningu</span>
+                  <span className="text-[13px] font-bold" style={{ color: "var(--gg-a2)" }}>{fmtDuration(workout.durationSeconds)}</span>
                 </div>
-              )}
-              {workout.workoutNotes && (
-                <div className="mb-3">
-                  <span className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--gg-text-muted)" }}>
-                    Notatki
-                  </span>
-                  <p className="text-[13px] mt-1 whitespace-pre-wrap" style={{ color: "var(--gg-text)" }}>
-                    {workout.workoutNotes}
-                  </p>
+                <div className="flex justify-between items-center">
+                  <span className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Data</span>
+                  <span className="text-[13px] font-bold" style={{ color: "var(--gg-text)" }}>{fmtDate(workout.workoutDate)}</span>
                 </div>
-              )}
-              {canEditWorkout && (
-                <div className="flex gap-4 mt-1">
+                {workout.gymName && (
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Siłownia</span>
+                    <span className="text-[13px] font-bold" style={{ color: "var(--gg-text)" }}>{workout.gymName}</span>
+                  </div>
+                )}
+                {workout.workoutNotes && (
+                  <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--gg-border)" }}>
+                    <span className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--gg-text-muted)" }}>Notatki</span>
+                    <p className="text-[13px] mt-1 whitespace-pre-wrap" style={{ color: "var(--gg-text)" }}>{workout.workoutNotes}</p>
+                  </div>
+                )}
+                <div className="flex justify-end mt-3 pt-2" style={{ borderTop: "1px solid var(--gg-border)" }}>
                   <button
-                    onClick={handleStartEditInfo}
+                    onClick={handleStartEditCompleted}
                     className="flex items-center gap-1.5 text-[13px] font-semibold border-none bg-transparent cursor-pointer"
                     style={{ color: "var(--gg-a2)" }}
                   >
@@ -445,107 +535,34 @@ export function WorkoutDetailScreen({
                     </svg>
                     Edytuj
                   </button>
-                  <button
-                    onClick={handleStartEditNotes}
-                    className="flex items-center gap-1.5 text-[13px] font-semibold border-none bg-transparent cursor-pointer"
-                    style={{ color: "var(--gg-a2)" }}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <rect x="9" y="3" width="6" height="4" rx="1" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M9 12h6M9 16h4" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    Notatki
-                  </button>
-                  {isCompleted && (
-                    <button
-                      onClick={() => { setIsEditMode(!isEditMode); setIsEditingInfo(false); setIsEditingNotes(false); }}
-                      className="text-[13px] font-semibold border-none bg-transparent cursor-pointer ml-auto"
-                      style={{ color: "var(--gg-text-muted)" }}
-                    >
-                      {isEditMode ? "Anuluj edycję" : "Tryb edycji"}
-                    </button>
-                  )}
                 </div>
-              )}
-            </>
-          ) : isEditingInfo ? (
-            <div className="flex flex-col gap-3">
-              <div>
-                <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>
-                  Nazwa treningu
-                </label>
-                <input type="text" value={editWorkoutName} onChange={(e) => setEditWorkoutName(e.target.value)} placeholder="np. Trening nóg" style={inputStyle} />
+              </>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <div>
+                  <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Nazwa treningu</label>
+                  <input type="text" value={editWorkoutName} onChange={(e) => setEditWorkoutName(e.target.value)} placeholder="np. Trening nóg" style={inputStyle} />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Siłownia</label>
+                  <input type="text" value={editGymName} onChange={(e) => setEditGymName(e.target.value)} placeholder="np. McFit" style={inputStyle} />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Data treningu</label>
+                  <input type="date" value={editWorkoutDate} onChange={(e) => setEditWorkoutDate(e.target.value)} max={new Date().toISOString().split("T")[0]} style={inputStyle} />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Notatki</label>
+                  <textarea value={editWorkoutNotes} onChange={(e) => setEditWorkoutNotes(e.target.value)} placeholder="Dodaj notatki do treningu..." rows={3} style={{ ...inputStyle, resize: "none" }} />
+                </div>
+                <div className="flex gap-2 mt-1">
+                  <button onClick={() => setIsEditMode(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer" style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text-sub)" }}>Anuluj</button>
+                  <button onClick={handleSaveCompletedEdits} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer text-white border-none" style={{ background: "var(--gg-grad-btn)", boxShadow: "0 3px 14px var(--gg-glow)" }}>Zapisz</button>
+                </div>
               </div>
-              <div>
-                <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>
-                  Siłownia
-                </label>
-                <input type="text" value={editGymName} onChange={(e) => setEditGymName(e.target.value)} placeholder="np. McFit" style={inputStyle} />
-              </div>
-              <div>
-                <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>
-                  Data treningu
-                </label>
-                <input
-                  type="date"
-                  value={editWorkoutDate}
-                  onChange={(e) => setEditWorkoutDate(e.target.value)}
-                  max={new Date().toISOString().split("T")[0]}
-                  style={inputStyle}
-                />
-              </div>
-              <div className="flex gap-2 mt-1">
-                <button
-                  onClick={() => setIsEditingInfo(false)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer"
-                  style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text-sub)" }}
-                >
-                  Anuluj
-                </button>
-                <button
-                  onClick={handleSaveWorkoutInfo}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer text-white border-none"
-                  style={{ background: "var(--gg-grad-btn)", boxShadow: "0 3px 14px var(--gg-glow)" }}
-                >
-                  Zapisz
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              <div>
-                <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>
-                  Notatki do treningu
-                </label>
-                <textarea
-                  value={editWorkoutNotes}
-                  onChange={(e) => setEditWorkoutNotes(e.target.value)}
-                  placeholder="Dodaj notatki do treningu..."
-                  rows={4}
-                  autoFocus
-                  style={{ ...inputStyle, resize: "none" }}
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setIsEditingNotes(false)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer"
-                  style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text-sub)" }}
-                >
-                  Anuluj
-                </button>
-                <button
-                  onClick={handleSaveWorkoutNotes}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer text-white border-none"
-                  style={{ background: "var(--gg-grad-btn)", boxShadow: "0 3px 14px var(--gg-glow)" }}
-                >
-                  Zapisz notatki
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Action buttons */}
         {canEditWorkout && (
@@ -579,7 +596,7 @@ export function WorkoutDetailScreen({
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12l5 5 9-9"/>
               </svg>
-              {isEditMode ? "Zapisz zmiany" : "Zakończ trening"}
+              {isEditMode ? "Zakończ edycję" : "Zakończ trening"}
             </button>
           </div>
         )}
