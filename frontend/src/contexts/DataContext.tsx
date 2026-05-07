@@ -13,6 +13,7 @@ import React, {
   useMemo,
 } from "react";
 import { localStore } from "../utils/localStore";
+import type { SyncOperation } from "../utils/localStore";
 import { syncManager } from "../utils/syncManager";
 import { authFetch, getAuthHeaders } from "../utils/auth";
 import { useAuth } from "./AuthContext";
@@ -93,6 +94,8 @@ interface DataContextType {
   // Sync
   syncNow: () => Promise<void>;
   refreshWorkout: (id: string) => Promise<void>;
+  failedSyncOperations: SyncOperation[];
+  dismissSyncFailures: () => void;
   getExerciseProgression: (
     exerciseId: string,
     metric?: StatsProgressMetric,
@@ -113,6 +116,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastSync, setLastSync] = useState(0);
+  const [failedSyncOperations, setFailedSyncOperations] = useState<SyncOperation[]>([]);
 
   const initialLoadDone = useRef(false);
   const progressionCacheRef = useRef<Map<string, ExerciseProgression>>(new Map());
@@ -257,12 +261,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const fetchAllFromServer = useCallback(async () => {
     if (!isOnline) return;
 
+    const pendingOps = await localStore.getPendingSyncOperations();
+    const hasPendingWorkoutMutations = pendingOps.some(
+      (op) => op.entity === "workout" || op.entity === "workoutItem" || op.entity === "set",
+    );
+
     try {
       const [workoutsRes, exercisesRes, activeRes, statsRes, overviewRes] =
         await Promise.all([
-          authFetch(`${API_BASE}/api/workouts`).catch(() => null),
+          !hasPendingWorkoutMutations
+            ? authFetch(`${API_BASE}/api/workouts`).catch(() => null)
+            : Promise.resolve(null),
           authFetch(`${API_BASE}/api/exercises`).catch(() => null),
-          authFetch(`${API_BASE}/api/workouts/active`).catch(() => null),
+          !hasPendingWorkoutMutations
+            ? authFetch(`${API_BASE}/api/workouts/active`).catch(() => null)
+            : Promise.resolve(null),
           authFetch(`${API_BASE}/api/workouts/stats/all`).catch(() => null),
           authFetch(`${API_BASE}/api/workouts/stats/overview`).catch(() => null),
         ]);
@@ -388,6 +401,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     // Nasłuchuj na zakończenie synchronizacji
     const unsubscribe = syncManager.onSync(async () => {
+      // Pomiń jeśli lokalne dane nie zostały jeszcze załadowane (Fix C: brak wyścigu)
+      if (!initialLoadDone.current) return;
+
       // Po synchronizacji odśwież dane z lokalnego store
       const [
         localWorkouts,
@@ -436,10 +452,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       // Nie wywołujemy setLastSync - powoduje niepotrzebny re-render
     });
 
+    // Nasłuchuj na permanentnie nieudane operacje (Fix B)
+    const unsubscribeFailure = syncManager.onSyncFailure((ops) => {
+      setFailedSyncOperations((prev) => [...prev, ...ops]);
+    });
+
     syncManager.start();
 
     return () => {
       unsubscribe();
+      unsubscribeFailure();
       syncManager.stop();
     };
   }, [user, invalidateProgressionCache]);
@@ -1604,6 +1626,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     await syncManager.syncNow();
   }, []);
 
+  const dismissSyncFailures = useCallback(() => {
+    setFailedSyncOperations([]);
+  }, []);
+
   const value: DataContextType = useMemo(
     () => ({
       workouts,
@@ -1631,6 +1657,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       syncNow,
       refreshWorkout,
       getExerciseProgression,
+      failedSyncOperations,
+      dismissSyncFailures,
     }),
     [
       workouts,
@@ -1658,6 +1686,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       syncNow,
       refreshWorkout,
       getExerciseProgression,
+      failedSyncOperations,
+      dismissSyncFailures,
     ],
   );
 

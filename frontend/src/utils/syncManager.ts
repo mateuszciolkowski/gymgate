@@ -11,6 +11,7 @@ const SYNC_INTERVAL = 2 * 60 * 1000; // 2 minuty
 const MAX_RETRIES = 3;
 
 type SyncCallback = () => void;
+type SyncFailureCallback = (operations: SyncOperation[]) => void;
 type TempIdMap = Map<string, string>;
 
 const TEMP_ID_GLOBAL_PATTERN = /temp_[a-z]+_[a-z0-9_]+/gi;
@@ -77,6 +78,7 @@ class SyncManager {
   private syncInterval: number | null = null;
   private isSyncing = false;
   private listeners: Set<SyncCallback> = new Set();
+  private failureListeners: Set<SyncFailureCallback> = new Set();
   private isOnline = navigator.onLine;
 
   constructor() {
@@ -133,6 +135,14 @@ class SyncManager {
   }
 
   /**
+   * Dodaj listener na permanentnie nieudane operacje (przekroczone MAX_RETRIES)
+   */
+  onSyncFailure(callback: SyncFailureCallback): () => void {
+    this.failureListeners.add(callback);
+    return () => this.failureListeners.delete(callback);
+  }
+
+  /**
    * Wykonaj synchronizację teraz
    */
   async syncNow(): Promise<void> {
@@ -169,6 +179,7 @@ class SyncManager {
   private async processPendingOperations(): Promise<void> {
     const operations = await localStore.getPendingSyncOperations();
     const tempIdMap: TempIdMap = new Map();
+    const permanentlyFailed: SyncOperation[] = [];
 
     if (operations.length === 0) return;
 
@@ -227,8 +238,8 @@ class SyncManager {
             retries: op.retries + 1,
           });
         } else {
-          // Za dużo prób - usuń
           await localStore.removePendingSync(op.id);
+          permanentlyFailed.push(op);
           console.warn(
             `[SyncManager] Operation ${op.id} failed after ${MAX_RETRIES} retries`,
           );
@@ -239,6 +250,10 @@ class SyncManager {
           error,
         );
       }
+    }
+
+    if (permanentlyFailed.length > 0) {
+      this.failureListeners.forEach((cb) => cb(permanentlyFailed));
     }
   }
 
