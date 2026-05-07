@@ -15,9 +15,7 @@ function computeFirstSetWeightMap(workouts: Workout[]): Map<string, { weight: st
   for (const workout of completed) {
     for (const item of workout.items) {
       if (map.has(item.exerciseId)) continue;
-      const firstSet = item.sets
-        .slice()
-        .sort((a, b) => a.setNumber - b.setNumber)[0];
+      const firstSet = item.sets.find((s) => s.setNumber === 1) ?? item.sets[0];
       if (firstSet) {
         map.set(item.exerciseId, { weight: firstSet.weight, reps: firstSet.repetitions });
       }

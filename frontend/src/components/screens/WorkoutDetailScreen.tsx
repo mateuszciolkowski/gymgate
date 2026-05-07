@@ -219,20 +219,23 @@ export function WorkoutDetailScreen({
     setEditGymName(workout?.gymName || "");
     setEditWorkoutNotes(workout?.workoutNotes || "");
     const date = new Date(workout?.workoutDate || new Date());
-    setEditWorkoutDate(date.toISOString().split("T")[0]);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    setEditWorkoutDate(`${year}-${month}-${day}`);
     setIsEditMode(true);
   };
 
   const handleSaveCompletedEdits = async () => {
     try {
-      const dateObj = new Date(editWorkoutDate);
-      dateObj.setHours(new Date(workout!.workoutDate).getHours());
-      dateObj.setMinutes(new Date(workout!.workoutDate).getMinutes());
+      const [year, month, day] = editWorkoutDate.split("-").map(Number);
+      const dateObj = new Date(workout!.workoutDate);
+      dateObj.setFullYear(year, month - 1, day);
       await updateWorkout({
-        workoutName: editWorkoutName.trim() || undefined,
-        gymName: editGymName.trim() || undefined,
+        workoutName: editWorkoutName.trim() || null,
+        gymName: editGymName.trim() || null,
         workoutDate: dateObj.toISOString(),
-        workoutNotes: editWorkoutNotes.trim() || undefined,
+        workoutNotes: editWorkoutNotes.trim() || null,
       });
       setIsEditMode(false);
     } catch {
