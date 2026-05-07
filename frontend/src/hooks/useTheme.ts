@@ -1,52 +1,40 @@
 import { useState, useEffect } from "react";
 
-type Theme = "light" | "dark";
+export type Theme = "dark" | "light" | "violet" | "blossom";
+
+const VALID_THEMES: Theme[] = ["dark", "light", "violet", "blossom"];
 
 interface UseThemeReturn {
   theme: Theme;
-  toggleTheme: () => void;
+  setTheme: (t: Theme) => void;
   isDark: boolean;
 }
 
+function applyThemeClass(theme: Theme) {
+  const html = document.documentElement;
+  html.classList.remove("dark", "violet", "blossom");
+  if (theme === "dark") html.classList.add("dark");
+  if (theme === "violet") html.classList.add("violet");
+  if (theme === "blossom") html.classList.add("blossom");
+}
+
 export function useTheme(): UseThemeReturn {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem("theme");
-    const initialTheme: Theme =
-      stored === "dark" || stored === "light" ? stored : "dark";
-
-    if (initialTheme === "dark") {
-      document.documentElement.classList.add("dark");
-      document.body.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      document.body.classList.remove("dark");
-    }
-
-    return initialTheme;
+  const [theme, setThemeState] = useState<Theme>(() => {
+    const stored = localStorage.getItem("theme") as Theme | null;
+    const initial: Theme =
+      stored && VALID_THEMES.includes(stored) ? stored : "dark";
+    applyThemeClass(initial);
+    return initial;
   });
 
   useEffect(() => {
     localStorage.setItem("theme", theme);
-
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-      document.body.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      document.body.classList.remove("dark");
-    }
+    applyThemeClass(theme);
   }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => {
-      const newTheme = prev === "dark" ? "light" : "dark";
-      return newTheme;
-    });
-  };
 
   return {
     theme,
-    toggleTheme,
+    setTheme: setThemeState,
     isDark: theme === "dark",
   };
 }

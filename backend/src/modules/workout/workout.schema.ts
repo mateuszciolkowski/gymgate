@@ -19,6 +19,7 @@ const updateWorkoutBody = z.object({
   gymName: z.string().optional(),
   location: z.string().optional(),
   workoutNotes: z.string().optional(),
+  durationSeconds: z.number().int().nonnegative().optional(),
 });
 
 export const updateWorkoutSchema = z.object({

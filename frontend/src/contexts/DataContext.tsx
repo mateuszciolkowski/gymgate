@@ -92,7 +92,7 @@ interface DataContextType {
     itemId: string,
     setId: string,
   ) => Promise<void>;
-  completeWorkout: (id: string) => Promise<void>;
+  completeWorkout: (id: string, durationSeconds?: number) => Promise<void>;
 
   // Sync
   syncNow: () => Promise<void>;
@@ -1615,8 +1615,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   );
 
   const completeWorkout = useCallback(
-    async (id: string) => {
-      await updateWorkout(id, { status: "COMPLETED" });
+    async (id: string, durationSeconds?: number) => {
+      await updateWorkout(id, {
+        status: "COMPLETED",
+        ...(durationSeconds !== undefined && { durationSeconds }),
+      });
       await refreshStatsData();
       await invalidateProgressionCache();
     },
@@ -1793,7 +1796,7 @@ export function useWorkoutData(id: string) {
       deleteExercise: (itemId: string) => removeExerciseFromWorkout(id, itemId),
       updateExerciseNotes: (itemId: string, notes: string) =>
         updateWorkoutItem(id, itemId, { notes }),
-      completeWorkout: () => completeWorkout(id),
+      completeWorkout: (durationSeconds?: number) => completeWorkout(id, durationSeconds),
       updateWorkout: (data: Record<string, unknown>) => updateWorkout(id, data),
     }),
     [

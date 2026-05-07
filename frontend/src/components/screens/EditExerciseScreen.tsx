@@ -1,8 +1,6 @@
 import { memo, useState, useEffect } from 'react'
-import { ScreenContainer, ScreenHeader } from '../ui'
-import { TrashIcon } from '../icons'
 import type { Exercise } from '../../hooks/useExercises'
-import { MUSCLE_GROUPS } from '../../constants'  
+import { MUSCLE_GROUPS } from '../../constants'
 
 interface EditExerciseScreenProps {
   exercise: Exercise
@@ -10,10 +8,33 @@ interface EditExerciseScreenProps {
   onUpdate: (id: string, data: { name?: string; muscleGroups?: string[]; description?: string }) => Promise<void>
 }
 
-export const EditExerciseScreen = memo(function EditExerciseScreen({ 
+const fieldStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "13px 14px",
+  borderRadius: 14,
+  fontSize: 14,
+  color: "var(--gg-text)",
+  background: "var(--gg-surface)",
+  border: "1.5px solid var(--gg-border)",
+  outline: "none",
+  fontFamily: "'DM Sans', sans-serif",
+  boxShadow: "var(--gg-shadow)",
+}
+
+const labelStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 700,
+  color: "var(--gg-text-sub)",
+  letterSpacing: "0.06em",
+  textTransform: "uppercase",
+  display: "block",
+  marginBottom: 8,
+}
+
+export const EditExerciseScreen = memo(function EditExerciseScreen({
   exercise,
-  onBack, 
-  onUpdate 
+  onBack,
+  onUpdate
 }: EditExerciseScreenProps) {
   const [name, setName] = useState(exercise.name)
   const [selectedGroups, setSelectedGroups] = useState<string[]>(exercise.muscleGroups)
@@ -23,48 +44,36 @@ export const EditExerciseScreen = memo(function EditExerciseScreen({
   const [hasChanges, setHasChanges] = useState(false)
 
   useEffect(() => {
-    const changed = 
+    const changed =
       name !== exercise.name ||
       description !== (exercise.description || '') ||
-      JSON.stringify(selectedGroups.sort()) !== JSON.stringify(exercise.muscleGroups.sort())
-    
+      JSON.stringify([...selectedGroups].sort()) !== JSON.stringify([...exercise.muscleGroups].sort())
     setHasChanges(changed)
   }, [name, description, selectedGroups, exercise])
 
-  const addMuscleGroup = () => {
-    setSelectedGroups([...selectedGroups, ''])
-  }
-
-  const removeMuscleGroup = (index: number) => {
-    setSelectedGroups(selectedGroups.filter((_, i) => i !== index))
-  }
-
-  const updateMuscleGroup = (index: number, value: string) => {
-    const newGroups = [...selectedGroups]
-    newGroups[index] = value
-    setSelectedGroups(newGroups)
+  const addMuscleGroup = () => setSelectedGroups([...selectedGroups, ''])
+  const removeMuscleGroup = (i: number) => setSelectedGroups(selectedGroups.filter((_, idx) => idx !== i))
+  const updateMuscleGroup = (i: number, v: string) => {
+    const g = [...selectedGroups]
+    g[i] = v
+    setSelectedGroups(g)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
     const validGroups = selectedGroups.filter(g => g.trim() !== '')
-    
     if (!name.trim() || validGroups.length === 0) {
       setError('Wypełnij nazwę i wybierz przynajmniej jedną grupę mięśniową')
       return
     }
-
     try {
       setIsSubmitting(true)
       setError(null)
-      
       await onUpdate(exercise.id, {
         name: name.trim(),
         muscleGroups: validGroups,
         description: description.trim() || undefined
       })
-      
       onBack()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Błąd aktualizacji ćwiczenia')
@@ -74,125 +83,134 @@ export const EditExerciseScreen = memo(function EditExerciseScreen({
   }
 
   return (
-    <ScreenContainer>
-      <ScreenHeader 
-        title="Edytuj ćwiczenie" 
-        subtitle={exercise.name}
-        onBack={onBack}
-      />
-      
-      <div className="mt-6">
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            {/* Nazwa */}
-            <div>
-              <label 
-                htmlFor="name" 
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Nazwa ćwiczenia
-              </label>
-              <input 
-                type="text" 
-                id="name" 
-                value={name} 
-                onChange={e => setName(e.target.value)}
-                className="block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Grupy mięśniowe */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Grupy mięśniowe
-              </label>
-              
-              <div className="space-y-2">
-                {selectedGroups.map((group, index) => (
-                  <div key={index} className="flex gap-2">
-                    <select
-                      value={group}
-                      onChange={(e) => updateMuscleGroup(index, e.target.value)}
-                      className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
-                      disabled={isSubmitting}
-                    >
-                      <option value="">-- Wybierz grupę --</option>
-                      {MUSCLE_GROUPS.map(mg => (
-                        <option 
-                          key={mg.value} 
-                          value={mg.value}
-                          disabled={selectedGroups.includes(mg.value) && selectedGroups[index] !== mg.value}
-                        >
-                          {mg.label}
-                        </option>
-                      ))}
-                    </select>
-                    
-                    {selectedGroups.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeMuscleGroup(index)}
-                        className="p-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                        disabled={isSubmitting}
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {selectedGroups.length < MUSCLE_GROUPS.length && (
-                <button
-                  type="button"
-                  onClick={addMuscleGroup}
-                  className="mt-2 text-sm text-emerald-600 dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400"
-                  disabled={isSubmitting}
-                >
-                  + Dodaj grupę mięśniową
-                </button>
-              )}
-            </div>
-
-            {/* Opis */}
-            <div>
-              <label 
-                htmlFor="description" 
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Opis (opcjonalny)
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                rows={3}
-                className="block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Błąd */}
-            {error && (
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Przycisk */}
-          <div className="mt-6">
-            <button
-              type="submit"
-              disabled={isSubmitting || !hasChanges}
-              className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? 'Zapisywanie...' : 'Zapisz zmiany'}
-            </button>
-          </div>
-        </form>
+    <div className="px-5 pt-5 screen-enter">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={onBack}
+          className="flex items-center justify-center w-[38px] h-[38px] rounded-[12px] flex-shrink-0 cursor-pointer"
+          style={{ background: "var(--gg-surface2)", border: "1px solid var(--gg-border)" }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        <div>
+          <h2
+            className="font-barlow font-black"
+            style={{ fontSize: 26, letterSpacing: "-0.02em", color: "var(--gg-text)" }}
+          >
+            Edytuj ćwiczenie
+          </h2>
+          <p className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+            {exercise.name}
+          </p>
+        </div>
       </div>
-    </ScreenContainer>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div>
+          <label style={labelStyle}>Nazwa ćwiczenia</label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            disabled={isSubmitting}
+            style={fieldStyle}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Grupy mięśniowe</label>
+          <div className="flex flex-col gap-2">
+            {selectedGroups.map((group, i) => (
+              <div key={i} className="flex gap-2">
+                <select
+                  value={group}
+                  onChange={(e) => updateMuscleGroup(i, e.target.value)}
+                  disabled={isSubmitting}
+                  style={{ ...fieldStyle, flex: 1 }}
+                >
+                  <option value="">-- Wybierz grupę --</option>
+                  {MUSCLE_GROUPS.map(mg => (
+                    <option
+                      key={mg.value}
+                      value={mg.value}
+                      disabled={selectedGroups.includes(mg.value) && selectedGroups[i] !== mg.value}
+                    >
+                      {mg.label}
+                    </option>
+                  ))}
+                </select>
+                {selectedGroups.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeMuscleGroup(i)}
+                    disabled={isSubmitting}
+                    className="flex items-center justify-center w-11 rounded-[12px] cursor-pointer flex-shrink-0"
+                    style={{ background: "var(--gg-surface)", border: "1.5px solid var(--gg-border)" }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gg-error)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14H6L5 6"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          {selectedGroups.length < MUSCLE_GROUPS.length && (
+            <button
+              type="button"
+              onClick={addMuscleGroup}
+              disabled={isSubmitting}
+              className="mt-2 text-[13px] font-semibold border-none bg-transparent cursor-pointer"
+              style={{ color: "var(--gg-a2)" }}
+            >
+              + Dodaj grupę mięśniową
+            </button>
+          )}
+        </div>
+
+        <div>
+          <label style={labelStyle}>
+            Opis{" "}
+            <span style={{ color: "var(--gg-text-muted)", textTransform: "none", fontWeight: 400 }}>
+              (opcjonalny)
+            </span>
+          </label>
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            rows={3}
+            placeholder="Dodaj opis ćwiczenia..."
+            disabled={isSubmitting}
+            style={{ ...fieldStyle, resize: "none" }}
+          />
+        </div>
+
+        {error && (
+          <div
+            className="rounded-[12px] text-[13px]"
+            style={{ padding: "12px 14px", background: "rgba(239,68,68,0.08)", border: "1.5px solid rgba(239,68,68,0.25)", color: "var(--gg-error)" }}
+          >
+            {error}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isSubmitting || !hasChanges}
+          className="w-full font-bold text-[15px] text-white rounded-[15px] border-none cursor-pointer disabled:opacity-50"
+          style={{
+            padding: 15,
+            background: "var(--gg-grad-btn)",
+            boxShadow: "0 4px 24px var(--gg-glow)",
+          }}
+        >
+          {isSubmitting ? "Zapisywanie..." : "Zapisz zmiany"}
+        </button>
+      </form>
+    </div>
   )
 })

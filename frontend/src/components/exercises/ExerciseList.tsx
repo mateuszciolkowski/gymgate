@@ -1,6 +1,4 @@
 import { useState, useMemo } from "react";
-import { FilterChip } from "../ui";
-import { EditIcon, TrashIcon } from "../icons";
 import { useData } from "@/contexts/DataContext";
 import type { Exercise } from "@/hooks/useExercises";
 import type { ExerciseStats } from "@/types";
@@ -22,253 +20,177 @@ export function ExerciseList({
   onDeleteExercise,
   excludeExerciseIds = [],
 }: ExerciseListProps) {
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<
-    string | undefined
-  >(undefined);
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | undefined>(undefined);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [showOnlyPerformed, setShowOnlyPerformed] = useState(false);
   const [showOnlyMyExercises, setShowOnlyMyExercises] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const {
-    exercises: allExercises,
-    stats: allStats,
-    isLoading: loading,
-  } = useData();
+  const { exercises: allExercises, stats: allStats, isLoading: loading } = useData();
   const { user } = useAuth();
 
-  // Filter exercises by muscle group
   const exercises = useMemo(() => {
     if (!selectedMuscleGroup) return allExercises;
-    return allExercises.filter((ex) =>
-      ex.muscleGroups.includes(selectedMuscleGroup),
-    );
+    return allExercises.filter((ex) => ex.muscleGroups.includes(selectedMuscleGroup));
   }, [allExercises, selectedMuscleGroup]);
 
-  const filteredAndSortedExercises = useMemo(() => {
-    let filtered = [...exercises];
+  const filtered = useMemo(() => {
+    let list = [...exercises];
 
     if (user) {
-      filtered = filtered.filter(
-        (ex) =>
-          ex.creator.id === "1" || String(ex.creator.id) === String(user.id),
-      );
+      list = list.filter((ex) => ex.creator.id === "1" || String(ex.creator.id) === String(user.id));
     }
 
     if (mode === "select" && excludeExerciseIds.length > 0) {
-      filtered = filtered.filter((ex) => !excludeExerciseIds.includes(ex.id));
+      list = list.filter((ex) => !excludeExerciseIds.includes(ex.id));
     }
 
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (ex) =>
-          ex.name.toLowerCase().includes(query) ||
-          ex.muscleGroups.some((mg) => mg.toLowerCase().includes(query)),
+      const q = searchQuery.toLowerCase();
+      list = list.filter(
+        (ex) => ex.name.toLowerCase().includes(q) || ex.muscleGroups.some((mg) => mg.toLowerCase().includes(q)),
       );
     }
 
     if (showOnlyMyExercises && user) {
-      filtered = filtered.filter(
-        (ex) => String(ex.creator.id) === String(user.id),
-      );
+      list = list.filter((ex) => String(ex.creator.id) === String(user.id));
     }
 
     if (showOnlyPerformed) {
       const performedIds = new Set(allStats.map((s) => s.exerciseId));
-      filtered = filtered.filter((ex) => performedIds.has(ex.id));
-
-      filtered.sort((a, b) => {
-        const aPerformed = performedIds.has(a.id);
-        const bPerformed = performedIds.has(b.id);
-        if (aPerformed && !bPerformed) return -1;
-        if (!aPerformed && bPerformed) return 1;
-        return 0;
-      });
+      list = list.filter((ex) => performedIds.has(ex.id));
     }
 
-    filtered.sort((a, b) => {
-      if (sortOrder === "asc") {
-        return a.name.localeCompare(b.name, "pl");
-      } else {
-        return b.name.localeCompare(a.name, "pl");
-      }
-    });
+    list.sort((a, b) => sortOrder === "asc" ? a.name.localeCompare(b.name, "pl") : b.name.localeCompare(a.name, "pl"));
+    return list;
+  }, [exercises, excludeExerciseIds, searchQuery, showOnlyMyExercises, user, showOnlyPerformed, allStats, sortOrder, mode]);
 
-    return filtered;
-  }, [
-    exercises,
-    excludeExerciseIds,
-    searchQuery,
-    showOnlyMyExercises,
-    user,
-    showOnlyPerformed,
-    allStats,
-    sortOrder,
-    mode,
-  ]);
-
-  const toggleFilter = (muscleGroup: string) => {
-    setSelectedMuscleGroup((prev) =>
-      prev === muscleGroup ? undefined : muscleGroup,
-    );
-  };
-
-  const clearFilters = () => {
-    setSelectedMuscleGroup(undefined);
-  };
+  const filterBtnStyle = (active: boolean): React.CSSProperties => ({
+    padding: "5px 13px",
+    borderRadius: 20,
+    fontSize: 12,
+    fontWeight: 600,
+    background: active ? "var(--gg-grad-btn)" : "var(--gg-surface2)",
+    color: active ? "#fff" : "var(--gg-text-muted)",
+    border: "none",
+    cursor: "pointer",
+    boxShadow: active ? "0 2px 10px var(--gg-glow-sm)" : "none",
+    transition: "all 0.2s",
+  });
 
   return (
     <div className="flex flex-col">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="relative">
+      {/* Search */}
+      <div className="px-5 pt-4 pb-3" style={{ borderBottom: "1px solid var(--gg-border)" }}>
+        <div
+          className="flex items-center gap-2.5 rounded-[14px]"
+          style={{
+            padding: "11px 14px",
+            background: "var(--gg-surface)",
+            border: "1.5px solid var(--gg-border)",
+            boxShadow: "var(--gg-shadow)",
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>
+          </svg>
           <input
             type="text"
             placeholder="Szukaj ćwiczenia..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 pl-11 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="flex-1 border-none outline-none bg-transparent text-[14px]"
+            style={{ color: "var(--gg-text)", fontFamily: "'DM Sans', sans-serif" }}
           />
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-            />
-          </svg>
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="border-none bg-transparent cursor-pointer"
+              style={{ color: "var(--gg-text-muted)" }}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-5 h-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              ✕
             </button>
           )}
         </div>
       </div>
 
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex gap-2 flex-wrap items-center">
+      {/* Sort + filter pills */}
+      <div className="px-5 py-3 flex gap-1.5 flex-wrap" style={{ borderBottom: "1px solid var(--gg-border)" }}>
         <button
           onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-          className="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center gap-1"
+          style={filterBtnStyle(true)}
         >
           {sortOrder === "asc" ? "A→Z" : "Z→A"}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-4 h-4"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d={
-                sortOrder === "asc"
-                  ? "M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18"
-                  : "M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"
-              }
-            />
-          </svg>
         </button>
         <button
           onClick={() => setShowOnlyPerformed(!showOnlyPerformed)}
-          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-            showOnlyPerformed
-              ? "bg-purple-600 text-white shadow-md"
-              : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-          }`}
+          style={filterBtnStyle(showOnlyPerformed)}
         >
-          {showOnlyPerformed ? "✓ Wykonywane" : "Wykonywane"}
+          Wykonywane
         </button>
         <button
           onClick={() => setShowOnlyMyExercises(!showOnlyMyExercises)}
-          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-            showOnlyMyExercises
-              ? "bg-emerald-600 text-white shadow-md"
-              : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-          }`}
+          style={filterBtnStyle(showOnlyMyExercises)}
         >
-          {showOnlyMyExercises ? "✓ Moje" : "Moje"}
+          Moje
         </button>
       </div>
 
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        {selectedMuscleGroup && (
-          <div className="mb-2 flex justify-end">
-            <button
-              onClick={clearFilters}
-              className="text-xs text-emerald-600 dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 font-medium"
-            >
-              ✕ Wyczyść partie
-            </button>
-          </div>
-        )}
-        <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-          <div className="flex gap-2 pb-2 min-w-min">
-            {MUSCLE_GROUPS.map((group) => (
-              <FilterChip
+      {/* Muscle group chips */}
+      <div className="px-5 py-3 overflow-x-auto scrollbar-hide" style={{ borderBottom: "1px solid var(--gg-border)" }}>
+        <div className="flex gap-1.5 min-w-min pb-0.5">
+          {MUSCLE_GROUPS.map((group) => {
+            const isActive = selectedMuscleGroup === group.value;
+            return (
+              <button
                 key={group.value}
-                label={group.label}
-                isActive={selectedMuscleGroup === group.value}
-                onClick={() => toggleFilter(group.value)}
-              />
-            ))}
-          </div>
+                onClick={() => setSelectedMuscleGroup(isActive ? undefined : group.value)}
+                className="text-[12px] font-semibold whitespace-nowrap flex-shrink-0 cursor-pointer"
+                style={{
+                  padding: "5px 14px",
+                  borderRadius: 20,
+                  border: `1.5px solid ${isActive ? "var(--gg-text)" : "var(--gg-border)"}`,
+                  background: isActive ? "var(--gg-text)" : "transparent",
+                  color: isActive ? "var(--gg-bg)" : "var(--gg-text-sub)",
+                  transition: "all 0.2s",
+                }}
+              >
+                {group.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div className="p-4 pb-6">
+      {/* List */}
+      <div className="px-5 py-4 pb-6 flex flex-col gap-2.5">
         {loading ? (
-          <div className="text-center py-12">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                Ładowanie...
-              </p>
-            </div>
+          <div className="flex flex-col items-center gap-2 py-10">
+            <div
+              className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+              style={{ borderColor: "var(--gg-a1)", borderTopColor: "transparent" }}
+            />
+            <p className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Ładowanie...</p>
           </div>
-        ) : filteredAndSortedExercises.length === 0 ? (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-10 text-[13px]" style={{ color: "var(--gg-text-muted)" }}>
             {mode === "select" && excludeExerciseIds.length > 0
-              ? "Wszystkie ćwiczenia zostały już dodane do treningu"
+              ? "Wszystkie ćwiczenia zostały już dodane"
               : "Nie znaleziono ćwiczeń"}
           </div>
         ) : (
-          <div className="space-y-3">
-            {filteredAndSortedExercises.map((exercise) => (
-              <ExerciseItem
-                key={exercise.id}
-                exercise={exercise}
-                mode={mode}
-                stats={allStats.find((s) => s.exerciseId === exercise.id)}
-                onSelect={onSelectExercise}
-                onEdit={onEditExercise}
-                onDelete={onDeleteExercise}
-              />
-            ))}
-          </div>
+          filtered.map((exercise) => (
+            <ExerciseItem
+              key={exercise.id}
+              exercise={exercise}
+              mode={mode}
+              stats={allStats.find((s) => s.exerciseId === exercise.id)}
+              onSelect={onSelectExercise}
+              onEdit={onEditExercise}
+              onDelete={onDeleteExercise}
+              performedHighlight={showOnlyPerformed}
+            />
+          ))
         )}
       </div>
     </div>
@@ -282,112 +204,119 @@ interface ExerciseItemProps {
   onSelect?: (exerciseId: string) => void;
   onEdit?: (exercise: Exercise) => void;
   onDelete?: (id: string, name: string) => void;
+  performedHighlight?: boolean;
 }
 
-function ExerciseItem({
-  exercise,
-  mode,
-  stats,
-  onSelect,
-  onEdit,
-  onDelete,
-}: ExerciseItemProps) {
+function ExerciseItem({ exercise, mode, stats, onSelect, onEdit, onDelete, performedHighlight }: ExerciseItemProps) {
   const { user } = useAuth();
-
   const canEdit = user && String(exercise.creator.id) === String(user.id);
-
-  const handleClick = () => {
-    if (mode === "select" && onSelect) {
-      onSelect(exercise.id);
-    }
-  };
+  const isPerformed = performedHighlight && !!stats;
 
   return (
     <div
-      onClick={handleClick}
-      className={`p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors ${
-        mode === "select"
-          ? "cursor-pointer hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/10"
-          : "hover:border-emerald-300 dark:hover:border-emerald-700"
-      }`}
+      onClick={mode === "select" ? () => onSelect?.(exercise.id) : undefined}
+      className="rounded-[20px] transition-all duration-150"
+      style={{
+        padding: "14px 16px",
+        background: "var(--gg-surface)",
+        border: isPerformed ? "1.5px solid var(--gg-a1)" : "1.5px solid var(--gg-border)",
+        boxShadow: isPerformed ? "var(--gg-shadow-glow)" : "var(--gg-shadow)",
+        cursor: mode === "select" ? "pointer" : "default",
+      }}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between mb-2">
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              {exercise.name}
-            </h3>
-            {mode === "select" && (
-              <span className="text-emerald-600 dark:text-emerald-400 text-lg font-bold ml-2">
-                +
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-wrap gap-1 mt-1">
-            {exercise.muscleGroups.map((mg) => {
-              const group = MUSCLE_GROUPS.find((g) => g.value === mg);
-              return (
-                <span
-                  key={mg}
-                  className="inline-block px-2 py-0.5 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full"
-                >
-                  {group?.label || mg}
-                </span>
-              );
-            })}
-          </div>
-
-          {exercise.description && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
-              {exercise.description}
-            </p>
-          )}
-
-          {stats && (
-            <div className="flex gap-4 text-sm mt-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
-              <span className="text-purple-700 dark:text-purple-300">
-                Ostatnio:{" "}
-                <strong>
-                  {stats.lastWeight} kg × {stats.lastReps}
-                </strong>
-              </span>
-              <span className="text-purple-700 dark:text-purple-300">
-                Rekord:{" "}
-                <strong>
-                  {stats.maxWeight} kg × {stats.maxWeightReps}
-                </strong>
-              </span>
-            </div>
-          )}
-
+      <div className="flex justify-between items-start mb-2">
+        <h3
+          className="font-barlow font-bold text-[14px] flex-1 leading-snug"
+          style={{ color: "var(--gg-text)" }}
+        >
           {exercise.creator.id !== "1" && (
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-              Dodane przez: {exercise.creator.firstName}{" "}
-              {exercise.creator.lastName}
-            </p>
+            <svg
+              width="13" height="13" viewBox="0 0 24 24" fill="none"
+              stroke="var(--gg-a1)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+              style={{ display: "inline", marginRight: 5, marginBottom: 1, verticalAlign: "middle", flexShrink: 0 }}
+            >
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          )}
+          {exercise.name}
+        </h3>
+        <div className="flex gap-1.5 flex-shrink-0 ml-2">
+          {mode === "select" ? (
+            <div
+              className="flex items-center justify-center w-[30px] h-[30px] rounded-[9px]"
+              style={{ background: "var(--gg-record-bg)", border: "1px solid var(--gg-border-med)" }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gg-a1)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="4" x2="12" y2="20"/>
+                <line x1="4" y1="12" x2="20" y2="12"/>
+              </svg>
+            </div>
+          ) : canEdit && (
+            <>
+              <button
+                onClick={() => onEdit?.(exercise)}
+                className="flex items-center justify-center w-[30px] h-[30px] rounded-[8px] border-none cursor-pointer"
+                style={{ background: "var(--gg-surface2)" }}
+                title="Edytuj"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="1.5">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              <button
+                onClick={() => onDelete?.(exercise.id, exercise.name)}
+                className="flex items-center justify-center w-[30px] h-[30px] rounded-[8px] border-none cursor-pointer"
+                style={{ background: "var(--gg-surface2)" }}
+                title="Usuń"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>
+                </svg>
+              </button>
+            </>
           )}
         </div>
-
-        {mode === "manage" && canEdit && (
-          <div className="flex gap-1">
-            <button
-              onClick={() => onEdit?.(exercise)}
-              className="p-2 text-gray-600 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-500 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-              title="Edytuj"
-            >
-              <EditIcon className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => onDelete?.(exercise.id, exercise.name)}
-              className="p-2 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-              title="Usuń"
-            >
-              <TrashIcon className="w-5 h-5" />
-            </button>
-          </div>
-        )}
       </div>
+
+      {/* Tags */}
+      <div className="flex gap-1.5 flex-wrap mb-1.5">
+        {exercise.muscleGroups.map((mg) => {
+          const group = MUSCLE_GROUPS.find((g) => g.value === mg);
+          return (
+            <span
+              key={mg}
+              className="text-[10px] font-bold tracking-[0.06em]"
+              style={{ color: "var(--gg-tag-text)", background: "var(--gg-tag-bg)", padding: "3px 10px", borderRadius: 20 }}
+            >
+              {group?.label || mg}
+            </span>
+          );
+        })}
+      </div>
+
+      {exercise.description && (
+        <p className="text-[12px] mb-1.5 line-clamp-2" style={{ color: "var(--gg-text-muted)" }}>
+          {exercise.description}
+        </p>
+      )}
+
+      {stats && (
+        <div
+          className="flex gap-3 rounded-[12px] mt-2"
+          style={{ padding: "9px 12px", background: "var(--gg-record-bg)" }}
+        >
+          <span className="text-[11px]" style={{ color: "var(--gg-text-sub)" }}>
+            Ostatnio: <strong style={{ color: "var(--gg-text)" }}>{stats.lastWeight} kg × {stats.lastReps}</strong>
+          </span>
+          <div style={{ width: 1, background: "var(--gg-border)" }} />
+          <span className="text-[11px]" style={{ color: "var(--gg-text-sub)" }}>
+            Rekord: <strong className="grad-text">{stats.maxWeight} kg × {stats.maxWeightReps}</strong>
+          </span>
+        </div>
+      )}
     </div>
   );
 }

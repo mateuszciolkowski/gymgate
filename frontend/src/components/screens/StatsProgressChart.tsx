@@ -18,8 +18,15 @@ export const StatsProgressChart = memo(function StatsProgressChart({
 }: StatsProgressChartProps) {
   if (points.length === 0) {
     return (
-      <div className="bg-accent-50 dark:bg-gray-900 rounded-xl h-40 flex items-center justify-center border border-gray-300 dark:border-gray-700 transition-colors">
-        <p className="text-gray-600 dark:text-gray-500 text-sm">
+      <div
+        className="rounded-[20px] flex items-center justify-center"
+        style={{
+          height: 120,
+          background: "var(--gg-surface)",
+          border: "1.5px solid var(--gg-border)",
+        }}
+      >
+        <p className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>
           Wykres pojawi się po zakończonych treningach
         </p>
       </div>
@@ -30,13 +37,9 @@ export const StatsProgressChart = memo(function StatsProgressChart({
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = Math.max(max - min, 1);
-  const yAxisValues = [...new Set(values.map((value) => Number(value.toFixed(1))))].sort(
-    (a, b) => a - b,
-  );
+  const yAxisValues = [...new Set(values.map((v) => Number(v.toFixed(1))))].sort((a, b) => a - b);
   const firstDate = new Date(points[0]!.workoutDate).toLocaleDateString("pl-PL");
-  const lastDate = new Date(
-    points[points.length - 1]!.workoutDate,
-  ).toLocaleDateString("pl-PL");
+  const lastDate = new Date(points[points.length - 1]!.workoutDate).toLocaleDateString("pl-PL");
   const chartLeft = 18;
   const chartRight = 96;
   const chartTop = 8;
@@ -52,26 +55,28 @@ export const StatsProgressChart = memo(function StatsProgressChart({
     return chartLeft + (index / (points.length - 1)) * (chartRight - chartLeft);
   };
 
-  const polyline = points
-    .map((point, index) => `${plotX(index)},${plotY(point.value)}`)
-    .join(" ");
+  const polyline = points.map((p, i) => `${plotX(i)},${plotY(p.value)}`).join(" ");
+  const latestValue = values[values.length - 1]!;
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-300 dark:border-gray-700 p-4">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
-        <span className="text-sm font-semibold text-gray-900 dark:text-white">
-          {latestFormatter
-            ? latestFormatter(values[values.length - 1]!)
-            : `${values[values.length - 1]!.toFixed(1)}${ySuffix}`}
+    <div
+      className="rounded-[20px]"
+      style={{
+        padding: "16px",
+        background: "var(--gg-surface)",
+        border: "1.5px solid var(--gg-border)",
+        boxShadow: "var(--gg-shadow)",
+      }}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[12px] font-semibold" style={{ color: "var(--gg-text-muted)" }}>
+          {label}
+        </span>
+        <span className="font-barlow-condensed font-bold text-[18px]" style={{ color: "var(--gg-a1)" }}>
+          {latestFormatter ? latestFormatter(latestValue) : `${latestValue.toFixed(1)}${ySuffix}`}
         </span>
       </div>
-      <svg
-        viewBox="0 0 100 60"
-        role="img"
-        aria-label={label}
-        style={{ width: "100%", height }}
-      >
+      <svg viewBox="0 0 100 60" role="img" aria-label={label} style={{ width: "100%", height }}>
         {yAxisValues.map((axisValue) => (
           <line
             key={axisValue}
@@ -79,28 +84,21 @@ export const StatsProgressChart = memo(function StatsProgressChart({
             y1={plotY(axisValue)}
             x2={chartRight}
             y2={plotY(axisValue)}
-            stroke="currentColor"
-            className="text-gray-200 dark:text-gray-800"
+            stroke="var(--gg-border)"
             strokeWidth="0.45"
             strokeDasharray="1.5 1.5"
           />
         ))}
         <line
-          x1={chartLeft}
-          y1={chartTop}
-          x2={chartLeft}
-          y2={chartBottom}
-          stroke="currentColor"
-          className="text-gray-300 dark:text-gray-700"
+          x1={chartLeft} y1={chartTop}
+          x2={chartLeft} y2={chartBottom}
+          stroke="var(--gg-border-med)"
           strokeWidth="0.8"
         />
         <line
-          x1={chartLeft}
-          y1={chartBottom}
-          x2={chartRight}
-          y2={chartBottom}
-          stroke="currentColor"
-          className="text-gray-300 dark:text-gray-700"
+          x1={chartLeft} y1={chartBottom}
+          x2={chartRight} y2={chartBottom}
+          stroke="var(--gg-border-med)"
           strokeWidth="0.8"
         />
         {yAxisValues.map((axisValue) => (
@@ -109,32 +107,17 @@ export const StatsProgressChart = memo(function StatsProgressChart({
             x="1"
             y={plotY(axisValue) + 1.5}
             fontSize="3.6"
-            className="fill-gray-600 dark:fill-gray-400"
+            fill="var(--gg-text-muted)"
           >
             {`${axisValue.toFixed(1)}${ySuffix}`}
           </text>
         ))}
-        <text
-          x={chartLeft}
-          y="54"
-          fontSize="4"
-          className="fill-gray-600 dark:fill-gray-400"
-        >
-          {firstDate}
-        </text>
-        <text
-          x={chartRight - 20}
-          y="54"
-          fontSize="4"
-          className="fill-gray-600 dark:fill-gray-400"
-        >
-          {lastDate}
-        </text>
+        <text x={chartLeft} y="54" fontSize="4" fill="var(--gg-text-muted)">{firstDate}</text>
+        <text x={chartRight - 20} y="54" fontSize="4" fill="var(--gg-text-muted)">{lastDate}</text>
         <polyline
           points={polyline}
           fill="none"
-          stroke="currentColor"
-          className="text-emerald-500"
+          stroke="#059669"
           strokeWidth="1.2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -145,7 +128,7 @@ export const StatsProgressChart = memo(function StatsProgressChart({
             cx={plotX(index)}
             cy={plotY(point.value)}
             r="1.3"
-            className="fill-emerald-500"
+            fill="#34D399"
           />
         ))}
       </svg>

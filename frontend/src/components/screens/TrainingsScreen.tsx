@@ -1,17 +1,94 @@
 import { memo, useMemo, useState } from "react";
-import { ScreenContainer, ScreenHeader, EmptyState } from "@/components/ui";
-import { ArchiveIcon } from "@/components/icons";
+import { EmptyState } from "@/components/ui";
 import { useData } from "@/contexts/DataContext";
 import { WorkoutFormModal } from "@/components/modals";
+import type { Workout } from "@/types";
 
 interface TrainingsScreenProps {
   onSelectWorkout: (workoutId: string) => void;
 }
 
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("pl-PL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function formatDuration(seconds: number | null | undefined): string {
+  if (!seconds) return "–";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h > 0) return `${h}h ${m}min`;
+  return `${m}min`;
+}
+
+const WorkoutCard = memo(function WorkoutCard({
+  workout,
+  onClick,
+}: {
+  workout: Workout;
+  onClick: () => void;
+}) {
+  const exercisesCount = workout.items.length;
+  const setsCount = workout.items.reduce((s, i) => s + i.sets.length, 0);
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left cursor-pointer transition-all duration-150 active:scale-[0.99]"
+      style={{
+        background: "var(--gg-surface)",
+        border: "1.5px solid var(--gg-border)",
+        borderRadius: 18,
+        padding: "14px 16px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        boxShadow: "var(--gg-shadow)",
+      }}
+    >
+      <div>
+        <div
+          className="font-barlow font-extrabold text-[15px] mb-0.5"
+          style={{ color: "var(--gg-text)" }}
+        >
+          {workout.workoutName || "Trening"}
+        </div>
+        <div className="text-[12px]" style={{ color: "var(--gg-text-muted)" }}>
+          {formatDate(workout.workoutDate)}
+        </div>
+        {workout.gymName && (
+          <div className="text-[11px] italic mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+            {workout.gymName}
+          </div>
+        )}
+        {workout.durationSeconds != null && (
+          <div className="text-[11px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+            ⏱ {formatDuration(workout.durationSeconds)}
+          </div>
+        )}
+      </div>
+      <div className="text-right flex-shrink-0 ml-3">
+        <div
+          className="font-barlow-condensed font-black text-[16px] leading-none grad-text"
+          style={{ letterSpacing: "0.01em" }}
+        >
+          {exercisesCount} ćwiczeń
+        </div>
+        <div className="text-[11px] mt-1" style={{ color: "var(--gg-text-muted)" }}>
+          {setsCount} serii
+        </div>
+      </div>
+    </button>
+  );
+});
+
 export const TrainingsScreen = memo(function TrainingsScreen({
   onSelectWorkout,
 }: TrainingsScreenProps) {
-  const { workouts, isLoading: loading, createWorkout } = useData();
+  const { workouts, isLoading: loading, createWorkout, statsOverview } = useData();
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [dateSort, setDateSort] = useState<"desc" | "asc">("desc");
 
@@ -24,173 +101,211 @@ export const TrainingsScreen = memo(function TrainingsScreen({
       const newWorkout = await createWorkout(data);
       setIsFormModalOpen(false);
       onSelectWorkout(newWorkout.id);
-    } catch (err) {
+    } catch {
       alert("Błąd tworzenia treningu");
     }
   };
 
-  const sortByWorkoutDate = (a: { workoutDate: string }, b: { workoutDate: string }) => {
-    const first = new Date(a.workoutDate).getTime();
-    const second = new Date(b.workoutDate).getTime();
-    return dateSort === "desc" ? second - first : first - second;
+  const sortFn = (a: Workout, b: Workout) => {
+    const diff = new Date(b.workoutDate).getTime() - new Date(a.workoutDate).getTime();
+    return dateSort === "desc" ? diff : -diff;
   };
 
   const draftWorkouts = useMemo(
-    () => workouts.filter((w) => w.status === "DRAFT").sort(sortByWorkoutDate),
+    () => workouts.filter((w) => w.status === "DRAFT").sort(sortFn),
     [workouts, dateSort],
   );
   const completedWorkouts = useMemo(
-    () => workouts.filter((w) => w.status === "COMPLETED").sort(sortByWorkoutDate),
+    () => workouts.filter((w) => w.status === "COMPLETED").sort(sortFn),
     [workouts, dateSort],
   );
 
   if (loading) {
     return (
-      <ScreenContainer>
-        <ScreenHeader title="Treningi" subtitle="Historia Twoich treningów" />
-        <div className="mt-6 flex items-center justify-center py-12">
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Ładowanie...
-            </p>
+      <div className="px-5 pt-5 screen-enter">
+        <div className="flex items-center justify-center py-20">
+          <div className="flex flex-col items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin"
+              style={{ borderColor: "var(--gg-a1)", borderTopColor: "transparent" }}
+            />
+            <p className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Ładowanie...</p>
           </div>
         </div>
-      </ScreenContainer>
+      </div>
     );
   }
 
-  return (
-    <ScreenContainer>
-      <ScreenHeader
-        title="Treningi"
-        subtitle={`${completedWorkouts.length} zakończonych`}
-      />
+  const totalWorkouts = statsOverview?.workoutsLastYear ?? completedWorkouts.length;
 
+  return (
+    <div className="px-5 pt-5 screen-enter">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-5">
+        <div>
+          <p
+            className="text-[11px] font-bold uppercase tracking-[0.12em] mb-1"
+            style={{ color: "var(--gg-text-muted)" }}
+          >
+            Twoja historia
+          </p>
+          <h1
+            className="font-barlow font-black leading-none"
+            style={{ fontSize: 36, letterSpacing: "-0.03em", color: "var(--gg-text)" }}
+          >
+            Treningi
+          </h1>
+        </div>
+      </div>
+
+      {/* Streak / stats hero card */}
+      <div
+        className="relative overflow-hidden mb-5 rounded-[22px]"
+        style={{
+          background: "var(--gg-grad)",
+          padding: "18px 20px",
+          boxShadow: "0 8px 36px var(--gg-glow)",
+        }}
+      >
+        <div
+          className="absolute rounded-full"
+          style={{ right: -24, top: -24, width: 120, height: 120, background: "rgba(255,255,255,0.07)" }}
+        />
+        <div
+          className="absolute rounded-full"
+          style={{ right: 16, bottom: -28, width: 72, height: 72, background: "rgba(255,255,255,0.05)" }}
+        />
+        <div className="relative">
+          <div
+            className="text-[11px] font-bold uppercase tracking-[0.10em] mb-1"
+            style={{ color: "rgba(255,255,255,0.65)" }}
+          >
+            Treningi w tym roku
+          </div>
+          <div
+            className="font-barlow-condensed font-black leading-none mb-1"
+            style={{ fontSize: 46, color: "#fff", letterSpacing: "-0.02em" }}
+          >
+            {totalWorkouts} 🔥
+          </div>
+          <div className="text-[12px] font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>
+            {completedWorkouts.length} zakończonych
+            {statsOverview?.totalSets ? ` · ${statsOverview.totalSets} serii` : ""}
+          </div>
+        </div>
+      </div>
+
+      {/* Draft workouts */}
       {draftWorkouts.length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+        <div className="mb-5">
+          <div className="text-[13px] font-bold mb-2.5" style={{ color: "var(--gg-text)" }}>
             Treningi w trakcie
-          </h3>
-          <div className="space-y-3">
+          </div>
+          <div className="flex flex-col gap-2.5">
             {draftWorkouts.map((workout) => (
               <button
                 key={workout.id}
                 onClick={() => onSelectWorkout(workout.id)}
-                className="w-full block p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border-2 border-yellow-300 dark:border-yellow-700 hover:border-yellow-400 dark:hover:border-yellow-600 transition-colors text-left"
+                className="w-full text-left cursor-pointer transition-all duration-150 active:scale-[0.99]"
+                style={{
+                  background: "var(--gg-active-bg)",
+                  border: "1.5px solid var(--gg-active-border)",
+                  borderRadius: 18,
+                  padding: "16px 18px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  boxShadow: "0 0 0 1px rgba(245,158,11,0.13), 0 4px 24px var(--gg-active-glow)",
+                }}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {workout.workoutName || "Trening bez nazwy"}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {new Date(workout.workoutDate).toLocaleDateString(
-                        "pl-PL",
-                      )}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {workout.items.length} ćwiczeń •{" "}
-                      {workout.items.reduce(
-                        (sum, item) => sum + item.sets.length,
-                        0,
-                      )}{" "}
-                      serii
-                    </p>
+                <div>
+                  <div
+                    className="font-barlow font-extrabold text-[16px] mb-0.5"
+                    style={{ color: "var(--gg-text)" }}
+                  >
+                    {workout.workoutName || "Trening bez nazwy"}
                   </div>
-                  <span className="px-3 py-1 bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 text-xs font-medium rounded-full">
-                    W trakcie
-                  </span>
+                  <div className="text-[12px]" style={{ color: "var(--gg-text-muted)" }}>
+                    {formatDate(workout.workoutDate)}
+                    {workout.gymName ? ` · ${workout.gymName}` : ""}
+                  </div>
+                  <div className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+                    {workout.items.length} ćwiczeń ·{" "}
+                    {workout.items.reduce((s, i) => s + i.sets.length, 0)} serii
+                  </div>
                 </div>
+                <span
+                  className="text-[12px] font-bold text-white flex-shrink-0 ml-3"
+                  style={{
+                    background: "var(--gg-active-border)",
+                    borderRadius: 20,
+                    padding: "5px 13px",
+                  }}
+                >
+                  W trakcie
+                </span>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      <div className="mt-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+      {/* History */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[13px] font-bold" style={{ color: "var(--gg-text)" }}>
             Historia treningów
-          </h3>
-          <div className="inline-flex rounded-md border border-gray-300 dark:border-gray-700 overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setDateSort("desc")}
-              className={`px-2 py-1 text-xs transition-colors ${
-                dateSort === "desc"
-                  ? "bg-emerald-500 text-white"
-                  : "bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
-              }`}
-            >
-              Data ↓
-            </button>
-            <button
-              type="button"
-              onClick={() => setDateSort("asc")}
-              className={`px-2 py-1 text-xs transition-colors border-l border-gray-300 dark:border-gray-700 ${
-                dateSort === "asc"
-                  ? "bg-emerald-500 text-white"
-                  : "bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
-              }`}
-            >
-              Data ↑
-            </button>
+          </span>
+          <div className="flex gap-1.5">
+            {(["Nowe", "Stare"] as const).map((label, i) => {
+              const isActive = (i === 0 && dateSort === "desc") || (i === 1 && dateSort === "asc");
+              return (
+                <button
+                  key={label}
+                  onClick={() => setDateSort(i === 0 ? "desc" : "asc")}
+                  className="text-[12px] font-semibold cursor-pointer transition-all duration-200 border-none"
+                  style={{
+                    padding: "5px 13px",
+                    borderRadius: 20,
+                    background: isActive ? "var(--gg-grad-btn)" : "var(--gg-surface2)",
+                    color: isActive ? "#fff" : "var(--gg-text-muted)",
+                    boxShadow: isActive ? "0 2px 10px var(--gg-glow-sm)" : "none",
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
+
         {completedWorkouts.length === 0 && draftWorkouts.length === 0 ? (
           <EmptyState
             title="Brak zapisanych treningów"
-            description="Kliknij 'Rozpocznij trening' aby dodać pierwszy"
-            icon={<ArchiveIcon className="w-12 h-12" />}
+            description="Kliknij FAB aby dodać pierwszy trening"
+            icon={
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="6" y1="5" x2="18" y2="5"/>
+                <line x1="6" y1="19" x2="18" y2="19"/>
+                <line x1="4" y1="8" x2="4" y2="16"/>
+                <line x1="20" y1="8" x2="20" y2="16"/>
+                <line x1="2" y1="10" x2="2" y2="14"/>
+                <line x1="22" y1="10" x2="22" y2="14"/>
+              </svg>
+            }
           />
         ) : completedWorkouts.length === 0 ? (
-          <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+          <p className="text-center py-8 text-[13px]" style={{ color: "var(--gg-text-muted)" }}>
             Brak zakończonych treningów
           </p>
         ) : (
-          <div className="space-y-3">
+          <div className="flex flex-col gap-2.5">
             {completedWorkouts.map((workout) => (
-              <button
+              <WorkoutCard
                 key={workout.id}
+                workout={workout}
                 onClick={() => onSelectWorkout(workout.id)}
-                className="w-full block p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-colors text-left"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {workout.workoutName || "Trening"}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {new Date(workout.workoutDate).toLocaleDateString(
-                        "pl-PL",
-                        {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        },
-                      )}
-                    </p>
-                    {workout.gymName && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {workout.gymName}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-500">
-                      {workout.items.length} ćwiczeń
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {workout.items.reduce(
-                        (sum, item) => sum + item.sets.length,
-                        0,
-                      )}{" "}
-                      serii
-                    </p>
-                  </div>
-                </div>
-              </button>
+              />
             ))}
           </div>
         )}
@@ -202,6 +317,6 @@ export const TrainingsScreen = memo(function TrainingsScreen({
           onSubmit={handleFormSubmit}
         />
       )}
-    </ScreenContainer>
+    </div>
   );
 });

@@ -17,11 +17,9 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     const dateObj = new Date(workoutDate);
     dateObj.setHours(new Date().getHours());
     dateObj.setMinutes(new Date().getMinutes());
-
     onSubmit({
       workoutName: workoutName.trim() || undefined,
       gymName: gymName.trim() || undefined,
@@ -29,88 +27,162 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
     });
   };
 
+  const formattedDate = new Date(workoutDate).toLocaleDateString("pl-PL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "13px 14px",
+    borderRadius: 14,
+    fontSize: 14,
+    color: "var(--gg-text)",
+    background: "var(--gg-surface2)",
+    border: "1.5px solid var(--gg-border)",
+    outline: "none",
+    fontFamily: "'DM Sans', sans-serif",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "var(--gg-text-sub)",
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
+    display: "block",
+    marginBottom: 8,
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full shadow-2xl">
-        <div className="p-6">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-            Nowy trening
-          </h2>
+    <div
+      className="absolute inset-0 z-50 flex items-end"
+      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        className="w-full"
+        style={{
+          background: "var(--gg-surface)",
+          borderRadius: "28px 28px 0 0",
+          padding: "28px 24px 48px",
+          border: "1.5px solid var(--gg-border-med)",
+          boxShadow: "0 -8px 40px rgba(0,0,0,0.6)",
+        }}
+      >
+        {/* Handle */}
+        <div
+          className="mx-auto mb-6"
+          style={{ width: 40, height: 4, borderRadius: 2, background: "var(--gg-surface3)" }}
+        />
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="workoutName"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Nazwa treningu (opcjonalnie)
-              </label>
-              <input
-                type="text"
-                id="workoutName"
-                value={workoutName}
-                onChange={(e) => setWorkoutName(e.target.value)}
-                placeholder="np. Trening nóg"
-                className="w-full h-11 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
+        <h2
+          className="font-barlow font-black mb-1"
+          style={{ fontSize: 26, letterSpacing: "-0.02em", color: "var(--gg-text)" }}
+        >
+          Nowy trening
+        </h2>
+        <p className="text-[13px] mb-6" style={{ color: "var(--gg-text-muted)" }}>
+          Wypełnij dane i zacznij trenować
+        </p>
 
-            <div>
-              <label
-                htmlFor="gymName"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Nazwa siłowni (opcjonalnie)
-              </label>
-              <input
-                type="text"
-                id="gymName"
-                value={gymName}
-                onChange={(e) => setGymName(e.target.value)}
-                placeholder="np. McFit"
-                className="w-full h-11 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <label style={labelStyle}>
+              Nazwa treningu{" "}
+              <span style={{ color: "var(--gg-text-muted)", textTransform: "none", fontWeight: 400 }}>
+                (opcjonalnie)
+              </span>
+            </label>
+            <input
+              type="text"
+              value={workoutName}
+              onChange={(e) => setWorkoutName(e.target.value)}
+              placeholder="np. Trening nóg"
+              style={inputStyle}
+            />
+          </div>
 
-            <div>
-              <label
-                htmlFor="workoutDate"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Data treningu
-              </label>
-              <input
-                type="date"
-                id="workoutDate"
-                value={workoutDate}
-                onChange={(e) => setWorkoutDate(e.target.value)}
-                max={today}
-                className="w-full h-11 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none"
-                style={{
-                  colorScheme: "dark",
-                  WebkitAppearance: "none",
-                  MozAppearance: "none",
-                }}
-              />
-            </div>
+          <div>
+            <label style={labelStyle}>
+              Siłownia{" "}
+              <span style={{ color: "var(--gg-text-muted)", textTransform: "none", fontWeight: 400 }}>
+                (opcjonalnie)
+              </span>
+            </label>
+            <input
+              type="text"
+              value={gymName}
+              onChange={(e) => setGymName(e.target.value)}
+              placeholder="np. McFit, Just Gym"
+              style={inputStyle}
+            />
+          </div>
 
-            <div className="flex gap-3 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
-              >
-                Anuluj
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition-colors"
-              >
-                Rozpocznij
-              </button>
+          <div>
+            <label style={labelStyle}>Data treningu</label>
+            <input
+              type="date"
+              value={workoutDate}
+              onChange={(e) => setWorkoutDate(e.target.value)}
+              max={today}
+              style={{
+                ...inputStyle,
+                display: "none",
+              }}
+              id="workout-date-input"
+            />
+            <div
+              onClick={() => document.getElementById("workout-date-input")?.click()}
+              style={{
+                padding: "13px 14px",
+                borderRadius: 14,
+                background: "var(--gg-surface2)",
+                border: "1.5px solid var(--gg-border)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                cursor: "pointer",
+              }}
+            >
+              <span style={{ fontSize: 14, color: "var(--gg-text)" }}>{formattedDate}</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
             </div>
-          </form>
-        </div>
+          </div>
+
+          <div className="grid gap-3 pt-2" style={{ gridTemplateColumns: "1fr 1.6fr" }}>
+            <button
+              type="button"
+              onClick={onClose}
+              className="font-dm-sans font-bold text-[15px] rounded-[15px] cursor-pointer"
+              style={{
+                padding: 15,
+                background: "var(--gg-surface2)",
+                border: "1.5px solid var(--gg-border)",
+                color: "var(--gg-text-sub)",
+              }}
+            >
+              Anuluj
+            </button>
+            <button
+              type="submit"
+              className="font-dm-sans font-bold text-[15px] rounded-[15px] cursor-pointer text-white border-none"
+              style={{
+                padding: 15,
+                background: "var(--gg-grad-btn)",
+                boxShadow: "0 4px 20px var(--gg-glow)",
+              }}
+            >
+              Rozpocznij →
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
