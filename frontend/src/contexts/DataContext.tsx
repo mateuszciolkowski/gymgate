@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * DataContext - Globalny store dla danych aplikacji
  * Offline-first approach z prostym cache'em
@@ -13,11 +14,14 @@ import React, {
   useMemo,
 } from "react";
 import { localStore } from "../utils/localStore";
+import type { SyncOperation } from "../utils/localStore";
 import { syncManager } from "../utils/syncManager";
 import { authFetch, getAuthHeaders } from "../utils/auth";
 import { useAuth } from "./AuthContext";
 import type {
   Workout,
+  WorkoutItem,
+  WorkoutSet,
   ExerciseStats,
   ExerciseProgression,
   StatsOverview,
@@ -93,6 +97,8 @@ interface DataContextType {
   // Sync
   syncNow: () => Promise<void>;
   refreshWorkout: (id: string) => Promise<void>;
+  failedSyncOperations: SyncOperation[];
+  dismissSyncFailures: () => void;
   getExerciseProgression: (
     exerciseId: string,
     metric?: StatsProgressMetric,
@@ -113,6 +119,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastSync, setLastSync] = useState(0);
+  const [failedSyncOperations, setFailedSyncOperations] = useState<SyncOperation[]>([]);
 
   const initialLoadDone = useRef(false);
   const progressionCacheRef = useRef<Map<string, ExerciseProgression>>(new Map());
@@ -257,12 +264,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const fetchAllFromServer = useCallback(async () => {
     if (!isOnline) return;
 
+    const pendingOps = await localStore.getPendingSyncOperations();
+    const hasPendingWorkoutMutations = pendingOps.some(
+      (op) => op.entity === "workout" || op.entity === "workoutItem" || op.entity === "set",
+    );
+
     try {
       const [workoutsRes, exercisesRes, activeRes, statsRes, overviewRes] =
         await Promise.all([
-          authFetch(`${API_BASE}/api/workouts`).catch(() => null),
+          !hasPendingWorkoutMutations
+            ? authFetch(`${API_BASE}/api/workouts`).catch(() => null)
+            : Promise.resolve(null),
           authFetch(`${API_BASE}/api/exercises`).catch(() => null),
-          authFetch(`${API_BASE}/api/workouts/active`).catch(() => null),
+          !hasPendingWorkoutMutations
+            ? authFetch(`${API_BASE}/api/workouts/active`).catch(() => null)
+            : Promise.resolve(null),
           authFetch(`${API_BASE}/api/workouts/stats/all`).catch(() => null),
           authFetch(`${API_BASE}/api/workouts/stats/overview`).catch(() => null),
         ]);
@@ -388,6 +404,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     // Nasłuchuj na zakończenie synchronizacji
     const unsubscribe = syncManager.onSync(async () => {
+      // Pomiń jeśli lokalne dane nie zostały jeszcze załadowane (Fix C: brak wyścigu)
+      if (!initialLoadDone.current) return;
+
       // Po synchronizacji odśwież dane z lokalnego store
       const [
         localWorkouts,
@@ -436,10 +455,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       // Nie wywołujemy setLastSync - powoduje niepotrzebny re-render
     });
 
+    // Nasłuchuj na permanentnie nieudane operacje (Fix B)
+    const unsubscribeFailure = syncManager.onSyncFailure((ops) => {
+      setFailedSyncOperations((prev) => [...prev, ...ops]);
+    });
+
     syncManager.start();
 
     return () => {
       unsubscribe();
+      unsubscribeFailure();
       syncManager.stop();
     };
   }, [user, invalidateProgressionCache]);
@@ -877,7 +902,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             ...newItem,
             orderInWorkout: w.items.length + 1,
           };
-          updatedWorkout = { ...w, items: [...w.items, itemWithOrder as any] };
+          updatedWorkout = { ...w, items: [...w.items, itemWithOrder as WorkoutItem] };
           return updatedWorkout;
         }),
       );
@@ -993,7 +1018,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const removedItem = originalWorkout?.items.find((item) => item.id === itemId);
       const shouldRefreshStats = originalWorkout?.status === "COMPLETED";
       // Zapisz oryginalny item do rollbacku
-      let originalItem: any = null;
+      let originalItem: WorkoutItem | null = null;
 
       // Optymistyczna aktualizacja
       let updatedWorkout: Workout | null = null;
@@ -1001,7 +1026,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         // Znajdź oryginalny item przed usunięciem
         const workout = prev.find((w) => w.id === workoutId);
         if (workout) {
-          originalItem = workout.items.find((i) => i.id === itemId);
+          originalItem = workout.items.find((i) => i.id === itemId) ?? null;
         }
 
         return prev.map((w) => {
@@ -1056,11 +1081,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                 if (w.id !== workoutId) return w;
                 restoredWorkout = {
                   ...w,
-                  items: [...w.items, originalItem].sort(
+                  items: [...w.items, originalItem!].sort(
                     (a, b) => a.orderInWorkout - b.orderInWorkout,
                   ),
                 };
-                return restoredWorkout;
+                return restoredWorkout!;
               }),
             );
             if (restoredWorkout) {
@@ -1321,8 +1346,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const exerciseId = workoutsRef.current
         .find((workout) => workout.id === workoutId)
         ?.items.find((item) => item.sets.some((set) => set.id === setId))?.exerciseId;
-      // Zapisz oryginalne wartości do rollbacku (używamy ref do przechowania)
-      let originalSet: any = null;
+      let originalSet: WorkoutSet | null = null;
 
       // Optymistyczna aktualizacja - znajdź original w callback
       let updatedWorkout: Workout | null = null;
@@ -1420,10 +1444,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                 ...w,
                 items: w.items.map((item) => ({
                   ...item,
-                  sets: item.sets.map((s) => (s.id === setId ? originalSet : s)),
+                  sets: item.sets.map((s) => (s.id === setId ? originalSet! : s)),
                 })),
               };
-              return restoredWorkout;
+              return restoredWorkout!;
             }),
           );
           if (restoredWorkout) {
@@ -1443,8 +1467,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const exerciseId = workoutsRef.current
         .find((workout) => workout.id === workoutId)
         ?.items.find((item) => item.id === itemId)?.exerciseId;
-      // Zapisz oryginalną serię do rollbacku (w callback)
-      let originalSet: any = null;
+      let originalSet: WorkoutSet | null = null;
 
       // Optymistyczna aktualizacja - znajdź original w callback
       let updatedWorkout: Workout | null = null;
@@ -1529,13 +1552,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                   if (item.id !== itemId) return item;
                   return {
                     ...item,
-                    sets: [...item.sets, originalSet].sort(
+                    sets: [...item.sets, originalSet!].sort(
                       (a, b) => a.setNumber - b.setNumber,
                     ),
                   };
                 }),
               };
-              return restoredWorkout;
+              return restoredWorkout!;
             }),
           );
           if (restoredWorkout) {
@@ -1607,6 +1630,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     await syncManager.syncNow();
   }, []);
 
+  const dismissSyncFailures = useCallback(() => {
+    setFailedSyncOperations([]);
+  }, []);
+
   const value: DataContextType = useMemo(
     () => ({
       workouts,
@@ -1634,6 +1661,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       syncNow,
       refreshWorkout,
       getExerciseProgression,
+      failedSyncOperations,
+      dismissSyncFailures,
     }),
     [
       workouts,
@@ -1661,6 +1690,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       syncNow,
       refreshWorkout,
       getExerciseProgression,
+      failedSyncOperations,
+      dismissSyncFailures,
     ],
   );
 
@@ -1765,7 +1796,7 @@ export function useWorkoutData(id: string) {
       deleteExercise: (itemId: string) => removeExerciseFromWorkout(id, itemId),
       updateExerciseNotes: (itemId: string, notes: string) =>
         updateWorkoutItem(id, itemId, { notes }),
-      completeWorkout: () => completeWorkout(id),
+      completeWorkout: (durationSeconds?: number) => completeWorkout(id, durationSeconds),
       updateWorkout: (data: Record<string, unknown>) => updateWorkout(id, data),
     }),
     [

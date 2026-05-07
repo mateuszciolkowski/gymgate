@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "gymgate-e2e-test-suite-v4",
+    "_postman_id": "gymgate-e2e-test-suite-v5",
     "name": "GymGate API – E2E Test Suite",
-    "description": "# GymGate E2E Test Suite\n\n## Uruchomienie przez Newman (terminal):\n```\nnewman run GymGate_API.postman_collection.json --delay-request 150\n```\n\n## Uruchomienie przez Postman GUI:\nKliknij prawym → Run collection → Run\n\nScenariusze obejmują flow podstawowy i jednorazowe notatki ćwiczeń.",
+    "description": "# GymGate E2E Test Suite\n\nKolekcja do automatycznych testów end-to-end. Uruchamia się sekwencyjnie – każdy krok zależy od poprzedniego.\n\n## Uruchomienie przez Newman (terminal)\n```bash\nnewman run GymGate_API_E2E.postman_collection.json --delay-request 150\n```\n\n## Uruchomienie przez Postman GUI\nKliknij prawym → Run collection → Run\n\n## Scenariusze\n- `[01–09]`  Health check + Auth (rejestracja, logowanie, walidacje)\n- `[10–14]`  Exercises CRUD\n- `[15–30]`  Workouts, Items, Sets, Statistics\n- `[31–46]`  Notes E2E – przenoszenie notatek (A→B jednorazowo, C nie dostaje)\n- `[47–54]`  Cleanup + weryfikacja usunięcia",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -16,6 +16,7 @@
     { "key": "setId2", "value": "", "type": "string" },
     { "key": "setId3", "value": "", "type": "string" },
     { "key": "testEmail", "value": "", "type": "string" },
+    { "key": "expectedLastNote", "value": "", "type": "string" },
     { "key": "workoutIdA", "value": "", "type": "string" },
     { "key": "workoutIdB", "value": "", "type": "string" },
     { "key": "workoutIdC", "value": "", "type": "string" },
@@ -92,9 +93,9 @@
       }
     },
     {
-      "name": "[05] AUTH – Walidacja: nieprawidlowy email → 400",
+      "name": "[05] AUTH – Walidacja: nieprawidłowy email → 400",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[05] Zly email zwraca 400', () => pm.response.to.have.status(400));",
+        "pm.test('[05] Zły email zwraca 400', () => pm.response.to.have.status(400));",
         "pm.test('[05] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
       ], "type": "text/javascript" }}],
       "request": {
@@ -124,9 +125,9 @@
       }
     },
     {
-      "name": "[07] AUTH – Walidacja: zle haslo → 401",
+      "name": "[07] AUTH – Walidacja: złe hasło → 401",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[07] Zle haslo zwraca 401', () => pm.response.to.have.status(401));",
+        "pm.test('[07] Złe hasło zwraca 401', () => pm.response.to.have.status(401));",
         "pm.test('[07] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
       ], "type": "text/javascript" }}],
       "request": {
@@ -140,8 +141,8 @@
       "name": "[08] AUTH – GET /me (z tokenem)",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[08] GET /me zwraca 200 OK', () => pm.response.to.have.status(200));",
-        "pm.test('[08] Zawiera email uzytkownika', () => { const j = pm.response.json(); pm.expect(j.success).to.be.true; pm.expect(j.data.email).to.eql(pm.collectionVariables.get('testEmail')); });",
-        "pm.test('[08] Nie zawiera hasla', () => pm.expect(pm.response.json().data).to.not.have.property('password'));"
+        "pm.test('[08] Zawiera email użytkownika', () => { const j = pm.response.json(); pm.expect(j.success).to.be.true; pm.expect(j.data.email).to.eql(pm.collectionVariables.get('testEmail')); });",
+        "pm.test('[08] Nie zawiera hasła', () => pm.expect(pm.response.json().data).to.not.have.property('password'));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "GET",
@@ -161,18 +162,18 @@
       }
     },
     {
-      "name": "[10] EXERCISES – Stworzenie cwiczenia",
+      "name": "[10] EXERCISES – Stworzenie ćwiczenia",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[10] Tworzenie cwiczenia zwraca 201 Created', () => pm.response.to.have.status(201));",
-        "pm.test('[10] Zawiera id cwiczenia', () => {",
+        "pm.test('[10] Tworzenie ćwiczenia zwraca 201 Created', () => pm.response.to.have.status(201));",
+        "pm.test('[10] Zawiera id ćwiczenia', () => {",
         "  const j = pm.response.json();",
         "  pm.expect(j.success).to.be.true;",
         "  pm.expect(j.data.id).to.be.a('string');",
         "  pm.collectionVariables.set('exerciseId', j.data.id);",
         "  console.log('exerciseId:', j.data.id);",
         "});",
-        "pm.test('[10] Cwiczenie ma poprawna nazwe', () => pm.expect(pm.response.json().data.name).to.eql('E2E Exercise'));",
-        "pm.test('[10] Cwiczenie ma grupy miesniowe', () => pm.expect(pm.response.json().data.muscleGroups).to.be.an('array').with.length.above(0));"
+        "pm.test('[10] Ćwiczenie ma poprawną nazwę', () => pm.expect(pm.response.json().data.name).to.eql('E2E Exercise'));",
+        "pm.test('[10] Ćwiczenie ma grupy mięśniowe', () => pm.expect(pm.response.json().data.muscleGroups).to.be.an('array').with.length.above(0));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "POST",
@@ -185,14 +186,14 @@
       }
     },
     {
-      "name": "[11] EXERCISES – Pobieranie listy cwiczen",
+      "name": "[11] EXERCISES – Pobieranie listy ćwiczeń",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[11] Lista cwiczen zwraca 200 OK', () => pm.response.to.have.status(200));",
-        "pm.test('[11] Zawiera tablice i count', () => { const j = pm.response.json(); pm.expect(j.data).to.be.an('array'); pm.expect(j.count).to.be.a('number'); });",
-        "pm.test('[11] Lista zawiera nowe cwiczenie E2E', () => {",
+        "pm.test('[11] Lista ćwiczeń zwraca 200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('[11] Zawiera tablicę i count', () => { const j = pm.response.json(); pm.expect(j.data).to.be.an('array'); pm.expect(j.count).to.be.a('number'); });",
+        "pm.test('[11] Lista zawiera nowe ćwiczenie E2E', () => {",
         "  const j = pm.response.json();",
         "  const found = j.data.find(e => e.id === pm.collectionVariables.get('exerciseId'));",
-        "  pm.expect(found, 'Cwiczenie E2E nie znalezione').to.not.be.undefined;",
+        "  pm.expect(found, 'Ćwiczenie E2E nie znalezione').to.not.be.undefined;",
         "});"
       ], "type": "text/javascript" }}],
       "request": {
@@ -202,10 +203,10 @@
       }
     },
     {
-      "name": "[12] EXERCISES – Pobieranie cwiczenia po ID",
+      "name": "[12] EXERCISES – Pobieranie ćwiczenia po ID",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[12] Pobieranie cwiczenia po ID zwraca 200', () => pm.response.to.have.status(200));",
-        "pm.test('[12] Cwiczenie ma poprawne ID', () => pm.expect(pm.response.json().data.id).to.eql(pm.collectionVariables.get('exerciseId')));"
+        "pm.test('[12] Pobieranie ćwiczenia po ID zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[12] Ćwiczenie ma poprawne ID', () => pm.expect(pm.response.json().data.id).to.eql(pm.collectionVariables.get('exerciseId')));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "GET",
@@ -217,8 +218,8 @@
       "name": "[13] EXERCISES – Filtrowanie po CHEST",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[13] Filtrowanie zwraca 200', () => pm.response.to.have.status(200));",
-        "pm.test('[13] Wszystkie wyniki maja CHEST', () => { pm.response.json().data.forEach(ex => pm.expect(ex.muscleGroups).to.include('CHEST')); });",
-        "pm.test('[13] Wyniki zawieraja cwiczenie E2E', () => { pm.expect(pm.response.json().data.find(e => e.id === pm.collectionVariables.get('exerciseId'))).to.not.be.undefined; });"
+        "pm.test('[13] Wszystkie wyniki mają CHEST', () => { pm.response.json().data.forEach(ex => pm.expect(ex.muscleGroups).to.include('CHEST')); });",
+        "pm.test('[13] Wyniki zawierają ćwiczenie E2E', () => { pm.expect(pm.response.json().data.find(e => e.id === pm.collectionVariables.get('exerciseId'))).to.not.be.undefined; });"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "GET",
@@ -227,10 +228,10 @@
       }
     },
     {
-      "name": "[14] EXERCISES – Aktualizacja cwiczenia",
+      "name": "[14] EXERCISES – Aktualizacja ćwiczenia",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[14] Aktualizacja cwiczenia zwraca 200', () => pm.response.to.have.status(200));",
-        "pm.test('[14] Opis zostal zaktualizowany', () => pm.expect(pm.response.json().data.description).to.eql('Zaktualizowany opis E2E'));"
+        "pm.test('[14] Aktualizacja ćwiczenia zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[14] Opis został zaktualizowany', () => pm.expect(pm.response.json().data.description).to.eql('Zaktualizowany opis E2E'));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "PATCH",
@@ -250,15 +251,15 @@
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
-        "body": { "mode": "raw", "raw": "{\n  \"workoutName\": \"E2E Trening Push\",\n  \"workoutDate\": \"2026-04-08T10:00:00.000Z\",\n  \"gymName\": \"Silownia E2E\",\n  \"location\": \"Testowo\",\n  \"workoutNotes\": \"Automatyczny trening E2E\"\n}" },
+        "body": { "mode": "raw", "raw": "{\n  \"workoutName\": \"E2E Trening Push\",\n  \"workoutDate\": \"2026-04-08T10:00:00.000Z\",\n  \"gymName\": \"Siłownia E2E\",\n  \"location\": \"Testowo\",\n  \"workoutNotes\": \"Automatyczny trening E2E\"\n}" },
         "url": { "raw": "{{baseUrl}}/api/workouts", "host": ["{{baseUrl}}"], "path": ["api","workouts"] }
       }
     },
     {
-      "name": "[16] WORKOUTS – Pobieranie listy treningow",
+      "name": "[16] WORKOUTS – Pobieranie listy treningów",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[16] Lista treningow zwraca 200', () => pm.response.to.have.status(200));",
-        "pm.test('[16] Zawiera tablice i count', () => { const j = pm.response.json(); pm.expect(j.data).to.be.an('array'); pm.expect(j.count).to.be.a('number'); });",
+        "pm.test('[16] Lista treningów zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[16] Zawiera tablicę i count', () => { const j = pm.response.json(); pm.expect(j.data).to.be.an('array'); pm.expect(j.count).to.be.a('number'); });",
         "pm.test('[16] Lista zawiera nowy trening', () => pm.expect(pm.response.json().data.find(w => w.id === pm.collectionVariables.get('workoutId'))).to.not.be.undefined);"
       ], "type": "text/javascript" }}],
       "request": {
@@ -280,11 +281,11 @@
       }
     },
     {
-      "name": "[18] WORKOUT ITEMS – Dodanie cwiczenia do treningu",
+      "name": "[18] WORKOUT ITEMS – Dodanie ćwiczenia do treningu",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[18] Dodanie cwiczenia zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[18] Dodanie ćwiczenia zwraca 201', () => pm.response.to.have.status(201));",
         "pm.test('[18] Zawiera id workout item', () => { const j = pm.response.json(); pm.expect(j.data.id).to.be.a('string'); pm.collectionVariables.set('workoutItemId', j.data.id); console.log('workoutItemId:', j.data.id); });",
-        "pm.test('[18] Workout item powiazany z cwiczeniem', () => pm.expect(pm.response.json().data.exerciseId).to.eql(pm.collectionVariables.get('exerciseId')));",
+        "pm.test('[18] Workout item powiązany z ćwiczeniem', () => pm.expect(pm.response.json().data.exerciseId).to.eql(pm.collectionVariables.get('exerciseId')));",
         "pm.test('[18] previousNote ma poprawny typ', () => { const n = pm.response.json().data.previousNote; pm.expect(n === null || typeof n === 'string').to.eql(true); });"
       ], "type": "text/javascript" }}],
       "request": {
@@ -298,7 +299,7 @@
       "name": "[19] SETS – Dodanie serii 1 (80kg x 10)",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[19] Dodanie serii 1 zwraca 201', () => pm.response.to.have.status(201));",
-        "pm.test('[19] Seria 1 ma ciez 80 i 10 powtorzen', () => { const j = pm.response.json(); pm.collectionVariables.set('setId1', j.data.id); console.log('setId1:', j.data.id); pm.expect(parseFloat(j.data.weight)).to.eql(80); pm.expect(j.data.repetitions).to.eql(10); });"
+        "pm.test('[19] Seria 1 ma ciężar 80 i 10 powtórzeń', () => { const j = pm.response.json(); pm.collectionVariables.set('setId1', j.data.id); console.log('setId1:', j.data.id); pm.expect(parseFloat(j.data.weight)).to.eql(80); pm.expect(j.data.repetitions).to.eql(10); });"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "POST",
@@ -311,7 +312,7 @@
       "name": "[20] SETS – Dodanie serii 2 (85kg x 8)",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[20] Dodanie serii 2 zwraca 201', () => pm.response.to.have.status(201));",
-        "pm.test('[20] Seria 2 ma ciez 85 i 8 powtorzen', () => { const j = pm.response.json(); pm.collectionVariables.set('setId2', j.data.id); console.log('setId2:', j.data.id); pm.expect(parseFloat(j.data.weight)).to.eql(85); pm.expect(j.data.repetitions).to.eql(8); });"
+        "pm.test('[20] Seria 2 ma ciężar 85 i 8 powtórzeń', () => { const j = pm.response.json(); pm.collectionVariables.set('setId2', j.data.id); console.log('setId2:', j.data.id); pm.expect(parseFloat(j.data.weight)).to.eql(85); pm.expect(j.data.repetitions).to.eql(8); });"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "POST",
@@ -324,7 +325,7 @@
       "name": "[21] SETS – Dodanie serii 3 (90kg x 6)",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[21] Dodanie serii 3 zwraca 201', () => pm.response.to.have.status(201));",
-        "pm.test('[21] Seria 3 ma ciez 90 i 6 powtorzen', () => { const j = pm.response.json(); pm.collectionVariables.set('setId3', j.data.id); console.log('setId3:', j.data.id); pm.expect(parseFloat(j.data.weight)).to.eql(90); pm.expect(j.data.repetitions).to.eql(6); });"
+        "pm.test('[21] Seria 3 ma ciężar 90 i 6 powtórzeń', () => { const j = pm.response.json(); pm.collectionVariables.set('setId3', j.data.id); console.log('setId3:', j.data.id); pm.expect(parseFloat(j.data.weight)).to.eql(90); pm.expect(j.data.repetitions).to.eql(6); });"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "POST",
@@ -337,7 +338,7 @@
       "name": "[22] SETS – Aktualizacja serii 2 (87.5kg x 7)",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[22] Aktualizacja serii zwraca 200', () => pm.response.to.have.status(200));",
-        "pm.test('[22] Seria ma 87.5 i 7 powtorzen', () => { const j = pm.response.json(); pm.expect(parseFloat(j.data.weight)).to.eql(87.5); pm.expect(j.data.repetitions).to.eql(7); });"
+        "pm.test('[22] Seria ma 87.5 i 7 powtórzeń', () => { const j = pm.response.json(); pm.expect(parseFloat(j.data.weight)).to.eql(87.5); pm.expect(j.data.repetitions).to.eql(7); });"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "PATCH",
@@ -369,7 +370,7 @@
       "request": {
         "method": "PATCH",
         "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" }],
-        "body": { "mode": "raw", "raw": "{\n  \"status\": \"COMPLETED\",\n  \"workoutNotes\": \"E2E zakonczone pomyslnie!\"\n}" },
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"COMPLETED\",\n  \"workoutNotes\": \"E2E zakończone pomyślnie!\"\n}" },
         "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutId}}", "host": ["{{baseUrl}}"], "path": ["api","workouts","{{workoutId}}"] }
       }
     },
@@ -377,7 +378,7 @@
       "name": "[25] WORKOUTS – Filtrowanie po COMPLETED",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[25] Filtr COMPLETED zwraca 200', () => pm.response.to.have.status(200));",
-        "pm.test('[25] Wszystkie wyniki maja COMPLETED', () => pm.response.json().data.forEach(w => pm.expect(w.status).to.eql('COMPLETED')));",
+        "pm.test('[25] Wszystkie wyniki mają COMPLETED', () => pm.response.json().data.forEach(w => pm.expect(w.status).to.eql('COMPLETED')));",
         "pm.test('[25] Lista zawiera nowy trening', () => pm.expect(pm.response.json().data.find(w => w.id === pm.collectionVariables.get('workoutId'))).to.not.be.undefined);"
       ], "type": "text/javascript" }}],
       "request": {
@@ -387,7 +388,7 @@
       }
     },
     {
-      "name": "[26] STATS – Ogolny przeglad statystyk",
+      "name": "[26] STATS – Ogólny przegląd statystyk",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[26] Stats overview zwraca 200', () => pm.response.to.have.status(200));",
         "pm.test('[26] Zawiera dane statystyk', () => { const j = pm.response.json(); pm.expect(j.success).to.be.true; pm.expect(j.data).to.not.be.null; });"
@@ -399,10 +400,10 @@
       }
     },
     {
-      "name": "[27] STATS – Wszystkie statystyki uzytkownika",
+      "name": "[27] STATS – Wszystkie statystyki użytkownika",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[27] All stats zwraca 200', () => pm.response.to.have.status(200));",
-        "pm.test('[27] Zawiera tablice i count', () => { const j = pm.response.json(); pm.expect(j.data).to.be.an('array'); pm.expect(j.count).to.be.a('number'); });"
+        "pm.test('[27] Zawiera tablicę i count', () => { const j = pm.response.json(); pm.expect(j.data).to.be.an('array'); pm.expect(j.count).to.be.a('number'); });"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "GET",
@@ -411,9 +412,9 @@
       }
     },
     {
-      "name": "[28] STATS – Progresja cwiczenia (maxSetWeight)",
+      "name": "[28] STATS – Progresja ćwiczenia (maxSetWeight)",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[28] Progresja cwiczenia zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[28] Progresja ćwiczenia zwraca 200', () => pm.response.to.have.status(200));",
         "pm.test('[28] Zawiera dane progresji', () => { const j = pm.response.json(); pm.expect(j.success).to.be.true; pm.expect(j.data).to.be.an('object'); pm.expect(j.data).to.have.property('points'); pm.expect(j.data.points).to.be.an('array'); });"
       ], "type": "text/javascript" }}],
       "request": {
@@ -423,12 +424,12 @@
       }
     },
     {
-      "name": "[29] STATS – Statystyki konkretnego cwiczenia",
+      "name": "[29] STATS – Statystyki konkretnego ćwiczenia",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[29] Stats cwiczenia zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[29] Stats ćwiczenia zwraca 200', () => pm.response.to.have.status(200));",
         "pm.test('[29] success=true', () => pm.expect(pm.response.json().success).to.be.true);",
         "pm.test('[29] Zawiera lastNote', () => pm.expect(pm.response.json().data.lastNote).to.be.a('string'));",
-        "pm.test('[29] lastNote zgodna z notatka z workout item', () => pm.expect(pm.response.json().data.lastNote).to.eql(pm.collectionVariables.get('expectedLastNote')));"
+        "pm.test('[29] lastNote zgodna z notatką z workout item', () => pm.expect(pm.response.json().data.lastNote).to.eql(pm.collectionVariables.get('expectedLastNote')));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "GET",
@@ -437,11 +438,11 @@
       }
     },
     {
-      "name": "[30] WORKOUTS – Weryfikacja szczegolow (serie w treningu)",
+      "name": "[30] WORKOUTS – Weryfikacja szczegółów (serie w treningu)",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[30] Szczegoly treningu zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[30] Szczegóły treningu zwraca 200', () => pm.response.to.have.status(200));",
         "pm.test('[30] Status = COMPLETED', () => pm.expect(pm.response.json().data.status).to.eql('COMPLETED'));",
-        "pm.test('[30] Trening ma pozycje cwiczen', () => { const j = pm.response.json(); const items = j.data.workoutItems || j.data.items || []; pm.expect(items).to.be.an('array').with.length.above(0); pm.collectionVariables.set('_items', JSON.stringify(items)); });",
+        "pm.test('[30] Trening ma pozycje ćwiczeń', () => { const j = pm.response.json(); const items = j.data.workoutItems || j.data.items || []; pm.expect(items).to.be.an('array').with.length.above(0); });",
         "pm.test('[30] Pozycja ma 4 serie', () => { const j = pm.response.json(); const items = j.data.workoutItems || j.data.items || []; const item = items[0]; pm.expect(item.sets).to.be.an('array').with.length(4); });"
       ], "type": "text/javascript" }}],
       "request": {
@@ -451,7 +452,7 @@
       }
     },
     {
-      "name": "[31] NOTES E2E – A: Stworzenie treningu z notatka zrodlowa (DRAFT)",
+      "name": "[31] NOTES E2E – A: Stworzenie treningu z notatką źródłową (DRAFT)",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[31] Tworzenie treningu A zwraca 201', () => pm.response.to.have.status(201));",
         "pm.test('[31] Zapis workoutIdA', () => { const j = pm.response.json(); pm.collectionVariables.set('workoutIdA', j.data.id); pm.expect(j.data.status).to.eql('DRAFT'); });"
@@ -464,9 +465,9 @@
       }
     },
     {
-      "name": "[32] NOTES E2E – A: Dodanie cwiczenia",
+      "name": "[32] NOTES E2E – A: Dodanie ćwiczenia",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[32] Dodanie cwiczenia do A zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[32] Dodanie ćwiczenia do A zwraca 201', () => pm.response.to.have.status(201));",
         "pm.test('[32] Zapis workoutItemIdA', () => { const j = pm.response.json(); pm.collectionVariables.set('workoutItemIdA', j.data.id); pm.expect(j.data.id).to.be.a('string'); });"
       ], "type": "text/javascript" }}],
       "request": {
@@ -477,7 +478,7 @@
       }
     },
     {
-      "name": "[33] NOTES E2E – A: Zapis notatki zrodlowej",
+      "name": "[33] NOTES E2E – A: Zapis notatki źródłowej",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[33] Aktualizacja notatki A zwraca 200', () => pm.response.to.have.status(200));",
         "pm.test('[33] Zapis sourceExerciseNote', () => { const j = pm.response.json(); pm.collectionVariables.set('sourceExerciseNote', j.data.notes); pm.expect(j.data.notes).to.eql('Skup sie na stabilizacji kolana'); });"
@@ -502,7 +503,7 @@
       }
     },
     {
-      "name": "[35] NOTES E2E – B: Stworzenie treningu i dodanie tego samego cwiczenia",
+      "name": "[35] NOTES E2E – B: Stworzenie treningu i dodanie tego samego ćwiczenia",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[35] Tworzenie treningu B zwraca 201', () => pm.response.to.have.status(201));",
         "pm.test('[35] Zapis workoutIdB', () => { const j = pm.response.json(); pm.collectionVariables.set('workoutIdB', j.data.id); });"
@@ -517,7 +518,7 @@
     {
       "name": "[36] NOTES E2E – B: previousNote widoczna jednorazowo",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[36] Dodanie cwiczenia do B zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[36] Dodanie ćwiczenia do B zwraca 201', () => pm.response.to.have.status(201));",
         "pm.test('[36] previousNote = sourceExerciseNote', () => { const j = pm.response.json(); pm.collectionVariables.set('workoutItemIdB', j.data.id); pm.expect(j.data.previousNote).to.eql(pm.collectionVariables.get('sourceExerciseNote')); });"
       ], "type": "text/javascript" }}],
       "request": {
@@ -528,9 +529,9 @@
       }
     },
     {
-      "name": "[37] NOTES E2E – B: Zakonczenie i weryfikacja utrzymania previousNote",
+      "name": "[37] NOTES E2E – B: Zakończenie i weryfikacja utrzymania previousNote",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[37] Zakonczenie treningu B zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[37] Zakończenie treningu B zwraca 200', () => pm.response.to.have.status(200));",
         "pm.test('[37] Status = COMPLETED', () => pm.expect(pm.response.json().data.status).to.eql('COMPLETED'));"
       ], "type": "text/javascript" }}],
       "request": {
@@ -541,7 +542,7 @@
       }
     },
     {
-      "name": "[38] NOTES E2E – B: previousNote nadal widoczna w szczegolach tego treningu",
+      "name": "[38] NOTES E2E – B: previousNote nadal widoczna w szczegółach tego treningu",
       "event": [{ "listen": "test", "script": { "exec": [
         "pm.test('[38] GET treningu B zwraca 200', () => pm.response.to.have.status(200));",
         "pm.test('[38] previousNote zostaje przypisana do itemu B', () => {",
@@ -572,9 +573,9 @@
       }
     },
     {
-      "name": "[40] NOTES E2E – C: previousNote nie pojawia sie drugi raz",
+      "name": "[40] NOTES E2E – C: previousNote nie pojawia się drugi raz",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[40] Dodanie cwiczenia do C zwraca 201', () => pm.response.to.have.status(201));",
+        "pm.test('[40] Dodanie ćwiczenia do C zwraca 201', () => pm.response.to.have.status(201));",
         "pm.test('[40] previousNote jest puste po jednorazowej konsumpcji', () => { const j = pm.response.json(); pm.collectionVariables.set('workoutItemIdC', j.data.id); pm.expect(j.data.previousNote === null || j.data.previousNote === '').to.eql(true); });"
       ], "type": "text/javascript" }}],
       "request": {
@@ -585,9 +586,9 @@
       }
     },
     {
-      "name": "[41] NOTES E2E CLEANUP – Usun workout item C",
+      "name": "[41] NOTES E2E CLEANUP – Usuń workout item C",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[41] Usuniecie workout item C zwraca 200', () => pm.response.to.have.status(200));"
+        "pm.test('[41] Usunięcie workout item C zwraca 200', () => pm.response.to.have.status(200));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -596,9 +597,9 @@
       }
     },
     {
-      "name": "[42] NOTES E2E CLEANUP – Usun trening C",
+      "name": "[42] NOTES E2E CLEANUP – Usuń trening C",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[42] Usuniecie treningu C zwraca 200', () => pm.response.to.have.status(200));"
+        "pm.test('[42] Usunięcie treningu C zwraca 200', () => pm.response.to.have.status(200));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -607,9 +608,9 @@
       }
     },
     {
-      "name": "[43] NOTES E2E CLEANUP – Usun workout item B",
+      "name": "[43] NOTES E2E CLEANUP – Usuń workout item B",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[43] Usuniecie workout item B zwraca 200', () => pm.response.to.have.status(200));"
+        "pm.test('[43] Usunięcie workout item B zwraca 200', () => pm.response.to.have.status(200));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -618,9 +619,9 @@
       }
     },
     {
-      "name": "[44] NOTES E2E CLEANUP – Usun trening B",
+      "name": "[44] NOTES E2E CLEANUP – Usuń trening B",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[44] Usuniecie treningu B zwraca 200', () => pm.response.to.have.status(200));"
+        "pm.test('[44] Usunięcie treningu B zwraca 200', () => pm.response.to.have.status(200));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -629,9 +630,9 @@
       }
     },
     {
-      "name": "[45] NOTES E2E CLEANUP – Usun workout item A",
+      "name": "[45] NOTES E2E CLEANUP – Usuń workout item A",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[45] Usuniecie workout item A zwraca 200', () => pm.response.to.have.status(200));"
+        "pm.test('[45] Usunięcie workout item A zwraca 200', () => pm.response.to.have.status(200));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -640,9 +641,9 @@
       }
     },
     {
-      "name": "[46] NOTES E2E CLEANUP – Usun trening A",
+      "name": "[46] NOTES E2E CLEANUP – Usuń trening A",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[46] Usuniecie treningu A zwraca 200', () => pm.response.to.have.status(200));"
+        "pm.test('[46] Usunięcie treningu A zwraca 200', () => pm.response.to.have.status(200));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -651,9 +652,9 @@
       }
     },
     {
-      "name": "[47] CLEANUP – Usun serie 3",
+      "name": "[47] CLEANUP – Usuń serię 3",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[47] Usuniecie serii 3 zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[47] Usunięcie serii 3 zwraca 200', () => pm.response.to.have.status(200));",
         "pm.test('[47] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
       ], "type": "text/javascript" }}],
       "request": {
@@ -663,9 +664,9 @@
       }
     },
     {
-      "name": "[48] CLEANUP – Usun serie 2",
+      "name": "[48] CLEANUP – Usuń serię 2",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[48] Usuniecie serii 2 zwraca 200', () => pm.response.to.have.status(200));"
+        "pm.test('[48] Usunięcie serii 2 zwraca 200', () => pm.response.to.have.status(200));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -674,9 +675,9 @@
       }
     },
     {
-      "name": "[49] CLEANUP – Usun serie 1",
+      "name": "[49] CLEANUP – Usuń serię 1",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[49] Usuniecie serii 1 zwraca 200', () => pm.response.to.have.status(200));"
+        "pm.test('[49] Usunięcie serii 1 zwraca 200', () => pm.response.to.have.status(200));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -685,9 +686,9 @@
       }
     },
     {
-      "name": "[50] CLEANUP – Usun workout item",
+      "name": "[50] CLEANUP – Usuń workout item",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[50] Usuniecie workout item zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[50] Usunięcie workout item zwraca 200', () => pm.response.to.have.status(200));",
         "pm.test('[50] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
       ], "type": "text/javascript" }}],
       "request": {
@@ -697,9 +698,9 @@
       }
     },
     {
-      "name": "[51] CLEANUP – Usun trening",
+      "name": "[51] CLEANUP – Usuń trening",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[51] Usuniecie treningu zwraca 200', () => pm.response.to.have.status(200));",
+        "pm.test('[51] Usunięcie treningu zwraca 200', () => pm.response.to.have.status(200));",
         "pm.test('[51] success=true', () => pm.expect(pm.response.json().success).to.be.true);"
       ], "type": "text/javascript" }}],
       "request": {
@@ -709,9 +710,9 @@
       }
     },
     {
-      "name": "[52] CLEANUP – Usun cwiczenie",
+      "name": "[52] CLEANUP – Usuń ćwiczenie",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[52] Usuniecie cwiczenia zwraca 204', () => pm.response.to.have.status(204));"
+        "pm.test('[52] Usunięcie ćwiczenia zwraca 204', () => pm.response.to.have.status(204));"
       ], "type": "text/javascript" }}],
       "request": {
         "method": "DELETE",
@@ -720,9 +721,9 @@
       }
     },
     {
-      "name": "[53] VERIFY – Usuniety trening zwraca 404",
+      "name": "[53] VERIFY – Usunięty trening zwraca 404",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[53] Usuniety trening zwraca 404', () => pm.response.to.have.status(404));",
+        "pm.test('[53] Usunięty trening zwraca 404', () => pm.response.to.have.status(404));",
         "pm.test('[53] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
       ], "type": "text/javascript" }}],
       "request": {
@@ -732,9 +733,9 @@
       }
     },
     {
-      "name": "[54] VERIFY – Usuniete cwiczenie zwraca 404",
+      "name": "[54] VERIFY – Usunięte ćwiczenie zwraca 404",
       "event": [{ "listen": "test", "script": { "exec": [
-        "pm.test('[54] Usuniete cwiczenie zwraca 404', () => pm.response.to.have.status(404));",
+        "pm.test('[54] Usunięte ćwiczenie zwraca 404', () => pm.response.to.have.status(404));",
         "pm.test('[54] success=false', () => pm.expect(pm.response.json().success).to.be.false);"
       ], "type": "text/javascript" }}],
       "request": {

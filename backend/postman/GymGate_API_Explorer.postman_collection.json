@@ -1,0 +1,543 @@
+{
+  "info": {
+    "_postman_id": "gymgate-api-explorer-v1",
+    "name": "GymGate API – Explorer",
+    "description": "# GymGate API Explorer\n\nKolekcja do ręcznego eksplorowania API. Zawiera wszystkie endpointy pogrupowane tematycznie.\n\n## Konfiguracja\n\nUstaw zmienne środowiskowe lub collection variables:\n- `baseUrl` – domyślnie `http://localhost:3000`\n- `loginEmail` / `loginPassword` – dane do auto-logowania\n\n## Auto-auth\n\nPre-request script na poziomie kolekcji automatycznie pobiera token JWT przed każdym requestem (jeśli `authToken` jest pusty). Wystarczy ustawić `loginEmail` i `loginPassword`.\n\n## Uruchomienie backendu lokalnie\n```bash\ncd backend && npm run dev\n```",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "authToken", "value": "", "type": "string" },
+    { "key": "userId", "value": "", "type": "string" },
+    { "key": "loginEmail", "value": "test@gymgate.pl", "type": "string" },
+    { "key": "loginPassword", "value": "TestPass123", "type": "string" },
+    { "key": "exerciseId", "value": "", "type": "string" },
+    { "key": "workoutId", "value": "", "type": "string" },
+    { "key": "workoutItemId", "value": "", "type": "string" },
+    { "key": "setId", "value": "", "type": "string" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const token = pm.collectionVariables.get('authToken');",
+          "if (token && token.length > 10) return;",
+          "",
+          "const baseUrl = pm.collectionVariables.get('baseUrl');",
+          "const email = pm.collectionVariables.get('loginEmail');",
+          "const password = pm.collectionVariables.get('loginPassword');",
+          "",
+          "if (!email || !password) {",
+          "  console.warn('Brak loginEmail / loginPassword – ustaw collection variables');",
+          "  return;",
+          "}",
+          "",
+          "pm.sendRequest({",
+          "  url: baseUrl + '/api/auth/login',",
+          "  method: 'POST',",
+          "  header: { 'Content-Type': 'application/json' },",
+          "  body: { mode: 'raw', raw: JSON.stringify({ email, password }) }",
+          "}, (err, res) => {",
+          "  if (err || res.code !== 200) {",
+          "    console.warn('Auto-login nieudany:', err || res.status());",
+          "    return;",
+          "  }",
+          "  const json = res.json();",
+          "  pm.collectionVariables.set('authToken', json.data.token);",
+          "  pm.collectionVariables.set('userId', json.data.user.id);",
+          "  console.log('Auto-login OK, userId:', json.data.user.id);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET / – Root",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/", "host": ["{{baseUrl}}"], "path": [""] }
+          }
+        },
+        {
+          "name": "GET /health – Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /auth/register",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('authToken', '');",
+                  "pm.collectionVariables.set('userId', '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const j = pm.response.json();",
+                  "  pm.collectionVariables.set('authToken', j.data.token);",
+                  "  pm.collectionVariables.set('userId', j.data.user.id);",
+                  "  console.log('Zarejestrowano i zalogowano, token zapisany');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{loginEmail}}\",\n  \"password\": \"{{loginPassword}}\",\n  \"firstName\": \"Jan\",\n  \"lastName\": \"Kowalski\",\n  \"phone\": \"+48100200300\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "POST /auth/login",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.collectionVariables.set('authToken', '');"]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const j = pm.response.json();",
+                  "  pm.collectionVariables.set('authToken', j.data.token);",
+                  "  pm.collectionVariables.set('userId', j.data.user.id);",
+                  "  console.log('Zalogowano, token zapisany');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{loginEmail}}\",\n  \"password\": \"{{loginPassword}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "GET /auth/me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Exercises",
+      "item": [
+        {
+          "name": "GET /exercises – Lista ćwiczeń",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/exercises", "host": ["{{baseUrl}}"], "path": ["api", "exercises"] }
+          }
+        },
+        {
+          "name": "GET /exercises?muscleGroup=CHEST – Filtr po grupie mięśniowej",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/exercises?muscleGroup=CHEST",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "exercises"],
+              "query": [{ "key": "muscleGroup", "value": "CHEST", "description": "CHEST | BACK | LEGS | SHOULDERS | BICEPS | TRICEPS | CORE | GLUTES | CALVES | FOREARMS | NECK | FULL_BODY | OTHER" }]
+            }
+          }
+        },
+        {
+          "name": "GET /exercises/:id – Ćwiczenie po ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/exercises/{{exerciseId}}", "host": ["{{baseUrl}}"], "path": ["api", "exercises", "{{exerciseId}}"] }
+          }
+        },
+        {
+          "name": "POST /exercises – Utwórz ćwiczenie",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('exerciseId', pm.response.json().data.id);",
+                  "  console.log('exerciseId zapisany:', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Wyciskanie na ławce\",\n  \"muscleGroups\": [\"CHEST\", \"TRICEPS\"],\n  \"description\": \"Klasyczne wyciskanie sztangi na ławce poziomej\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/exercises", "host": ["{{baseUrl}}"], "path": ["api", "exercises"] }
+          }
+        },
+        {
+          "name": "PATCH /exercises/:id – Zaktualizuj ćwiczenie",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Zaktualizowany opis\",\n  \"muscleGroups\": [\"CHEST\"]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/exercises/{{exerciseId}}", "host": ["{{baseUrl}}"], "path": ["api", "exercises", "{{exerciseId}}"] }
+          }
+        },
+        {
+          "name": "DELETE /exercises/:id – Usuń ćwiczenie",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/exercises/{{exerciseId}}", "host": ["{{baseUrl}}"], "path": ["api", "exercises", "{{exerciseId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workouts",
+      "item": [
+        {
+          "name": "GET /workouts – Lista treningów",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/workouts", "host": ["{{baseUrl}}"], "path": ["api", "workouts"] }
+          }
+        },
+        {
+          "name": "GET /workouts?status=COMPLETED – Filtr po statusie",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/workouts?status=COMPLETED",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workouts"],
+              "query": [{ "key": "status", "value": "COMPLETED", "description": "DRAFT | COMPLETED" }]
+            }
+          }
+        },
+        {
+          "name": "GET /workouts/:id – Trening po ID (z items i sets)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutId}}", "host": ["{{baseUrl}}"], "path": ["api", "workouts", "{{workoutId}}"] }
+          }
+        },
+        {
+          "name": "POST /workouts – Utwórz trening",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('workoutId', pm.response.json().data.id);",
+                  "  console.log('workoutId zapisany:', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workoutName\": \"Trening Push\",\n  \"workoutDate\": \"2026-04-08T10:00:00.000Z\",\n  \"gymName\": \"Siłownia\",\n  \"location\": \"Warszawa\",\n  \"workoutNotes\": \"Notatki do treningu\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/workouts", "host": ["{{baseUrl}}"], "path": ["api", "workouts"] }
+          }
+        },
+        {
+          "name": "PATCH /workouts/:id – Zaktualizuj trening",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\",\n  \"workoutNotes\": \"Zakończony pomyślnie!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutId}}", "host": ["{{baseUrl}}"], "path": ["api", "workouts", "{{workoutId}}"] }
+          }
+        },
+        {
+          "name": "DELETE /workouts/:id – Usuń trening",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutId}}", "host": ["{{baseUrl}}"], "path": ["api", "workouts", "{{workoutId}}"] }
+          }
+        },
+        {
+          "name": "DELETE /workouts/active – Zwolnij aktywny trening",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/workouts/active", "host": ["{{baseUrl}}"], "path": ["api", "workouts", "active"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workout Items",
+      "item": [
+        {
+          "name": "POST /workouts/:workoutId/exercises – Dodaj ćwiczenie do treningu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('workoutItemId', pm.response.json().data.id);",
+                  "  console.log('workoutItemId zapisany:', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exerciseId\": \"{{exerciseId}}\",\n  \"orderInWorkout\": 1,\n  \"notes\": \"Notatka do ćwiczenia\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/workouts/{{workoutId}}/exercises",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workouts", "{{workoutId}}", "exercises"]
+            }
+          }
+        },
+        {
+          "name": "PATCH /workouts/items/:id – Zaktualizuj workout item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderInWorkout\": 1,\n  \"notes\": \"Zaktualizowane notatki\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/workouts/items/{{workoutItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workouts", "items", "{{workoutItemId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /workouts/items/:id – Usuń workout item",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/workouts/items/{{workoutItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workouts", "items", "{{workoutItemId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sets",
+      "item": [
+        {
+          "name": "POST /workouts/items/:id/sets – Dodaj serię",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('setId', pm.response.json().data.id);",
+                  "  console.log('setId zapisany:', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weight\": 80,\n  \"repetitions\": 10,\n  \"setNumber\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/workouts/items/{{workoutItemId}}/sets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workouts", "items", "{{workoutItemId}}", "sets"]
+            }
+          }
+        },
+        {
+          "name": "PATCH /workouts/sets/:id – Zaktualizuj serię",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weight\": 85,\n  \"repetitions\": 8\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/workouts/sets/{{setId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workouts", "sets", "{{setId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /workouts/sets/:id – Usuń serię",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/workouts/sets/{{setId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workouts", "sets", "{{setId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Statistics",
+      "item": [
+        {
+          "name": "GET /workouts/stats/overview – Ogólny przegląd",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/workouts/stats/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workouts", "stats", "overview"]
+            }
+          }
+        },
+        {
+          "name": "GET /workouts/stats/all – Wszystkie statystyki",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/workouts/stats/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workouts", "stats", "all"]
+            }
+          }
+        },
+        {
+          "name": "GET /workouts/stats/exercise/:id – Statystyki ćwiczenia",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/workouts/stats/exercise/{{exerciseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workouts", "stats", "exercise", "{{exerciseId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET /workouts/stats/progression/:id – Progresja ćwiczenia",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/workouts/stats/progression/{{exerciseId}}?metric=maxSetWeight",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "workouts", "stats", "progression", "{{exerciseId}}"],
+              "query": [
+                {
+                  "key": "metric",
+                  "value": "maxSetWeight",
+                  "description": "maxSetWeight | totalVolume | maxReps"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

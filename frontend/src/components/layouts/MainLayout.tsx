@@ -3,11 +3,13 @@ import { memo, type ReactNode } from "react";
 interface MainLayoutProps {
   children: ReactNode;
   bottomBar?: ReactNode;
+  topBanner?: ReactNode;
 }
 
 export const MainLayout = memo(function MainLayout({
   children,
   bottomBar,
+  topBanner,
 }: MainLayoutProps) {
   return (
     <div
@@ -18,6 +20,7 @@ export const MainLayout = memo(function MainLayout({
         className="w-full h-[100dvh] md:h-[85vh] md:max-h-[900px] md:w-[430px] md:rounded-[52px] md:shadow-[0_40px_100px_rgba(0,0,0,0.65),0_0_0_10px_#181818,0_0_0_12px_#282828] relative overflow-hidden flex flex-col"
         style={{ background: "var(--gg-bg)" }}
       >
+        {topBanner}
         <main className="flex-1 overflow-y-auto pb-24 scrollbar-hide">
           {children}
         </main>
