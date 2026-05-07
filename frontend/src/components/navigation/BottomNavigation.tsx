@@ -78,6 +78,7 @@ export const BottomNavigation = memo(function BottomNavigation({
         paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 1.5rem))",
         borderTop: "1px solid var(--gg-border)",
         backdropFilter: "blur(12px)",
+        touchAction: "none",
       }}
       role="navigation"
       aria-label="Nawigacja główna"

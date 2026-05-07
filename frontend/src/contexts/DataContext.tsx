@@ -1825,6 +1825,7 @@ export function useStatsData() {
   const {
     stats,
     statsOverview,
+    workouts,
     isLoading,
     syncNow,
     getExerciseProgression,
@@ -1832,6 +1833,7 @@ export function useStatsData() {
   return {
     stats,
     overview: statsOverview,
+    workouts,
     loading: isLoading,
     error: null,
     refetch: syncNow,
