@@ -19,6 +19,67 @@ import { WorkoutFormModal } from "./components/modals";
 import { LoginScreen } from "./components/screens/LoginScreen";
 import { RegisterScreen } from "./components/screens/RegisterScreen";
 import type { Exercise } from "./hooks/useExercises";
+import type { SyncOperation } from "./utils/localStore";
+
+const ENTITY_LABELS: Record<SyncOperation["entity"], string> = {
+  workout: "treningu",
+  workoutItem: "ćwiczenia w treningu",
+  set: "serii",
+  exercise: "ćwiczenia",
+};
+
+const ACTION_LABELS: Record<SyncOperation["type"], string> = {
+  create: "Zapisanie",
+  update: "Aktualizacja",
+  delete: "Usunięcie",
+};
+
+function describeOperation(op: SyncOperation): string {
+  return `${ACTION_LABELS[op.type]} ${ENTITY_LABELS[op.entity]}`;
+}
+
+interface SyncFailureBannerProps {
+  operations: SyncOperation[];
+  onRetry: () => void;
+  onDismiss: () => void;
+}
+
+function SyncFailureBanner({ operations, onRetry, onDismiss }: SyncFailureBannerProps) {
+  const unique = [...new Set(operations.map(describeOperation))];
+
+  return (
+    <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 px-3 py-2">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-amber-800 dark:text-amber-200">
+            Nie udało się zsynchronizować zmian:
+          </p>
+          <ul className="mt-0.5 space-y-0.5">
+            {unique.map((desc) => (
+              <li key={desc} className="text-xs text-amber-700 dark:text-amber-300">
+                · {desc}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="flex shrink-0 gap-2 mt-0.5">
+          <button
+            onClick={onRetry}
+            className="text-xs font-medium text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
+          >
+            Ponów
+          </button>
+          <button
+            onClick={onDismiss}
+            className="text-xs font-medium text-amber-500 dark:text-amber-500 hover:text-amber-700 dark:hover:text-amber-300"
+          >
+            Zamknij
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function App() {
   const { user, isLoading, login, register } = useAuth();
@@ -126,6 +187,9 @@ function AuthenticatedApp({
     updateExercise,
     activeWorkoutId,
     getWorkout,
+    failedSyncOperations,
+    dismissSyncFailures,
+    syncNow,
   } = useData();
   const [isWorkoutFormOpen, setIsWorkoutFormOpen] = useState(false);
 
@@ -163,7 +227,7 @@ function AuthenticatedApp({
       setIsWorkoutFormOpen(false);
       setSelectedWorkoutId(newWorkout.id);
       setScreen("workout-detail");
-    } catch (error) {
+    } catch {
       alert("Nie udało się utworzyć treningu");
     }
   };
@@ -218,7 +282,7 @@ function AuthenticatedApp({
               } else {
                 setScreen("exercises");
               }
-            } catch (error) {}
+            } catch { /* DataContext handles rollback */ }
           }}
         />
       );
@@ -237,7 +301,7 @@ function AuthenticatedApp({
               await updateExercise(id, data);
               setEditingExercise(null);
               setScreen("exercises");
-            } catch (error) {}
+            } catch { /* DataContext handles rollback */ }
           }}
         />
       );
@@ -290,6 +354,15 @@ function AuthenticatedApp({
 
   return (
     <MainLayout
+      topBanner={
+        failedSyncOperations.length > 0 ? (
+          <SyncFailureBanner
+            operations={failedSyncOperations}
+            onRetry={syncNow}
+            onDismiss={dismissSyncFailures}
+          />
+        ) : undefined
+      }
       bottomBar={
         <BottomNavigation
           activeTab={activeTab}

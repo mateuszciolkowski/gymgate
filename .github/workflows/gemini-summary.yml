@@ -18,11 +18,12 @@ jobs:
           fetch-depth: 0
 
       - name: Gemini AI Summary
+        continue-on-error: true
         uses: sshnaidm/gemini-code-review-action@v2
         with:
           gemini-key: ${{ secrets.GEMINI_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          model: "gemini-2.5-flash"
+          model: "gemini-2.0-flash"
           prompt: |
             Act as a Senior Fullstack Developer for the GymGate monorepo.
             Prepare a concise CHANGE SUMMARY for this pull request.
