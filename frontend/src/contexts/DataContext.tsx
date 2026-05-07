@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * DataContext - Globalny store dla danych aplikacji
  * Offline-first approach z prostym cache'em
@@ -19,6 +20,8 @@ import { authFetch, getAuthHeaders } from "../utils/auth";
 import { useAuth } from "./AuthContext";
 import type {
   Workout,
+  WorkoutItem,
+  WorkoutSet,
   ExerciseStats,
   ExerciseProgression,
   StatsOverview,
@@ -899,7 +902,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             ...newItem,
             orderInWorkout: w.items.length + 1,
           };
-          updatedWorkout = { ...w, items: [...w.items, itemWithOrder as any] };
+          updatedWorkout = { ...w, items: [...w.items, itemWithOrder as WorkoutItem] };
           return updatedWorkout;
         }),
       );
@@ -1015,7 +1018,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const removedItem = originalWorkout?.items.find((item) => item.id === itemId);
       const shouldRefreshStats = originalWorkout?.status === "COMPLETED";
       // Zapisz oryginalny item do rollbacku
-      let originalItem: any = null;
+      let originalItem: WorkoutItem | null = null;
 
       // Optymistyczna aktualizacja
       let updatedWorkout: Workout | null = null;
@@ -1023,7 +1026,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         // Znajdź oryginalny item przed usunięciem
         const workout = prev.find((w) => w.id === workoutId);
         if (workout) {
-          originalItem = workout.items.find((i) => i.id === itemId);
+          originalItem = workout.items.find((i) => i.id === itemId) ?? null;
         }
 
         return prev.map((w) => {
@@ -1343,8 +1346,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const exerciseId = workoutsRef.current
         .find((workout) => workout.id === workoutId)
         ?.items.find((item) => item.sets.some((set) => set.id === setId))?.exerciseId;
-      // Zapisz oryginalne wartości do rollbacku (używamy ref do przechowania)
-      let originalSet: any = null;
+      let originalSet: WorkoutSet | null = null;
 
       // Optymistyczna aktualizacja - znajdź original w callback
       let updatedWorkout: Workout | null = null;
@@ -1465,8 +1467,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const exerciseId = workoutsRef.current
         .find((workout) => workout.id === workoutId)
         ?.items.find((item) => item.id === itemId)?.exerciseId;
-      // Zapisz oryginalną serię do rollbacku (w callback)
-      let originalSet: any = null;
+      let originalSet: WorkoutSet | null = null;
 
       // Optymistyczna aktualizacja - znajdź original w callback
       let updatedWorkout: Workout | null = null;

@@ -62,17 +62,18 @@ const hasUnresolvedTempIds = (value: unknown): boolean => {
   return false;
 };
 
+const INTERNAL_SYNC_FIELDS = new Set([
+  "clientTempId",
+  "clientTempItemId",
+  "clientTempSetId",
+]);
+
 const stripInternalSyncFields = (
   payload: Record<string, unknown>,
-): Record<string, unknown> => {
-  const {
-    clientTempId: _clientTempId,
-    clientTempItemId: _clientTempItemId,
-    clientTempSetId: _clientTempSetId,
-    ...apiPayload
-  } = payload;
-  return apiPayload;
-};
+): Record<string, unknown> =>
+  Object.fromEntries(
+    Object.entries(payload).filter(([key]) => !INTERNAL_SYNC_FIELDS.has(key)),
+  );
 
 class SyncManager {
   private syncInterval: number | null = null;
@@ -245,10 +246,20 @@ class SyncManager {
           );
         }
       } catch (error) {
-        console.error(
-          `[SyncManager] Failed to process operation ${op.id}:`,
-          error,
-        );
+        const isNetworkError = !navigator.onLine || error instanceof TypeError;
+        if (isNetworkError) {
+          // Nie incrementujemy retries — operacja zostanie ponowiona przy następnym połączeniu
+          console.warn(`[SyncManager] Network error for operation ${op.id}, will retry when online`);
+        } else {
+          // Nieoczekiwany błąd (np. JSON parse) — traktujemy jak server error
+          console.error(`[SyncManager] Failed to process operation ${op.id}:`, error);
+          if (op.retries < MAX_RETRIES) {
+            await localStore.updatePendingSync({ ...op, retries: op.retries + 1 });
+          } else {
+            await localStore.removePendingSync(op.id);
+            permanentlyFailed.push(op);
+          }
+        }
       }
     }
 
@@ -264,34 +275,28 @@ class SyncManager {
   ): Promise<void> {
     if (!resolvedData || !isPlainObject(responseData)) return;
 
-    const responseSets = responseData.sets;
-    const firstSetId =
-      Array.isArray(responseSets) && responseSets[0]
-        ? (responseSets[0] as Record<string, unknown>).id
-        : undefined;
-
-    const mappings: Array<{ tempId?: unknown; realId?: unknown }> = [
-      {
-        tempId: resolvedData.clientTempId,
-        realId: responseData.id,
-      },
-      {
-        tempId: resolvedData.clientTempItemId,
-        realId: responseData.id,
-      },
-      {
-        tempId: resolvedData.clientTempSetId,
-        realId: firstSetId ?? responseData.id,
-      },
-    ];
-
-    for (const mapping of mappings) {
-      if (
-        typeof mapping.tempId === "string" &&
-        typeof mapping.realId === "string"
-      ) {
-        tempIdMap.set(mapping.tempId, mapping.realId);
+    const capture = (tempId: unknown, realId: unknown) => {
+      if (typeof tempId === "string" && typeof realId === "string") {
+        tempIdMap.set(tempId, realId);
       }
+    };
+
+    // Workout or exercise creation: clientTempId → response.id
+    capture(resolvedData.clientTempId, responseData.id);
+
+    // WorkoutItem creation (addExerciseToWorkout): clientTempItemId → response.id
+    capture(resolvedData.clientTempItemId, responseData.id);
+
+    // Set ID mapping — two possible response shapes:
+    //   addExerciseToWorkout → WorkoutItem with sets[] (backend creates one default set)
+    //   addSet               → WorkoutSet directly (response.id is the set ID)
+    if (typeof resolvedData.clientTempSetId === "string") {
+      const responseSets = responseData.sets;
+      const realSetId =
+        Array.isArray(responseSets) && responseSets.length > 0
+          ? (responseSets[0] as Record<string, unknown>).id
+          : responseData.id;
+      capture(resolvedData.clientTempSetId, realSetId);
     }
   }
 
