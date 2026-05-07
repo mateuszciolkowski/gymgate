@@ -1081,11 +1081,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                 if (w.id !== workoutId) return w;
                 restoredWorkout = {
                   ...w,
-                  items: [...w.items, originalItem].sort(
+                  items: [...w.items, originalItem!].sort(
                     (a, b) => a.orderInWorkout - b.orderInWorkout,
                   ),
                 };
-                return restoredWorkout;
+                return restoredWorkout!;
               }),
             );
             if (restoredWorkout) {
@@ -1444,10 +1444,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                 ...w,
                 items: w.items.map((item) => ({
                   ...item,
-                  sets: item.sets.map((s) => (s.id === setId ? originalSet : s)),
+                  sets: item.sets.map((s) => (s.id === setId ? originalSet! : s)),
                 })),
               };
-              return restoredWorkout;
+              return restoredWorkout!;
             }),
           );
           if (restoredWorkout) {
@@ -1552,13 +1552,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                   if (item.id !== itemId) return item;
                   return {
                     ...item,
-                    sets: [...item.sets, originalSet].sort(
+                    sets: [...item.sets, originalSet!].sort(
                       (a, b) => a.setNumber - b.setNumber,
                     ),
                   };
                 }),
               };
-              return restoredWorkout;
+              return restoredWorkout!;
             }),
           );
           if (restoredWorkout) {
