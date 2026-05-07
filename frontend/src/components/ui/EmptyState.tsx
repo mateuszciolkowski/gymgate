@@ -12,10 +12,27 @@ export const EmptyState = memo(function EmptyState({
   icon,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-12 px-4">
-      {icon && <div className="text-gray-400 dark:text-gray-600 mb-4">{icon}</div>}
-      <p className="text-gray-700 dark:text-gray-400 text-lg">{title}</p>
-      {description && <p className="text-gray-600 dark:text-gray-500 text-sm mt-2">{description}</p>}
+    <div className="flex flex-col items-center justify-center text-center py-10 px-4">
+      {icon && (
+        <div
+          className="flex items-center justify-center w-16 h-16 rounded-[20px] mb-4"
+          style={{
+            background: "var(--gg-surface2)",
+            boxShadow: "var(--gg-shadow)",
+            color: "var(--gg-text-muted)",
+          }}
+        >
+          {icon}
+        </div>
+      )}
+      <p className="text-[15px] font-bold mb-2" style={{ color: "var(--gg-text)" }}>
+        {title}
+      </p>
+      {description && (
+        <p className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>
+          {description}
+        </p>
+      )}
     </div>
   )
 })

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigation, useTheme } from "./hooks";
+import type { Theme } from "./hooks/useTheme";
 import { useAuth } from "./contexts/AuthContext";
 import { useData } from "./contexts/DataContext";
 import type { TabType, Screen } from "@/types";
@@ -22,7 +23,7 @@ import type { Exercise } from "./hooks/useExercises";
 
 function App() {
   const { user, isLoading, login, register } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [authScreen, setAuthScreen] = useState<"login" | "register">("login");
 
   const { activeTab, setActiveTab, screen, setScreen } =
@@ -41,10 +42,13 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Ładowanie...</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--gg-bg)" }}>
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-full border-2 animate-spin"
+            style={{ borderColor: "var(--gg-a1)", borderTopColor: "transparent" }}
+          />
+          <p className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Ładowanie...</p>
         </div>
       </div>
     );
@@ -81,8 +85,8 @@ function App() {
       setPendingExerciseAdd={setPendingExerciseAdd}
       selectedStatsExerciseId={selectedStatsExerciseId}
       setSelectedStatsExerciseId={setSelectedStatsExerciseId}
-      isDark={isDark}
-      toggleTheme={toggleTheme}
+      theme={theme}
+      setTheme={setTheme}
     />
   );
 }
@@ -100,8 +104,8 @@ interface AuthenticatedAppProps {
   setPendingExerciseAdd: (id: string | null) => void;
   selectedStatsExerciseId: string | null;
   setSelectedStatsExerciseId: (id: string | null) => void;
-  isDark: boolean;
-  toggleTheme: () => void;
+  theme: Theme;
+  setTheme: (t: Theme) => void;
 }
 
 function AuthenticatedApp({
@@ -117,8 +121,8 @@ function AuthenticatedApp({
   setPendingExerciseAdd,
   selectedStatsExerciseId,
   setSelectedStatsExerciseId,
-  isDark,
-  toggleTheme,
+  theme,
+  setTheme,
 }: AuthenticatedAppProps) {
   const {
     createWorkout,
@@ -282,7 +286,7 @@ function AuthenticatedApp({
           />
         );
       case "menu":
-        return <MenuScreen isDark={isDark} toggleTheme={toggleTheme} />;
+        return <MenuScreen theme={theme} setTheme={setTheme} />;
       default:
         return renderTrainingsScreen();
     }

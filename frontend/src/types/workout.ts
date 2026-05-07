@@ -65,6 +65,7 @@ export interface Workout {
   gymName?: string | null;
   location?: string | null;
   workoutNotes?: string | null;
+  durationSeconds?: number | null;
   createdAt: string;
   updatedAt: string;
   items: WorkoutItem[];
@@ -128,6 +129,7 @@ export interface UpdateWorkoutDto {
   gymName?: string;
   location?: string;
   workoutNotes?: string;
+  durationSeconds?: number;
 }
 
 export interface AddExerciseToWorkoutDto {

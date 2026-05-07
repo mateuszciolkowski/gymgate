@@ -16,7 +16,7 @@ export function ExerciseSelectionModal({
 }: ExerciseSelectionModalProps) {
   useEffect(() => {
     const scrollY = window.scrollY;
-    const previousBodyStyle = {
+    const prev = {
       position: document.body.style.position,
       top: document.body.style.top,
       left: document.body.style.left,
@@ -24,101 +24,95 @@ export function ExerciseSelectionModal({
       width: document.body.style.width,
       overflow: document.body.style.overflow,
     };
-
     document.body.style.position = "fixed";
     document.body.style.top = `-${scrollY}px`;
     document.body.style.left = "0";
     document.body.style.right = "0";
     document.body.style.width = "100%";
     document.body.style.overflow = "hidden";
-
     return () => {
-      document.body.style.position = previousBodyStyle.position;
-      document.body.style.top = previousBodyStyle.top;
-      document.body.style.left = previousBodyStyle.left;
-      document.body.style.right = previousBodyStyle.right;
-      document.body.style.width = previousBodyStyle.width;
-      document.body.style.overflow = previousBodyStyle.overflow;
+      Object.assign(document.body.style, prev);
       window.scrollTo(0, scrollY);
     };
   }, []);
 
-  const blurActiveElement = useCallback(() => {
-    const activeElement = document.activeElement;
-    if (activeElement instanceof HTMLElement) {
-      activeElement.blur();
-    }
+  const blurActive = useCallback(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   }, []);
 
-  const handleClose = useCallback(() => {
-    blurActiveElement();
-    onClose();
-  }, [blurActiveElement, onClose]);
-
-  const handleSelectExercise = useCallback(
-    (exerciseId: string) => {
-      blurActiveElement();
-      onSelectExercise(exerciseId);
-    },
-    [blurActiveElement, onSelectExercise],
-  );
-
-  const handleCreateNewExercise = useCallback(() => {
-    blurActiveElement();
-    onCreateNewExercise?.();
-  }, [blurActiveElement, onCreateNewExercise]);
+  const handleClose = useCallback(() => { blurActive(); onClose(); }, [blurActive, onClose]);
+  const handleSelect = useCallback((id: string) => { blurActive(); onSelectExercise(id); }, [blurActive, onSelectExercise]);
+  const handleCreate = useCallback(() => { blurActive(); onCreateNewExercise?.(); }, [blurActive, onCreateNewExercise]);
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4 overflow-hidden"
+      className="absolute inset-0 z-[70] flex items-end justify-center overflow-hidden"
       onClick={handleClose}
+      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
       role="presentation"
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl h-[90svh] sm:h-auto sm:max-h-[90dvh] flex flex-col overflow-hidden"
+        className="w-full flex flex-col overflow-hidden"
+        style={{
+          height: "90%",
+          background: "var(--gg-surface)",
+          borderRadius: "24px 24px 0 0",
+          border: "1.5px solid var(--gg-border-med)",
+          boxShadow: "0 -8px 40px rgba(0,0,0,0.6)",
+        }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Wybierz ćwiczenie"
       >
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+        {/* Handle */}
+        <div className="flex-shrink-0 flex flex-col px-5 pt-5 pb-3"
+          style={{ borderBottom: "1px solid var(--gg-border)" }}
+        >
+          <div
+            className="mx-auto mb-4"
+            style={{ width: 40, height: 4, borderRadius: 2, background: "var(--gg-surface3)" }}
+          />
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-bold">Wybierz ćwiczenie</h2>
+            <h2
+              className="font-barlow font-black"
+              style={{ fontSize: 24, color: "var(--gg-text)" }}
+            >
+              Wybierz ćwiczenie
+            </h2>
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              className="flex items-center justify-center w-[32px] h-[32px] rounded-[10px] border-none cursor-pointer"
+              style={{ background: "var(--gg-surface2)" }}
             >
-              ✕
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
             </button>
           </div>
           {onCreateNewExercise && (
             <button
-              onClick={handleCreateNewExercise}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
+              onClick={handleCreate}
+              className="w-full flex items-center justify-center gap-2 font-bold text-[14px] text-white rounded-[15px] border-none cursor-pointer"
+              style={{
+                padding: "14px",
+                background: "var(--gg-grad-btn)",
+                boxShadow: "0 4px 20px var(--gg-glow)",
+              }}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-5 h-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4.5v15m7.5-7.5h-15"
-                />
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="4" x2="12" y2="20"/>
+                <line x1="4" y1="12" x2="20" y2="12"/>
               </svg>
               Dodaj nowe ćwiczenie
             </button>
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y pb-24 sm:pb-0 [-webkit-overflow-scrolling:touch]">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain scrollbar-hide">
           <ExerciseList
             mode="select"
-            onSelectExercise={handleSelectExercise}
+            onSelectExercise={handleSelect}
             excludeExerciseIds={existingExerciseIds}
           />
         </div>

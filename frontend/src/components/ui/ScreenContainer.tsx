@@ -11,7 +11,7 @@ export const ScreenContainer = memo(function ScreenContainer({
 }: ScreenContainerProps) {
   return (
     <section
-      className={`bg-light-100 dark:bg-gray-800 rounded-3xl p-5 sm:p-6 border border-gray-300 dark:border-gray-700 my-2 transition-colors ${className}`.trim()}
+      className={`px-5 pt-5 pb-2 screen-enter ${className}`.trim()}
     >
       {children}
     </section>

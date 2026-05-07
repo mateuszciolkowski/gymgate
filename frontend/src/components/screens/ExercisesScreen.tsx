@@ -1,6 +1,4 @@
 import { memo } from "react";
-import { ScreenContainer, ScreenHeader } from "../ui";
-import { PlusIcon } from "../icons";
 import { useData } from "@/contexts/DataContext";
 import { ExerciseList } from "../exercises/ExerciseList";
 import type { Exercise } from "@/hooks/useExercises";
@@ -20,38 +18,55 @@ export const ExercisesScreen = memo(function ExercisesScreen({
     if (window.confirm(`Czy na pewno chcesz usunąć ćwiczenie "${name}"?`)) {
       try {
         await deleteExercise(id);
-      } catch (err) {
+      } catch {
         alert("Błąd podczas usuwania ćwiczenia");
       }
     }
   };
 
   return (
-    <ScreenContainer>
-      <ScreenHeader
-        title="Moje ćwiczenia"
-        subtitle="Zarządzaj swoimi ćwiczeniami"
-      />
-
-      {/* Przycisk dodaj */}
-      <div className="mt-4">
-        <button
-          onClick={onAddExercise}
-          className="flex items-center justify-center w-full px-6 py-3 text-base font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors shadow-md"
+    <div className="px-5 pt-5 screen-enter">
+      {/* Header */}
+      <div className="mb-5">
+        <p
+          className="text-[11px] font-bold uppercase tracking-[0.12em] mb-1"
+          style={{ color: "var(--gg-text-muted)" }}
         >
-          <PlusIcon className="w-5 h-5 mr-2" />
-          Dodaj nowe ćwiczenie
-        </button>
+          Twoja baza
+        </p>
+        <h1
+          className="font-barlow font-black leading-none"
+          style={{ fontSize: 36, letterSpacing: "-0.03em", color: "var(--gg-text)" }}
+        >
+          Ćwiczenia
+        </h1>
       </div>
 
-      {/* Exercise List Component */}
-      <div className="mt-4 -mx-5 flex-1">
+      {/* Add button */}
+      <button
+        onClick={onAddExercise}
+        className="w-full flex items-center justify-center gap-2 font-bold text-[15px] text-white rounded-[16px] border-none cursor-pointer mb-4"
+        style={{
+          padding: 15,
+          background: "var(--gg-grad-btn)",
+          boxShadow: "0 4px 22px var(--gg-glow)",
+        }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="4" x2="12" y2="20"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+        </svg>
+        Dodaj nowe ćwiczenie
+      </button>
+
+      {/* Exercise list */}
+      <div className="-mx-5">
         <ExerciseList
           mode="manage"
           onEditExercise={onEditExercise}
           onDeleteExercise={handleDelete}
         />
       </div>
-    </ScreenContainer>
+    </div>
   );
 });
