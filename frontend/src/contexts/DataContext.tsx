@@ -125,6 +125,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const workoutsRef = useRef<Workout[]>([]);
   workoutsRef.current = workouts;
 
+  const statsRef = useRef<ExerciseStats[]>([]);
+  statsRef.current = stats;
+
   // Mapowanie tymczasowych ID na prawdziwe - nie powoduje re-renderów
   const idMappingRef = useRef<Map<string, string>>(new Map());
 
@@ -832,6 +835,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const exercise = exercisesRef.current.find((e) => e.id === exerciseId);
       if (!exercise) throw new Error("Nie znaleziono ćwiczenia");
 
+      const exerciseStat = statsRef.current.find((s) => s.exerciseId === exerciseId);
+      const defaultWeight = exerciseStat?.lastWeight ?? "0";
+      const defaultReps = exerciseStat?.lastReps ?? 1;
+
       // Optymistyczna aktualizacja - dodaj od razu do UI
       const newItem = {
         id: tempItemId,
@@ -854,8 +861,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             id: tempSetId,
             itemId: tempItemId,
             setNumber: 1,
-            weight: "0",
-            repetitions: 1,
+            weight: defaultWeight,
+            repetitions: defaultReps,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },
