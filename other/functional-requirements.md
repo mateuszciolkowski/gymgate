@@ -60,6 +60,20 @@ Personal strength-training tracker. Users build a custom exercise library, log w
 - A single workout can contain many exercises.
 - Each `WorkoutItem` receives an `orderInWorkout` integer starting at 1; the user can reorder items.
 
+### Planned workout templates (custom plans)
+- The system provides a small built-in library of predefined workout plans (stored in the database).
+- A user can create their own workout plan by defining only:
+  - plan name
+  - ordered list of exercises
+- During workout start, the user can choose: **start from plan**.
+- If a workout was started from a plan, the workout details view exposes a **suggest next from plan** action:
+  - it promotes the next exercise from the selected plan that is not yet added to the workout,
+  - the user may still add any other exercise manually at any time,
+  - after a manual add, the next suggestion still follows the remaining plan order.
+- When a suggested exercise is added, set behavior stays unchanged versus current flow:
+  - exactly one default set is created,
+  - default weight/reps follow existing app behavior for newly added exercises.
+
 ### One-time previous-note carryover
 - When a `WorkoutItem` is created the system looks up the `ExercisePendingNote` table for that user + exercise pair.
 - If a pending note exists it is copied to `WorkoutItem.previousNote` and the pending-note row is deleted (consumed once).
