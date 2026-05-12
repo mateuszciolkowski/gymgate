@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 
-export type Theme = "dark" | "light" | "violet" | "blossom";
+export type Theme = "dark" | "light" | "violet" | "blossom" | "steel" | "graphite";
 
-const VALID_THEMES: Theme[] = ["dark", "light", "violet", "blossom"];
+const VALID_THEMES: Theme[] = ["dark", "light", "violet", "blossom", "steel", "graphite"];
 
 interface UseThemeReturn {
   theme: Theme;
@@ -12,10 +12,12 @@ interface UseThemeReturn {
 
 function applyThemeClass(theme: Theme) {
   const html = document.documentElement;
-  html.classList.remove("dark", "violet", "blossom");
+  html.classList.remove("dark", "violet", "blossom", "steel", "graphite");
   if (theme === "dark") html.classList.add("dark");
   if (theme === "violet") html.classList.add("violet");
   if (theme === "blossom") html.classList.add("blossom");
+  if (theme === "steel") html.classList.add("steel");
+  if (theme === "graphite") html.classList.add("graphite");
 }
 
 export function useTheme(): UseThemeReturn {

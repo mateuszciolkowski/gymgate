@@ -4,12 +4,14 @@ interface MainLayoutProps {
   children: ReactNode;
   bottomBar?: ReactNode;
   topBanner?: ReactNode;
+  drawer?: ReactNode;
 }
 
 export const MainLayout = memo(function MainLayout({
   children,
   bottomBar,
   topBanner,
+  drawer,
 }: MainLayoutProps) {
   return (
     <div
@@ -28,6 +30,7 @@ export const MainLayout = memo(function MainLayout({
           {children}
         </main>
 
+        {drawer}
         {bottomBar}
       </div>
     </div>
