@@ -39,7 +39,7 @@
 }
 
 /* ─── LIGHT THEME ────────────────────────────────────────── */
-html:not(.dark):not(.violet):not(.blossom) {
+html:not(.dark):not(.violet):not(.blossom):not(.steel):not(.graphite) {
   --gg-bg:           #F2F7F4;
   --gg-surface:      #FFFFFF;
   --gg-surface2:     #E8F0EC;
