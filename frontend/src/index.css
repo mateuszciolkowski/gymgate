@@ -119,6 +119,66 @@ html.blossom {
   --gg-error:        #EF4444;
 }
 
+/* ─── STEEL THEME (ciemny niebieski) ────────────────────── */
+html.steel {
+  --gg-bg:           #06090F;
+  --gg-surface:      #0C1220;
+  --gg-surface2:     #12192E;
+  --gg-surface3:     #18243C;
+  --gg-border:       rgba(59,130,246,0.10);
+  --gg-border-med:   rgba(59,130,246,0.20);
+  --gg-text:         #EFF6FF;
+  --gg-text-sub:     #93C5FD;
+  --gg-text-muted:   #3A5580;
+  --gg-a1:           #3B82F6;
+  --gg-a2:           #93C5FD;
+  --gg-grad:         linear-gradient(135deg, #2563EB, #3B82F6);
+  --gg-grad-btn:     linear-gradient(135deg, #1D4ED8, #3B82F6);
+  --gg-grad-soft:    linear-gradient(135deg, rgba(59,130,246,0.15), rgba(147,197,253,0.08));
+  --gg-glow:         rgba(59,130,246,0.45);
+  --gg-glow-sm:      rgba(59,130,246,0.28);
+  --gg-tag-bg:       rgba(59,130,246,0.18);
+  --gg-tag-text:     #93C5FD;
+  --gg-record-bg:    rgba(59,130,246,0.10);
+  --gg-nav-bg:       rgba(6,9,15,0.97);
+  --gg-shadow:       0 2px 16px rgba(0,0,0,0.55);
+  --gg-shadow-glow:  0 4px 32px rgba(59,130,246,0.32);
+  --gg-active-border: #FBBF24;
+  --gg-active-glow:  rgba(251,191,36,0.35);
+  --gg-active-bg:    rgba(251,191,36,0.08);
+  --gg-error:        #EF4444;
+}
+
+/* ─── GRAPHITE THEME (ciemny szary) ─────────────────────── */
+html.graphite {
+  --gg-bg:           #0A0A0C;
+  --gg-surface:      #131316;
+  --gg-surface2:     #1A1A1F;
+  --gg-surface3:     #222228;
+  --gg-border:       rgba(255,255,255,0.07);
+  --gg-border-med:   rgba(255,255,255,0.13);
+  --gg-text:         #F1F5F9;
+  --gg-text-sub:     #94A3B8;
+  --gg-text-muted:   #4B5563;
+  --gg-a1:           #CBD5E1;
+  --gg-a2:           #F1F5F9;
+  --gg-grad:         linear-gradient(135deg, #6B7280, #CBD5E1);
+  --gg-grad-btn:     linear-gradient(135deg, #6B7280, #94A3B8);
+  --gg-grad-soft:    linear-gradient(135deg, rgba(203,213,225,0.12), rgba(241,245,249,0.06));
+  --gg-glow:         rgba(203,213,225,0.25);
+  --gg-glow-sm:      rgba(203,213,225,0.15);
+  --gg-tag-bg:       rgba(203,213,225,0.12);
+  --gg-tag-text:     #E2E8F0;
+  --gg-record-bg:    rgba(203,213,225,0.07);
+  --gg-nav-bg:       rgba(10,10,12,0.97);
+  --gg-shadow:       0 2px 16px rgba(0,0,0,0.55);
+  --gg-shadow-glow:  0 4px 32px rgba(203,213,225,0.18);
+  --gg-active-border: #FBBF24;
+  --gg-active-glow:  rgba(251,191,36,0.35);
+  --gg-active-bg:    rgba(251,191,36,0.08);
+  --gg-error:        #EF4444;
+}
+
 /* ─── SCROLLBAR HIDE ─────────────────────────────────────── */
 .scrollbar-hide {
   -ms-overflow-style: none;

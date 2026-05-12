@@ -7,6 +7,7 @@ import type { TabType, Screen } from "@/types";
 import {
   MainLayout,
   BottomNavigation,
+  NavigationDrawer,
   TrainingsScreen,
   ExercisesScreen,
     StatsScreen,
@@ -204,6 +205,7 @@ function AuthenticatedApp({
     syncNow,
   } = useData();
   const [isWorkoutFormOpen, setIsWorkoutFormOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (
@@ -216,15 +218,17 @@ function AuthenticatedApp({
     }
   }, [screen, selectedWorkoutId, getWorkout, setScreen, setSelectedWorkoutId]);
 
+  const activeWorkout = activeWorkoutId ? getWorkout(activeWorkoutId) : null;
+  const workoutStartedAt =
+    activeWorkout && activeWorkout.status !== "COMPLETED"
+      ? activeWorkout.createdAt
+      : null;
+
   const handleAddWorkoutClick = () => {
-    // Sprawdź czy istnieje aktywny trening I czy jest załadowany I czy jest w trakcie (nie zakończony)
-    const activeWorkout = activeWorkoutId ? getWorkout(activeWorkoutId) : null;
     if (activeWorkout && activeWorkout.status !== "COMPLETED") {
-      // Jest aktywny trening w trakcie - przejdź do niego
       setSelectedWorkoutId(activeWorkoutId);
       setScreen("workout-detail");
     } else {
-      // Brak aktywnego treningu lub jest zakończony - pokaż formularz
       setIsWorkoutFormOpen(true);
     }
   };
@@ -375,13 +379,25 @@ function AuthenticatedApp({
           />
         ) : undefined
       }
+      drawer={
+        <NavigationDrawer
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+          activeTab={activeTab}
+          onNavigate={setActiveTab}
+          theme={theme}
+          setTheme={setTheme}
+        />
+      }
       bottomBar={
         <BottomNavigation
           activeTab={activeTab}
           onTabChange={setActiveTab}
           onAddWorkout={handleAddWorkoutClick}
+          onOpenMenu={() => setIsDrawerOpen(true)}
           isWorkoutDetail={screen === "workout-detail"}
-          hasActiveWorkout={!!activeWorkoutId}
+          hasActiveWorkout={!!workoutStartedAt}
+          workoutStartedAt={workoutStartedAt}
         />
       }
     >
