@@ -93,11 +93,10 @@ export function WorkoutDetailScreen({
     if (!workout || workout.status !== "DRAFT") return;
 
     const startedAt = new Date(workout.createdAt).getTime();
-    const initialElapsed = Math.floor((Date.now() - startedAt) / 1000);
-    setElapsed(Math.max(0, initialElapsed));
+    setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
 
     timerRef.current = setInterval(() => {
-      setElapsed((e) => e + 1);
+      setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
     }, 1000);
 
     return () => {

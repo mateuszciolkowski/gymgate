@@ -84,6 +84,7 @@ export const updateWorkout = async (
     ...(data.gymName !== undefined && { gymName: data.gymName }),
     ...(data.location !== undefined && { location: data.location }),
     ...(data.workoutNotes !== undefined && { workoutNotes: data.workoutNotes }),
+    ...(data.durationSeconds !== undefined && { durationSeconds: data.durationSeconds }),
   };
 
   const updatedWorkout = await workoutRepo.updateWorkout(id, updateData);
