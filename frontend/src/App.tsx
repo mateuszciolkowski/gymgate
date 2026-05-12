@@ -383,6 +383,7 @@ function AuthenticatedApp({
         <NavigationDrawer
           isOpen={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
+          onOpen={() => setIsDrawerOpen(true)}
           activeTab={activeTab}
           onNavigate={setActiveTab}
           theme={theme}
