@@ -1,0 +1,736 @@
+openapi: "3.1.0"
+info:
+  title: GymGate API
+  version: "1.0.0"
+  description: |
+    REST API dla aplikacji GymGate – strength training tracker.
+    Wszystkie chronione endpointy wymagają nagłówka `Authorization: Bearer <token>`.
+    Odpowiedzi sukcesu: `{ success: true, data: ... }`.
+    Odpowiedzi błędu: `{ success: false, error: "..." }`.
+
+servers:
+  - url: http://localhost:3000
+    description: Local dev
+  - url: https://gymgate-api.up.railway.app
+    description: Production (Railway)
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    MuscleGroup:
+      type: string
+      enum:
+        [
+          CHEST, BACK, SHOULDERS, BICEPS, TRICEPS, FOREARMS, ABS, OBLIQUES,
+          LOWER_BACK, QUADS, HAMSTRINGS, GLUTES, CALVES, ADDUCTORS,
+          HIP_FLEXORS, TRAPS, LATS, MIDDLE_BACK, NECK, FULL_BODY,
+        ]
+
+    PhotoStage:
+      type: string
+      enum: [START, MIDDLE, END]
+
+    WorkoutStatus:
+      type: string
+      enum: [DRAFT, COMPLETED]
+
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        firstName: { type: string }
+        lastName: { type: string }
+        phone: { type: string, nullable: true }
+
+    ExercisePhoto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        exerciseId: { type: string, format: uuid }
+        photoStage: { $ref: "#/components/schemas/PhotoStage" }
+        photoUrl: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    Exercise:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        muscleGroups:
+          type: array
+          items: { $ref: "#/components/schemas/MuscleGroup" }
+        description: { type: string, nullable: true }
+        creatorUserId: { type: string, format: uuid, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        photos:
+          type: array
+          items: { $ref: "#/components/schemas/ExercisePhoto" }
+
+    WorkoutSet:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        itemId: { type: string, format: uuid }
+        setNumber: { type: integer }
+        weight: { type: number, format: double }
+        repetitions: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    WorkoutItem:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        workoutId: { type: string, format: uuid }
+        exerciseId: { type: string, format: uuid }
+        orderInWorkout: { type: integer }
+        notes: { type: string, nullable: true }
+        previousNote: { type: string, nullable: true }
+        exercise: { $ref: "#/components/schemas/Exercise" }
+        sets:
+          type: array
+          items: { $ref: "#/components/schemas/WorkoutSet" }
+
+    Workout:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        workoutDate: { type: string, format: date-time }
+        status: { $ref: "#/components/schemas/WorkoutStatus" }
+        workoutName: { type: string, nullable: true }
+        gymName: { type: string, nullable: true }
+        location: { type: string, nullable: true }
+        workoutNotes: { type: string, nullable: true }
+        durationSeconds: { type: integer, nullable: true }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/WorkoutItem" }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    ExerciseUserStats:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        exerciseId: { type: string, format: uuid }
+        maxWeight: { type: number }
+        maxWeightReps: { type: integer }
+        maxWeightDate: { type: string, format: date-time }
+        lastWeight: { type: number }
+        lastReps: { type: integer }
+        lastWorkoutDate: { type: string, format: date-time }
+        totalWorkouts: { type: integer }
+        lastNote: { type: string, nullable: true }
+
+    StatsOverview:
+      type: object
+      properties:
+        workoutsLastMonth: { type: integer }
+        workoutsLastYear: { type: integer }
+        totalSets: { type: integer }
+        totalVolume: { type: number }
+
+    Error:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        error: { type: string }
+
+paths:
+  # ── AUTH ──────────────────────────────────────────────────────────────────
+
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Rejestracja nowego użytkownika
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, firstName, lastName]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 6 }
+                firstName: { type: string }
+                lastName: { type: string }
+                phone: { type: string }
+      responses:
+        "201":
+          description: Zarejestrowano
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      user: { $ref: "#/components/schemas/User" }
+                      token: { type: string }
+        "409": { description: Email już zajęty }
+        "422": { description: Błąd walidacji }
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Logowanie
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200":
+          description: Zalogowano
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      user: { $ref: "#/components/schemas/User" }
+                      token: { type: string }
+        "401": { description: Nieprawidłowe dane }
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Dane zalogowanego użytkownika (z tokenu)
+      security: []
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema: { type: string, example: "Bearer <token>" }
+      responses:
+        "200":
+          description: Dane użytkownika
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/User" }
+        "401": { description: Brak lub wygasły token }
+
+  # ── EXERCISES ─────────────────────────────────────────────────────────────
+
+  /api/exercises:
+    get:
+      tags: [Exercises]
+      summary: Lista ćwiczeń
+      parameters:
+        - in: query
+          name: muscleGroup
+          schema: { $ref: "#/components/schemas/MuscleGroup" }
+        - in: query
+          name: name
+          schema: { type: string }
+        - in: query
+          name: creatorUserId
+          schema: { type: string }
+      responses:
+        "200":
+          description: Lista ćwiczeń
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Exercise" }
+                  count: { type: integer }
+    post:
+      tags: [Exercises]
+      summary: Utwórz ćwiczenie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, muscleGroups]
+              properties:
+                name: { type: string, maxLength: 200 }
+                muscleGroups:
+                  type: array
+                  items: { $ref: "#/components/schemas/MuscleGroup" }
+                  minItems: 1
+                description: { type: string }
+      responses:
+        "201":
+          description: Utworzone ćwiczenie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Exercise" }
+
+  /api/exercises/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [Exercises]
+      summary: Pobierz ćwiczenie
+      responses:
+        "200":
+          description: Ćwiczenie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Exercise" }
+        "404": { description: Nie znaleziono }
+    patch:
+      tags: [Exercises]
+      summary: Edytuj ćwiczenie
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                muscleGroups:
+                  type: array
+                  items: { $ref: "#/components/schemas/MuscleGroup" }
+                description: { type: string }
+      responses:
+        "200":
+          description: Zaktualizowane ćwiczenie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Exercise" }
+    delete:
+      tags: [Exercises]
+      summary: Usuń ćwiczenie
+      responses:
+        "204": { description: Usunięto }
+        "404": { description: Nie znaleziono }
+
+  # ── WORKOUTS ──────────────────────────────────────────────────────────────
+
+  /api/workouts:
+    get:
+      tags: [Workouts]
+      summary: Lista treningów użytkownika
+      parameters:
+        - in: query
+          name: status
+          schema: { $ref: "#/components/schemas/WorkoutStatus" }
+        - in: query
+          name: limit
+          schema: { type: integer }
+        - in: query
+          name: offset
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Lista treningów
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Workout" }
+                  count: { type: integer }
+    post:
+      tags: [Workouts]
+      summary: Utwórz nowy trening (DRAFT)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workoutDate: { type: string, format: date-time }
+                workoutName: { type: string }
+                gymName: { type: string }
+                location: { type: string }
+                workoutNotes: { type: string }
+      responses:
+        "201":
+          description: Utworzony trening
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Workout" }
+
+  /api/workouts/active:
+    get:
+      tags: [Workouts]
+      summary: Aktywny trening użytkownika
+      responses:
+        "200":
+          description: Aktywny trening lub null
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Workout" }
+    delete:
+      tags: [Workouts]
+      summary: Wyczyść wskaźnik aktywnego treningu
+      responses:
+        "200": { description: Wyczyszczono }
+
+  /api/workouts/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [Workouts]
+      summary: Trening z items i sets
+      responses:
+        "200":
+          description: Trening
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Workout" }
+        "404": { description: Nie znaleziono }
+    patch:
+      tags: [Workouts]
+      summary: Edytuj / zamknij trening
+      description: |
+        Gdy `status` jest zmieniony na `COMPLETED`, system automatycznie
+        odbudowuje `ExerciseUserStats` dla wszystkich ćwiczeń w treningu.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { $ref: "#/components/schemas/WorkoutStatus" }
+                workoutName: { type: string }
+                gymName: { type: string }
+                workoutNotes: { type: string }
+                durationSeconds: { type: integer }
+      responses:
+        "200":
+          description: Zaktualizowany trening
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Workout" }
+    delete:
+      tags: [Workouts]
+      summary: Usuń trening (cascade + rebuild stats)
+      responses:
+        "200": { description: Usunięto }
+        "404": { description: Nie znaleziono }
+
+  /api/workouts/{workoutId}/exercises:
+    post:
+      tags: [WorkoutItems]
+      summary: Dodaj ćwiczenie do treningu
+      description: |
+        Transakcja: pobiera ExercisePendingNote → tworzy WorkoutItem z previousNote →
+        usuwa PendingNote → tworzy pierwszą serię (0 kg, 1 rep).
+      parameters:
+        - in: path
+          name: workoutId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [exerciseId]
+              properties:
+                exerciseId: { type: string, format: uuid }
+                orderInWorkout: { type: integer }
+                notes: { type: string }
+      responses:
+        "201":
+          description: WorkoutItem z pierwszą serią
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/WorkoutItem" }
+
+  /api/workouts/items/{itemId}:
+    parameters:
+      - in: path
+        name: itemId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      tags: [WorkoutItems]
+      summary: Edytuj WorkoutItem (notatki / kolejność)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orderInWorkout: { type: integer }
+                notes: { type: string, nullable: true }
+      responses:
+        "200":
+          description: Zaktualizowany item
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/WorkoutItem" }
+    delete:
+      tags: [WorkoutItems]
+      summary: Usuń ćwiczenie z treningu
+      responses:
+        "200": { description: Usunięto }
+
+  /api/workouts/items/{itemId}/sets:
+    post:
+      tags: [WorkoutSets]
+      summary: Dodaj serię do ćwiczenia
+      parameters:
+        - in: path
+          name: itemId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [weight, repetitions]
+              properties:
+                weight: { type: number, minimum: 0 }
+                repetitions: { type: integer, minimum: 1 }
+                setNumber: { type: integer }
+      responses:
+        "201":
+          description: Dodana seria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/WorkoutSet" }
+
+  /api/workouts/sets/{setId}:
+    parameters:
+      - in: path
+        name: setId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      tags: [WorkoutSets]
+      summary: Edytuj serię
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                weight: { type: number, minimum: 0 }
+                repetitions: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: Zaktualizowana seria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/WorkoutSet" }
+    delete:
+      tags: [WorkoutSets]
+      summary: Usuń serię
+      responses:
+        "200": { description: Usunięto }
+
+  # ── STATS ─────────────────────────────────────────────────────────────────
+
+  /api/workouts/stats/all:
+    get:
+      tags: [Stats]
+      summary: Wszystkie statystyki użytkownika (per ćwiczenie)
+      responses:
+        "200":
+          description: Tablica ExerciseUserStats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/ExerciseUserStats" }
+                  count: { type: integer }
+
+  /api/workouts/stats/exercise/{exerciseId}:
+    get:
+      tags: [Stats]
+      summary: Statystyki dla konkretnego ćwiczenia
+      parameters:
+        - in: path
+          name: exerciseId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ExerciseUserStats lub null (pierwsze wykonanie)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    oneOf:
+                      - { $ref: "#/components/schemas/ExerciseUserStats" }
+                      - { type: "null" }
+                  message: { type: string }
+
+  /api/workouts/stats/overview:
+    get:
+      tags: [Stats]
+      summary: Globalny przegląd statystyk użytkownika
+      responses:
+        "200":
+          description: StatsOverview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/StatsOverview" }
+
+  /api/workouts/stats/progression/{exerciseId}:
+    get:
+      tags: [Stats]
+      summary: Historyczna progresja ćwiczenia
+      parameters:
+        - in: path
+          name: exerciseId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: metric
+          schema:
+            type: string
+            enum: [maxSetWeight, volume]
+            default: maxSetWeight
+        - in: query
+          name: from
+          schema: { type: string, format: date-time }
+        - in: query
+          name: to
+          schema: { type: string, format: date-time }
+      responses:
+        "200":
+          description: Dane progresji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      exerciseId: { type: string }
+                      metric: { type: string }
+                      points:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            workoutId: { type: string }
+                            workoutDate: { type: string, format: date-time }
+                            maxSetWeight: { type: number }
+                            repetitionsAtMaxSet: { type: integer }
+                            volume: { type: number }
+                            value: { type: number }
+
+  # ── USERS ─────────────────────────────────────────────────────────────────
+
+  /api/users/{id}:
+    get:
+      tags: [Users]
+      summary: Pobierz użytkownika po ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Dane użytkownika
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/User" }
+        "404": { description: Nie znaleziono }
