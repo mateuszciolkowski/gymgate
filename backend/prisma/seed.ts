@@ -98,7 +98,7 @@ async function main() {
         creatorUserId: "1",
       },
       {
-        name: "Peck deck (motylek)",
+        name: "Rozpiętki na maszynie",
         muscleGroups: ["CHEST"],
         description: "Izolacja klatki na maszynie",
         creatorUserId: "1",
@@ -171,6 +171,12 @@ async function main() {
         creatorUserId: "1",
       },
       {
+        name: "Wiosłowanie focze hantlami na ławce skośnej",
+        muscleGroups: ["BACK", "MIDDLE_BACK", "LATS"],
+        description: "Seal row - leżąc na ławce skośnej",
+        creatorUserId: "1",
+      },
+      {
         name: "Wiosłowanie T-bar",
         muscleGroups: ["BACK", "MIDDLE_BACK", "TRAPS"],
         description: "Stabilne wiosłowanie na masę",
@@ -207,9 +213,9 @@ async function main() {
         creatorUserId: "1",
       },
       {
-        name: "Prostowanie pleców (hyperextensions)",
+        name: "Wznosy tułowia na ławce rzymskiej",
         muscleGroups: ["LOWER_BACK", "GLUTES", "HAMSTRINGS"],
-        description: "Wzmocnienie dolnej części pleców",
+        description: "Wzmocnienie dolnej części pleców na ławce rzymskiej",
         creatorUserId: "1",
       },
       {
@@ -277,6 +283,12 @@ async function main() {
         name: "Unoszenie na linie bokiem",
         muscleGroups: ["SHOULDERS"],
         description: "Izolacja bocznej części barków",
+        creatorUserId: "1",
+      },
+      {
+        name: "Odwodzenie linki wyciągu jednorącz na tył barku",
+        muscleGroups: ["SHOULDERS"],
+        description: "Izolacja tylnej części barku - jednorącz na wyciągu",
         creatorUserId: "1",
       },
       {
@@ -348,6 +360,12 @@ async function main() {
         creatorUserId: "1",
       },
       {
+        name: "Prostowanie ramion na wyciągu z liną",
+        muscleGroups: ["TRICEPS"],
+        description: "Wariant z liną - większy zakres ruchu",
+        creatorUserId: "1",
+      },
+      {
         name: "Wyciskanie francuskie sztangą",
         muscleGroups: ["TRICEPS"],
         description: "Leżąc - rozciąga tricepsy",
@@ -403,6 +421,12 @@ async function main() {
         creatorUserId: "1",
       },
       {
+        name: "Przysiad sumo",
+        muscleGroups: ["QUADS", "GLUTES", "ADDUCTORS"],
+        description: "Przysiad z szerszym rozstawieniem nóg",
+        creatorUserId: "1",
+      },
+      {
         name: "Wypychanie nóg na suwnicy",
         muscleGroups: ["QUADS", "GLUTES", "HAMSTRINGS"],
         description: "Bezpieczna alternatywa dla przysiadów",
@@ -454,6 +478,12 @@ async function main() {
         name: "Mostek biodrowy",
         muscleGroups: ["GLUTES", "HAMSTRINGS"],
         description: "Wariant bez obciążenia",
+        creatorUserId: "1",
+      },
+      {
+        name: "Glute bridge",
+        muscleGroups: ["GLUTES"],
+        description: "Izolowane spięcie pośladków leżąc",
         creatorUserId: "1",
       },
       {
