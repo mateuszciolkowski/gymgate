@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">GymGate</h1>
-<p align="center">Smart Workout Tracking Platform</p>
+<p align="center">SMART WORKOUT TRACKING PLATFORM</p>
 
 <p align="center">
   <a href="README.md"><strong>English</strong></a> &nbsp;|&nbsp; <a href="README.pl.md">Polski</a>

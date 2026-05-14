@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">GymGate</h1>
-<p align="center">Platforma do sledzenia treningow silowych</p>
+<p align="center">PLATFORMA DO SLEDZENIA TRENINGOW SILOWYCH</p>
 
 <p align="center">
   <a href="README.md">English</a> &nbsp;|&nbsp; <a href="README.pl.md"><strong>Polski</strong></a>
