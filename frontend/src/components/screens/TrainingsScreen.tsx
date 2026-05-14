@@ -66,7 +66,7 @@ const WorkoutCard = memo(function WorkoutCard({
         )}
         {workout.durationSeconds != null && (
           <div className="text-[11px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
-            ⏱ {formatDuration(workout.durationSeconds)}
+            {formatDuration(workout.durationSeconds)}
           </div>
         )}
       </div>
