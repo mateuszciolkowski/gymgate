@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">GymGate</h1>
-<p align="center">Platforma do sledzenia treningow silowych</p>
+<p align="center">PLATFORMA DO SLEDZENIA TRENINGOW SILOWYCH</p>
 
 <p align="center">
   <a href="README.md">English</a> &nbsp;|&nbsp; <a href="README.pl.md"><strong>Polski</strong></a>
@@ -33,9 +33,9 @@ Aplikacja opiera sie na architekturze offline-first — wszystkie dane sa utrwal
 <p align="center">
   <img src="other/app_photos/gymgate.PNG" alt="Lista treningow" width="230" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="other/app_photos/gymgate2.PNG" alt="Aktywny trening" width="230" />
+  <img src="other/app_photos/gymgate2.png" alt="Aktywny trening" width="230" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="other/app_photos/gymgate7.PNG" alt="Statystyki cwiczen" width="230" />
+  <img src="other/app_photos/gymgate7.png" alt="Statystyki cwiczen" width="230" />
 </p>
 
 ---

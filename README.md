@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">GymGate</h1>
-<p align="center">Smart Workout Tracking Platform</p>
+<p align="center">SMART WORKOUT TRACKING PLATFORM</p>
 
 <p align="center">
   <a href="README.md"><strong>English</strong></a> &nbsp;|&nbsp; <a href="README.pl.md">Polski</a>
@@ -33,9 +33,9 @@ The app is built around an offline-first architecture — all data is persisted 
 <p align="center">
   <img src="other/app_photos/gymgate.PNG" alt="Workout list" width="230" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="other/app_photos/gymgate2.PNG" alt="Active workout" width="230" />
+  <img src="other/app_photos/gymgate2.png" alt="Active workout" width="230" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="other/app_photos/gymgate7.PNG" alt="Exercise statistics" width="230" />
+  <img src="other/app_photos/gymgate7.png" alt="Exercise statistics" width="230" />
 </p>
 
 ---
