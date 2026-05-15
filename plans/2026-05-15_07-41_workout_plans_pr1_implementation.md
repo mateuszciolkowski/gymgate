@@ -1,6 +1,6 @@
 # PR #1 — Backend Workout Plans — Plan implementacji
 
-Referencja: [`WORKOUT_PLANS_FEATURE_PLAN.md`](./WORKOUT_PLANS_FEATURE_PLAN.md) (PR #50)
+Referencja: [`2026-05-14_21-26_workout_plans_feature.md`](./2026-05-14_21-26_workout_plans_feature.md) (PR #50)
 
 ## Zakres
 

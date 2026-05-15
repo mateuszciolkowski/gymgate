@@ -62,6 +62,7 @@ docs/
 | **Temp IDs**          | Offline encje mają prefix `temp_*`; SyncManager zastępuje je prawdziwymi UUID po sync                         |
 | **API docs**          | Po zmianie kontraktu należy zaktualizować `backend/src/modules/<module>/API.md` **i** `docs/api/openapi.yaml` |
 | **Response format**   | Sukces: `{ success: true, data: ... }` / Błąd: `{ success: false, error: "..." }`                             |
+| **Plany wykonania**   | Trzymaj w `plans/` i nazywaj `YYYY-MM-DD_HH-MM_co_ma_zrobic.md`                                                 |
 
 ---
 
@@ -78,3 +79,4 @@ docs/
 | Postman collection                   | [`backend/postman/`](../backend/postman/)                                               |
 | Frontend offline docs                | [`frontend/docs/OFFLINE.md`](../frontend/docs/OFFLINE.md)                               |
 | Wymagania funkcjonalne               | [`other/functional-requirements.md`](../other/functional-requirements.md)               |
+| Plany realizacji                     | [`plans/`](../plans/)                                                                    |
