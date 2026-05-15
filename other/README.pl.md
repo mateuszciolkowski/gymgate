@@ -38,22 +38,6 @@ Aplikacja opiera sie na architekturze offline-first — wszystkie dane sa utrwal
   <img src="app_photos/gymgate7.png" alt="Statystyki cwiczen" width="230" />
 </p>
 
----
-
-## Plany wykonania
-
-Pliki planów realizacji przechowujemy w katalogu [`plans/`](../plans/).
-
-Wymagany format nazwy pliku:
-
-`YYYY-MM-DD_HH-MM_co_ma_zrobic.md`
-
-Przykład:
-
-`plans/2026-05-15_09-16_ghost_workout_fix.md`
-
----
-
 ## Funkcje
 
 - **Szybki start** — rozpoczecie sesji w statusie `DRAFT` jednym kliknieciem.

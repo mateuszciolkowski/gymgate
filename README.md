@@ -38,22 +38,6 @@ The app is built around an offline-first architecture — all data is persisted 
   <img src="other/app_photos/gymgate7.png" alt="Exercise statistics" width="230" />
 </p>
 
----
-
-## Implementation plans
-
-Execution plans are stored in [`plans/`](plans/).
-
-Required file name format:
-
-`YYYY-MM-DD_HH-MM_what_the_plan_is_for.md`
-
-Example:
-
-`plans/2026-05-15_09-16_ghost_workout_fix.md`
-
----
-
 ## Features
 
 - **Quick start** — begin a training session in `DRAFT` status with a single tap.
