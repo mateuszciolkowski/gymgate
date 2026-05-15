@@ -38,7 +38,10 @@ export function ExerciseList({
     let list = [...exercises];
 
     if (user) {
-      list = list.filter((ex) => ex.creator.id === "1" || String(ex.creator.id) === String(user.id));
+      list = list.filter((ex) => {
+        const creatorId = ex.creator?.id;
+        return creatorId == null || creatorId === "1" || String(creatorId) === String(user.id);
+      });
     }
 
     if (mode === "select" && excludeExerciseIds.length > 0) {
@@ -53,7 +56,7 @@ export function ExerciseList({
     }
 
     if (showOnlyMyExercises && user) {
-      list = list.filter((ex) => String(ex.creator.id) === String(user.id));
+      list = list.filter((ex) => String(ex.creator?.id) === String(user.id));
     }
 
     if (showOnlyPerformed) {
@@ -209,7 +212,8 @@ interface ExerciseItemProps {
 
 function ExerciseItem({ exercise, mode, stats, onSelect, onEdit, onDelete, performedHighlight }: ExerciseItemProps) {
   const { user } = useAuth();
-  const canEdit = user && String(exercise.creator.id) === String(user.id);
+  const creatorId = exercise.creator?.id;
+  const canEdit = user && creatorId != null && String(creatorId) === String(user.id);
   const isPerformed = performedHighlight && !!stats;
 
   return (
@@ -229,7 +233,7 @@ function ExerciseItem({ exercise, mode, stats, onSelect, onEdit, onDelete, perfo
           className="font-barlow font-bold text-[14px] flex-1 leading-snug"
           style={{ color: "var(--gg-text)" }}
         >
-          {exercise.creator.id !== "1" && (
+          {creatorId != null && creatorId !== "1" && (
             <svg
               width="13" height="13" viewBox="0 0 24 24" fill="none"
               stroke="var(--gg-a1)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"

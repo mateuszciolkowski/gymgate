@@ -31,6 +31,13 @@ import type { Exercise } from "@/hooks/useExercises";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
+export class WorkoutNotFoundError extends Error {
+  constructor(message = "Workout not found") {
+    super(message);
+    this.name = "WorkoutNotFoundError";
+  }
+}
+
 interface DataContextType {
   // Dane
   workouts: Workout[];
@@ -97,6 +104,7 @@ interface DataContextType {
   // Sync
   syncNow: () => Promise<void>;
   refreshWorkout: (id: string) => Promise<void>;
+  resetLocalCache: () => Promise<void>;
   failedSyncOperations: SyncOperation[];
   dismissSyncFailures: () => void;
   getExerciseProgression: (
@@ -209,6 +217,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     async (operation: {
       type: "create" | "update" | "delete";
       entity: "workout" | "exercise" | "set" | "workoutItem";
+      workoutId?: string;
       endpoint: string;
       method: string;
       data?: unknown;
@@ -218,18 +227,27 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const removePendingOperationsReferencingTempId = useCallback(
-    async (tempId: string) => {
-      if (!tempId.startsWith("temp_")) return;
+  const removePendingOperationsReferencingIds = useCallback(
+    async (ids: string[]) => {
+      const nonEmptyIds = ids.filter(Boolean);
+      if (nonEmptyIds.length === 0) return;
 
       const operations = await localStore.getPendingSyncOperations();
       const operationsToRemove = operations.filter((operation) => {
-        if (operation.endpoint.includes(tempId)) return true;
+        if (
+          operation.workoutId &&
+          nonEmptyIds.includes(operation.workoutId)
+        ) {
+          return true;
+        }
+
+        if (nonEmptyIds.some((id) => operation.endpoint.includes(id))) return true;
 
         if (!operation.data) return false;
 
         try {
-          return JSON.stringify(operation.data).includes(tempId);
+          const serialized = JSON.stringify(operation.data);
+          return nonEmptyIds.some((id) => serialized.includes(id));
         } catch {
           return false;
         }
@@ -238,12 +256,93 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       if (operationsToRemove.length === 0) return;
 
       await Promise.all(
-        operationsToRemove.map((operation) =>
-          localStore.removePendingSync(operation.id),
-        ),
+        operationsToRemove.map((operation) => localStore.removePendingSync(operation.id)),
       );
     },
     [],
+  );
+
+  const removePendingOperationsReferencingTempId = useCallback(
+    async (tempId: string) => {
+      if (!tempId.startsWith("temp_")) return;
+
+      await removePendingOperationsReferencingIds([tempId]);
+    },
+    [removePendingOperationsReferencingIds],
+  );
+
+  const purgeLocalWorkout = useCallback(
+    async (workoutId: string) => {
+      const realWorkoutId = getRealId(workoutId);
+      const workout = workoutsRef.current.find(
+        (entry) => entry.id === workoutId || entry.id === realWorkoutId,
+      );
+
+      const idsToCleanup = new Set<string>([workoutId, realWorkoutId]);
+      if (workout) {
+        idsToCleanup.add(workout.id);
+        idsToCleanup.add(getRealId(workout.id));
+        workout.items.forEach((item) => {
+          idsToCleanup.add(item.id);
+          idsToCleanup.add(getRealId(item.id));
+          item.sets.forEach((set) => {
+            idsToCleanup.add(set.id);
+            idsToCleanup.add(getRealId(set.id));
+          });
+        });
+      }
+
+      const cleanupIds = Array.from(idsToCleanup).filter(Boolean);
+      await removePendingOperationsReferencingIds(cleanupIds);
+
+      setWorkouts((prev) =>
+        prev.filter((entry) => !idsToCleanup.has(entry.id)),
+      );
+      const deleteResults = await Promise.allSettled(
+        cleanupIds.map((id) => localStore.delete("workouts", id)),
+      );
+      deleteResults.forEach((result, index) => {
+        if (result.status === "rejected") {
+          console.error(
+            `[DataProvider] Failed to delete local workout cache for id ${cleanupIds[index]}:`,
+            result.reason,
+          );
+        }
+      });
+
+      setFailedSyncOperations((prev) =>
+        prev.filter(
+          (operation) =>
+            !(
+              (operation.workoutId &&
+                idsToCleanup.has(operation.workoutId)) ||
+              cleanupIds.some((id) => operation.endpoint.includes(id))
+            ),
+        ),
+      );
+
+      setActiveWorkoutId((current) => {
+        if (current && idsToCleanup.has(current)) {
+          return null;
+        }
+        return current;
+      });
+
+      const persistedActiveWorkoutId = await localStore.getActiveWorkoutId();
+      if (
+        persistedActiveWorkoutId &&
+        idsToCleanup.has(persistedActiveWorkoutId)
+      ) {
+        await localStore.setActiveWorkoutId(null);
+      }
+
+      for (const [tempId, mappedId] of idMappingRef.current.entries()) {
+        if (idsToCleanup.has(tempId) || idsToCleanup.has(mappedId)) {
+          idMappingRef.current.delete(tempId);
+        }
+      }
+    },
+    [removePendingOperationsReferencingIds],
   );
 
   // Nasłuchuj na zmiany online/offline
@@ -459,15 +558,23 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const unsubscribeFailure = syncManager.onSyncFailure((ops) => {
       setFailedSyncOperations((prev) => [...prev, ...ops]);
     });
+    const unsubscribeWorkoutNotFound = syncManager.onWorkoutNotFound(
+      (workoutId) => {
+        purgeLocalWorkout(workoutId).catch((error) => {
+          console.error("[DataProvider] Failed to purge orphaned workout:", error);
+        });
+      },
+    );
 
     syncManager.start();
 
     return () => {
       unsubscribe();
       unsubscribeFailure();
+      unsubscribeWorkoutNotFound();
       syncManager.stop();
     };
-  }, [user, invalidateProgressionCache]);
+  }, [user, invalidateProgressionCache, purgeLocalWorkout]);
 
   // === AKCJE ===
 
@@ -554,6 +661,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           },
         );
 
+        if (response.status === 404) {
+          await purgeLocalWorkout(realWorkoutId);
+          alert("Ten trening nie istnieje już na serwerze — został usunięty z urządzenia.");
+          throw new WorkoutNotFoundError(`Workout ${realWorkoutId} no longer exists`);
+        }
+
         if (!response.ok) throw new Error("Błąd aktualizacji treningu");
 
         const result = await response.json();
@@ -595,13 +708,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         await queueSyncOperation({
           type: "update",
           entity: "workout",
+          workoutId: realWorkoutId,
           endpoint: "/api/workouts/" + realWorkoutId,
           method: "PATCH",
           data,
         });
       }
     },
-    [isOfflineError, queueSyncOperation],
+    [isOfflineError, purgeLocalWorkout, queueSyncOperation],
   );
 
   const deleteWorkout = useCallback(async (id: string) => {
@@ -618,6 +732,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           },
         );
 
+        if (response.status === 404) {
+          await purgeLocalWorkout(realWorkoutId);
+          return;
+        }
+
         if (!response.ok) throw new Error("Błąd usuwania treningu");
         deletedOnServer = true;
       } catch (error) {
@@ -625,6 +744,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         await queueSyncOperation({
           type: "delete",
           entity: "workout",
+          workoutId: realWorkoutId,
           endpoint: "/api/workouts/" + realWorkoutId,
           method: "DELETE",
         });
@@ -672,6 +792,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, [
     invalidateProgressionCache,
     isOfflineError,
+    purgeLocalWorkout,
     queueSyncOperation,
     refreshStatsData,
     removePendingOperationsReferencingTempId,
@@ -836,6 +957,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const refreshWorkout = useCallback(async (id: string) => {
     try {
       const response = await authFetch(`${API_BASE}/api/workouts/${id}`);
+      if (response.status === 404) {
+        await purgeLocalWorkout(id);
+        return;
+      }
       if (response.ok) {
         const result = await response.json();
         setWorkouts((prev) => prev.map((w) => (w.id === id ? result.data : w)));
@@ -844,11 +969,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("[DataProvider] Failed to refresh workout:", error);
     }
-  }, []);
+  }, [purgeLocalWorkout]);
 
   // Workout Items & Sets - OPTYMISTYCZNE AKTUALIZACJE
   const addExerciseToWorkout = useCallback(
     async (workoutId: string, exerciseId: string) => {
+      const realWorkoutId = getRealId(workoutId);
       const shouldRefreshStats =
         workoutsRef.current.find((workout) => workout.id === workoutId)?.status ===
         "COMPLETED";
@@ -916,11 +1042,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         clientTempSetId: tempSetId,
       };
 
-      if (!navigator.onLine) {
+      if (realWorkoutId.startsWith("temp_") || !navigator.onLine) {
         await queueSyncOperation({
           type: "create",
           entity: "workoutItem",
-          endpoint: `/api/workouts/${workoutId}/exercises`,
+          workoutId: realWorkoutId,
+          endpoint: `/api/workouts/${realWorkoutId}/exercises`,
           method: "POST",
           data: syncPayload,
         });
@@ -929,13 +1056,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       try {
         const response = await authFetch(
-          `${API_BASE}/api/workouts/${workoutId}/exercises`,
+          `${API_BASE}/api/workouts/${realWorkoutId}/exercises`,
           {
             method: "POST",
             headers: getAuthHeaders(),
             body: JSON.stringify({ exerciseId }),
           },
         );
+        if (response.status === 404) {
+          await purgeLocalWorkout(realWorkoutId);
+          alert("Ten trening nie istnieje już na serwerze — został usunięty z urządzenia.");
+          throw new WorkoutNotFoundError(`Workout ${realWorkoutId} no longer exists`);
+        }
         if (!response.ok) throw new Error("Błąd dodawania ćwiczenia");
         const result = await response.json();
 
@@ -982,11 +1114,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           await invalidateProgressionCache(exerciseId);
         }
       } catch (error) {
+        if (error instanceof WorkoutNotFoundError) {
+          throw error;
+        }
+
         if (isOfflineError(error)) {
           await queueSyncOperation({
             type: "create",
             entity: "workoutItem",
-            endpoint: `/api/workouts/${workoutId}/exercises`,
+            workoutId: realWorkoutId,
+            endpoint: `/api/workouts/${realWorkoutId}/exercises`,
             method: "POST",
             data: syncPayload,
           });
@@ -1009,11 +1146,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
       }
     },
-    [invalidateProgressionCache, isOfflineError, queueSyncOperation, refreshStatsData],
+    [invalidateProgressionCache, isOfflineError, purgeLocalWorkout, queueSyncOperation, refreshStatsData],
   );
 
   const removeExerciseFromWorkout = useCallback(
     async (workoutId: string, itemId: string) => {
+      const realWorkoutId = getRealId(workoutId);
       const originalWorkout = workoutsRef.current.find((workout) => workout.id === workoutId);
       const removedItem = originalWorkout?.items.find((item) => item.id === itemId);
       const shouldRefreshStats = originalWorkout?.status === "COMPLETED";
@@ -1047,6 +1185,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           await queueSyncOperation({
             type: "delete",
             entity: "workoutItem",
+            workoutId: realWorkoutId,
             endpoint: "/api/workouts/items/" + realItemId,
             method: "DELETE",
           });
@@ -1060,14 +1199,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
               method: "DELETE",
             },
           );
+          if (response.status === 404) {
+            await purgeLocalWorkout(realWorkoutId);
+            alert("Ten trening nie istnieje już na serwerze — został usunięty z urządzenia.");
+            throw new WorkoutNotFoundError(`Workout ${realWorkoutId} no longer exists`);
+          }
           if (!response.ok) {
             throw new Error("Błąd usuwania ćwiczenia z treningu");
           }
         } catch (error) {
+          if (error instanceof WorkoutNotFoundError) {
+            throw error;
+          }
+
           if (isOfflineError(error)) {
             await queueSyncOperation({
               type: "delete",
               entity: "workoutItem",
+              workoutId: realWorkoutId,
               endpoint: "/api/workouts/items/" + realItemId,
               method: "DELETE",
             });
@@ -1113,6 +1262,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [
       invalidateProgressionCache,
       isOfflineError,
+      purgeLocalWorkout,
       queueSyncOperation,
       refreshStatsData,
       removePendingOperationsReferencingTempId,
@@ -1121,6 +1271,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const updateWorkoutItem = useCallback(
     async (workoutId: string, itemId: string, data: { notes?: string | null }) => {
+      const realWorkoutId = getRealId(workoutId);
       const originalWorkout = workoutsRef.current.find((w) => w.id === workoutId);
       const originalItem = originalWorkout?.items.find((i) => i.id === itemId);
 
@@ -1153,6 +1304,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         await queueSyncOperation({
           type: "update",
           entity: "workoutItem",
+          workoutId: realWorkoutId,
           endpoint: `/api/workouts/items/${realItemId}`,
           method: "PATCH",
           data,
@@ -1167,14 +1319,25 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify(data),
         });
 
+        if (response.status === 404) {
+          await purgeLocalWorkout(realWorkoutId);
+          alert("Ten trening nie istnieje już na serwerze — został usunięty z urządzenia.");
+          throw new WorkoutNotFoundError(`Workout ${realWorkoutId} no longer exists`);
+        }
+
         if (!response.ok) {
           throw new Error("Błąd aktualizacji notatek ćwiczenia");
         }
       } catch (error) {
+        if (error instanceof WorkoutNotFoundError) {
+          throw error;
+        }
+
         if (isOfflineError(error)) {
           await queueSyncOperation({
             type: "update",
             entity: "workoutItem",
+            workoutId: realWorkoutId,
             endpoint: `/api/workouts/items/${realItemId}`,
             method: "PATCH",
             data,
@@ -1199,7 +1362,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
       }
     },
-    [isOfflineError, queueSyncOperation],
+    [isOfflineError, purgeLocalWorkout, queueSyncOperation],
   );
 
   const addSet = useCallback(
@@ -1208,6 +1371,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       itemId: string,
       data: { weight: number; repetitions: number; setNumber: number },
     ) => {
+      const realWorkoutId = getRealId(workoutId);
       const shouldRefreshStats =
         workoutsRef.current.find((workout) => workout.id === workoutId)?.status ===
         "COMPLETED";
@@ -1263,6 +1427,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         await queueSyncOperation({
           type: "create",
           entity: "set",
+          workoutId: realWorkoutId,
           endpoint: `/api/workouts/items/${realItemId}/sets`,
           method: "POST",
           data: syncPayload,
@@ -1279,10 +1444,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             body: JSON.stringify(data),
           },
         );
+        if (response.status === 404) {
+          await purgeLocalWorkout(realWorkoutId);
+          alert("Ten trening nie istnieje już na serwerze — został usunięty z urządzenia.");
+          throw new WorkoutNotFoundError(`Workout ${realWorkoutId} no longer exists`);
+        }
         if (!response.ok) {
           await queueSyncOperation({
             type: "create",
             entity: "set",
+            workoutId: realWorkoutId,
             endpoint: `/api/workouts/items/${realItemId}/sets`,
             method: "POST",
             data: syncPayload,
@@ -1298,10 +1469,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           await invalidateProgressionCache(exerciseId);
         }
       } catch (error) {
+        if (error instanceof WorkoutNotFoundError) {
+          throw error;
+        }
+
         if (isOfflineError(error)) {
           await queueSyncOperation({
             type: "create",
             entity: "set",
+            workoutId: realWorkoutId,
             endpoint: `/api/workouts/items/${realItemId}/sets`,
             method: "POST",
             data: syncPayload,
@@ -1331,7 +1507,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
       }
     },
-    [invalidateProgressionCache, isOfflineError, queueSyncOperation, refreshStatsData],
+    [invalidateProgressionCache, isOfflineError, purgeLocalWorkout, queueSyncOperation, refreshStatsData],
   );
 
   const updateSet = useCallback(
@@ -1340,6 +1516,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setId: string,
       data: { weight?: number; repetitions?: number },
     ) => {
+      const realWorkoutId = getRealId(workoutId);
       const shouldRefreshStats =
         workoutsRef.current.find((workout) => workout.id === workoutId)?.status ===
         "COMPLETED";
@@ -1396,6 +1573,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         await queueSyncOperation({
           type: "update",
           entity: "set",
+          workoutId: realWorkoutId,
           endpoint: `/api/workouts/sets/${realSetId}`,
           method: "PATCH",
           data,
@@ -1409,10 +1587,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           headers: getAuthHeaders(),
           body: JSON.stringify(data),
         });
+        if (response.status === 404) {
+          await purgeLocalWorkout(realWorkoutId);
+          alert("Ten trening nie istnieje już na serwerze — został usunięty z urządzenia.");
+          throw new WorkoutNotFoundError(`Workout ${realWorkoutId} no longer exists`);
+        }
         if (!response.ok) {
           await queueSyncOperation({
             type: "update",
             entity: "set",
+            workoutId: realWorkoutId,
             endpoint: `/api/workouts/sets/${realSetId}`,
             method: "PATCH",
             data,
@@ -1424,10 +1608,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           await invalidateProgressionCache(exerciseId);
         }
       } catch (error) {
+        if (error instanceof WorkoutNotFoundError) {
+          throw error;
+        }
+
         if (isOfflineError(error)) {
           await queueSyncOperation({
             type: "update",
             entity: "set",
+            workoutId: realWorkoutId,
             endpoint: `/api/workouts/sets/${realSetId}`,
             method: "PATCH",
             data,
@@ -1456,11 +1645,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
       }
     },
-    [invalidateProgressionCache, isOfflineError, queueSyncOperation, refreshStatsData],
+    [invalidateProgressionCache, isOfflineError, purgeLocalWorkout, queueSyncOperation, refreshStatsData],
   );
 
   const deleteSet = useCallback(
     async (workoutId: string, itemId: string, setId: string) => {
+      const realWorkoutId = getRealId(workoutId);
       const shouldRefreshStats =
         workoutsRef.current.find((workout) => workout.id === workoutId)?.status ===
         "COMPLETED";
@@ -1511,6 +1701,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         await queueSyncOperation({
           type: "delete",
           entity: "set",
+          workoutId: realWorkoutId,
           endpoint: `/api/workouts/sets/${realSetId}`,
           method: "DELETE",
         });
@@ -1521,20 +1712,31 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const response = await authFetch(`${API_BASE}/api/workouts/sets/${realSetId}`, {
           method: "DELETE",
         });
+        if (response.status === 404) {
+          await purgeLocalWorkout(realWorkoutId);
+          alert("Ten trening nie istnieje już na serwerze — został usunięty z urządzenia.");
+          throw new WorkoutNotFoundError(`Workout ${realWorkoutId} no longer exists`);
+        }
         if (!response.ok) {
           await queueSyncOperation({
             type: "delete",
             entity: "set",
+            workoutId: realWorkoutId,
             endpoint: `/api/workouts/sets/${realSetId}`,
             method: "DELETE",
           });
           return;
         }
       } catch (error) {
+        if (error instanceof WorkoutNotFoundError) {
+          throw error;
+        }
+
         if (isOfflineError(error)) {
           await queueSyncOperation({
             type: "delete",
             entity: "set",
+            workoutId: realWorkoutId,
             endpoint: `/api/workouts/sets/${realSetId}`,
             method: "DELETE",
           });
@@ -1574,6 +1776,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [
       invalidateProgressionCache,
       isOfflineError,
+      purgeLocalWorkout,
       queueSyncOperation,
       refreshStatsData,
       removePendingOperationsReferencingTempId,
@@ -1630,6 +1833,29 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     await syncManager.syncNow();
   }, []);
 
+  const resetLocalCache = useCallback(async () => {
+    await Promise.all([
+      localStore.clear("workouts"),
+      localStore.clear("exercises"),
+      localStore.clear("stats"),
+      localStore.clear("activeWorkout"),
+      localStore.clear("pendingSync"),
+      localStore.clear("metadata"),
+    ]);
+
+    idMappingRef.current.clear();
+    progressionCacheRef.current.clear();
+    setFailedSyncOperations([]);
+    setWorkouts([]);
+    setExercises([]);
+    setStats([]);
+    setStatsOverview(null);
+    setActiveWorkoutId(null);
+    setLastSync(0);
+
+    await fetchAllFromServer();
+  }, [fetchAllFromServer]);
+
   const dismissSyncFailures = useCallback(() => {
     setFailedSyncOperations([]);
   }, []);
@@ -1660,6 +1886,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       completeWorkout,
       syncNow,
       refreshWorkout,
+      resetLocalCache,
       getExerciseProgression,
       failedSyncOperations,
       dismissSyncFailures,
@@ -1689,6 +1916,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       completeWorkout,
       syncNow,
       refreshWorkout,
+      resetLocalCache,
       getExerciseProgression,
       failedSyncOperations,
       dismissSyncFailures,
