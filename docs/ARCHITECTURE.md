@@ -25,9 +25,9 @@
 │  │  authMiddleware (JWT)  →  validate (Zod)          │   │
 │  └──────────────────────────────────────────────────┘   │
 │                                                          │
-│  /api/auth     /api/exercises     /api/workouts          │
-│       │               │                │                 │
-│   auth module   exercise module   workout module         │
+│  /api/auth  /api/exercises  /api/workouts  /api/plans    │
+│      │            │               │              │        │
+│  auth mod   exercise mod   workout mod    plan mod        │
 │  routes → controller → service → repository             │
 │                           │                              │
 │                        Prisma ORM                        │
@@ -78,7 +78,8 @@ backend/src/
 │   ├── auth/        – rejestracja, login, GET /me
 │   ├── user/        – profil użytkownika
 │   ├── exercise/    – CRUD ćwiczeń (globalne + user-created)
-│   └── workout/     – treningi, pozycje, serie, statystyki
+│   ├── workout/     – treningi, pozycje, serie, statystyki, integracja z planem
+│   └── plan/        – CRUD planów treningowych, duplikacja, suggest/skip
 ├── common/
 │   └── middleware/
 │       ├── auth.ts      – JWT guard (authMiddleware)
@@ -119,10 +120,10 @@ Jedynym globalnym stanem jest `DataContext`. Żadna zewnętrzna biblioteka stanu
 
 ```
 AuthContext   – sesja JWT + dane user (localStorage)
-DataContext   – workouts[], exercises[], stats[], activeWorkoutId
+DataContext   – workouts[], exercises[], stats[], plans[], activeWorkoutId
                 → optimistic updates + IndexedDB + API calls
 SyncManager   – background sync co 2 min + flush po powrocie online
-localStore    – wrapper IndexedDB (stores: workouts, exercises, stats, pendingSync, metadata)
+localStore    – wrapper IndexedDB (stores: workouts, exercises, stats, plans, pendingSync, metadata)
 ```
 
 ### Wzorzec aktualizacji (optimistic update)
@@ -151,7 +152,9 @@ Exercise (exercises)
 
 Workout (workouts)
   id, userId, workoutDate, status(DRAFT|COMPLETED), workoutName?,
-  gymName?, location?, workoutNotes?, durationSeconds?
+  gymName?, location?, workoutNotes?, durationSeconds?,
+  workoutPlanId? (→ WorkoutPlan, onDelete: SetNull),
+  skippedPlanExerciseIds[] (ćwiczenia pominięte w tym treningu)
   → items: WorkoutItem[]
 
 WorkoutItem (workout_items)
@@ -169,6 +172,15 @@ ExerciseUserStats (exercise_user_stats)
 ExercisePendingNote (exercise_pending_notes)
   id, userId, exerciseId, note
   → UNIQUE(userId, exerciseId)  ← tabela przejściowa dla carry-over notatek
+
+WorkoutPlan (workout_plans)
+  id, name, creatorUserId? (null = built-in), isPublic
+  → items: WorkoutPlanItem[]
+  → UNIQUE(creatorUserId, name)
+
+WorkoutPlanItem (workout_plan_items)
+  id, planId, exerciseId, orderInPlan
+  → UNIQUE(planId, exerciseId)
 ```
 
 ## Deployment

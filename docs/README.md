@@ -29,13 +29,15 @@ docs/
 ├── README.md              ← jesteś tutaj – punkt wejścia
 ├── ARCHITECTURE.md        ← diagram systemu, stos tech, modele danych, deployment
 ├── ONBOARDING.md          ← środowisko dev, struktura kodu, konwencje
+├── PLANS.md               ← konwencja plików planistycznych (naming + lifecycle)
 │
 ├── modules/
 │   ├── auth.md            ← rejestracja, logowanie, JWT, AuthContext
-│   ├── workout.md         ← treningi, serie, statystyki, PendingNote flow
+│   ├── workout.md         ← treningi, serie, statystyki, PendingNote flow, integracja z planem
+│   ├── plan.md            ← CRUD planów, duplikacja, suggest/skip flow
 │   ├── exercise.md        ← CRUD ćwiczeń, MuscleGroup enum
 │   ├── database.md        ← schemat DB, tabele, Prisma, migracje
-│   └── offline-sync.md   ← IndexedDB, SyncManager, optimistic updates, temp IDs
+│   └── offline-sync.md    ← IndexedDB, SyncManager, optimistic updates, temp IDs
 │
 ├── adr/
 │   ├── 001-postgresql.md          ← dlaczego PostgreSQL
@@ -75,8 +77,9 @@ docs/
 | Moduł auth – API kontrakt            | [`backend/src/modules/auth/auth.routes.ts`](../backend/src/modules/auth/auth.routes.ts) |
 | Moduł exercise – API kontrakt        | [`backend/src/modules/exercise/API.md`](../backend/src/modules/exercise/API.md)         |
 | Moduł workout – API kontrakt         | [`backend/src/modules/workout/API.md`](../backend/src/modules/workout/API.md)           |
+| Moduł plan – API kontrakt            | [`backend/src/modules/plan/API.md`](../backend/src/modules/plan/API.md)                 |
 | Prisma schema                        | [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma)                       |
 | Postman collection                   | [`backend/postman/`](../backend/postman/)                                               |
 | Frontend offline docs                | [`frontend/docs/OFFLINE.md`](../frontend/docs/OFFLINE.md)                               |
 | Wymagania funkcjonalne               | [`other/functional-requirements.md`](../other/functional-requirements.md)               |
-| Plany realizacji                     | [`docs/PLANS.md`](./PLANS.md), pliki fizycznie w [`plans/`](../plans/)                   |
+| Konwencja plików planistycznych      | [`docs/PLANS.md`](./PLANS.md); aktywne pliki fizycznie w [`plans/`](../plans/)           |

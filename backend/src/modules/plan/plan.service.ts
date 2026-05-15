@@ -40,10 +40,7 @@ export class PlanService {
   }
 
   async createPlan(data: CreatePlanDto, userId: string) {
-    await this.assertExercisesExist(data.exerciseIds);
-    if (data.isPublic) {
-      await this.assertExercisesArePublic(data.exerciseIds);
-    }
+    await this.assertExercisesExistAndPublic(data.exerciseIds, data.isPublic);
     await this.assertNameAvailable(userId, data.name);
 
     return this.runCreateWithUniqueGuard(() =>
@@ -67,15 +64,12 @@ export class PlanService {
       throw new ForbiddenError("You can only edit your own plans");
     }
 
-    if (data.exerciseIds) {
-      await this.assertExercisesExist(data.exerciseIds);
-    }
-
     const nextIsPublic = data.isPublic ?? plan.isPublic;
-    const nextExerciseIds =
-      data.exerciseIds ?? plan.items.map((i) => i.exerciseId);
-    if (nextIsPublic) {
-      await this.assertExercisesArePublic(nextExerciseIds);
+
+    if (data.exerciseIds) {
+      await this.assertExercisesExistAndPublic(data.exerciseIds, nextIsPublic);
+    } else if (nextIsPublic) {
+      await this.assertExercisesArePublic(plan.items.map((i) => i.exerciseId));
     }
 
     if (data.name && data.name !== plan.name) {
@@ -117,24 +111,29 @@ export class PlanService {
     );
   }
 
-  private async assertExercisesExist(exerciseIds: string[]) {
+  private async assertExercisesExistAndPublic(exerciseIds: string[], requirePublic: boolean) {
     const exercises = await this.repository.findExercisesByIds(exerciseIds);
     if (exercises.length !== exerciseIds.length) {
       const found = new Set(exercises.map((e) => e.id));
       const missing = exerciseIds.filter((id) => !found.has(id));
       throw new BadRequestError(`Exercises not found: ${missing.join(", ")}`);
     }
+    if (requirePublic) {
+      const privateOnes = exercises.filter((e) => !isGlobalCreatorId(e.creatorUserId));
+      if (privateOnes.length > 0) {
+        throw new BadRequestError(
+          `Cannot make plan public: contains private exercises (${privateOnes.map((e) => e.name).join(", ")})`,
+        );
+      }
+    }
   }
 
   private async assertExercisesArePublic(exerciseIds: string[]) {
     const exercises = await this.repository.findExercisesByIds(exerciseIds);
-    const privateOnes = exercises.filter(
-      (e) => !isGlobalCreatorId(e.creatorUserId),
-    );
+    const privateOnes = exercises.filter((e) => !isGlobalCreatorId(e.creatorUserId));
     if (privateOnes.length > 0) {
-      const names = privateOnes.map((e) => e.name).join(", ");
       throw new BadRequestError(
-        `Cannot make plan public: contains private exercises (${names})`,
+        `Cannot make plan public: contains private exercises (${privateOnes.map((e) => e.name).join(", ")})`,
       );
     }
   }

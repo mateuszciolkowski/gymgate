@@ -11,6 +11,7 @@ backend/src/
     user/       – user profile
     exercise/   – exercise CRUD (global + user-created)
     workout/    – workouts, workout items, sets, statistics
+    plan/       – workout plan CRUD, duplicate, next-from-plan suggestion
   common/middleware/
     auth.ts     – JWT guard
     validate.ts – Zod guard
@@ -46,19 +47,44 @@ Every module follows strict layering: `routes → controller → service → rep
 
 | Model | Purpose |
 |---|---|
-| `Workout` | Training session (status: DRAFT \| COMPLETED, owns items[]) |
+| `Workout` | Training session (status: DRAFT \| COMPLETED, owns items[], optional `workoutPlanId`, `skippedPlanExerciseIds[]`) |
 | `WorkoutItem` | Exercise inside a workout (notes, previousNote, sets[]) |
 | `WorkoutSet` | Single set (setNumber, weight Decimal, repetitions) |
 | `ExerciseUserStats` | Per user+exercise stats (maxWeight, lastWeight, lastReps, totalWorkouts, lastNote) |
 | `ExercisePendingNote` | Transient note to carry over to the next workout (userId+exerciseId UNIQUE) |
+| `WorkoutPlan` | Ordered template of exercises (name, creatorUserId, isPublic); `creatorUserId=null` = built-in |
+| `WorkoutPlanItem` | Single exercise in a plan (exerciseId, orderInPlan); `@@unique([planId, exerciseId])` |
 
 ## Frontend state management
 
-`DataContext.tsx` is the **only** global state. It holds `workouts[]`, `exercises[]`, `stats[]`, `activeWorkoutId`. Every mutating action follows the **optimistic update pattern**: immediately update UI + IndexedDB, then fire the API call in the background. On failure → rollback.
+`DataContext.tsx` is the **only** global state. It holds `workouts[]`, `exercises[]`, `stats[]`, `plans[]`, `activeWorkoutId`. Every mutating action follows the **optimistic update pattern**: immediately update UI + IndexedDB, then fire the API call in the background. On failure → rollback.
 
 `stats[]` contains `ExerciseUserStats` per exercise – `lastWeight` and `lastReps` come from the last completed workout for that exercise.
 
 `idMappingRef` maps temporary IDs (`temp_*`) to real server IDs after a successful response.
+
+## Workout plan flow
+
+`WorkoutPlan` is an ordered list of exercises. Three visibility tabs: `mine` (own), `builtin` (`creatorUserId=null`), `community` (public plans of other users).
+
+**Creating a workout from a plan:**
+1. User selects a plan in `WorkoutFormModal` — dropdown shows `mine + builtin + community`
+2. `workoutPlanId` is sent in `POST /api/workouts` body
+3. Workout starts empty — `workoutPlanId` is just a reference (live, not a snapshot)
+
+**Plan suggestion in `WorkoutDetailScreen` (DRAFT only):**
+- `nextFromPlan` computed **on the frontend** from `DataContext.plans` — no extra API call
+- Algorithm: `plan.items.sort(orderInPlan).filter(!added && !skipped).first()`
+- UI: amber button `[+ <exercise name>] [⏭]`; `⏭` calls `skipPlanExercise(workoutId, exerciseId)`
+- `skipPlanExercise` is optimistic: updates `workout.skippedPlanExerciseIds` locally + IndexedDB, then `POST /api/workouts/:id/skip-plan-exercise`; rolls back on API failure
+- When all exercises are added or skipped → "Plan ukończony" indicator
+- Manual `ExerciseSelectionModal` works in parallel without any changes
+
+**Plan CRUD (online-only):** `createPlan`, `updatePlan`, `deletePlan`, `duplicatePlan` require active network connection (throw immediately offline). `skipPlanExercise` and the plan suggestion work fully offline.
+
+**isPublic constraint:** a plan can be made public only if all its exercises have `creatorUserId IN (null, "1")`. Backend returns `400` with a list of offending exercise names.
+
+**Deleting a plan:** `WorkoutPlan` cascade-deletes `WorkoutPlanItem`; `Workout.workoutPlanId` is set to `null` (`onDelete: SetNull`).
 
 ## Add-exercise-to-workout flow
 
@@ -112,10 +138,24 @@ Repository layer is mocked in service tests via `vi.mock('./workout.repository.j
 cd backend && npm test
 ```
 
-## Documentation rules
+## Documentation
+
+Full project documentation lives in **`docs/`** — start there for architecture, module guides, ADRs, and the OpenAPI spec.
+
+```
+docs/
+├── README.md          ← punkt wejścia (mapa + quick start)
+├── ARCHITECTURE.md    ← diagram systemu, stos tech, schemat DB, deployment
+├── ONBOARDING.md      ← środowisko dev, konwencje
+├── PLANS.md           ← konwencja plików planistycznych
+├── modules/           ← szczegóły każdego modułu (auth, workout, exercise, plan, offline-sync, database)
+├── adr/               ← Architecture Decision Records
+└── api/openapi.yaml   ← kompletna spec REST API (OpenAPI 3.1)
+```
 
 After any API logic change, update:
 - the relevant `backend/src/modules/<module>/API.md`
+- `docs/api/openapi.yaml`
 - `other/GymGate_API.postman_collection.json` if the request/response contract or test flow changed
 
 Mention both updates in the PR description.

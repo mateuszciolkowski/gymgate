@@ -128,6 +128,22 @@ describe("PlanService", () => {
       ).rejects.toThrow(/own/);
     });
 
+    it("empty body does not fetch exercises or change items", async () => {
+      mockRepo.findById.mockResolvedValue({
+        id: "p1",
+        creatorUserId: "owner",
+        isPublic: false,
+        name: "My Plan",
+        items: [{ exerciseId: "e1", orderInPlan: 0 }],
+      });
+      mockRepo.update.mockResolvedValue({ id: "p1" });
+
+      await service.updatePlan("p1", {}, "owner");
+
+      expect(mockRepo.findExercisesByIds).not.toHaveBeenCalled();
+      expect(mockRepo.update).toHaveBeenCalledWith("p1", {});
+    });
+
     it("rejects switching to public when current items are private", async () => {
       mockRepo.findById.mockResolvedValue({
         id: "p1",

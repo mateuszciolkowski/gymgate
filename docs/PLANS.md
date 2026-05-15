@@ -1,6 +1,6 @@
-# Konwencja planów wykonania
+# Konwencja plików planistycznych
 
-Pliki z planami realizacji przechowujemy wyłącznie w katalogu `plans/` w root repozytorium.
+Pliki z planami realizacji przechowujemy w katalogu `plans/` w root repozytorium.
 
 ## Lokalizacja
 
@@ -8,12 +8,22 @@ Pliki z planami realizacji przechowujemy wyłącznie w katalogu `plans/` w root 
 
 ## Format nazwy pliku
 
-Używamy formatu:
-
-`YYYY-MM-DD_HH-MM_co_ma_zrobic.md`
+```
+YYYY-MM-DD_HH-MM_co_ma_zrobic.md
+```
 
 Przykłady:
-
 - `2026-05-14_21-26_workout_plans_feature.md`
 - `2026-05-15_07-41_workout_plans_pr1_implementation.md`
-- `2026-05-15_09-16_ghost_workout_fix.md`
+
+## Cykl życia pliku
+
+Pliki planistyczne są **tymczasowe** — istnieją tylko w trakcie aktywnej realizacji zadania.
+
+| Etap | Działanie |
+|---|---|
+| Planowanie | Tworzysz plik wg konwencji w `plans/` |
+| Implementacja | Plik pozostaje jako punkt odniesienia |
+| Merge / zakończenie | **Plik jest usuwany** — historia zmian żyje w git, dokument planistyczny nie jest potrzebny w repozytorium |
+
+> Katalog `plans/` jest prawidłowo pusty gdy wszystkie bieżące zadania są ukończone.

@@ -666,6 +666,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           gymName: data.gymName || null,
           location: null,
           workoutNotes: null,
+          workoutPlanId: data.workoutPlanId ?? null,
+          skippedPlanExerciseIds: [],
           items: [],
           createdAt: nowIso,
           updatedAt: nowIso,
@@ -1955,12 +1957,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const skipPlanExercise = useCallback(async (workoutId: string, exerciseId: string) => {
     const realWorkoutId = getRealId(workoutId);
 
+    let previousWorkout: Workout | null = null;
     let updatedWorkout: Workout | null = null;
     setWorkouts((prev) =>
       prev.map((w) => {
         if (w.id !== workoutId) return w;
         const alreadySkipped = (w.skippedPlanExerciseIds ?? []).includes(exerciseId);
         if (alreadySkipped) return w;
+        previousWorkout = w;
         updatedWorkout = {
           ...w,
           skippedPlanExerciseIds: [...(w.skippedPlanExerciseIds ?? []), exerciseId],
@@ -1980,7 +1984,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({ exerciseId }),
         });
       } catch {
-        // Optimistic update stays — will reconcile on next full refresh
+        if (previousWorkout) {
+          setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? previousWorkout! : w)));
+          await localStore.put("workouts", previousWorkout);
+        }
       }
     }
   }, []);
