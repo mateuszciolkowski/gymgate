@@ -69,7 +69,7 @@ export function WorkoutDetailScreen({
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { deleteWorkout, stats: allStats, workouts } = useData();
+  const { deleteWorkout, stats: allStats, workouts, plans, skipPlanExercise } = useData();
 
   const {
     workout,
@@ -115,6 +115,29 @@ export function WorkoutDetailScreen({
       setIsExerciseModalOpen(false);
     },
     [addExercise, onBack],
+  );
+
+  const handleAddFromPlan = useCallback(
+    (exerciseId: string) => {
+      if (!workoutRef.current) return;
+      addExercise({ exerciseId }).catch((error) => {
+        if (error instanceof WorkoutNotFoundError) {
+          onBack();
+        }
+      });
+    },
+    [addExercise, onBack],
+  );
+
+  const handleSkipPlanExercise = useCallback(
+    async (exerciseId: string) => {
+      try {
+        await skipPlanExercise(workoutId, exerciseId);
+      } catch {
+        // silent — optimistic already applied
+      }
+    },
+    [skipPlanExercise, workoutId],
   );
 
   useEffect(() => {
@@ -174,6 +197,30 @@ export function WorkoutDetailScreen({
     () => [...workout.items].sort((a, b) => a.orderInWorkout - b.orderInWorkout),
     [workout.items],
   );
+
+  const activePlan = useMemo(
+    () => (workout.workoutPlanId ? plans.find((p) => p.id === workout.workoutPlanId) : undefined),
+    [workout.workoutPlanId, plans],
+  );
+
+  const nextFromPlan = useMemo(() => {
+    if (!activePlan) return null;
+    const addedIds = new Set(workout.items.map((i) => i.exerciseId));
+    const skippedIds = new Set(workout.skippedPlanExerciseIds ?? []);
+    return (
+      [...activePlan.items]
+        .sort((a, b) => a.orderInPlan - b.orderInPlan)
+        .find((item) => !addedIds.has(item.exerciseId) && !skippedIds.has(item.exerciseId)) ?? null
+    );
+  }, [activePlan, workout.items, workout.skippedPlanExerciseIds]);
+
+  const planProgress = useMemo(() => {
+    if (!activePlan) return null;
+    const addedFromPlan = workout.items.filter((i) =>
+      activePlan.items.some((pi) => pi.exerciseId === i.exerciseId),
+    ).length;
+    return { done: addedFromPlan, total: activePlan.items.length };
+  }, [activePlan, workout.items]);
 
   const handleStartEditInfo = () => {
     setIsEditingInfo(true);
@@ -451,6 +498,32 @@ export function WorkoutDetailScreen({
               </div>
             </div>
 
+            {/* Plan banner */}
+            {activePlan && planProgress && (
+              <div
+                className="mb-3 rounded-[14px] px-4 py-2.5 flex items-center justify-between gap-2"
+                style={{
+                  background: "rgba(245,158,11,0.12)",
+                  border: "1.5px solid rgba(245,158,11,0.30)",
+                }}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: "#f59e0b", flexShrink: 0 }}>
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                    <rect x="9" y="3" width="6" height="4" rx="1"/>
+                    <line x1="9" y1="12" x2="15" y2="12"/>
+                    <line x1="9" y1="16" x2="13" y2="16"/>
+                  </svg>
+                  <span className="text-[12px] font-bold truncate" style={{ color: "#f59e0b" }}>
+                    Plan: {activePlan.name}
+                  </span>
+                </div>
+                <span className="text-[12px] font-bold flex-shrink-0" style={{ color: "#f59e0b" }}>
+                  {planProgress.done}/{planProgress.total} ćwiczeń
+                </span>
+              </div>
+            )}
+
             {/* Info card — DRAFT only */}
             <div
               className="mb-4 rounded-[18px]"
@@ -608,37 +681,109 @@ export function WorkoutDetailScreen({
 
         {/* Action buttons */}
         {canEditWorkout && (
-          <div className="grid gap-2.5 mb-5" style={{ gridTemplateColumns: "1fr 1.3fr" }}>
+          <div className="flex gap-2 mb-5">
+            {/* Dodaj ćwiczenie */}
             <button
               onClick={() => setIsExerciseModalOpen(true)}
-              className="flex items-center justify-center gap-1.5 font-bold text-[14px] rounded-[16px] cursor-pointer"
+              className="flex flex-col items-center justify-center font-bold rounded-[16px] cursor-pointer flex-1"
               style={{
-                padding: 14,
+                padding: "11px 8px",
                 background: "var(--gg-surface2)",
                 border: "1.5px solid var(--gg-border)",
                 color: "var(--gg-text)",
-                boxShadow: "var(--gg-shadow)",
+                gap: 3,
+                minWidth: 0,
               }}
             >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="4" x2="12" y2="20"/>
                 <line x1="4" y1="12" x2="20" y2="12"/>
               </svg>
-              Dodaj ćwiczenie
+              <span className="text-[12px] leading-tight text-center">Dodaj ćwiczenie</span>
             </button>
+
+            {/* Plan suggestion (middle) */}
+            {activePlan && !isCompleted ? (
+              nextFromPlan ? (
+                <div className="flex rounded-[16px] overflow-hidden flex-[1.5]" style={{ boxShadow: "0 4px 16px rgba(245,158,11,0.30)" }}>
+                  <button
+                    onClick={() => handleAddFromPlan(nextFromPlan.exerciseId)}
+                    className="flex-1 flex flex-col items-center justify-center border-none cursor-pointer text-white"
+                    style={{
+                      padding: "10px 10px",
+                      background: "linear-gradient(135deg, #f59e0b 0%, #e08600 100%)",
+                      minWidth: 0,
+                      gap: 1,
+                    }}
+                  >
+                    <span className="text-[10px] font-bold tracking-[0.08em] uppercase opacity-80 leading-none">Z planu</span>
+                    <span
+                      className="text-[13px] font-black leading-tight text-center"
+                      style={{
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      {nextFromPlan.exercise.name}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => handleSkipPlanExercise(nextFromPlan.exerciseId)}
+                    className="flex items-center justify-center border-none cursor-pointer flex-shrink-0"
+                    style={{
+                      width: 38,
+                      background: "rgba(0,0,0,0.18)",
+                      borderLeft: "1px solid rgba(255,255,255,0.15)",
+                      color: "white",
+                    }}
+                    title="Pomiń to ćwiczenie"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="5 4 15 12 5 20 5 4" fill="currentColor"/>
+                      <line x1="19" y1="5" x2="19" y2="19"/>
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <div
+                  className="flex flex-col items-center justify-center rounded-[16px] flex-[1.5] text-center"
+                  style={{
+                    padding: "10px 8px",
+                    background: "rgba(245,158,11,0.10)",
+                    border: "1.5px solid rgba(245,158,11,0.25)",
+                    color: "#f59e0b",
+                    gap: 2,
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12l5 5 9-9"/>
+                  </svg>
+                  <span className="text-[11px] font-bold leading-tight">Plan ukończony</span>
+                </div>
+              )
+            ) : null}
+
+            {/* Zakończ / Zapisz edycję */}
             <button
               onClick={isEditMode ? () => setIsEditMode(false) : handleCompleteWorkout}
-              className="flex items-center justify-center gap-1.5 font-bold text-[14px] rounded-[16px] cursor-pointer text-white border-none"
+              className="flex flex-col items-center justify-center font-bold rounded-[16px] cursor-pointer text-white border-none flex-1"
               style={{
-                padding: 14,
+                padding: "11px 8px",
                 background: "var(--gg-grad-btn)",
                 boxShadow: "0 4px 20px var(--gg-glow)",
+                gap: 3,
+                minWidth: 0,
               }}
             >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12l5 5 9-9"/>
               </svg>
-              {isEditMode ? "Zakończ edycję" : "Zakończ trening"}
+              <span className="text-[12px] leading-tight text-center">
+                {isEditMode ? "Zapisz edycję" : "Zakończ trening"}
+              </span>
             </button>
           </div>
         )}
@@ -654,10 +799,12 @@ export function WorkoutDetailScreen({
                 className="flex items-center justify-center w-16 h-16 rounded-[20px] mb-3"
                 style={{ background: "var(--gg-surface2)", boxShadow: "var(--gg-shadow)" }}
               >
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="6" y1="5" x2="18" y2="5"/><line x1="6" y1="19" x2="18" y2="19"/>
-                  <line x1="4" y1="8" x2="4" y2="16"/><line x1="20" y1="8" x2="20" y2="16"/>
-                  <line x1="2" y1="10" x2="2" y2="14"/><line x1="22" y1="10" x2="22" y2="14"/>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="8.5" y1="12" x2="15.5" y2="12"/>
+                  <line x1="5" y1="8.5" x2="5" y2="15.5"/>
+                  <line x1="7.5" y1="7" x2="7.5" y2="17"/>
+                  <line x1="16.5" y1="7" x2="16.5" y2="17"/>
+                  <line x1="19" y1="8.5" x2="19" y2="15.5"/>
                 </svg>
               </div>
               <p className="text-[15px] font-bold mb-1" style={{ color: "var(--gg-text)" }}>
@@ -805,10 +952,13 @@ const WorkoutItemCard = memo(
         }}
       >
         {/* Exercise header */}
-        <button
+        <div
           onClick={() => onToggleExpand(item.id)}
-          className="w-full text-left cursor-pointer transition-all duration-150"
-          style={{ padding: "14px 16px", background: "none", border: "none" }}
+          className="w-full cursor-pointer transition-all duration-150"
+          style={{ padding: "14px 16px" }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === "Enter" && onToggleExpand(item.id)}
         >
           <div className="flex justify-between items-start">
             <div className="flex-1">
@@ -865,7 +1015,7 @@ const WorkoutItemCard = memo(
               </svg>
             </div>
           </div>
-        </button>
+        </div>
 
         {isExpanded && (
           <div style={{ padding: "0 16px 16px" }}>

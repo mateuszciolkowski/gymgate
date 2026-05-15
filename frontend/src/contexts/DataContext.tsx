@@ -26,6 +26,7 @@ import type {
   ExerciseProgression,
   StatsOverview,
   StatsProgressMetric,
+  WorkoutPlan,
 } from "@/types";
 import type { Exercise } from "@/hooks/useExercises";
 
@@ -45,6 +46,7 @@ interface DataContextType {
   stats: ExerciseStats[];
   statsOverview: StatsOverview | null;
   activeWorkoutId: string | null;
+  plans: WorkoutPlan[];
 
   // Stan
   isLoading: boolean;
@@ -56,6 +58,7 @@ interface DataContextType {
     workoutName?: string;
     gymName?: string;
     workoutDate?: string;
+    workoutPlanId?: string;
   }) => Promise<Workout>;
   updateWorkout: (id: string, data: Record<string, unknown>) => Promise<void>;
   deleteWorkout: (id: string) => Promise<void>;
@@ -101,6 +104,15 @@ interface DataContextType {
   ) => Promise<void>;
   completeWorkout: (id: string, durationSeconds?: number) => Promise<void>;
 
+  // Akcje - Plans
+  createPlan: (data: { name: string; exerciseIds: string[]; isPublic: boolean }) => Promise<WorkoutPlan>;
+  updatePlan: (id: string, data: { name?: string; exerciseIds?: string[]; isPublic?: boolean }) => Promise<void>;
+  deletePlan: (id: string) => Promise<void>;
+  duplicatePlan: (id: string) => Promise<WorkoutPlan>;
+
+  // Akcje - Plan integration
+  skipPlanExercise: (workoutId: string, exerciseId: string) => Promise<void>;
+
   // Sync
   syncNow: () => Promise<void>;
   refreshWorkout: (id: string) => Promise<void>;
@@ -124,6 +136,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [stats, setStats] = useState<ExerciseStats[]>([]);
   const [statsOverview, setStatsOverview] = useState<StatsOverview | null>(null);
   const [activeWorkoutId, setActiveWorkoutId] = useState<string | null>(null);
+  const [plans, setPlans] = useState<WorkoutPlan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastSync, setLastSync] = useState(0);
@@ -142,6 +155,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const statsRef = useRef<ExerciseStats[]>([]);
   statsRef.current = stats;
+
+  const plansRef = useRef<WorkoutPlan[]>([]);
+  plansRef.current = plans;
 
   // Mapowanie tymczasowych ID na prawdziwe - nie powoduje re-renderów
   const idMappingRef = useRef<Map<string, string>>(new Map());
@@ -369,7 +385,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     );
 
     try {
-      const [workoutsRes, exercisesRes, activeRes, statsRes, overviewRes] =
+      const [workoutsRes, exercisesRes, activeRes, statsRes, overviewRes, plansMineRes, plansBuiltinRes, plansCommunityRes] =
         await Promise.all([
           !hasPendingWorkoutMutations
             ? authFetch(`${API_BASE}/api/workouts`).catch(() => null)
@@ -380,6 +396,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             : Promise.resolve(null),
           authFetch(`${API_BASE}/api/workouts/stats/all`).catch(() => null),
           authFetch(`${API_BASE}/api/workouts/stats/overview`).catch(() => null),
+          authFetch(`${API_BASE}/api/plans?tab=mine`).catch(() => null),
+          authFetch(`${API_BASE}/api/plans?tab=builtin`).catch(() => null),
+          authFetch(`${API_BASE}/api/plans?tab=community`).catch(() => null),
         ]);
 
       const persistenceJobs: Array<Promise<void>> = [];
@@ -434,6 +453,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         persistenceJobs.push(localStore.setMetadata("statsOverview", overview));
       }
 
+      const plansAll: WorkoutPlan[] = [];
+      for (const res of [plansMineRes, plansBuiltinRes, plansCommunityRes]) {
+        if (res?.ok) {
+          const data = await res.json();
+          plansAll.push(...(data.data || []));
+        }
+      }
+      if (plansAll.length > 0 || (plansMineRes?.ok && plansBuiltinRes?.ok && plansCommunityRes?.ok)) {
+        const uniquePlans = Array.from(new Map(plansAll.map((p) => [p.id, p])).values());
+        setPlans(uniquePlans);
+        persistenceJobs.push(
+          (async () => {
+            await localStore.clear("plans");
+            await localStore.putMany("plans", uniquePlans);
+          })(),
+        );
+      }
+
       await Promise.all(persistenceJobs);
       const syncTimestamp = Date.now();
       await localStore.setLastSync(syncTimestamp);
@@ -459,6 +496,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           localStatsOverview,
           localActiveId,
           syncTime,
+          localPlans,
         ] = await Promise.all([
           localStore.getAll<Workout>("workouts"),
           localStore.getAll<Exercise>("exercises"),
@@ -466,6 +504,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           localStore.getMetadata<StatsOverview | null>("statsOverview"),
           localStore.getActiveWorkoutId(),
           localStore.getLastSync(),
+          localStore.getAll<WorkoutPlan>("plans"),
         ]);
 
         setWorkouts(localWorkouts);
@@ -474,6 +513,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         setStatsOverview(localStatsOverview ?? null);
         setActiveWorkoutId(localActiveId);
         setLastSync(syncTime);
+        setPlans(localPlans);
 
         initialLoadDone.current = true;
 
@@ -513,6 +553,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         localStats,
         localStatsOverview,
         localActiveId,
+        localPlans,
       ] =
         await Promise.all([
           localStore.getAll<Workout>("workouts"),
@@ -520,6 +561,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           localStore.getAll<ExerciseStats>("stats"),
           localStore.getMetadata<StatsOverview | null>("statsOverview"),
           localStore.getActiveWorkoutId(),
+          localStore.getAll<WorkoutPlan>("plans"),
         ]);
 
       // Aktualizuj tylko jeśli dane się zmieniły (porównaj JSON)
@@ -550,6 +592,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setActiveWorkoutId((prev) =>
         prev !== localActiveId ? localActiveId : prev,
       );
+
+      setPlans((prev) => {
+        const newJson = JSON.stringify(localPlans);
+        const prevJson = JSON.stringify(prev);
+        return newJson !== prevJson ? localPlans : prev;
+      });
+
       await invalidateProgressionCache();
       // Nie wywołujemy setLastSync - powoduje niepotrzebny re-render
     });
@@ -583,6 +632,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       workoutName?: string;
       gymName?: string;
       workoutDate?: string;
+      workoutPlanId?: string;
     }) => {
       try {
         const response = await authFetch(`${API_BASE}/api/workouts`, {
@@ -1817,6 +1867,120 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const createPlan = useCallback(
+    async (data: { name: string; exerciseIds: string[]; isPublic: boolean }): Promise<WorkoutPlan> => {
+      const response = await authFetch(`${API_BASE}/api/plans`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err?.message || "Błąd tworzenia planu");
+      }
+
+      const result = await response.json();
+      const newPlan: WorkoutPlan = result.data;
+
+      setPlans((prev) => [newPlan, ...prev]);
+      await localStore.put("plans", newPlan);
+
+      return newPlan;
+    },
+    [],
+  );
+
+  const updatePlan = useCallback(
+    async (id: string, data: { name?: string; exerciseIds?: string[]; isPublic?: boolean }) => {
+      const original = plansRef.current.find((p) => p.id === id);
+
+      const response = await authFetch(`${API_BASE}/api/plans/${id}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err?.message || "Błąd aktualizacji planu");
+      }
+
+      const result = await response.json();
+      const updatedPlan: WorkoutPlan = result.data;
+
+      setPlans((prev) => prev.map((p) => (p.id === id ? updatedPlan : p)));
+      await localStore.put("plans", updatedPlan);
+
+      void original;
+    },
+    [],
+  );
+
+  const deletePlan = useCallback(async (id: string) => {
+    const response = await authFetch(`${API_BASE}/api/plans/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) throw new Error("Błąd usuwania planu");
+
+    setPlans((prev) => prev.filter((p) => p.id !== id));
+    await localStore.delete("plans", id);
+  }, []);
+
+  const duplicatePlan = useCallback(async (id: string): Promise<WorkoutPlan> => {
+    const response = await authFetch(`${API_BASE}/api/plans/${id}/duplicate`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err?.message || "Błąd duplikacji planu");
+    }
+
+    const result = await response.json();
+    const newPlan: WorkoutPlan = result.data;
+
+    setPlans((prev) => [newPlan, ...prev]);
+    await localStore.put("plans", newPlan);
+
+    return newPlan;
+  }, []);
+
+  const skipPlanExercise = useCallback(async (workoutId: string, exerciseId: string) => {
+    const realWorkoutId = getRealId(workoutId);
+
+    let updatedWorkout: Workout | null = null;
+    setWorkouts((prev) =>
+      prev.map((w) => {
+        if (w.id !== workoutId) return w;
+        const alreadySkipped = (w.skippedPlanExerciseIds ?? []).includes(exerciseId);
+        if (alreadySkipped) return w;
+        updatedWorkout = {
+          ...w,
+          skippedPlanExerciseIds: [...(w.skippedPlanExerciseIds ?? []), exerciseId],
+        };
+        return updatedWorkout;
+      }),
+    );
+    if (updatedWorkout) {
+      await localStore.put("workouts", updatedWorkout);
+    }
+
+    if (!realWorkoutId.startsWith("temp_") && navigator.onLine) {
+      try {
+        await authFetch(`${API_BASE}/api/workouts/${realWorkoutId}/skip-plan-exercise`, {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ exerciseId }),
+        });
+      } catch {
+        // Optimistic update stays — will reconcile on next full refresh
+      }
+    }
+  }, []);
+
   const completeWorkout = useCallback(
     async (id: string, durationSeconds?: number) => {
       await updateWorkout(id, {
@@ -1867,6 +2031,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       stats,
       statsOverview,
       activeWorkoutId,
+      plans,
       isLoading,
       isOnline,
       lastSync,
@@ -1883,6 +2048,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       addSet,
       updateSet,
       deleteSet,
+      createPlan,
+      updatePlan,
+      deletePlan,
+      duplicatePlan,
+      skipPlanExercise,
       completeWorkout,
       syncNow,
       refreshWorkout,
@@ -1897,6 +2067,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       stats,
       statsOverview,
       activeWorkoutId,
+      plans,
       isLoading,
       isOnline,
       lastSync,
@@ -1913,6 +2084,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       addSet,
       updateSet,
       deleteSet,
+      createPlan,
+      updatePlan,
+      deletePlan,
+      duplicatePlan,
+      skipPlanExercise,
       completeWorkout,
       syncNow,
       refreshWorkout,

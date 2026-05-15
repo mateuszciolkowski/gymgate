@@ -9,3 +9,5 @@ export { WorkoutDetailScreen } from "./WorkoutDetailScreen";
 export { ExerciseSelectionModal } from "./ExerciseSelectionModal";
 export { LoginScreen } from "./LoginScreen";
 export { RegisterScreen } from "./RegisterScreen";
+export { PlansScreen } from "./PlansScreen";
+export { PlanFormScreen } from "./PlanFormScreen";

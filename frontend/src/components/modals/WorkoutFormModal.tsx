@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useData } from "@/contexts/DataContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface WorkoutFormModalProps {
   onClose: () => void;
@@ -6,6 +8,7 @@ interface WorkoutFormModalProps {
     workoutName?: string;
     gymName?: string;
     workoutDate: string;
+    workoutPlanId?: string;
   }) => void;
 }
 
@@ -14,6 +17,30 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
   const [workoutName, setWorkoutName] = useState("");
   const [gymName, setGymName] = useState("");
   const [workoutDate, setWorkoutDate] = useState(today);
+  const [workoutPlanId, setWorkoutPlanId] = useState<string>("");
+  const [planPickerOpen, setPlanPickerOpen] = useState(false);
+  const planPickerRef = useRef<HTMLDivElement>(null);
+
+  const { plans } = useData();
+  const { user } = useAuth();
+
+  const userId = user?.id ?? "";
+  const visiblePlans = plans.filter(
+    (p) => p.creatorUserId === userId || p.creatorUserId === null || p.isPublic,
+  );
+
+  const selectedPlanName = visiblePlans.find((p) => p.id === workoutPlanId)?.name;
+
+  useEffect(() => {
+    if (!planPickerOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (planPickerRef.current && !planPickerRef.current.contains(e.target as Node)) {
+        setPlanPickerOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [planPickerOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +51,7 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
       workoutName: workoutName.trim() || undefined,
       gymName: gymName.trim() || undefined,
       workoutDate: dateObj.toISOString(),
+      workoutPlanId: workoutPlanId || undefined,
     });
   };
 
@@ -127,10 +155,7 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
               value={workoutDate}
               onChange={(e) => setWorkoutDate(e.target.value)}
               max={today}
-              style={{
-                ...inputStyle,
-                display: "none",
-              }}
+              style={{ ...inputStyle, display: "none" }}
               id="workout-date-input"
             />
             <div
@@ -155,6 +180,119 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
               </svg>
             </div>
           </div>
+
+          {visiblePlans.length > 0 && (
+            <div ref={planPickerRef}>
+              <label style={labelStyle}>
+                Plan treningowy{" "}
+                <span style={{ color: "var(--gg-text-muted)", textTransform: "none", fontWeight: 400 }}>
+                  (opcjonalnie)
+                </span>
+              </label>
+
+              {/* Trigger */}
+              <button
+                type="button"
+                onClick={() => setPlanPickerOpen((v) => !v)}
+                style={{
+                  ...inputStyle,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  border: planPickerOpen ? "1.5px solid var(--gg-a1)" : "1.5px solid var(--gg-border)",
+                }}
+              >
+                <span style={{ color: selectedPlanName ? "var(--gg-text)" : "var(--gg-text-muted)" }}>
+                  {selectedPlanName ?? "Zacznij bez planu"}
+                </span>
+                <svg
+                  width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--gg-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ flexShrink: 0, transform: planPickerOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+                >
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+
+              {/* Options */}
+              {planPickerOpen && (
+                <div
+                  style={{
+                    marginTop: 6,
+                    borderRadius: 14,
+                    background: "var(--gg-surface2)",
+                    border: "1.5px solid var(--gg-border)",
+                    overflow: "hidden",
+                    maxHeight: 220,
+                    overflowY: "auto",
+                  }}
+                >
+                  {/* None option */}
+                  <button
+                    type="button"
+                    onClick={() => { setWorkoutPlanId(""); setPlanPickerOpen(false); }}
+                    style={{
+                      width: "100%",
+                      padding: "13px 14px",
+                      background: workoutPlanId === "" ? "var(--gg-grad-soft)" : "transparent",
+                      border: "none",
+                      borderBottom: "1px solid var(--gg-border)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    <span style={{ fontSize: 14, color: "var(--gg-text-muted)", fontFamily: "'DM Sans', sans-serif" }}>
+                      Zacznij bez planu
+                    </span>
+                    {workoutPlanId === "" && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gg-a1)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12l5 5 9-9"/>
+                      </svg>
+                    )}
+                  </button>
+
+                  {visiblePlans.map((plan, index) => (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      onClick={() => { setWorkoutPlanId(plan.id); setPlanPickerOpen(false); }}
+                      style={{
+                        width: "100%",
+                        padding: "13px 14px",
+                        background: workoutPlanId === plan.id ? "var(--gg-grad-soft)" : "transparent",
+                        border: "none",
+                        borderBottom: index < visiblePlans.length - 1 ? "1px solid var(--gg-border)" : "none",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        gap: 8,
+                      }}
+                    >
+                      <span style={{ fontSize: 14, color: "var(--gg-text)", fontFamily: "'DM Sans', sans-serif", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {plan.name}
+                      </span>
+                      {workoutPlanId === plan.id ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gg-a1)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                          <path d="M5 12l5 5 9-9"/>
+                        </svg>
+                      ) : (
+                        <span style={{ fontSize: 11, color: "var(--gg-text-muted)", flexShrink: 0, fontFamily: "'DM Sans', sans-serif" }}>
+                          {plan.items.length} ćw.
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="grid gap-3 pt-2" style={{ gridTemplateColumns: "1fr 1.6fr" }}>
             <button

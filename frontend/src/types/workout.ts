@@ -66,6 +66,8 @@ export interface Workout {
   location?: string | null;
   workoutNotes?: string | null;
   durationSeconds?: number | null;
+  workoutPlanId?: string | null;
+  skippedPlanExerciseIds?: string[];
   createdAt: string;
   updatedAt: string;
   items: WorkoutItem[];
@@ -114,12 +116,35 @@ export interface ExerciseProgression {
   points: ExerciseProgressPoint[];
 }
 
+export interface WorkoutPlanItem {
+  id: string;
+  planId: string;
+  exerciseId: string;
+  orderInPlan: number;
+  exercise: {
+    id: string;
+    name: string;
+    muscleGroups: string[];
+  };
+}
+
+export interface WorkoutPlan {
+  id: string;
+  name: string;
+  creatorUserId: string | null;
+  isPublic: boolean;
+  items: WorkoutPlanItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CreateWorkoutDto {
   workoutDate?: string;
   workoutName?: string;
   gymName?: string;
   location?: string;
   workoutNotes?: string;
+  workoutPlanId?: string;
 }
 
 export interface UpdateWorkoutDto {

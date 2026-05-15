@@ -1,0 +1,274 @@
+import { memo, useState } from "react";
+import { useData } from "@/contexts/DataContext";
+import { useAuth } from "@/contexts/AuthContext";
+import type { WorkoutPlan } from "@/types";
+import { MUSCLE_GROUPS } from "@/constants/muscleGroups";
+
+type PlanTab = "mine" | "builtin" | "community";
+
+interface PlansScreenProps {
+  onCreatePlan: () => void;
+  onEditPlan: (plan: WorkoutPlan) => void;
+}
+
+function muscleLabel(value: string): string {
+  return MUSCLE_GROUPS.find((g) => g.value === value)?.label ?? value;
+}
+
+function getPlanMuscles(plan: WorkoutPlan): string[] {
+  const all = plan.items.flatMap((i) => i.exercise.muscleGroups);
+  return [...new Set(all)].slice(0, 3);
+}
+
+interface PlanCardProps {
+  plan: WorkoutPlan;
+  isOwner: boolean;
+  onEdit?: () => void;
+  onDuplicate: () => void;
+}
+
+const PlanCard = memo(function PlanCard({ plan, isOwner, onEdit, onDuplicate }: PlanCardProps) {
+  const muscles = getPlanMuscles(plan);
+  const [duplicating, setDuplicating] = useState(false);
+  const { deletePlan } = useData();
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Usunąć plan "${plan.name}"?`)) return;
+    try {
+      await deletePlan(plan.id);
+    } catch {
+      alert("Nie udało się usunąć planu");
+    }
+  };
+
+  const handleDuplicate = async () => {
+    setDuplicating(true);
+    try {
+      await onDuplicate();
+    } finally {
+      setDuplicating(false);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        background: "var(--gg-surface)",
+        border: "1.5px solid var(--gg-border-med)",
+        borderRadius: 18,
+        padding: "18px 18px 14px",
+        marginBottom: 12,
+      }}
+    >
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex-1 min-w-0">
+          <h3
+            className="font-barlow font-bold leading-tight truncate"
+            style={{ fontSize: 17, color: "var(--gg-text)" }}
+          >
+            {plan.name}
+          </h3>
+          <p className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+            {plan.items.length} {plan.items.length === 1 ? "ćwiczenie" : plan.items.length < 5 ? "ćwiczenia" : "ćwiczeń"}
+            {plan.isPublic && (
+              <span className="ml-2" style={{ color: "var(--gg-a1)" }}>• Publiczny</span>
+            )}
+          </p>
+        </div>
+      </div>
+
+      {muscles.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-3">
+          {muscles.map((m) => (
+            <span
+              key={m}
+              className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+              style={{
+                background: "var(--gg-surface2)",
+                color: "var(--gg-text-sub)",
+                border: "1px solid var(--gg-border)",
+              }}
+            >
+              {muscleLabel(m)}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        {isOwner && onEdit && (
+          <button
+            onClick={onEdit}
+            className="flex-1 text-[13px] font-bold rounded-[11px] border-none cursor-pointer"
+            style={{
+              padding: "9px 0",
+              background: "var(--gg-surface2)",
+              color: "var(--gg-text-sub)",
+              border: "1px solid var(--gg-border)",
+            }}
+          >
+            Edytuj
+          </button>
+        )}
+
+        {!isOwner && (
+          <button
+            onClick={handleDuplicate}
+            disabled={duplicating}
+            className="flex-1 text-[13px] font-bold rounded-[11px] border-none cursor-pointer"
+            style={{
+              padding: "9px 0",
+              background: "var(--gg-surface2)",
+              color: "var(--gg-text-sub)",
+              border: "1px solid var(--gg-border)",
+              opacity: duplicating ? 0.6 : 1,
+            }}
+          >
+            {duplicating ? "Kopiowanie…" : "Duplikuj do moich"}
+          </button>
+        )}
+
+        {isOwner && (
+          <button
+            onClick={handleDelete}
+            className="flex items-center justify-center rounded-[11px] border-none cursor-pointer"
+            style={{
+              width: 38,
+              background: "var(--gg-surface2)",
+              border: "1px solid var(--gg-border)",
+              color: "var(--gg-error)",
+            }}
+            aria-label="Usuń plan"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+            </svg>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+});
+
+export const PlansScreen = memo(function PlansScreen({ onCreatePlan, onEditPlan }: PlansScreenProps) {
+  const { plans, duplicatePlan } = useData();
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<PlanTab>("mine");
+
+  const userId = user?.id ?? "";
+
+  const tabPlans: Record<PlanTab, WorkoutPlan[]> = {
+    mine: plans.filter((p) => p.creatorUserId === userId),
+    builtin: plans.filter((p) => p.creatorUserId === null),
+    community: plans.filter((p) => p.creatorUserId !== null && p.creatorUserId !== userId && p.isPublic),
+  };
+
+  const tabs: { id: PlanTab; label: string }[] = [
+    { id: "mine", label: "Moje" },
+    { id: "builtin", label: "Built-in" },
+    { id: "community", label: "Społeczność" },
+  ];
+
+  const visiblePlans = tabPlans[activeTab];
+
+  return (
+    <div className="px-5 pt-5 screen-enter">
+      {/* Header */}
+      <div className="mb-5">
+        <p
+          className="text-[11px] font-bold uppercase tracking-[0.12em] mb-1"
+          style={{ color: "var(--gg-text-muted)" }}
+        >
+          Twoje plany
+        </p>
+        <h1
+          className="font-barlow font-black leading-none"
+          style={{ fontSize: 36, letterSpacing: "-0.03em", color: "var(--gg-text)" }}
+        >
+          Plany
+        </h1>
+      </div>
+
+      {/* CTA */}
+      <button
+        onClick={onCreatePlan}
+        className="w-full flex items-center justify-center gap-2 font-bold text-[15px] text-white rounded-[16px] border-none cursor-pointer mb-4"
+        style={{
+          padding: 15,
+          background: "var(--gg-grad-btn)",
+          boxShadow: "0 4px 22px var(--gg-glow)",
+        }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="4" x2="12" y2="20"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+        </svg>
+        Stwórz nowy plan
+      </button>
+
+      {/* Tabs */}
+      <div
+        className="flex mb-4 p-1 rounded-[14px]"
+        style={{ background: "var(--gg-surface2)", border: "1px solid var(--gg-border)" }}
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className="flex-1 text-[13px] font-bold rounded-[10px] border-none cursor-pointer transition-all"
+            style={{
+              padding: "8px 0",
+              background: activeTab === tab.id ? "var(--gg-surface)" : "transparent",
+              color: activeTab === tab.id ? "var(--gg-text)" : "var(--gg-text-muted)",
+              boxShadow: activeTab === tab.id ? "0 1px 4px rgba(0,0,0,0.2)" : "none",
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Plan list */}
+      {visiblePlans.length === 0 ? (
+        <div
+          className="text-center py-12"
+          style={{ color: "var(--gg-text-muted)" }}
+        >
+          {activeTab === "mine" ? (
+            <>
+              <p className="text-[15px] font-medium mb-1">Brak planów</p>
+              <p className="text-[13px]">Stwórz swój pierwszy plan treningowy</p>
+            </>
+          ) : activeTab === "builtin" ? (
+            <p className="text-[15px] font-medium">Brak wbudowanych planów</p>
+          ) : (
+            <p className="text-[15px] font-medium">Brak publicznych planów społeczności</p>
+          )}
+        </div>
+      ) : (
+        <div>
+          {visiblePlans.map((plan) => (
+            <PlanCard
+              key={plan.id}
+              plan={plan}
+              isOwner={plan.creatorUserId === userId}
+              onEdit={plan.creatorUserId === userId ? () => onEditPlan(plan) : undefined}
+              onDuplicate={async () => {
+                try {
+                  await duplicatePlan(plan.id);
+                } catch {
+                  alert("Nie udało się zduplikować planu");
+                }
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="h-6" />
+    </div>
+  );
+});

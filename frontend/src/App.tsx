@@ -10,17 +10,20 @@ import {
   NavigationDrawer,
   TrainingsScreen,
   ExercisesScreen,
-    StatsScreen,
-    StatsExerciseDetailScreen,
-    MenuScreen,
+  StatsScreen,
+  StatsExerciseDetailScreen,
+  MenuScreen,
   AddExerciseScreen,
   EditExerciseScreen,
   WorkoutDetailScreen,
+  PlansScreen,
+  PlanFormScreen,
 } from "./components";
 import { WorkoutFormModal } from "./components/modals";
 import { LoginScreen } from "./components/screens/LoginScreen";
 import { RegisterScreen } from "./components/screens/RegisterScreen";
 import type { Exercise } from "./hooks/useExercises";
+import type { WorkoutPlan } from "./types";
 import type { SyncOperation } from "./utils/localStore";
 
 const ENTITY_LABELS: Record<SyncOperation["entity"], string> = {
@@ -28,6 +31,7 @@ const ENTITY_LABELS: Record<SyncOperation["entity"], string> = {
   workoutItem: "ćwiczenia w treningu",
   set: "serii",
   exercise: "ćwiczenia",
+  plan: "planu",
 };
 
 const ACTION_LABELS: Record<SyncOperation["type"], string> = {
@@ -100,6 +104,7 @@ function App() {
     useNavigation("trainings");
 
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [editingPlan, setEditingPlan] = useState<WorkoutPlan | null>(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(
     null,
   );
@@ -149,6 +154,8 @@ function App() {
       setScreen={setScreen}
       editingExercise={editingExercise}
       setEditingExercise={setEditingExercise}
+      editingPlan={editingPlan}
+      setEditingPlan={setEditingPlan}
       selectedWorkoutId={selectedWorkoutId}
       setSelectedWorkoutId={setSelectedWorkoutId}
       pendingExerciseAdd={pendingExerciseAdd}
@@ -168,6 +175,8 @@ interface AuthenticatedAppProps {
   setScreen: (screen: Screen) => void;
   editingExercise: Exercise | null;
   setEditingExercise: (exercise: Exercise | null) => void;
+  editingPlan: WorkoutPlan | null;
+  setEditingPlan: (plan: WorkoutPlan | null) => void;
   selectedWorkoutId: string | null;
   setSelectedWorkoutId: (id: string | null) => void;
   pendingExerciseAdd: string | null;
@@ -185,6 +194,8 @@ function AuthenticatedApp({
   setScreen,
   editingExercise,
   setEditingExercise,
+  editingPlan,
+  setEditingPlan,
   selectedWorkoutId,
   setSelectedWorkoutId,
   pendingExerciseAdd,
@@ -237,6 +248,7 @@ function AuthenticatedApp({
     workoutName?: string;
     gymName?: string;
     workoutDate: string;
+    workoutPlanId?: string;
   }) => {
     try {
       const newWorkout = await createWorkout(data);
@@ -335,6 +347,27 @@ function AuthenticatedApp({
       );
     }
 
+    if (screen === "plan-form") {
+      return (
+        <PlanFormScreen
+          editingPlan={editingPlan}
+          onBack={() => {
+            setEditingPlan(null);
+            setScreen("plans");
+            setActiveTab("plans");
+          }}
+          onSaved={() => {
+            setEditingPlan(null);
+            setScreen("plans");
+            setActiveTab("plans");
+          }}
+          onCreateNewExercise={() => {
+            setScreen("add-exercise");
+          }}
+        />
+      );
+    }
+
     switch (screen) {
       case "trainings":
         return renderTrainingsScreen();
@@ -358,6 +391,19 @@ function AuthenticatedApp({
             onOpenExerciseDetails={(exerciseId) => {
               setSelectedStatsExerciseId(exerciseId);
               setScreen("stats-exercise-detail");
+            }}
+          />
+        );
+      case "plans":
+        return (
+          <PlansScreen
+            onCreatePlan={() => {
+              setEditingPlan(null);
+              setScreen("plan-form");
+            }}
+            onEditPlan={(plan) => {
+              setEditingPlan(plan);
+              setScreen("plan-form");
             }}
           />
         );
