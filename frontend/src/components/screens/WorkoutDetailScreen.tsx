@@ -63,11 +63,14 @@ export function WorkoutDetailScreen({
   const [editWorkoutName, setEditWorkoutName] = useState("");
   const [editGymName, setEditGymName] = useState("");
   const [editWorkoutDate, setEditWorkoutDate] = useState("");
+  const [editWorkoutTime, setEditWorkoutTime] = useState("");
   const [editWorkoutNotes, setEditWorkoutNotes] = useState("");
 
-  // Timer state — seconds elapsed since workout was created
+  // Timer state — seconds elapsed since workout was created (minus idle time)
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const idleSecondsRef = useRef(0);
+  const hiddenAtRef = useRef<number | null>(null);
 
   const { deleteWorkout, stats: allStats, workouts, plans, skipPlanExercise } = useData();
 
@@ -88,21 +91,53 @@ export function WorkoutDetailScreen({
   const workoutRef = useRef(workout);
   workoutRef.current = workout;
 
-  // Start timer when workout is DRAFT
+  // Start timer when workout is DRAFT; subtracts accumulated idle time
   useEffect(() => {
     if (!workout || workout.status !== "DRAFT") return;
 
     const startedAt = new Date(workout.createdAt).getTime();
-    setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+    const getElapsed = () =>
+      Math.max(0, Math.floor((Date.now() - startedAt) / 1000) - idleSecondsRef.current);
 
-    timerRef.current = setInterval(() => {
-      setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
-    }, 1000);
+    setElapsed(getElapsed());
+    timerRef.current = setInterval(() => setElapsed(getElapsed()), 1000);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [workout?.id, workout?.status]);
+
+  // Detect inactivity via Page Visibility API; idle time is excluded from duration
+  useEffect(() => {
+    if (!workout || workout.status !== "DRAFT") return;
+
+    const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        hiddenAtRef.current = Date.now();
+      } else if (hiddenAtRef.current !== null) {
+        const idleMs = Date.now() - hiddenAtRef.current;
+        idleSecondsRef.current += Math.floor(idleMs / 1000);
+        hiddenAtRef.current = null;
+
+        if (idleMs >= TWO_HOURS_MS) {
+          const startedAt = new Date(workoutRef.current!.createdAt).getTime();
+          const effectiveElapsed = Math.max(
+            0,
+            Math.floor((Date.now() - startedAt) / 1000) - idleSecondsRef.current,
+          );
+          if (confirm("Wykryto ponad 2 godziny nieaktywności. Czas bezczynności nie jest wliczany. Czy chcesz zakończyć trening?")) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            completeWorkout(effectiveElapsed).then(() => onBack()).catch(() => {});
+          }
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [workout?.id, workout?.status, completeWorkout, onBack]);
 
   const handleAddExercise = useCallback(
     (exerciseId: string) => {
@@ -229,13 +264,16 @@ export function WorkoutDetailScreen({
     setEditGymName(workout?.gymName || "");
     const date = new Date(workout?.workoutDate || new Date());
     setEditWorkoutDate(date.toISOString().split("T")[0]);
+    setEditWorkoutTime(
+      `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`,
+    );
   };
 
   const handleSaveWorkoutInfo = async () => {
     try {
       const dateObj = new Date(editWorkoutDate);
-      dateObj.setHours(new Date().getHours());
-      dateObj.setMinutes(new Date().getMinutes());
+      const [h, m] = editWorkoutTime.split(":").map(Number);
+      dateObj.setHours(h, m, 0, 0);
       await updateWorkout({
         workoutName: editWorkoutName.trim() || undefined,
         gymName: editGymName.trim() || undefined,
@@ -281,14 +319,19 @@ export function WorkoutDetailScreen({
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     setEditWorkoutDate(`${year}-${month}-${day}`);
+    setEditWorkoutTime(
+      `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`,
+    );
     setIsEditMode(true);
   };
 
   const handleSaveCompletedEdits = async () => {
     try {
       const [year, month, day] = editWorkoutDate.split("-").map(Number);
+      const [h, m] = editWorkoutTime.split(":").map(Number);
       const dateObj = new Date(workout!.workoutDate);
       dateObj.setFullYear(year, month - 1, day);
+      dateObj.setHours(h, m, 0, 0);
       await updateWorkout({
         workoutName: editWorkoutName.trim() || null,
         gymName: editGymName.trim() || null,
@@ -586,6 +629,10 @@ export function WorkoutDetailScreen({
                     <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Data treningu</label>
                     <input type="date" value={editWorkoutDate} onChange={(e) => setEditWorkoutDate(e.target.value)} max={new Date().toISOString().split("T")[0]} style={inputStyle} />
                   </div>
+                  <div>
+                    <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Godzina treningu</label>
+                    <input type="time" value={editWorkoutTime} onChange={(e) => setEditWorkoutTime(e.target.value)} style={inputStyle} />
+                  </div>
                   <div className="flex gap-2 mt-1">
                     <button onClick={() => setIsEditingInfo(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer" style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text-sub)" }}>Anuluj</button>
                     <button onClick={handleSaveWorkoutInfo} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer text-white border-none" style={{ background: "var(--gg-grad-btn)", boxShadow: "0 3px 14px var(--gg-glow)" }}>Zapisz</button>
@@ -665,6 +712,10 @@ export function WorkoutDetailScreen({
                 <div>
                   <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Data treningu</label>
                   <input type="date" value={editWorkoutDate} onChange={(e) => setEditWorkoutDate(e.target.value)} max={new Date().toISOString().split("T")[0]} style={inputStyle} />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Godzina treningu</label>
+                  <input type="time" value={editWorkoutTime} onChange={(e) => setEditWorkoutTime(e.target.value)} style={inputStyle} />
                 </div>
                 <div>
                   <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Notatki</label>
