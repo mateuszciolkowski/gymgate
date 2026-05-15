@@ -225,7 +225,8 @@ export const PlanFormScreen = memo(function PlanFormScreen({
   const existingIds = items.map((i) => i.exerciseId);
 
   return (
-    <div className="px-5 pt-5 screen-enter">
+    <>
+      <div className="px-5 pt-5 screen-enter">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
@@ -398,7 +399,8 @@ export const PlanFormScreen = memo(function PlanFormScreen({
         </button>
       </div>
 
-      {/* Exercise selection modal */}
+      </div>
+
       {showExerciseModal && (
         <ExerciseSelectionModal
           onClose={() => setShowExerciseModal(false)}
@@ -407,6 +409,6 @@ export const PlanFormScreen = memo(function PlanFormScreen({
           onCreateNewExercise={onCreateNewExercise}
         />
       )}
-    </div>
+    </>
   );
 });
