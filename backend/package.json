@@ -39,7 +39,8 @@
     "prisma:generate": "prisma generate",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:migrate": "prisma migrate dev",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "seed:plans": "tsx prisma/seed-plans.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -561,3 +561,40 @@ export const clearActiveWorkout = (userId: string) => {
     data: { activeWorkoutId: null },
   });
 };
+
+export const findWorkoutWithPlan = (id: string) => {
+  return prisma.workout.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      userId: true,
+      workoutPlanId: true,
+      skippedPlanExerciseIds: true,
+      items: { select: { exerciseId: true } },
+      plan: {
+        select: {
+          id: true,
+          items: {
+            select: {
+              exerciseId: true,
+              orderInPlan: true,
+              exercise: { select: { id: true, name: true } },
+            },
+            orderBy: { orderInPlan: "asc" },
+          },
+        },
+      },
+    },
+  });
+};
+
+export const setSkippedPlanExerciseIds = (
+  workoutId: string,
+  ids: string[],
+) => {
+  return prisma.workout.update({
+    where: { id: workoutId },
+    data: { skippedPlanExerciseIds: ids },
+    select: { id: true, skippedPlanExerciseIds: true },
+  });
+};

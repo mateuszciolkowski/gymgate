@@ -1,4 +1,5 @@
 import prisma from "../src/config/database.js";
+import { seedWorkoutPlans } from "./seedWorkoutPlans.js";
 
 async function main() {
   console.log("🌱 Seeding database...");
@@ -680,6 +681,8 @@ async function main() {
   });
 
   console.log(`✓ Created ${exercises.count} exercises`);
+
+  await seedWorkoutPlans();
 
   console.log("✅ Seeding completed!");
 }

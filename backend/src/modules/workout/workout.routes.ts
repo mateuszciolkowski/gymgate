@@ -12,6 +12,8 @@ import {
   getWorkoutsQuerySchema,
   getStatsOverviewSchema,
   getStatsProgressionSchema,
+  skipPlanExerciseSchema,
+  nextFromPlanSchema,
 } from "./workout.schema.js";
 
 const router = Router();
@@ -31,6 +33,17 @@ router.get(
 
 router.get("/active", workoutController.getActiveWorkout);
 router.delete("/active", workoutController.clearActiveWorkout);
+
+router.get(
+  "/:id/next-from-plan",
+  validate(nextFromPlanSchema),
+  workoutController.getNextFromPlan,
+);
+router.post(
+  "/:id/skip-plan-exercise",
+  validate(skipPlanExerciseSchema),
+  workoutController.skipPlanExercise,
+);
 
 router.get("/:id", workoutController.getWorkoutById);
 router.patch(

@@ -16,7 +16,8 @@ Base URL: `/api/workouts`
   "workoutName": "Trening PUSH", // optional
   "gymName": "Gold's Gym", // optional
   "location": "Warszawa", // optional
-  "workoutNotes": "Dobra forma dzisiaj" // optional
+  "workoutNotes": "Dobra forma dzisiaj", // optional
+  "workoutPlanId": "uuid" // optional, UUID widocznego planu (mine/builtin/community public)
 }
 ```
 
@@ -42,6 +43,8 @@ Base URL: `/api/workouts`
 ```
 
 `lastNote` can be `null` when the latest completed workout item for this exercise had no note.
+
+**Walidacja `workoutPlanId`:** serwer sprawdza, czy plan jest widoczny dla wywołującego (właściciel, built-in lub cudzy `isPublic=true`). Brak widoczności → `404` (`Plan not found`). Zapobiega podpinaniu treningu pod prywatny plan innego użytkownika.
 
 ### 2. Get User Workouts
 
@@ -243,6 +246,73 @@ Each stats entry may include `lastNote: null` if no note was saved on the latest
 ### 11. Delete Set
 
 **DELETE** `/api/workouts/sets/:setId`
+
+## Workout Plan Integration
+
+Gdy workout został utworzony z `workoutPlanId`, frontend może pobierać sugestie następnych ćwiczeń oraz odkładać konkretne ćwiczenia z planu na liście „pominiętych".
+
+### 12. Get Next Exercise From Plan
+
+**GET** `/api/workouts/:id/next-from-plan`
+
+Zwraca pierwsze nieukończone ćwiczenie z planu posortowane po `orderInPlan`, z pominięciem:
+- ćwiczeń już dodanych do workoutu (`workout.items`),
+- ćwiczeń z `workout.skippedPlanExerciseIds`.
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "planAttached": true,
+    "finished": false,
+    "remaining": 3,
+    "next": {
+      "exerciseId": "uuid",
+      "exerciseName": "Wyciskanie sztangi nad głowę (OHP)",
+      "orderInPlan": 2
+    }
+  }
+}
+```
+
+- `planAttached: false` — workout nie jest powiązany z planem; `next: null`, `remaining: 0`, `finished: false`.
+- `finished: true` — wszystkie ćwiczenia z planu zostały już dodane lub pominięte; `next: null`.
+- `remaining` — liczba pozostałych ćwiczeń z planu (nie-dodanych i nie-pominiętych).
+
+**Błędy:** `403` (cudzy workout), `404` (workout nie istnieje).
+
+### 13. Skip Plan Exercise
+
+**POST** `/api/workouts/:id/skip-plan-exercise`
+
+**Request Body:**
+
+```json
+{
+  "exerciseId": "uuid"
+}
+```
+
+Dodaje `exerciseId` do `workout.skippedPlanExerciseIds`. Idempotentne — kolejne wywołanie z tym samym `exerciseId` nie zmienia stanu.
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "workoutId": "uuid",
+    "skippedPlanExerciseIds": ["uuid-1", "uuid-2"]
+  }
+}
+```
+
+**Błędy:**
+- `400` — ćwiczenie nie należy do planu tego workoutu lub workout nie ma planu
+- `403` — cudzy workout
+- `404` — workout nie istnieje
 
 ## Statistics Endpoints
 

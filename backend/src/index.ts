@@ -17,6 +17,7 @@ import { exerciseRouter } from "./modules/exercise/exercise.routes.js";
 import userRouter from "./modules/user/user.routes.js";
 import workoutRouter from "./modules/workout/workout.routes.js";
 import authRouter from "./modules/auth/auth.routes.js";
+import { planRouter } from "./modules/plan/plan.routes.js";
 
 console.log("✅ All modules loaded");
 
@@ -81,6 +82,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/exercises", exerciseRouter);
 app.use("/api/users", userRouter);
 app.use("/api/workouts", workoutRouter);
+app.use("/api/plans", planRouter);
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Express Error Handler:", err.message);
