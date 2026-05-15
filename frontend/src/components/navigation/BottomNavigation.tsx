@@ -91,7 +91,15 @@ function WorkoutTimerPill({
       />
       <span
         className="font-barlow font-bold"
-        style={{ fontSize: 15, color: "var(--gg-a1)", fontVariantNumeric: "tabular-nums", letterSpacing: "0.02em" }}
+        style={{
+          fontSize: 15,
+          color: "var(--gg-a1)",
+          fontVariantNumeric: "tabular-nums",
+          letterSpacing: "0.02em",
+          display: "inline-block",
+          minWidth: "5ch",
+          textAlign: "center",
+        }}
       >
         {formatElapsed(elapsed)}
       </span>

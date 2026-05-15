@@ -1,158 +1,192 @@
-# README
-
 <p align="center">
   <img src="other/logo/gym_gate_logo.png" alt="GymGate Logo" width="110" />
 </p>
 
-# 🏋️ GymGate - Smart Workout Tracking Platform
-
-Platforma do prowadzenia treningów siłowych, zarządzania ćwiczeniami i śledzenia progresu
-
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-
----
-
-## 🎯 O projekcie
-
-GymGate to nowoczesna aplikacja webowa dla osób trenujących siłowo.  
-Pozwala szybko rozpocząć trening, dodawać ćwiczenia i serie oraz zamykać sesję z automatyczną aktualizacją statystyk.
-
-Projekt został zaprojektowany tak, aby działał płynnie także przy niestabilnym połączeniu z internetem.
-Dane są przechowywane lokalnie i synchronizowane z serwerem, gdy użytkownik wraca online.
-
-GymGate łączy prostotę codziennego użycia z czytelną architekturą fullstack, dzięki czemu dobrze sprawdza się zarówno jako produkt, jak i jako baza do dalszego rozwoju.
-
----
-
-## 📸 Podgląd aplikacji
-
-### Ekrany produktu
+<h1 align="center">GymGate</h1>
+<p align="center">SMART WORKOUT TRACKING PLATFORM</p>
 
 <p align="center">
-  <img src="other/app_photos/gymgate2.png" alt="GymGate Screen 2" width="240" />
-  <img src="other/app_photos/gymgate4.png" alt="GymGate Screen 4" width="240" />
-  <img src="other/app_photos/gymgate5.png" alt="GymGate Screen 5" width="240" />
+  <a href="README.md"><strong>English</strong></a> &nbsp;|&nbsp; <a href="README.pl.md">Polski</a>
 </p>
 
-Powyższe zrzuty pokazują główny przepływ użytkownika: od listy treningów i ćwiczeń, przez edycję serii, aż po podgląd statystyk oraz zarządzanie kontem.
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express.js" />
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+</p>
 
 ---
 
-## 🚀 Kluczowe funkcje
+## About
 
-- 🏁 **Szybki start treningu** – rozpoczęcie sesji w statusie `DRAFT`.
-- 🧩 **Budowanie treningu** – dodawanie ćwiczeń, kolejności i notatek.
-- 🔢 **Zarządzanie seriami** – waga, powtórzenia, edycja i usuwanie.
-- ✅ **Zamknięcie treningu** – przejście do `COMPLETED` z aktualizacją statystyk.
-- 📊 **Statystyki ćwiczeń** – rekordy ciężaru, ostatnie wykonanie, liczba treningów.
-- 🌐 **Offline-first UX** – lokalny cache + synchronizacja po odzyskaniu sieci.
-- 🔐 **Bezpieczne logowanie** – ochrona konta i tras API.
+GymGate is a fullstack web application for strength training. It lets you start a session, build workouts by adding exercises and sets, and close the session with automatic statistics updates.
+
+The app is built around an offline-first architecture — all data is persisted locally in the browser and synchronized with the backend in the background. Every user action updates the UI immediately without waiting for a server response.
 
 ---
 
-## 🔧 Moduły systemu
+## Screenshots
 
-### 🔐 Authentication Module
-
-- rejestracja i logowanie użytkownika,
-- utrzymanie sesji użytkownika,
-- endpoint `GET /api/auth/me` do odtwarzania sesji.
-
-### 🏋️ Workout Management Module
-
-- tworzenie i edycja treningów,
-- obsługa aktywnego treningu użytkownika,
-- zamykanie sesji treningowej i zapis historii.
-
-### 🧠 Exercise Module
-
-- pełny CRUD ćwiczeń,
-- grupy mięśniowe i opis ćwiczenia,
-- przygotowanie pod rozbudowę biblioteki ćwiczeń.
-
-### 📈 Statistics Module
-
-- statystyki per ćwiczenie (`maxWeight`, `lastWeight`, `totalWorkouts`),
-- zbiorczy podgląd progresu użytkownika,
-- aktualizacja danych po zakończeniu treningu.
-
-### 🔄 Offline Sync Module
-
-- lokalne przechowywanie danych (IndexedDB),
-- optymistyczne aktualizacje interfejsu,
-- synchronizacja operacji po powrocie online.
+<p align="center">
+  <img src="other/app_photos/gymgate.PNG" alt="Workout list" width="230" />
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="other/app_photos/gymgate2.png" alt="Active workout" width="230" />
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="other/app_photos/gymgate7.png" alt="Exercise statistics" width="230" />
+</p>
 
 ---
 
-## 🛠️ Technologie
+## Features
+
+- **Quick start** — begin a training session in `DRAFT` status with a single tap.
+- **Workout builder** — add exercises, reorder them, and attach notes.
+- **Set management** — log weight, repetitions, and edit or delete any set.
+- **Session completion** — transition to `COMPLETED` with automatic stats rebuild.
+- **Exercise statistics** — track max weight, last performance, and total sessions per exercise.
+- **Offline-first UX** — optimistic UI updates backed by IndexedDB, synced when back online.
+- **Secure authentication** — session management via JWT in an httpOnly cookie.
+
+---
+
+## Technical Design
+
+### Offline-first Architecture
+
+Every mutation follows the same pattern: the UI and local IndexedDB are updated immediately (optimistic update), then the API call is fired in the background. If the server returns an error, the state is rolled back to its previous value.
+
+When the user is offline, write operations are queued in IndexedDB rather than dropped. `syncManager` runs on a periodic interval and flushes the queue as soon as the connection is restored, replaying operations in the original order.
+
+Temporary client-side IDs (`temp_*`) are assigned to new records before the server responds. Once the API confirms the creation, the IDs are remapped across the entire local state — no stale references remain.
+
+### Statistics Engine
+
+`ExerciseUserStats` tracks per-exercise metrics: `maxWeight`, `lastWeight`, `lastReps`, and `totalWorkouts`. Instead of updating these incrementally, the system performs a **full rebuild** by aggregating across all `COMPLETED` workouts whenever relevant data changes — after session completion, workout deletion, or set edits inside a completed session.
+
+This approach trades a small amount of compute for guaranteed consistency: there is no risk of stats drifting out of sync due to partial updates or failed transactions.
+
+### Note Carry-over
+
+When a user adds a note to an exercise during a session, it is upserted into `ExercisePendingNote`. The next time that exercise is added to any workout, the pending note is fetched within a transaction, written to `WorkoutItem.previousNote`, and immediately deleted — consumed exactly once.
+
+### Authentication
+
+JWT is stored in an `httpOnly` cookie, making it inaccessible to JavaScript and protected against XSS. Every protected API route is guarded by auth middleware that validates the token before the request reaches the controller.
+
+---
+
+## System Modules
+
+### Authentication
+
+- User registration and login
+- Session persistence via JWT in an httpOnly cookie
+- `GET /api/auth/me` for session restoration on page load
+
+### Workout Management
+
+- Create, edit, and delete training sessions
+- Active workout tracking per user (only one `DRAFT` session at a time)
+- Session closure: transitions to `COMPLETED` and triggers a stats rebuild
+
+### Exercise Library
+
+- Full CRUD for exercises (global seed + user-created)
+- Muscle group categorization and descriptions
+
+### Statistics
+
+- Per-exercise stats: `maxWeight`, `lastWeight`, `lastReps`, `totalWorkouts`
+- Rebuilt from scratch after every completion, deletion, or set edit
+- Aggregated exclusively from `COMPLETED` workouts
+
+### Offline Sync
+
+- All data persisted locally via IndexedDB (`localStore`)
+- Optimistic updates with automatic rollback on API failure
+- Write queue replayed by `syncManager` on reconnect
+
+---
+
+## Tech Stack
 
 ### Backend
 
-- **Node.js + Express (TypeScript)** – warstwa API
-- **Prisma ORM** – modelowanie i dostęp do danych
-- **PostgreSQL** – relacyjna baza danych
-- **bcryptjs** – bezpieczne hashowanie haseł
-- **Zod** – walidacja danych wejściowych
+| Technology                     | Role                              |
+| ------------------------------ | --------------------------------- |
+| Node.js + Express (TypeScript) | API layer                         |
+| Prisma ORM                     | Data modeling and database access |
+| PostgreSQL                     | Relational database               |
+| Zod                            | Input validation                  |
+| bcryptjs                       | Password hashing                  |
 
 ### Frontend
 
-- **React 19 + Vite + TypeScript** – szybki i nowoczesny UI
-- **Tailwind CSS** – warstwa stylowania
-- **Context API** – zarządzanie stanem aplikacji
-- **IndexedDB (localStore)** – trwały cache lokalny
+| Technology                   | Role                                |
+| ---------------------------- | ----------------------------------- |
+| React 19 + Vite + TypeScript | UI framework                        |
+| Tailwind CSS                 | Styling                             |
+| Context API                  | Global state management             |
+| IndexedDB (localStore)       | Local cache and offline persistence |
 
 ---
 
-## 🧱 Architektura projektu
+## Architecture
 
 ### Backend (`backend/`)
 
-- architektura modułowa (`auth`, `user`, `exercise`, `workout`),
-- podział na warstwy: `routes -> controller -> service -> repository`,
-- centralny punkt startowy: `src/index.ts`,
-- model domenowy w `prisma/schema.prisma`.
+Modular structure with strict layering per module:
+
+```
+routes -> controller -> service -> repository
+```
+
+Modules: `auth`, `user`, `exercise`, `workout`. Entry point: `src/index.ts`. Domain model defined in `prisma/schema.prisma`.
 
 ### Frontend (`frontend/`)
 
-- `AuthContext` – sesja i tożsamość użytkownika,
-- `DataContext` – dane domenowe i akcje biznesowe,
-- `syncManager` – cykliczny sync i obsługa online/offline,
-- komponenty ekranów dla treningów, ćwiczeń i statystyk.
+- `AuthContext` — session and user identity
+- `DataContext` — domain data and business actions (single global store)
+- `syncManager` — periodic sync and online/offline handling
+- Screen components for workouts, exercises, and statistics
 
 ---
 
-## 📡 API (przegląd)
+## API Overview
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-- `GET/POST/PATCH/DELETE /api/exercises`
-- `GET/POST/PATCH/DELETE /api/workouts`
-- `POST /api/workouts/:workoutId/exercises`
-- `POST /api/workouts/items/:itemId/sets`
-- `GET /api/workouts/stats/all`
-- `GET /api/workouts/stats/exercise/:exerciseId`
+```
+POST   /api/auth/register
+POST   /api/auth/login
+GET    /api/auth/me
 
-Szczegółowa dokumentacja endpointów znajduje się w:
+GET    /api/exercises
+POST   /api/exercises
+PATCH  /api/exercises/:id
+DELETE /api/exercises/:id
 
-- `backend/src/modules/user/API.md`
-- `backend/src/modules/exercise/API.md`
-- `backend/src/modules/workout/API.md`
+GET    /api/workouts
+POST   /api/workouts
+PATCH  /api/workouts/:id
+DELETE /api/workouts/:id
 
-### Zasada aktualizacji dokumentacji i Postmana
+POST   /api/workouts/:workoutId/exercises
+POST   /api/workouts/items/:itemId/sets
 
-Jeśli zmieniasz logikę systemu (backend lub frontend), zaktualizuj:
+GET    /api/workouts/stats/all
+GET    /api/workouts/stats/exercise/:exerciseId
+```
 
-- plik opisujący działanie systemu i kontrakty API (odpowiednie `API.md`),
-- kolekcję Postmana `other/GymGate_API.postman_collection.json` (jeżeli logika requestów/odpowiedzi lub flow testowy się zmienił),
-- informację o tych aktualizacjach w opisie zmiany/PR.
+Full endpoint documentation:
+
+- [`backend/src/modules/user/API.md`](backend/src/modules/user/API.md)
+- [`backend/src/modules/exercise/API.md`](backend/src/modules/exercise/API.md)
+- [`backend/src/modules/workout/API.md`](backend/src/modules/workout/API.md)
 
 ---
 
-## 👥 Autor
+## Author
 
-**Mateusz Ciołkowski**
+**Mateusz Ciolkowski**
