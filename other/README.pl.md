@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="other/logo/gym_gate_logo.png" alt="GymGate Logo" width="110" />
+  <img src="logo/gym_gate_logo.png" alt="GymGate Logo" width="110" />
 </p>
 
 <h1 align="center">GymGate</h1>
 <p align="center">PLATFORMA DO SLEDZENIA TRENINGOW SILOWYCH</p>
 
 <p align="center">
-  <a href="README.md">English</a> &nbsp;|&nbsp; <a href="README.pl.md"><strong>Polski</strong></a>
+  <a href="../README.md">English</a> &nbsp;|&nbsp; <a href="README.pl.md"><strong>Polski</strong></a>
 </p>
 
 <p align="center">
@@ -31,12 +31,26 @@ Aplikacja opiera sie na architekturze offline-first — wszystkie dane sa utrwal
 ## Zrzuty ekranu
 
 <p align="center">
-  <img src="other/app_photos/gymgate.PNG" alt="Lista treningow" width="230" />
+  <img src="app_photos/gymgate.PNG" alt="Lista treningow" width="230" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="other/app_photos/gymgate2.png" alt="Aktywny trening" width="230" />
+  <img src="app_photos/gymgate2.png" alt="Aktywny trening" width="230" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="other/app_photos/gymgate7.png" alt="Statystyki cwiczen" width="230" />
+  <img src="app_photos/gymgate7.png" alt="Statystyki cwiczen" width="230" />
 </p>
+
+---
+
+## Plany wykonania
+
+Pliki planów realizacji przechowujemy w katalogu [`plans/`](../plans/).
+
+Wymagany format nazwy pliku:
+
+`YYYY-MM-DD_HH-MM_co_ma_zrobic.md`
+
+Przykład:
+
+`plans/2026-05-15_09-16_ghost_workout_fix.md`
 
 ---
 
@@ -181,9 +195,9 @@ GET    /api/workouts/stats/exercise/:exerciseId
 
 Pelna dokumentacja endpointow:
 
-- [`backend/src/modules/user/API.md`](backend/src/modules/user/API.md)
-- [`backend/src/modules/exercise/API.md`](backend/src/modules/exercise/API.md)
-- [`backend/src/modules/workout/API.md`](backend/src/modules/workout/API.md)
+- [`backend/src/modules/user/API.md`](../backend/src/modules/user/API.md)
+- [`backend/src/modules/exercise/API.md`](../backend/src/modules/exercise/API.md)
+- [`backend/src/modules/workout/API.md`](../backend/src/modules/workout/API.md)
 
 ---
 

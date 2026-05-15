@@ -6,7 +6,7 @@
 <p align="center">SMART WORKOUT TRACKING PLATFORM</p>
 
 <p align="center">
-  <a href="README.md"><strong>English</strong></a> &nbsp;|&nbsp; <a href="README.pl.md">Polski</a>
+  <a href="README.md"><strong>English</strong></a> &nbsp;|&nbsp; <a href="other/README.pl.md">Polski</a>
 </p>
 
 <p align="center">
@@ -37,6 +37,20 @@ The app is built around an offline-first architecture — all data is persisted 
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <img src="other/app_photos/gymgate7.png" alt="Exercise statistics" width="230" />
 </p>
+
+---
+
+## Implementation plans
+
+Execution plans are stored in [`plans/`](plans/).
+
+Required file name format:
+
+`YYYY-MM-DD_HH-MM_what_the_plan_is_for.md`
+
+Example:
+
+`plans/2026-05-15_09-16_ghost_workout_fix.md`
 
 ---
 
