@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, memo, useRef, useMemo } from "react";
-import { useWorkoutData } from "@/contexts/DataContext";
 import { useData } from "@/contexts/DataContext";
+import { useWorkoutData, WorkoutNotFoundError } from "@/contexts/DataContext";
 import type { ExerciseStats } from "@/types";
 import { ExerciseSelectionModal } from "./ExerciseSelectionModal";
 import { MUSCLE_GROUPS } from "@/constants";
@@ -107,10 +107,14 @@ export function WorkoutDetailScreen({
   const handleAddExercise = useCallback(
     (exerciseId: string) => {
       if (!workoutRef.current) return;
-      addExercise({ exerciseId }).catch(() => {});
+      addExercise({ exerciseId }).catch((error) => {
+        if (error instanceof WorkoutNotFoundError) {
+          onBack();
+        }
+      });
       setIsExerciseModalOpen(false);
     },
-    [addExercise],
+    [addExercise, onBack],
   );
 
   useEffect(() => {
@@ -191,7 +195,11 @@ export function WorkoutDetailScreen({
         workoutDate: dateObj.toISOString(),
       });
       setIsEditingInfo(false);
-    } catch {
+    } catch (error) {
+      if (error instanceof WorkoutNotFoundError) {
+        onBack();
+        return;
+      }
       alert("Nie udało się zapisać zmian");
     }
   };
@@ -207,7 +215,11 @@ export function WorkoutDetailScreen({
     setIsEditingNotes(false);
     try {
       await updateWorkout({ workoutNotes: notes });
-    } catch {
+    } catch (error) {
+      if (error instanceof WorkoutNotFoundError) {
+        onBack();
+        return;
+      }
       setIsEditingNotes(true);
       alert("Nie udało się zapisać notatek");
     }
@@ -237,7 +249,11 @@ export function WorkoutDetailScreen({
         workoutNotes: editWorkoutNotes.trim() || null,
       });
       setIsEditMode(false);
-    } catch {
+    } catch (error) {
+      if (error instanceof WorkoutNotFoundError) {
+        onBack();
+        return;
+      }
       alert("Nie udało się zapisać zmian");
     }
   };
@@ -247,7 +263,11 @@ export function WorkoutDetailScreen({
       try {
         await deleteWorkout(workoutId);
         onBack();
-      } catch {
+      } catch (error) {
+        if (error instanceof WorkoutNotFoundError) {
+          onBack();
+          return;
+        }
         alert("Nie udało się usunąć treningu");
       }
     }
@@ -259,7 +279,11 @@ export function WorkoutDetailScreen({
         if (timerRef.current) clearInterval(timerRef.current);
         await completeWorkout(elapsed);
         onBack();
-      } catch {
+      } catch (error) {
+        if (error instanceof WorkoutNotFoundError) {
+          onBack();
+          return;
+        }
         alert("Nie udało się zakończyć treningu");
       }
     }
@@ -277,34 +301,50 @@ export function WorkoutDetailScreen({
       const defaultReps = lastSet ? lastSet.repetitions : 10;
       try {
         await addSet(itemId, { weight: defaultWeight, repetitions: defaultReps, setNumber: nextSetNumber });
-      } catch {}
+      } catch (error) {
+        if (error instanceof WorkoutNotFoundError) {
+          onBack();
+        }
+      }
     },
-    [addSet],
+    [addSet, onBack],
   );
 
   const handleDeleteSet = useCallback(
     async (itemId: string, setId: string) => {
       if (confirm("Czy na pewno chcesz usunąć tę serię?")) {
-        try { await deleteSet(itemId, setId); } catch {}
+        try { await deleteSet(itemId, setId); } catch (error) {
+          if (error instanceof WorkoutNotFoundError) {
+            onBack();
+          }
+        }
       }
     },
-    [deleteSet],
+    [deleteSet, onBack],
   );
 
   const handleUpdateSet = useCallback(
     async (setId: string, data: { weight?: number; repetitions?: number }) => {
-      try { await updateSet(setId, data); } catch {}
+      try { await updateSet(setId, data); } catch (error) {
+        if (error instanceof WorkoutNotFoundError) {
+          onBack();
+        }
+      }
     },
-    [updateSet],
+    [onBack, updateSet],
   );
 
   const handleDeleteExercise = useCallback(
     async (itemId: string) => {
       if (confirm("Czy na pewno chcesz usunąć to ćwiczenie z treningu?")) {
-        try { await deleteExercise(itemId); } catch {}
+        try { await deleteExercise(itemId); } catch (error) {
+          if (error instanceof WorkoutNotFoundError) {
+            onBack();
+          }
+        }
       }
     },
-    [deleteExercise],
+    [deleteExercise, onBack],
   );
 
   const handleToggleExpand = useCallback((itemId: string) => {

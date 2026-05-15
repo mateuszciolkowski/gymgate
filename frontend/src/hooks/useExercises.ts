@@ -6,12 +6,12 @@ export interface Exercise {
   name: string;
   muscleGroups: string[];
   description?: string;
-  creator: {
+  creator?: {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
-  };
+  } | null;
   photos?: Array<{
     id: string;
     photoStage: string;

@@ -1,5 +1,6 @@
 import { memo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useData } from "@/contexts/DataContext";
 import type { Theme } from "@/hooks/useTheme";
 
 interface MenuScreenProps {
@@ -154,6 +155,7 @@ function ThemePicker({ theme, setTheme, onClose }: { theme: Theme; setTheme: (t:
 
 export const MenuScreen = memo(function MenuScreen({ theme, setTheme }: MenuScreenProps) {
   const { user, logout } = useAuth();
+  const { resetLocalCache } = useData();
   const [showThemePicker, setShowThemePicker] = useState(false);
 
   const currentThemeLabel = THEMES.find((t) => t.id === theme)?.label ?? "Ciemny";
@@ -204,6 +206,30 @@ export const MenuScreen = memo(function MenuScreen({ theme, setTheme }: MenuScre
       label: "Eksportuj dane",
       desc: "Pobierz dane treningowe",
       onClick: undefined as (() => void) | undefined,
+    },
+    {
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="23 4 23 10 17 10"/>
+          <polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0114.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0020.49 15"/>
+        </svg>
+      ),
+      label: "Resetuj lokalny cache",
+      desc: "Wyczyść dane offline i pobierz od nowa",
+      onClick: async () => {
+        const confirmed = confirm(
+          "Wyczyścić wszystkie dane zapisane lokalnie i pobrać od nowa z serwera? Niezsynchronizowane zmiany mogą zostać utracone.",
+        );
+        if (!confirmed) return;
+
+        try {
+          await resetLocalCache();
+          alert("Cache wyczyszczony, dane pobrane z serwera.");
+        } catch {
+          alert("Nie udało się zresetować lokalnego cache.");
+        }
+      },
     },
   ];
 

@@ -12,6 +12,7 @@ const MAX_RETRIES = 3;
 
 type SyncCallback = () => void;
 type SyncFailureCallback = (operations: SyncOperation[]) => void;
+type WorkoutNotFoundCallback = (workoutId: string) => void;
 type TempIdMap = Map<string, string>;
 
 const TEMP_ID_GLOBAL_PATTERN = /temp_[a-z]+_[a-z0-9_]+/gi;
@@ -80,6 +81,7 @@ class SyncManager {
   private isSyncing = false;
   private listeners: Set<SyncCallback> = new Set();
   private failureListeners: Set<SyncFailureCallback> = new Set();
+  private workoutNotFoundListeners: Set<WorkoutNotFoundCallback> = new Set();
   private isOnline = navigator.onLine;
 
   constructor() {
@@ -141,6 +143,11 @@ class SyncManager {
   onSyncFailure(callback: SyncFailureCallback): () => void {
     this.failureListeners.add(callback);
     return () => this.failureListeners.delete(callback);
+  }
+
+  onWorkoutNotFound(callback: WorkoutNotFoundCallback): () => void {
+    this.workoutNotFoundListeners.add(callback);
+    return () => this.workoutNotFoundListeners.delete(callback);
   }
 
   /**
@@ -232,6 +239,23 @@ class SyncManager {
           );
           await localStore.removePendingSync(op.id);
           console.log(`[SyncManager] Operation ${op.id} completed`);
+        } else if (
+          response.status === 404 &&
+          (op.entity === "workout" || op.entity === "workoutItem" || op.entity === "set")
+        ) {
+          await localStore.removePendingSync(op.id);
+          permanentlyFailed.push({
+            ...op,
+            failureReason: "not_found",
+          });
+          const workoutId = this.resolveWorkoutIdFromOperation(
+            op,
+            resolvedEndpoint,
+          );
+          if (workoutId) {
+            this.workoutNotFoundListeners.forEach((cb) => cb(workoutId));
+          }
+          console.warn(`[SyncManager] Operation ${op.id} removed due to 404`);
         } else if (op.retries < MAX_RETRIES) {
           // Zwiększ licznik prób
           await localStore.updatePendingSync({
@@ -298,6 +322,22 @@ class SyncManager {
           : responseData.id;
       capture(resolvedData.clientTempSetId, realSetId);
     }
+  }
+
+  private resolveWorkoutIdFromOperation(
+    operation: SyncOperation,
+    endpoint: string,
+  ): string | null {
+    if (operation.workoutId) {
+      return operation.workoutId;
+    }
+
+    const match = endpoint.match(/^\/api\/workouts\/([^/]+)/);
+    if (match?.[1] && match[1] !== "items" && match[1] !== "sets") {
+      return match[1];
+    }
+
+    return null;
   }
 
   /**

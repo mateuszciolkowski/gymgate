@@ -19,9 +19,11 @@ export interface SyncOperation {
   id: string;
   type: "create" | "update" | "delete";
   entity: "workout" | "exercise" | "set" | "workoutItem";
+  workoutId?: string;
   endpoint: string;
   method: string;
   data?: unknown;
+  failureReason?: "not_found";
   timestamp: number;
   retries: number;
 }
