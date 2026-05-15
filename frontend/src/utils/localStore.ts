@@ -4,13 +4,14 @@
  */
 
 const DB_NAME = "gymgate_db";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 interface StoreConfig {
   exercises: { key: string; data: unknown };
   workouts: { key: string; data: unknown };
   activeWorkout: { key: string; data: unknown };
   stats: { key: string; data: unknown };
+  plans: { key: string; data: unknown };
   pendingSync: { key: string; data: SyncOperation };
   metadata: { key: string; data: { lastSync?: number; value?: unknown } };
 }
@@ -18,7 +19,7 @@ interface StoreConfig {
 export interface SyncOperation {
   id: string;
   type: "create" | "update" | "delete";
-  entity: "workout" | "exercise" | "set" | "workoutItem";
+  entity: "workout" | "exercise" | "set" | "workoutItem" | "plan";
   workoutId?: string;
   endpoint: string;
   method: string;
@@ -67,6 +68,11 @@ const openDB = (): Promise<IDBDatabase> => {
       // Store dla statystyk
       if (!database.objectStoreNames.contains("stats")) {
         database.createObjectStore("stats", { keyPath: "id" });
+      }
+
+      // Store dla planów treningowych
+      if (!database.objectStoreNames.contains("plans")) {
+        database.createObjectStore("plans", { keyPath: "id" });
       }
 
       // Store dla operacji do synchronizacji
