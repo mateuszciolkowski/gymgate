@@ -10,6 +10,12 @@ import type {
 } from "./workout.schema.js";
 import * as workoutRepo from "./workout.repository.js";
 import { Prisma } from "@prisma/client";
+import { PlanService } from "../plan/plan.service.js";
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from "../../common/errors.js";
 
 type StatsProgressMetric = "maxSetWeight" | "volume";
 
@@ -23,6 +29,13 @@ export const createWorkout = async (userId: string, data: CreateWorkoutDto) => {
       return activeWorkout;
     }
   }
+
+  if (data.workoutPlanId) {
+    // Throws NotFoundError gdy plan nie istnieje lub nie jest widoczny dla usera.
+    // Zapobiega podpinaniu treningu pod prywatny plan innego użytkownika.
+    await new PlanService().getPlanById(data.workoutPlanId, userId);
+  }
+
   const workoutData: Prisma.WorkoutCreateInput = {
     workoutDate: data.workoutDate ? new Date(data.workoutDate) : new Date(),
     workoutName: data.workoutName ?? null,
@@ -30,6 +43,9 @@ export const createWorkout = async (userId: string, data: CreateWorkoutDto) => {
     location: data.location ?? null,
     workoutNotes: data.workoutNotes ?? null,
     user: { connect: { id: userId } },
+    ...(data.workoutPlanId && {
+      plan: { connect: { id: data.workoutPlanId } },
+    }),
   };
   const workout = await workoutRepo.createWorkout(workoutData);
 
@@ -406,4 +422,82 @@ export const getActiveWorkoutId = async (userId: string) => {
 
 export const clearActiveWorkout = async (userId: string) => {
   await workoutRepo.clearActiveWorkout(userId);
+};
+
+export const getNextFromPlan = async (workoutId: string, userId: string) => {
+  const workout = await workoutRepo.findWorkoutWithPlan(workoutId);
+  if (!workout) {
+    throw new NotFoundError("Trening nie znaleziony");
+  }
+  if (workout.userId !== userId) {
+    throw new ForbiddenError("Brak uprawnień do tego treningu");
+  }
+
+  if (!workout.plan) {
+    return {
+      planAttached: false,
+      finished: false,
+      remaining: 0,
+      next: null,
+    };
+  }
+
+  const addedIds = new Set(workout.items.map((i) => i.exerciseId));
+  const skippedIds = new Set(workout.skippedPlanExerciseIds);
+
+  const pending = workout.plan.items.filter(
+    (item) => !addedIds.has(item.exerciseId) && !skippedIds.has(item.exerciseId),
+  );
+  const next = pending[0];
+
+  return {
+    planAttached: true,
+    finished: pending.length === 0,
+    remaining: pending.length,
+    next: next
+      ? {
+          exerciseId: next.exerciseId,
+          exerciseName: next.exercise.name,
+          orderInPlan: next.orderInPlan,
+        }
+      : null,
+  };
+};
+
+export const skipPlanExercise = async (
+  workoutId: string,
+  userId: string,
+  exerciseId: string,
+) => {
+  const workout = await workoutRepo.findWorkoutWithPlan(workoutId);
+  if (!workout) {
+    throw new NotFoundError("Trening nie znaleziony");
+  }
+  if (workout.userId !== userId) {
+    throw new ForbiddenError("Brak uprawnień do tego treningu");
+  }
+  if (!workout.plan) {
+    throw new BadRequestError("Trening nie jest powiązany z planem");
+  }
+
+  const planHasExercise = workout.plan.items.some(
+    (item) => item.exerciseId === exerciseId,
+  );
+  if (!planHasExercise) {
+    throw new BadRequestError("Ćwiczenie nie należy do planu tego treningu");
+  }
+
+  if (workout.skippedPlanExerciseIds.includes(exerciseId)) {
+    return {
+      workoutId: workout.id,
+      skippedPlanExerciseIds: workout.skippedPlanExerciseIds,
+    };
+  }
+
+  const next = [...workout.skippedPlanExerciseIds, exerciseId];
+  const updated = await workoutRepo.setSkippedPlanExerciseIds(workoutId, next);
+  return {
+    workoutId: updated.id,
+    skippedPlanExerciseIds: updated.skippedPlanExerciseIds,
+  };
 };

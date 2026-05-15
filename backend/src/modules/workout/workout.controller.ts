@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import type { AuthRequest } from "../../common/middleware/auth.js";
 import * as workoutService from "./workout.service.js";
+import { sendError } from "../../common/errors.js";
 
 export const createWorkout = async (req: AuthRequest, res: Response) => {
   try {
@@ -8,10 +9,7 @@ export const createWorkout = async (req: AuthRequest, res: Response) => {
     const workout = await workoutService.createWorkout(userId, req.body);
     res.status(201).json({ success: true, data: workout });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
@@ -292,5 +290,30 @@ export const clearActiveWorkout = async (req: AuthRequest, res: Response) => {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
     });
+  }
+};
+
+export const getNextFromPlan = async (req: AuthRequest, res: Response) => {
+  try {
+    const data = await workoutService.getNextFromPlan(
+      req.params.id!,
+      req.userId!,
+    );
+    res.json({ success: true, data });
+  } catch (error) {
+    sendError(res, error);
+  }
+};
+
+export const skipPlanExercise = async (req: AuthRequest, res: Response) => {
+  try {
+    const data = await workoutService.skipPlanExercise(
+      req.params.id!,
+      req.userId!,
+      req.body.exerciseId,
+    );
+    res.json({ success: true, data });
+  } catch (error) {
+    sendError(res, error);
   }
 };

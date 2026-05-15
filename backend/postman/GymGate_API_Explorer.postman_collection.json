@@ -338,6 +338,141 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
             "url": { "raw": "{{baseUrl}}/api/workouts/active", "host": ["{{baseUrl}}"], "path": ["api", "workouts", "active"] }
           }
+        },
+        {
+          "name": "GET /workouts/:id/next-from-plan – Następne ćwiczenie z planu",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutId}}/next-from-plan", "host": ["{{baseUrl}}"], "path": ["api", "workouts", "{{workoutId}}", "next-from-plan"] }
+          }
+        },
+        {
+          "name": "POST /workouts/:id/skip-plan-exercise – Pomiń ćwiczenie z planu",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exerciseId\": \"{{exerciseId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/workouts/{{workoutId}}/skip-plan-exercise", "host": ["{{baseUrl}}"], "path": ["api", "workouts", "{{workoutId}}", "skip-plan-exercise"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Plans",
+      "item": [
+        {
+          "name": "GET /plans?tab=mine – Moje plany",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/plans?tab=mine",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "plans"],
+              "query": [{ "key": "tab", "value": "mine", "description": "mine | builtin | community" }]
+            }
+          }
+        },
+        {
+          "name": "GET /plans?tab=builtin – Plany built-in",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/plans?tab=builtin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "plans"],
+              "query": [{ "key": "tab", "value": "builtin" }]
+            }
+          }
+        },
+        {
+          "name": "GET /plans?tab=community – Plany społeczności",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/plans?tab=community",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "plans"],
+              "query": [{ "key": "tab", "value": "community" }]
+            }
+          }
+        },
+        {
+          "name": "GET /plans/:id – Plan po ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/plans/{{planId}}", "host": ["{{baseUrl}}"], "path": ["api", "plans", "{{planId}}"] }
+          }
+        },
+        {
+          "name": "POST /plans – Utwórz plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('planId', pm.response.json().data.id);",
+                  "  console.log('planId zapisany:', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mój plan FBW\",\n  \"exerciseIds\": [\"{{exerciseId}}\"],\n  \"isPublic\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/plans", "host": ["{{baseUrl}}"], "path": ["api", "plans"] }
+          }
+        },
+        {
+          "name": "PUT /plans/:id – Zaktualizuj plan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mój plan FBW v2\",\n  \"exerciseIds\": [\"{{exerciseId}}\"],\n  \"isPublic\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/plans/{{planId}}", "host": ["{{baseUrl}}"], "path": ["api", "plans", "{{planId}}"] }
+          }
+        },
+        {
+          "name": "POST /plans/:id/duplicate – Zduplikuj plan",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/plans/{{planId}}/duplicate", "host": ["{{baseUrl}}"], "path": ["api", "plans", "{{planId}}", "duplicate"] }
+          }
+        },
+        {
+          "name": "DELETE /plans/:id – Usuń plan",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/plans/{{planId}}", "host": ["{{baseUrl}}"], "path": ["api", "plans", "{{planId}}"] }
+          }
         }
       ]
     },

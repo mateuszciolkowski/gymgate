@@ -31,6 +31,8 @@ vi.mock("./workout.repository.js", () => ({
   getAllUserStats: vi.fn(),
   setPendingExerciseNote: vi.fn(),
   clearPendingExerciseNote: vi.fn(),
+  findWorkoutWithPlan: vi.fn(),
+  setSkippedPlanExerciseIds: vi.fn(),
 }));
 
 describe("workout.service", () => {
@@ -554,6 +556,181 @@ describe("workout.service", () => {
           value: 1800,
         },
       ],
+    });
+  });
+
+  describe("getNextFromPlan", () => {
+    const planWorkout = (overrides: any = {}) => ({
+      id: "w1",
+      userId: "u1",
+      workoutPlanId: "p1",
+      skippedPlanExerciseIds: [],
+      items: [],
+      plan: {
+        id: "p1",
+        items: [
+          { exerciseId: "e1", orderInPlan: 0, exercise: { id: "e1", name: "Squat" } },
+          { exerciseId: "e2", orderInPlan: 1, exercise: { id: "e2", name: "Bench" } },
+          { exerciseId: "e3", orderInPlan: 2, exercise: { id: "e3", name: "Row" } },
+        ],
+      },
+      ...overrides,
+    });
+
+    it("returns first item in order when nothing was added or skipped", async () => {
+      vi.mocked(workoutRepo.findWorkoutWithPlan).mockResolvedValue(planWorkout() as any);
+
+      const result = await workoutService.getNextFromPlan("w1", "u1");
+
+      expect(result).toEqual({
+        planAttached: true,
+        finished: false,
+        remaining: 3,
+        next: { exerciseId: "e1", exerciseName: "Squat", orderInPlan: 0 },
+      });
+    });
+
+    it("skips already added exercises", async () => {
+      vi.mocked(workoutRepo.findWorkoutWithPlan).mockResolvedValue(
+        planWorkout({ items: [{ exerciseId: "e1" }] }) as any,
+      );
+
+      const result = await workoutService.getNextFromPlan("w1", "u1");
+
+      expect(result.next).toEqual({
+        exerciseId: "e2",
+        exerciseName: "Bench",
+        orderInPlan: 1,
+      });
+      expect(result.remaining).toBe(2);
+      expect(result.finished).toBe(false);
+    });
+
+    it("skips exercises in skippedPlanExerciseIds", async () => {
+      vi.mocked(workoutRepo.findWorkoutWithPlan).mockResolvedValue(
+        planWorkout({ skippedPlanExerciseIds: ["e1", "e2"] }) as any,
+      );
+
+      const result = await workoutService.getNextFromPlan("w1", "u1");
+
+      expect(result.next).toEqual({
+        exerciseId: "e3",
+        exerciseName: "Row",
+        orderInPlan: 2,
+      });
+      expect(result.remaining).toBe(1);
+    });
+
+    it("marks finished when plan is exhausted", async () => {
+      vi.mocked(workoutRepo.findWorkoutWithPlan).mockResolvedValue(
+        planWorkout({
+          items: [{ exerciseId: "e1" }, { exerciseId: "e2" }, { exerciseId: "e3" }],
+        }) as any,
+      );
+
+      const result = await workoutService.getNextFromPlan("w1", "u1");
+
+      expect(result).toEqual({
+        planAttached: true,
+        finished: true,
+        remaining: 0,
+        next: null,
+      });
+    });
+
+    it("marks planAttached=false when workout has no plan", async () => {
+      vi.mocked(workoutRepo.findWorkoutWithPlan).mockResolvedValue({
+        id: "w1",
+        userId: "u1",
+        workoutPlanId: null,
+        skippedPlanExerciseIds: [],
+        items: [],
+        plan: null,
+      } as any);
+
+      const result = await workoutService.getNextFromPlan("w1", "u1");
+
+      expect(result).toEqual({
+        planAttached: false,
+        finished: false,
+        remaining: 0,
+        next: null,
+      });
+    });
+
+    it("rejects when caller is not the owner", async () => {
+      vi.mocked(workoutRepo.findWorkoutWithPlan).mockResolvedValue(
+        planWorkout({ userId: "other" }) as any,
+      );
+
+      await expect(workoutService.getNextFromPlan("w1", "u1")).rejects.toThrow(
+        /uprawnień/,
+      );
+    });
+  });
+
+  describe("skipPlanExercise", () => {
+    const planWorkout = (overrides: any = {}) => ({
+      id: "w1",
+      userId: "u1",
+      workoutPlanId: "p1",
+      skippedPlanExerciseIds: [],
+      items: [],
+      plan: {
+        id: "p1",
+        items: [
+          { exerciseId: "e1", orderInPlan: 0, exercise: { id: "e1", name: "Squat" } },
+        ],
+      },
+      ...overrides,
+    });
+
+    it("appends exerciseId to skipped list and persists", async () => {
+      vi.mocked(workoutRepo.findWorkoutWithPlan).mockResolvedValue(
+        planWorkout() as any,
+      );
+      vi.mocked(workoutRepo.setSkippedPlanExerciseIds).mockResolvedValue({
+        id: "w1",
+        skippedPlanExerciseIds: ["e1"],
+      } as any);
+
+      const result = await workoutService.skipPlanExercise("w1", "u1", "e1");
+
+      expect(workoutRepo.setSkippedPlanExerciseIds).toHaveBeenCalledWith("w1", [
+        "e1",
+      ]);
+      expect(result.skippedPlanExerciseIds).toEqual(["e1"]);
+    });
+
+    it("is idempotent when exercise already skipped", async () => {
+      vi.mocked(workoutRepo.findWorkoutWithPlan).mockResolvedValue(
+        planWorkout({ skippedPlanExerciseIds: ["e1"] }) as any,
+      );
+
+      const result = await workoutService.skipPlanExercise("w1", "u1", "e1");
+
+      expect(workoutRepo.setSkippedPlanExerciseIds).not.toHaveBeenCalled();
+      expect(result.skippedPlanExerciseIds).toEqual(["e1"]);
+    });
+
+    it("rejects when exercise does not belong to plan", async () => {
+      vi.mocked(workoutRepo.findWorkoutWithPlan).mockResolvedValue(
+        planWorkout() as any,
+      );
+
+      await expect(
+        workoutService.skipPlanExercise("w1", "u1", "e-outside"),
+      ).rejects.toThrow(/Ćwiczenie nie należy/);
+    });
+
+    it("rejects when caller is not the owner", async () => {
+      vi.mocked(workoutRepo.findWorkoutWithPlan).mockResolvedValue(
+        planWorkout({ userId: "other" }) as any,
+      );
+
+      await expect(
+        workoutService.skipPlanExercise("w1", "u1", "e1"),
+      ).rejects.toThrow(/uprawnień/);
     });
   });
 });

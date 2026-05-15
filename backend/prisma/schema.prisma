@@ -62,6 +62,7 @@ model Exercise {
   workoutItems WorkoutItem[]
   stats        ExerciseUserStats[]
   pendingNotes ExercisePendingNote[]
+  planItems    WorkoutPlanItem[]
 
   @@map("exercises")
 }
@@ -92,29 +93,63 @@ model User {
   workouts      Workout[]
   stats         ExerciseUserStats[]
   pendingNotes  ExercisePendingNote[]
+  workoutPlans  WorkoutPlan[]
   activeWorkout Workout?               @relation("ActiveWorkout", fields: [activeWorkoutId], references: [id], onDelete: SetNull)
 
   @@map("users")
 }
 
 model Workout {
-  id              String         @id @default(uuid())
-  userId          String
-  workoutDate     DateTime       @default(now())
-  status          WorkoutStatus  @default(DRAFT)
-  workoutName     String?
-  gymName         String?
-  location        String?
-  workoutNotes    String?
-  durationSeconds Int?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id                     String         @id @default(uuid())
+  userId                 String
+  workoutDate            DateTime       @default(now())
+  status                 WorkoutStatus  @default(DRAFT)
+  workoutName            String?
+  gymName                String?
+  location               String?
+  workoutNotes           String?
+  durationSeconds        Int?
+  workoutPlanId          String?
+  skippedPlanExerciseIds String[]       @default([])
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   items         WorkoutItem[]
   activeForUser User?         @relation("ActiveWorkout")
+  plan          WorkoutPlan?  @relation(fields: [workoutPlanId], references: [id], onDelete: SetNull)
 
+  @@index([workoutPlanId])
   @@map("workouts")
+}
+
+model WorkoutPlan {
+  id            String   @id @default(uuid())
+  name          String
+  creatorUserId String?
+  isPublic      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  creator  User?             @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
+  items    WorkoutPlanItem[]
+  workouts Workout[]
+
+  @@unique([creatorUserId, name])
+  @@map("workout_plans")
+}
+
+model WorkoutPlanItem {
+  id          String @id @default(uuid())
+  planId      String
+  exerciseId  String
+  orderInPlan Int
+
+  plan     WorkoutPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  exercise Exercise    @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, exerciseId])
+  @@map("workout_plan_items")
 }
 
 model WorkoutItem {

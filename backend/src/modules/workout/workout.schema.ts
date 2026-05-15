@@ -6,6 +6,7 @@ const createWorkoutBody = z.object({
   gymName: z.string().optional(),
   location: z.string().optional(),
   workoutNotes: z.string().optional(),
+  workoutPlanId: z.string().uuid().optional(),
 });
 
 export const createWorkoutSchema = z.object({
@@ -108,6 +109,23 @@ export const getStatsProgressionSchema = z.object({
   }),
   query: getStatsProgressionQuery,
 });
+
+export const skipPlanExerciseSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+  body: z.object({
+    exerciseId: z.string().uuid(),
+  }),
+});
+
+export const nextFromPlanSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
+export type SkipPlanExerciseDto = z.infer<typeof skipPlanExerciseSchema>["body"];
 
 export type CreateWorkoutDto = z.infer<typeof createWorkoutBody>;
 export type UpdateWorkoutDto = z.infer<typeof updateWorkoutBody>;
