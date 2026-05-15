@@ -21,7 +21,7 @@ ExercisePendingNote (tabela przejściowa dla notatek, UNIQUE userId+exerciseId)
 
 | Metoda | Ścieżka                | Opis                                                  |
 | ------ | ---------------------- | ----------------------------------------------------- |
-| POST   | `/api/workouts`        | Utwórz nowy trening (status: DRAFT)                   |
+| POST   | `/api/workouts`        | Utwórz nowy trening (status: DRAFT); opcjonalnie `workoutPlanId` |
 | GET    | `/api/workouts`        | Lista treningów użytkownika (paginacja, filtr status) |
 | GET    | `/api/workouts/active` | Aktywny trening użytkownika                           |
 | DELETE | `/api/workouts/active` | Wyczyść wskaźnik aktywnego treningu                   |
@@ -95,6 +95,53 @@ WorkoutItem.notes        – notatka do bieżącego treningu
 WorkoutItem.previousNote – notatka z poprzedniego treningu (one-time, skonsumowana przy dodaniu)
 ExercisePendingNote      – staging: upsertowana przy każdej zmianie notes,
                            usuwana gdy ćwiczenie jest dodawane do treningu
+```
+
+## Integracja z planem
+
+Workout może być powiązany z `WorkoutPlan` przez `workoutPlanId`. Trening startuje pusty — plan jest referencją live (nie snapshotem). Szczegółowy opis modułu planów → [`plan.md`](./plan.md).
+
+### Nowe pola w Workout
+
+| Pole | Typ | Opis |
+|---|---|---|
+| `workoutPlanId` | `String?` | FK do `WorkoutPlan`; `SET NULL` przy usunięciu planu |
+| `skippedPlanExerciseIds` | `String[]` | Ćwiczenia pominięte w tym konkretnym treningu |
+
+### Endpointy integracji
+
+| Metoda | Ścieżka | Opis |
+|---|---|---|
+| GET | `/api/workouts/:id/next-from-plan` | Pierwsze nieukończone ćwiczenie z planu |
+| POST | `/api/workouts/:id/skip-plan-exercise` | Dodaj exerciseId do skippedPlanExerciseIds (idempotentne) |
+
+### Algorytm `nextFromPlan` (backend + frontend)
+
+```
+plan.items
+  .sort(orderInPlan asc)
+  .filter(item => !workout.items.some(i => i.exerciseId === item.exerciseId))
+  .filter(item => !workout.skippedPlanExerciseIds.includes(item.exerciseId))
+  .first() || null
+```
+
+Frontend wylicza `nextFromPlan` **lokalnie** z `DataContext.plans` bez dodatkowego requestu — reaguje live na zmiany planu w trakcie trwającego treningu. Backend endpoint `/next-from-plan` istnieje dla innych klientów.
+
+### Przepływ suggest / skip (frontend)
+
+```
+WorkoutDetailScreen (DRAFT + workoutPlanId != null):
+  1. activePlan = plans.find(p.id === workout.workoutPlanId)
+  2. nextFromPlan = algorytm powyżej (useMemo, live)
+  3a. Klik [+ <ćwiczenie>] → addExercise(nextFromPlan.exerciseId)
+       ← reuse istniejącego endpointu POST /api/workouts/:id/exercises
+       ← gwarantuje: previousNote + defaultSet z stats
+  3b. Klik [⏭] → skipPlanExercise(workoutId, exerciseId)
+       ← optimistic: dodaje do skippedPlanExerciseIds w state + IndexedDB
+       ← POST /api/workouts/:id/skip-plan-exercise
+       ← rollback (state + IndexedDB) na błąd API
+  4. Brak nextFromPlan → "Plan ukończony"
+  5. Manualny ExerciseSelectionModal działa równolegle bez zmian
 ```
 
 ## Zapis rekordu osobistego
