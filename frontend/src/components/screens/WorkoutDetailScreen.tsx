@@ -952,13 +952,10 @@ const WorkoutItemCard = memo(
         }}
       >
         {/* Exercise header */}
-        <div
+        <button
           onClick={() => onToggleExpand(item.id)}
-          className="w-full cursor-pointer transition-all duration-150"
-          style={{ padding: "14px 16px" }}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && onToggleExpand(item.id)}
+          className="w-full text-left cursor-pointer transition-all duration-150"
+          style={{ padding: "14px 16px", background: "none", border: "none" }}
         >
           <div className="flex justify-between items-start">
             <div className="flex-1">
@@ -1015,7 +1012,7 @@ const WorkoutItemCard = memo(
               </svg>
             </div>
           </div>
-        </div>
+        </button>
 
         {isExpanded && (
           <div style={{ padding: "0 16px 16px" }}>

@@ -1869,6 +1869,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const createPlan = useCallback(
     async (data: { name: string; exerciseIds: string[]; isPublic: boolean }): Promise<WorkoutPlan> => {
+      if (!navigator.onLine) throw new Error("Brak połączenia z serwerem — spróbuj ponownie gdy będziesz online.");
+
       const response = await authFetch(`${API_BASE}/api/plans`, {
         method: "POST",
         headers: getAuthHeaders(),
@@ -1893,7 +1895,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const updatePlan = useCallback(
     async (id: string, data: { name?: string; exerciseIds?: string[]; isPublic?: boolean }) => {
-      const original = plansRef.current.find((p) => p.id === id);
+      if (!navigator.onLine) throw new Error("Brak połączenia z serwerem — spróbuj ponownie gdy będziesz online.");
 
       const response = await authFetch(`${API_BASE}/api/plans/${id}`, {
         method: "PUT",
@@ -1911,13 +1913,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       setPlans((prev) => prev.map((p) => (p.id === id ? updatedPlan : p)));
       await localStore.put("plans", updatedPlan);
-
-      void original;
     },
     [],
   );
 
   const deletePlan = useCallback(async (id: string) => {
+    if (!navigator.onLine) throw new Error("Brak połączenia z serwerem — spróbuj ponownie gdy będziesz online.");
+
     const response = await authFetch(`${API_BASE}/api/plans/${id}`, {
       method: "DELETE",
     });
@@ -1929,6 +1931,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const duplicatePlan = useCallback(async (id: string): Promise<WorkoutPlan> => {
+    if (!navigator.onLine) throw new Error("Brak połączenia z serwerem — spróbuj ponownie gdy będziesz online.");
+
     const response = await authFetch(`${API_BASE}/api/plans/${id}/duplicate`, {
       method: "POST",
       headers: getAuthHeaders(),
