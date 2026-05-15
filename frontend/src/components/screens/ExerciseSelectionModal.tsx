@@ -46,7 +46,7 @@ export function ExerciseSelectionModal({
 
   return (
     <div
-      className="absolute inset-0 z-[70] flex items-end justify-center overflow-hidden"
+      className="fixed inset-0 z-[70] flex items-end justify-center overflow-hidden"
       onClick={handleClose}
       style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
       role="presentation"
