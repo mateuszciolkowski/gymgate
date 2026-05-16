@@ -437,141 +437,67 @@ export function WorkoutDetailScreen({
         {/* Timer card (DRAFT) / Unified info card (COMPLETED) */}
         {!isCompleted ? (
           <>
+            {/* Timer card */}
             <div
-              className="relative overflow-hidden mb-4 rounded-[22px]"
-              style={{
-                padding: 20,
-                background: "var(--gg-grad)",
-                boxShadow: "0 8px 36px var(--gg-glow)",
-              }}
+              className="mb-4 rounded-[22px]"
+              style={{ padding: "18px 20px", background: "var(--gg-surface)", border: "1.5px solid var(--gg-border)" }}
             >
-              <div
-                className="absolute rounded-full"
-                style={{ right: -20, top: -20, width: 100, height: 100, background: "rgba(255,255,255,0.07)" }}
-              />
-              <div className="relative flex items-center justify-between gap-3">
-                <div>
-                  <div
-                    className="text-[11px] font-bold uppercase tracking-[0.10em] mb-1"
-                    style={{ color: "rgba(255,255,255,0.65)" }}
-                  >
-                    Czas treningu
-                  </div>
-                  <div
-                    className="font-barlow-condensed font-black leading-none mb-2"
-                    style={{ fontSize: 52, color: "#fff", letterSpacing: "-0.02em" }}
-                  >
-                    {fmtTimer(elapsed)}
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex items-center gap-1.5">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                      </svg>
-                      <span className="text-[12px] font-semibold" style={{ color: "rgba(255,255,255,0.75)" }}>
-                        W trakcie
-                      </span>
+              {!isEditingInfo && !isEditingNotes ? (
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-[0.10em] mb-1.5" style={{ color: "var(--gg-text-muted)" }}>
+                      Czas treningu
                     </div>
-                    {workout.gymName && (
-                      <div className="flex items-center gap-1.5">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
-                          <circle cx="12" cy="10" r="3"/>
+                    <div
+                      className="font-barlow-condensed font-black leading-none mb-3"
+                      style={{ fontSize: 52, color: "var(--gg-text)", letterSpacing: "-0.02em" }}
+                    >
+                      {fmtTimer(elapsed)}
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                  </div>
+                  <div className="flex flex-col gap-1.5 flex-shrink-0">
+                    <button
+                      onClick={handleStartEditInfo}
+                      className="flex items-center gap-2 border-none cursor-pointer rounded-[10px]"
+                      style={{ padding: "7px 12px", background: "var(--gg-surface2)", color: "var(--gg-text-sub)" }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z"/>
+                      </svg>
+                      <span className="text-[12px] font-semibold">Edytuj</span>
+                    </button>
+                    <button
+                      onClick={handleStartEditNotes}
+                      className="flex items-center gap-2 border-none cursor-pointer rounded-[10px]"
+                      style={{ padding: "7px 12px", background: "var(--gg-surface2)", color: "var(--gg-text-sub)" }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                        <rect x="9" y="3" width="6" height="4" rx="1"/>
+                        <path d="M9 12h6M9 16h4"/>
+                      </svg>
+                      <span className="text-[12px] font-semibold">Notatki</span>
+                    </button>
+                    {planProgress && (
+                      <div
+                        className="flex items-center gap-2 rounded-[10px]"
+                        style={{ padding: "7px 12px", background: "var(--gg-active-bg)", color: "var(--gg-active-border)" }}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                          <rect x="9" y="3" width="6" height="4" rx="1"/>
+                          <line x1="9" y1="12" x2="15" y2="12"/>
+                          <line x1="9" y1="16" x2="13" y2="16"/>
                         </svg>
-                        <span className="text-[12px]" style={{ color: "rgba(255,255,255,0.75)" }}>
-                          {workout.gymName}
-                        </span>
+                        <span className="text-[12px] font-bold">Plan {planProgress.done}/{planProgress.total}</span>
                       </div>
                     )}
                   </div>
                 </div>
-                {workout.workoutName && (
-                  <div className="text-right flex-shrink-0 max-w-[40%]">
-                    <div
-                      className="font-barlow font-black leading-tight"
-                      style={{ fontSize: 22, color: "var(--gg-a1)", letterSpacing: "-0.02em", wordBreak: "break-word" }}
-                    >
-                      {workout.workoutName}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Plan banner */}
-            {activePlan && planProgress && (
-              <div
-                className="mb-3 rounded-[14px] px-4 py-2.5 flex items-center justify-between gap-2"
-                style={{
-                  background: "rgba(245,158,11,0.12)",
-                  border: "1.5px solid rgba(245,158,11,0.30)",
-                }}
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: "#f59e0b", flexShrink: 0 }}>
-                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-                    <rect x="9" y="3" width="6" height="4" rx="1"/>
-                    <line x1="9" y1="12" x2="15" y2="12"/>
-                    <line x1="9" y1="16" x2="13" y2="16"/>
-                  </svg>
-                  <span className="text-[12px] font-bold truncate" style={{ color: "#f59e0b" }}>
-                    Plan: {activePlan.name}
-                  </span>
-                </div>
-                <span className="text-[12px] font-bold flex-shrink-0" style={{ color: "#f59e0b" }}>
-                  {planProgress.done}/{planProgress.total} ćwiczeń
-                </span>
-              </div>
-            )}
-
-            {/* Info card — DRAFT only */}
-            <div
-              className="mb-4 rounded-[18px]"
-              style={{
-                padding: "14px 16px",
-                background: "var(--gg-surface)",
-                border: "1.5px solid var(--gg-border)",
-                boxShadow: "var(--gg-shadow)",
-              }}
-            >
-              {!isEditingInfo && !isEditingNotes ? (
-                <>
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Status</span>
-                    <span className="text-[13px] font-bold" style={{ color: "var(--gg-active-border)" }}>W trakcie</span>
-                  </div>
-                  {workout.workoutNotes && (
-                    <div className="mb-3">
-                      <span className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--gg-text-muted)" }}>Notatki</span>
-                      <p className="text-[13px] mt-1 whitespace-pre-wrap" style={{ color: "var(--gg-text)" }}>{workout.workoutNotes}</p>
-                    </div>
-                  )}
-                  <div className="flex gap-4 mt-1">
-                    <button
-                      onClick={handleStartEditInfo}
-                      className="flex items-center gap-1.5 text-[13px] font-semibold border-none bg-transparent cursor-pointer"
-                      style={{ color: "var(--gg-a2)" }}
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      Edytuj
-                    </button>
-                    <button
-                      onClick={handleStartEditNotes}
-                      className="flex items-center gap-1.5 text-[13px] font-semibold border-none bg-transparent cursor-pointer"
-                      style={{ color: "var(--gg-a2)" }}
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <rect x="9" y="3" width="6" height="4" rx="1" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M9 12h6M9 16h4" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      Notatki
-                    </button>
-                  </div>
-                </>
               ) : isEditingInfo ? (
                 <div className="flex flex-col gap-3">
                   <div>
@@ -604,6 +530,60 @@ export function WorkoutDetailScreen({
                 </div>
               )}
             </div>
+
+            {/* Workout notes display */}
+            {workout.workoutNotes && !isEditingNotes && (
+              <div
+                className="mb-3 rounded-[14px]"
+                style={{ padding: "10px 14px", background: "var(--gg-surface)", border: "1.5px solid var(--gg-border)" }}
+              >
+                <span className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--gg-text-muted)" }}>Notatki</span>
+                <p className="text-[13px] mt-1 whitespace-pre-wrap" style={{ color: "var(--gg-text)" }}>{workout.workoutNotes}</p>
+              </div>
+            )}
+
+            {/* Plan banner — next exercise */}
+            {activePlan && nextFromPlan && (
+              <div className="mb-3 flex rounded-[14px] overflow-hidden" style={{ boxShadow: "0 4px 16px var(--gg-active-glow)" }}>
+                <button
+                  onClick={() => handleAddFromPlan(nextFromPlan.exerciseId)}
+                  className="flex-1 flex items-center gap-2.5 border-none cursor-pointer"
+                  style={{ padding: "13px 16px", background: "var(--gg-active-border)", color: "white", minWidth: 0 }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                    <rect x="9" y="3" width="6" height="4" rx="1"/>
+                    <line x1="9" y1="12" x2="15" y2="12"/>
+                    <line x1="9" y1="16" x2="13" y2="16"/>
+                  </svg>
+                  <span className="font-bold text-[14px] text-left truncate">{nextFromPlan.exercise.name}</span>
+                </button>
+                <button
+                  onClick={() => handleSkipPlanExercise(nextFromPlan.exerciseId)}
+                  className="flex items-center gap-1.5 border-none cursor-pointer flex-shrink-0"
+                  style={{ padding: "13px 14px", background: "rgba(0,0,0,0.22)", borderLeft: "1px solid rgba(255,255,255,0.18)", color: "white" }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="5 4 15 12 5 20 5 4" fill="currentColor"/>
+                    <line x1="19" y1="5" x2="19" y2="19"/>
+                  </svg>
+                  <span className="text-[12px] font-bold">pomiń</span>
+                </button>
+              </div>
+            )}
+
+            {/* Plan completed indicator */}
+            {activePlan && !nextFromPlan && (
+              <div
+                className="mb-3 flex items-center justify-center gap-2 rounded-[14px]"
+                style={{ padding: "12px 16px", background: "var(--gg-active-bg)", border: "1.5px solid var(--gg-active-border)", color: "var(--gg-active-border)" }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12l5 5 9-9"/>
+                </svg>
+                <span className="text-[12px] font-bold">Plan ukończony</span>
+              </div>
+            )}
           </>
         ) : (
           /* Unified card — COMPLETED */
@@ -682,108 +662,26 @@ export function WorkoutDetailScreen({
         {/* Action buttons */}
         {canEditWorkout && (
           <div className="flex gap-2 mb-5">
-            {/* Dodaj ćwiczenie */}
             <button
               onClick={() => setIsExerciseModalOpen(true)}
-              className="flex flex-col items-center justify-center font-bold rounded-[16px] cursor-pointer flex-1"
-              style={{
-                padding: "11px 8px",
-                background: "var(--gg-surface2)",
-                border: "1.5px solid var(--gg-border)",
-                color: "var(--gg-text)",
-                gap: 3,
-                minWidth: 0,
-              }}
+              className="flex-1 flex items-center justify-center gap-2 font-bold rounded-[14px] cursor-pointer border-none"
+              style={{ padding: "13px 8px", background: "var(--gg-surface2)", color: "var(--gg-text)" }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="4" x2="12" y2="20"/>
                 <line x1="4" y1="12" x2="20" y2="12"/>
               </svg>
-              <span className="text-[12px] leading-tight text-center">Dodaj ćwiczenie</span>
+              <span className="text-[13px]">Dodaj ćwiczenie</span>
             </button>
-
-            {/* Plan suggestion (middle) */}
-            {activePlan && !isCompleted ? (
-              nextFromPlan ? (
-                <div className="flex rounded-[16px] overflow-hidden flex-[1.5]" style={{ boxShadow: "0 4px 16px rgba(245,158,11,0.30)" }}>
-                  <button
-                    onClick={() => handleAddFromPlan(nextFromPlan.exerciseId)}
-                    className="flex-1 flex flex-col items-center justify-center border-none cursor-pointer text-white"
-                    style={{
-                      padding: "10px 10px",
-                      background: "linear-gradient(135deg, #f59e0b 0%, #e08600 100%)",
-                      minWidth: 0,
-                      gap: 1,
-                    }}
-                  >
-                    <span className="text-[10px] font-bold tracking-[0.08em] uppercase opacity-80 leading-none">Z planu</span>
-                    <span
-                      className="text-[13px] font-black leading-tight text-center"
-                      style={{
-                        overflow: "hidden",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        wordBreak: "break-word",
-                      }}
-                    >
-                      {nextFromPlan.exercise.name}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => handleSkipPlanExercise(nextFromPlan.exerciseId)}
-                    className="flex items-center justify-center border-none cursor-pointer flex-shrink-0"
-                    style={{
-                      width: 38,
-                      background: "rgba(0,0,0,0.18)",
-                      borderLeft: "1px solid rgba(255,255,255,0.15)",
-                      color: "white",
-                    }}
-                    title="Pomiń to ćwiczenie"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="5 4 15 12 5 20 5 4" fill="currentColor"/>
-                      <line x1="19" y1="5" x2="19" y2="19"/>
-                    </svg>
-                  </button>
-                </div>
-              ) : (
-                <div
-                  className="flex flex-col items-center justify-center rounded-[16px] flex-[1.5] text-center"
-                  style={{
-                    padding: "10px 8px",
-                    background: "rgba(245,158,11,0.10)",
-                    border: "1.5px solid rgba(245,158,11,0.25)",
-                    color: "#f59e0b",
-                    gap: 2,
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12l5 5 9-9"/>
-                  </svg>
-                  <span className="text-[11px] font-bold leading-tight">Plan ukończony</span>
-                </div>
-              )
-            ) : null}
-
-            {/* Zakończ / Zapisz edycję */}
             <button
               onClick={isEditMode ? () => setIsEditMode(false) : handleCompleteWorkout}
-              className="flex flex-col items-center justify-center font-bold rounded-[16px] cursor-pointer text-white border-none flex-1"
-              style={{
-                padding: "11px 8px",
-                background: "var(--gg-grad-btn)",
-                boxShadow: "0 4px 20px var(--gg-glow)",
-                gap: 3,
-                minWidth: 0,
-              }}
+              className="flex-1 flex items-center justify-center gap-2 font-bold rounded-[14px] cursor-pointer border-none"
+              style={{ padding: "13px 8px", background: "var(--gg-surface2)", color: "var(--gg-text)" }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12l5 5 9-9"/>
               </svg>
-              <span className="text-[12px] leading-tight text-center">
-                {isEditMode ? "Zapisz edycję" : "Zakończ trening"}
-              </span>
+              <span className="text-[13px]">{isEditMode ? "Zapisz edycję" : "Zakończ trening"}</span>
             </button>
           </div>
         )}
@@ -852,7 +750,95 @@ export function WorkoutDetailScreen({
   );
 }
 
-// ─── WorkoutItemCard ────────────────────────────────────────────────────────
+// ─── SetRowEditable ─────────────────────────────────────────────────────────
+
+function SetRowEditable({
+  set,
+  itemId,
+  onSave,
+  onDelete,
+}: {
+  set: WorkoutSet;
+  itemId: string;
+  onSave: (setId: string, data: { weight?: number; repetitions?: number }) => void;
+  onDelete: (itemId: string, setId: string) => void;
+}) {
+  const [weight, setWeight] = useState(set.weight);
+  const [reps, setReps] = useState(set.repetitions.toString());
+
+  useEffect(() => {
+    setWeight(set.weight);
+    setReps(set.repetitions.toString());
+  }, [set.weight, set.repetitions]);
+
+  const handleSave = () => {
+    const nextWeight = Number(weight);
+    const nextReps = Number(reps);
+    if (nextWeight < 0 || nextReps < 1 || isNaN(nextWeight) || isNaN(nextReps)) return;
+    const payload: { weight?: number; repetitions?: number } = {};
+    if (nextWeight !== Number(set.weight)) payload.weight = nextWeight;
+    if (nextReps !== set.repetitions) payload.repetitions = nextReps;
+    if (Object.keys(payload).length > 0) onSave(set.id, payload);
+  };
+
+  const handleDelete = () => {
+    if (confirm("Czy na pewno chcesz usunąć tę serię?")) {
+      onDelete(itemId, set.id);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2 w-full rounded-[10px]" style={{ padding: "10px 10px", background: "var(--gg-surface2)" }}>
+      <span className="text-[12px] font-bold w-6 flex-shrink-0 text-center" style={{ color: "var(--gg-text-muted)" }}>
+        #{set.setNumber}
+      </span>
+      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+        <input
+          type="number"
+          value={weight}
+          onChange={(e) => setWeight(e.target.value)}
+          step="0.5"
+          min="0"
+          className="w-full rounded-[8px] text-[14px] font-bold text-center"
+          style={{ padding: "8px 6px", background: "var(--gg-surface3)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text)", outline: "none" }}
+        />
+        <span className="text-[10px] font-semibold text-center" style={{ color: "var(--gg-text-muted)" }}>kg</span>
+      </div>
+      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+        <input
+          type="number"
+          value={reps}
+          onChange={(e) => setReps(e.target.value)}
+          min="1"
+          className="w-full rounded-[8px] text-[14px] font-bold text-center"
+          style={{ padding: "8px 6px", background: "var(--gg-surface3)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text)", outline: "none" }}
+        />
+        <span className="text-[10px] font-semibold text-center" style={{ color: "var(--gg-text-muted)" }}>powt.</span>
+      </div>
+      <button
+        onClick={handleSave}
+        className="w-9 h-9 rounded-[9px] border-none cursor-pointer flex items-center justify-center flex-shrink-0"
+        style={{ background: "var(--gg-a1)" }}
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12l5 5 9-9"/>
+        </svg>
+      </button>
+      <button
+        onClick={handleDelete}
+        className="w-9 h-9 rounded-[9px] border-none cursor-pointer flex items-center justify-center flex-shrink-0"
+        style={{ background: "var(--gg-surface3)" }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+// ─── WorkoutItemCard ─────────────────────────────────────────────────────────
 
 interface WorkoutItemCardProps {
   item: WorkoutItem;
@@ -888,9 +874,6 @@ const WorkoutItemCard = memo(
     onDeleteExercise,
     onUpdateExerciseNotes,
   }: WorkoutItemCardProps) {
-    const [editingSetNumber, setEditingSetNumber] = useState<number | null>(null);
-    const [editWeight, setEditWeight] = useState("");
-    const [editReps, setEditReps] = useState("");
     const [isEditingNotes, setIsEditingNotes] = useState(false);
     const [editNotesValue, setEditNotesValue] = useState(item.notes ?? "");
     const [displayedNotes, setDisplayedNotes] = useState(item.notes ?? "");
@@ -905,35 +888,6 @@ const WorkoutItemCard = memo(
     useEffect(() => {
       setDisplayedNotes(item.notes ?? "");
     }, [item.notes]);
-
-    const editingSet = editingSetNumber !== null
-      ? item.sets.find((s) => s.setNumber === editingSetNumber)
-      : null;
-
-    const handleStartEdit = (set: WorkoutSet) => {
-      setEditingSetNumber(set.setNumber);
-      setEditWeight(set.weight);
-      setEditReps(set.repetitions.toString());
-    };
-
-    const handleSaveSet = () => {
-      if (!editingSet) return;
-      const nextWeight = Number(editWeight);
-      const nextReps = Number(editReps);
-      const payload: { weight?: number; repetitions?: number } = {};
-      if (nextWeight !== Number(editingSet.weight)) payload.weight = nextWeight;
-      if (nextReps !== editingSet.repetitions) payload.repetitions = nextReps;
-      if (Object.keys(payload).length > 0) onUpdateSet(editingSet.id, payload);
-      setEditingSetNumber(null);
-      setEditWeight("");
-      setEditReps("");
-    };
-
-    const handleCancelEdit = () => {
-      setEditingSetNumber(null);
-      setEditWeight("");
-      setEditReps("");
-    };
 
     const handleSaveExerciseNotes = async () => {
       const notes = editNotesValue.trim();
@@ -1056,100 +1010,30 @@ const WorkoutItemCard = memo(
               </p>
             ) : (
               <div className="flex flex-col gap-2 mb-3">
-                {item.sets.map((set) => (
-                  <div
-                    key={set.id}
-                    className="flex items-center gap-3 rounded-[10px]"
-                    style={{ padding: "10px 12px", background: "var(--gg-surface2)" }}
-                  >
-                    <span
-                      className="text-[12px] font-bold w-7 flex-shrink-0"
-                      style={{ color: "var(--gg-text-muted)" }}
+                {item.sets.map((set) =>
+                  canEdit ? (
+                    <SetRowEditable
+                      key={set.id}
+                      set={set}
+                      itemId={item.id}
+                      onSave={onUpdateSet}
+                      onDelete={onDeleteSet}
+                    />
+                  ) : (
+                    <div
+                      key={set.id}
+                      className="flex items-center gap-3 rounded-[10px]"
+                      style={{ padding: "10px 12px", background: "var(--gg-surface2)" }}
                     >
-                      #{set.setNumber}
-                    </span>
-
-                    {editingSetNumber === set.setNumber ? (
-                      <>
-                        <div className="flex-1 flex gap-2">
-                          <input
-                            type="number"
-                            value={editWeight}
-                            onChange={(e) => setEditWeight(e.target.value)}
-                            placeholder="kg"
-                            autoFocus
-                            step="0.5"
-                            min="0"
-                            className="w-20 rounded-[10px] text-[14px]"
-                            style={{ padding: "8px 10px", background: "var(--gg-surface3)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text)", outline: "none" }}
-                          />
-                          <input
-                            type="number"
-                            value={editReps}
-                            onChange={(e) => setEditReps(e.target.value)}
-                            placeholder="reps"
-                            min="1"
-                            className="w-16 rounded-[10px] text-[14px]"
-                            style={{ padding: "8px 10px", background: "var(--gg-surface3)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text)", outline: "none" }}
-                          />
-                        </div>
-                        <div className="flex gap-1.5">
-                          <button
-                            onClick={handleSaveSet}
-                            className="w-8 h-8 rounded-[8px] border-none cursor-pointer text-white text-[14px]"
-                            style={{ background: "var(--gg-a1)" }}
-                          >
-                            ✓
-                          </button>
-                          <button
-                            onClick={handleCancelEdit}
-                            className="w-8 h-8 rounded-[8px] border-none cursor-pointer text-white text-[14px]"
-                            style={{ background: "var(--gg-text-muted)" }}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex-1 flex gap-4">
-                          <span className="text-[13px]" style={{ color: "var(--gg-text-sub)" }}>
-                            Ciężar: <strong style={{ color: "var(--gg-text)" }}>{set.weight} kg</strong>
-                          </span>
-                          <span className="text-[13px]" style={{ color: "var(--gg-text-sub)" }}>
-                            Powt.: <strong style={{ color: "var(--gg-text)" }}>{set.repetitions}</strong>
-                          </span>
-                        </div>
-                        {canEdit && (
-                          <div className="flex gap-1.5">
-                            <button
-                              onClick={() => handleStartEdit(set)}
-                              className="w-8 h-8 rounded-[8px] border-none cursor-pointer flex items-center justify-center"
-                              style={{ background: "var(--gg-surface3)" }}
-                              title="Edytuj"
-                            >
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gg-a2)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z"/>
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => onDeleteSet(item.id, set.id)}
-                              className="w-8 h-8 rounded-[8px] border-none cursor-pointer flex items-center justify-center"
-                              style={{ background: "var(--gg-surface3)" }}
-                              title="Usuń"
-                            >
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gg-error)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="3 6 5 6 21 6"/>
-                                <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>
-                              </svg>
-                            </button>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                ))}
+                      <span className="text-[12px] font-bold w-7 flex-shrink-0" style={{ color: "var(--gg-text-muted)" }}>
+                        #{set.setNumber}
+                      </span>
+                      <span className="flex-1 text-[13px]" style={{ color: "var(--gg-text)" }}>
+                        <strong>{set.weight}</strong> <span style={{ color: "var(--gg-text-muted)" }}>kg ×</span> <strong>{set.repetitions}</strong>
+                      </span>
+                    </div>
+                  ),
+                )}
               </div>
             )}
 
