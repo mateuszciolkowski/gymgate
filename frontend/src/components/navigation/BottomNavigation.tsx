@@ -132,72 +132,85 @@ export const BottomNavigation = memo(function BottomNavigation({
 
   return (
     <nav
-      className="absolute bottom-0 left-0 right-0 z-30 flex items-center px-3 pt-2 gap-1"
+      className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-center"
       style={{
-        background: "var(--gg-nav-bg)",
         paddingBottom: "max(1.25rem, env(safe-area-inset-bottom, 1.25rem))",
-        borderTop: "1px solid var(--gg-border)",
-        backdropFilter: "blur(12px)",
+        paddingLeft: "1rem",
+        paddingRight: "1rem",
+        paddingTop: "0.5rem",
         touchAction: "none",
+        background: "transparent",
       }}
       role="navigation"
       aria-label="Nawigacja główna"
     >
-      {navTabs.map((tab) => {
-        const isActive = !isWorkoutDetail && activeTab === tab.id;
-        return (
-          <button
-            key={tab.id}
-            onClick={() => handleTabChange(tab.id)}
-            className="flex items-center justify-center w-10 h-10 rounded-xl border-none bg-transparent cursor-pointer transition-colors duration-150"
-            style={{ color: isActive ? "var(--gg-a1)" : "var(--gg-text-muted)" }}
-            aria-label={tab.label}
-            aria-current={isActive ? "page" : undefined}
-          >
-            {tab.icon(isActive)}
-          </button>
-        );
-      })}
-
-      <button
-        onClick={onOpenMenu}
-        className="flex items-center justify-center w-10 h-10 rounded-xl border-none bg-transparent cursor-pointer"
-        style={{ color: "var(--gg-text-muted)" }}
-        aria-label="Otwórz menu"
+      <div
+        className="flex items-center gap-1 w-full"
+        style={{
+          background: "var(--gg-surface)",
+          border: "1.5px solid var(--gg-border)",
+          borderRadius: 9999,
+          padding: "6px 10px",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.45)",
+          backdropFilter: "blur(16px)",
+        }}
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="4" y1="7" x2="20" y2="7"/>
-          <line x1="4" y1="12" x2="20" y2="12"/>
-          <line x1="4" y1="17" x2="16" y2="17"/>
-        </svg>
-      </button>
+        {navTabs.map((tab) => {
+          const isActive = !isWorkoutDetail && activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id)}
+              className="flex items-center justify-center w-10 h-10 rounded-full border-none bg-transparent cursor-pointer transition-colors duration-150"
+              style={{ color: isActive ? "var(--gg-a1)" : "var(--gg-text-muted)" }}
+              aria-label={tab.label}
+              aria-current={isActive ? "page" : undefined}
+            >
+              {tab.icon(isActive)}
+            </button>
+          );
+        })}
 
-      <div className="flex-1" />
-
-      {hasActiveWorkout && workoutStartedAt ? (
-        <WorkoutTimerPill onClick={onAddWorkout} workoutStartedAt={workoutStartedAt} />
-      ) : (
         <button
-          onClick={onAddWorkout}
-          className="flex items-center gap-2 border-none cursor-pointer rounded-full"
-          style={{
-            padding: "10px 18px",
-            background: "linear-gradient(135deg, #059669, #10B981)",
-            boxShadow: "0 4px 20px rgba(5,150,105,0.4)",
-            color: "#fff",
-            transition: "all 0.2s ease",
-          }}
-          aria-label="Nowy trening"
+          onClick={onOpenMenu}
+          className="flex items-center justify-center w-10 h-10 rounded-full border-none bg-transparent cursor-pointer"
+          style={{ color: "var(--gg-text-muted)" }}
+          aria-label="Otwórz menu"
         >
-          <span className="font-barlow font-bold whitespace-nowrap" style={{ fontSize: 15 }}>
-            Nowy trening
-          </span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"/>
-            <polyline points="12 5 19 12 12 19"/>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="4" y1="7" x2="20" y2="7"/>
+            <line x1="4" y1="12" x2="20" y2="12"/>
+            <line x1="4" y1="17" x2="16" y2="17"/>
           </svg>
         </button>
-      )}
+
+        <div className="flex-1" />
+
+        {hasActiveWorkout && workoutStartedAt ? (
+          <WorkoutTimerPill onClick={onAddWorkout} workoutStartedAt={workoutStartedAt} />
+        ) : (
+          <button
+            onClick={onAddWorkout}
+            className="flex items-center gap-2 border-none cursor-pointer rounded-full"
+            style={{
+              padding: "8px 16px",
+              background: "linear-gradient(135deg, #059669, #10B981)",
+              boxShadow: "0 4px 16px rgba(5,150,105,0.4)",
+              color: "#fff",
+              transition: "all 0.2s ease",
+            }}
+            aria-label="Nowy trening"
+          >
+            <span className="font-barlow font-bold whitespace-nowrap" style={{ fontSize: 14 }}>
+              Nowy trening
+            </span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        )}
+      </div>
     </nav>
   );
 });
