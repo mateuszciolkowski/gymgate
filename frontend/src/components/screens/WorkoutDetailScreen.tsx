@@ -1069,9 +1069,13 @@ const WorkoutItemCard = memo(
     const [isEditingNotes, setIsEditingNotes] = useState(false);
     const [editNotesValue, setEditNotesValue] = useState(item.notes ?? "");
     const [displayedNotes, setDisplayedNotes] = useState(item.notes ?? "");
-    const [draftSet, setDraftSet] = useState<{ weight: string; reps: string } | null>(null);
-
     const canEdit = !isCompleted || isEditMode;
+    const [draftSet, setDraftSet] = useState<{ weight: string; reps: string } | null>(
+      item.sets.length === 0 && canEdit
+        ? { weight: String(stats?.lastWeight ?? 0), reps: String(stats?.lastReps ?? 1) }
+        : null,
+    );
+
     const noteToDisplay = lastExerciseNote;
 
     useEffect(() => {
@@ -1254,8 +1258,12 @@ const WorkoutItemCard = memo(
                     if (draftSet) return;
                     const lastSet = item.sets[item.sets.length - 1];
                     setDraftSet({
-                      weight: lastSet ? String(Math.max(Number(lastSet.weight), 0)) : "0",
-                      reps: lastSet ? String(lastSet.repetitions) : "10",
+                      weight: lastSet
+                        ? String(Math.max(Number(lastSet.weight), 0))
+                        : String(stats?.lastWeight ?? 0),
+                      reps: lastSet
+                        ? String(lastSet.repetitions)
+                        : String(stats?.lastReps ?? 1),
                     });
                   }}
                   disabled={!!draftSet}
