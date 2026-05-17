@@ -245,7 +245,7 @@ describe("workout.service", () => {
     expect(workoutRepo.deleteExerciseStats).toHaveBeenCalledWith("u1", "e2");
   });
 
-  it("addExerciseToWorkout: auto-assigns order and creates default set", async () => {
+  it("addExerciseToWorkout: auto-assigns order without creating a default set", async () => {
     vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
       id: "w1",
       userId: "u1",
@@ -270,7 +270,7 @@ describe("workout.service", () => {
       3,
       undefined,
     );
-    expect(workoutRepo.addSetToWorkoutItem).toHaveBeenCalledWith("item-1", 0, 1, 1);
+    expect(workoutRepo.addSetToWorkoutItem).not.toHaveBeenCalled();
     expect(result).toEqual({ id: "item-1", workoutId: "w1" });
   });
 

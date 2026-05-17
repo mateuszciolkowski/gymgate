@@ -163,19 +163,6 @@ export const addExerciseToWorkout = async (
     data.notes
   );
 
-  let defaultWeight = 0;
-  let defaultReps = 1;
-  try {
-    const stats = await workoutRepo.getExerciseStats(userId, data.exerciseId);
-    if (stats) {
-      defaultWeight = Number(stats.lastWeight);
-      defaultReps = stats.lastReps;
-    }
-  } catch {
-    // fall through to defaults
-  }
-  await workoutRepo.addSetToWorkoutItem(item.id, defaultWeight, defaultReps, 1);
-
   if (workout.status === "COMPLETED") {
     await rebuildExerciseStatsFromCompletedWorkouts(userId, data.exerciseId);
   }

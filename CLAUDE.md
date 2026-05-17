@@ -89,11 +89,12 @@ Every module follows strict layering: `routes → controller → service → rep
 ## Add-exercise-to-workout flow
 
 1. Frontend calls `addExerciseToWorkout(workoutId, exerciseId)` from DataContext
-2. Optimistic update: creates a `WorkoutItem` with a temp ID and one temp set (`weight: "0"`, `repetitions: 1`)
-3. Fires `POST /api/workouts/:workoutId/exercises`
-4. Backend: `addExerciseToWorkoutWithPendingNote` (transaction: fetches pending note → creates item with `previousNote` set → deletes pending note)
-5. Backend: `addSetToWorkoutItem(item.id, 0, 1, 1)` – creates the first set with default values
-6. Frontend: remaps temp IDs to real IDs from the server response
+2. Optimistic update: creates a `WorkoutItem` with a temp ID and **empty `sets: []`**
+3. `WorkoutItemCard` auto-opens a `draftSet` pre-filled with `ExerciseUserStats.lastWeight/lastReps` — no set is persisted until the user confirms
+4. Fires `POST /api/workouts/:workoutId/exercises`
+5. Backend: `addExerciseToWorkoutWithPendingNote` (transaction: fetches pending note → creates item with `previousNote` set → deletes pending note)
+6. Backend returns `WorkoutItem` with empty `sets: []` — no default set created
+7. Frontend: remaps temp item ID to real ID from the server response
 
 ## Statistics
 

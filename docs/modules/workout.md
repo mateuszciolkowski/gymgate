@@ -64,13 +64,11 @@ POST /api/workouts/:workoutId/exercises
       1. Pobierz ExercisePendingNote dla (userId, exerciseId)
       2. Utwórz WorkoutItem z previousNote = pending?.note
       3. Usuń ExercisePendingNote
-  ↓ addSetToWorkoutItem(item.id, defaultWeight, defaultReps, 1)
-       defaultWeight/defaultReps = lastWeight/lastReps z ExerciseUserStats (fallback: 0 kg / 1 rep)
   ↓ (jeśli workout.status === "COMPLETED") rebuildExerciseStatsFromCompletedWorkouts(userId, exerciseId)
-  ↓ 201 { data: WorkoutItem z sets[] }
+  ↓ 201 { data: WorkoutItem z sets: [] }
 ```
 
-Po stronie frontendu (`DataContext`) stosowany jest optimistic update: item tworzony jest z `temp_*` ID i jedną serią zanim serwer odeprze odpowiedź.
+Po stronie frontendu (`DataContext`) stosowany jest optimistic update: item tworzony jest z `temp_*` ID i **pustą listą serii** (`sets: []`). Pierwsza seria jest wyłącznie po stronie frontendu — jako `draftSet` w `WorkoutItemCard`, pre-wypełniony wartościami `ExerciseUserStats.lastWeight/lastReps`. Serwer nie tworzy domyślnej serii — eliminuje to problem "phantom default set" w historii ćwiczenia.
 
 ### Zamknięcie treningu
 

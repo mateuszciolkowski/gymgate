@@ -1030,19 +1030,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const shouldRefreshStats =
         workoutsRef.current.find((workout) => workout.id === workoutId)?.status ===
         "COMPLETED";
-      // Tymczasowe ID dla optymistycznej aktualizacji
       const tempItemId = `temp_item_${Date.now()}`;
-      const tempSetId = `temp_set_${Date.now()}`;
 
       // Pobierz exercise z ref (nie z state - żeby nie tworzyć zależności)
       const exercise = exercisesRef.current.find((e) => e.id === exerciseId);
       if (!exercise) throw new Error("Nie znaleziono ćwiczenia");
 
-      const exerciseStat = statsRef.current.find((s) => s.exerciseId === exerciseId);
-      const defaultWeight = exerciseStat?.lastWeight ?? "0";
-      const defaultReps = exerciseStat?.lastReps ?? 1;
-
-      // Optymistyczna aktualizacja - dodaj od razu do UI
+      // Optymistyczna aktualizacja - dodaj od razu do UI, bez serii (pierwsza seria = draftSet w UI)
       const newItem = {
         id: tempItemId,
         workoutId,
@@ -1059,17 +1053,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           description: exercise.description,
           photos: exercise.photos,
         },
-        sets: [
-          {
-            id: tempSetId,
-            itemId: tempItemId,
-            setNumber: 1,
-            weight: defaultWeight,
-            repetitions: defaultReps,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ],
+        sets: [],
       };
 
       let updatedWorkout: Workout | null = null;
@@ -1091,7 +1075,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const syncPayload = {
         exerciseId,
         clientTempItemId: tempItemId,
-        clientTempSetId: tempSetId,
       };
 
       if (realWorkoutId.startsWith("temp_") || !navigator.onLine) {
@@ -1125,10 +1108,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
         if (result.data) {
           idMappingRef.current.set(tempItemId, result.data.id);
-          const serverSets = result.data.sets || [];
-          if (serverSets[0]) {
-            idMappingRef.current.set(tempSetId, serverSets[0].id);
-          }
 
           let remappedWorkout: Workout | null = null;
           setWorkouts((prev) =>
@@ -1142,15 +1121,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                     ...item,
                     id: result.data.id,
                     previousNote: result.data.previousNote ?? null,
-                    sets: item.sets.map((set, index) =>
-                      index === 0 && serverSets[0]
-                        ? {
-                            ...set,
-                            id: serverSets[0].id,
-                            repetitions: serverSets[0].repetitions,
-                          }
-                        : set,
-                    ),
                   };
                 }),
               };
