@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigation, useTheme } from "./hooks";
 import type { Theme } from "./hooks/useTheme";
 import { useAuth } from "./contexts/AuthContext";
 import { useData } from "./contexts/DataContext";
-import type { TabType, Screen } from "@/types";
+import type { TabType, Screen, Workout } from "@/types";
 import {
   MainLayout,
   BottomNavigation,
@@ -25,6 +25,19 @@ import { RegisterScreen } from "./components/screens/RegisterScreen";
 import type { Exercise } from "./hooks/useExercises";
 import type { WorkoutPlan } from "./types";
 import type { SyncOperation } from "./utils/localStore";
+
+const STALE_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+function computeLastActivity(workout: Workout): number {
+  let latest = new Date(workout.updatedAt).getTime();
+  for (const item of workout.items) {
+    latest = Math.max(latest, new Date(item.updatedAt).getTime());
+    for (const set of item.sets) {
+      latest = Math.max(latest, new Date(set.updatedAt).getTime());
+    }
+  }
+  return latest;
+}
 
 const ENTITY_LABELS: Record<SyncOperation["entity"], string> = {
   workout: "treningu",
@@ -211,12 +224,16 @@ function AuthenticatedApp({
     updateExercise,
     activeWorkoutId,
     getWorkout,
+    completeWorkout,
+    isLoading,
     failedSyncOperations,
     dismissSyncFailures,
     syncNow,
   } = useData();
   const [isWorkoutFormOpen, setIsWorkoutFormOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [staleWorkout, setStaleWorkout] = useState<Workout | null>(null);
+  const staleCheckDone = useRef(new Set<string>());
 
   useEffect(() => {
     if (
@@ -229,11 +246,43 @@ function AuthenticatedApp({
     }
   }, [screen, selectedWorkoutId, getWorkout, setScreen, setSelectedWorkoutId]);
 
+  useEffect(() => {
+    if (isLoading || !activeWorkoutId) return;
+    if (staleCheckDone.current.has(activeWorkoutId)) return;
+
+    const workout = getWorkout(activeWorkoutId);
+    if (!workout || workout.status === "COMPLETED") return;
+
+    staleCheckDone.current.add(activeWorkoutId);
+
+    const lastActivity = computeLastActivity(workout);
+    if (Date.now() - lastActivity > STALE_THRESHOLD_MS) {
+      setStaleWorkout(workout);
+    }
+  }, [activeWorkoutId, isLoading, getWorkout]);
+
   const activeWorkout = activeWorkoutId ? getWorkout(activeWorkoutId) : null;
   const workoutStartedAt =
     activeWorkout && activeWorkout.status !== "COMPLETED"
       ? activeWorkout.createdAt
       : null;
+
+  const handleCompleteStaleWorkout = async () => {
+    if (!staleWorkout) return;
+    const lastActivity = computeLastActivity(staleWorkout);
+    const durationSeconds = Math.max(
+      0,
+      Math.floor((lastActivity - new Date(staleWorkout.createdAt).getTime()) / 1000),
+    );
+    try {
+      await completeWorkout(staleWorkout.id, durationSeconds);
+    } catch {
+      // intentionally silent — workout remains DRAFT if completion fails
+    }
+    setStaleWorkout(null);
+  };
+
+  const handleDismissStaleWorkout = () => setStaleWorkout(null);
 
   const handleAddWorkoutClick = () => {
     if (activeWorkout && activeWorkout.status !== "COMPLETED") {
@@ -456,6 +505,71 @@ function AuthenticatedApp({
           onSubmit={handleCreateWorkout}
         />
       )}
+
+      {staleWorkout && (() => {
+        const lastActivity = computeLastActivity(staleWorkout);
+        const diffMs = Date.now() - lastActivity;
+        const hoursAgo = Math.floor(diffMs / (60 * 60 * 1000));
+        const minutesAgo = Math.floor((diffMs % (60 * 60 * 1000)) / (60 * 1000));
+        const timeLabel = hoursAgo > 0
+          ? `${hoursAgo}h ${minutesAgo}min`
+          : `${minutesAgo} min`;
+
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-end justify-center pb-8 px-4"
+            style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+          >
+            <div
+              className="w-full max-w-sm rounded-[22px] p-5"
+              style={{
+                background: "var(--gg-surface)",
+                border: "1.5px solid var(--gg-border)",
+                boxShadow: "0 16px 48px rgba(0,0,0,0.5)",
+              }}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div
+                  className="flex items-center justify-center rounded-full flex-shrink-0"
+                  style={{ width: 36, height: 36, background: "var(--gg-active-bg)", border: "1.5px solid var(--gg-active-border)" }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gg-active-border)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[14px] font-bold" style={{ color: "var(--gg-text)" }}>Trening się skończył?</p>
+                  <p className="text-[12px]" style={{ color: "var(--gg-text-muted)" }}>
+                    Ostatnia aktywność {timeLabel} temu
+                  </p>
+                </div>
+              </div>
+              {staleWorkout.workoutName && (
+                <p className="text-[13px] mb-3" style={{ color: "var(--gg-text-sub)" }}>
+                  {staleWorkout.workoutName}
+                </p>
+              )}
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={handleDismissStaleWorkout}
+                  className="flex-1 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer"
+                  style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text-sub)" }}
+                >
+                  Kontynuuj
+                </button>
+                <button
+                  onClick={handleCompleteStaleWorkout}
+                  className="flex-1 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer text-white border-none"
+                  style={{ background: "var(--gg-grad-btn)", boxShadow: "0 3px 14px var(--gg-glow)" }}
+                >
+                  Zakończ trening
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </MainLayout>
   );
 }

@@ -64,6 +64,8 @@ export function WorkoutDetailScreen({
   const [editGymName, setEditGymName] = useState("");
   const [editWorkoutDate, setEditWorkoutDate] = useState("");
   const [editWorkoutNotes, setEditWorkoutNotes] = useState("");
+  const [editStartTime, setEditStartTime] = useState("");
+  const [editEndTime, setEditEndTime] = useState("");
 
   // Timer state — seconds elapsed since workout was created
   const [elapsed, setElapsed] = useState(0);
@@ -281,19 +283,40 @@ export function WorkoutDetailScreen({
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     setEditWorkoutDate(`${year}-${month}-${day}`);
+
+    const startDate = new Date(workout!.workoutDate);
+    setEditStartTime(`${String(startDate.getHours()).padStart(2, "0")}:${String(startDate.getMinutes()).padStart(2, "0")}`);
+
+    const endMs = startDate.getTime() + (workout!.durationSeconds || 0) * 1000;
+    const endDate = new Date(endMs);
+    setEditEndTime(`${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`);
+
     setIsEditMode(true);
   };
+
+  const editedDurationSeconds = useMemo(() => {
+    if (!editStartTime || !editEndTime || !editWorkoutDate) return null;
+    const [year, month, day] = editWorkoutDate.split("-").map(Number);
+    const [startH, startM] = editStartTime.split(":").map(Number);
+    const [endH, endM] = editEndTime.split(":").map(Number);
+    const startDate = new Date(year, month - 1, day, startH, startM, 0, 0);
+    const endDate = new Date(year, month - 1, day, endH, endM, 0, 0);
+    if (endDate <= startDate) endDate.setDate(endDate.getDate() + 1);
+    const seconds = Math.floor((endDate.getTime() - startDate.getTime()) / 1000);
+    return seconds > 0 ? seconds : null;
+  }, [editStartTime, editEndTime, editWorkoutDate]);
 
   const handleSaveCompletedEdits = async () => {
     try {
       const [year, month, day] = editWorkoutDate.split("-").map(Number);
-      const dateObj = new Date(workout!.workoutDate);
-      dateObj.setFullYear(year, month - 1, day);
+      const [startH, startM] = (editStartTime || "00:00").split(":").map(Number);
+      const startDate = new Date(year, month - 1, day, startH, startM, 0, 0);
       await updateWorkout({
-        workoutName: editWorkoutName.trim() || null,
-        gymName: editGymName.trim() || null,
-        workoutDate: dateObj.toISOString(),
-        workoutNotes: editWorkoutNotes.trim() || null,
+        workoutName: editWorkoutName.trim() || undefined,
+        gymName: editGymName.trim() || undefined,
+        workoutDate: startDate.toISOString(),
+        workoutNotes: editWorkoutNotes.trim() || undefined,
+        ...(editedDurationSeconds !== null && { durationSeconds: editedDurationSeconds }),
       });
       setIsEditMode(false);
     } catch (error) {
@@ -594,6 +617,13 @@ export function WorkoutDetailScreen({
                   <span className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Czas treningu</span>
                   <span className="text-[13px] font-bold" style={{ color: "var(--gg-a2)" }}>{fmtDuration(workout.durationSeconds)}</span>
                 </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Godzina</span>
+                  <span className="text-[13px] font-bold" style={{ color: "var(--gg-text)" }}>
+                    {new Date(workout.workoutDate).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}
+                    {workout.durationSeconds ? ` – ${new Date(new Date(workout.workoutDate).getTime() + workout.durationSeconds * 1000).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}` : ""}
+                  </span>
+                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Data</span>
                   <span className="text-[13px] font-bold" style={{ color: "var(--gg-text)" }}>{fmtDate(workout.workoutDate)}</span>
@@ -641,6 +671,23 @@ export function WorkoutDetailScreen({
                 <div>
                   <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Notatki</label>
                   <textarea value={editWorkoutNotes} onChange={(e) => setEditWorkoutNotes(e.target.value)} placeholder="Dodaj notatki do treningu..." rows={3} style={{ ...inputStyle, resize: "none" }} />
+                </div>
+                <div>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Rozpoczęcie</label>
+                      <input type="time" value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} style={inputStyle} />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Zakończenie</label>
+                      <input type="time" value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} style={inputStyle} />
+                    </div>
+                  </div>
+                  {editedDurationSeconds !== null && (
+                    <p className="text-[12px] mt-1.5 font-semibold" style={{ color: "var(--gg-a2)" }}>
+                      Czas treningu: {fmtDuration(editedDurationSeconds)}
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-2 mt-1">
                   <button onClick={() => setIsEditMode(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer" style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text-sub)" }}>Anuluj</button>
