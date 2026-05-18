@@ -269,17 +269,21 @@ function AuthenticatedApp({
 
   const handleCompleteStaleWorkout = async () => {
     if (!staleWorkout) return;
-    const lastActivity = computeLastActivity(staleWorkout);
+    // Re-fetch the workout from current state — the snapshot in staleWorkout
+    // may have been captured before server data arrived (items: []), which
+    // would produce durationSeconds = 0.
+    const currentWorkout = getWorkout(staleWorkout.id) ?? staleWorkout;
+    const lastActivity = computeLastActivity(currentWorkout);
     const durationSeconds = Math.max(
       0,
-      Math.floor((lastActivity - new Date(staleWorkout.createdAt).getTime()) / 1000),
+      Math.floor((lastActivity - new Date(currentWorkout.createdAt).getTime()) / 1000),
     );
     try {
       await completeWorkout(staleWorkout.id, durationSeconds);
+      setStaleWorkout(null);
     } catch {
-      // intentionally silent — workout remains DRAFT if completion fails
+      // Keep the modal visible so the user can retry
     }
-    setStaleWorkout(null);
   };
 
   const handleDismissStaleWorkout = () => setStaleWorkout(null);
