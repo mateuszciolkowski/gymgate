@@ -81,12 +81,6 @@ async function main() {
         creatorUserId: "1",
       },
       {
-        name: "Pompki na poręczach",
-        muscleGroups: ["CHEST", "TRICEPS", "SHOULDERS"],
-        description: "Zaawansowane pompki z większym obciążeniem",
-        creatorUserId: "1",
-      },
-      {
         name: "Krzyżowanie linek wyciągu",
         muscleGroups: ["CHEST"],
         description: "Ćwiczenie izolujące na linach",
@@ -110,13 +104,6 @@ async function main() {
         description: "Rozciąganie klatki i grzbietu",
         creatorUserId: "1",
       },
-      {
-        name: "Wyciskanie w leżeniu węższym chwytem",
-        muscleGroups: ["CHEST", "TRICEPS"],
-        description: "Nacisk na triceps i środkową część klatki",
-        creatorUserId: "1",
-      },
-
       {
         name: "Martwy ciąg klasyczny",
         muscleGroups: ["BACK", "HAMSTRINGS", "GLUTES", "LOWER_BACK", "TRAPS"],
@@ -145,12 +132,6 @@ async function main() {
         name: "Podciąganie na drążku podchwytem",
         muscleGroups: ["BACK", "LATS", "BICEPS"],
         description: "Większy udział bicepsów",
-        creatorUserId: "1",
-      },
-      {
-        name: "Podciąganie neutralnym chwytem",
-        muscleGroups: ["BACK", "LATS", "BICEPS"],
-        description: "Bezpieczniejsze dla nadgarstków",
         creatorUserId: "1",
       },
       {
@@ -239,12 +220,6 @@ async function main() {
         creatorUserId: "1",
       },
       {
-        name: "Wyciskanie sztangi zza głowy",
-        muscleGroups: ["SHOULDERS", "TRICEPS"],
-        description: "Wariant OHP z większym rozciągnięciem",
-        creatorUserId: "1",
-      },
-      {
         name: "Wyciskanie hantli nad głowę",
         muscleGroups: ["SHOULDERS", "TRICEPS"],
         description: "Większy zakres ruchu",
@@ -300,12 +275,6 @@ async function main() {
       },
 
       {
-        name: "Uginanie sztangi na biceps",
-        muscleGroups: ["BICEPS", "FOREARMS"],
-        description: "Klasyczne ćwiczenie na biceps",
-        creatorUserId: "1",
-      },
-      {
         name: "Uginanie sztangi łamanej",
         muscleGroups: ["BICEPS", "FOREARMS"],
         description: "Bezpieczniejsze dla nadgarstków",
@@ -333,12 +302,6 @@ async function main() {
         name: "Uginanie na wyciągu dolnym",
         muscleGroups: ["BICEPS"],
         description: "Stałe napięcie przez cały ruch",
-        creatorUserId: "1",
-      },
-      {
-        name: "Uginanie koncentryczne",
-        muscleGroups: ["BICEPS"],
-        description: "Izolowane uginanie jedną ręką",
         creatorUserId: "1",
       },
       {
@@ -379,6 +342,12 @@ async function main() {
         creatorUserId: "1",
       },
       {
+        name: "Francuskie wyciskanie hantli nad głowę",
+        muscleGroups: ["TRICEPS"],
+        description: "Wyciskanie hantli nad głowę w pozycji stojącej lub siedzącej",
+        creatorUserId: "1",
+      },
+      {
         name: "Dipy na poręczach",
         muscleGroups: ["TRICEPS", "CHEST", "SHOULDERS"],
         description: "Zaawansowane ćwiczenie z ciężarem ciała",
@@ -388,12 +357,6 @@ async function main() {
         name: "Prostowanie ramienia z hantlem w opadzie",
         muscleGroups: ["TRICEPS"],
         description: "Jednostronne wzmocnienie",
-        creatorUserId: "1",
-      },
-      {
-        name: "Dipy na ławce",
-        muscleGroups: ["TRICEPS", "SHOULDERS"],
-        description: "Wariant dla początkujących",
         creatorUserId: "1",
       },
       {
@@ -407,12 +370,6 @@ async function main() {
         name: "Przysiady ze sztangą na plecach",
         muscleGroups: ["QUADS", "GLUTES", "HAMSTRINGS"],
         description: "Król ćwiczeń na nogi",
-        creatorUserId: "1",
-      },
-      {
-        name: "Przysiady przednie",
-        muscleGroups: ["QUADS", "GLUTES", "ABS"],
-        description: "Większy nacisk na czworogłowy",
         creatorUserId: "1",
       },
       {
@@ -476,12 +433,6 @@ async function main() {
         creatorUserId: "1",
       },
       {
-        name: "Mostek biodrowy",
-        muscleGroups: ["GLUTES", "HAMSTRINGS"],
-        description: "Wariant bez obciążenia",
-        creatorUserId: "1",
-      },
-      {
         name: "Glute bridge",
         muscleGroups: ["GLUTES"],
         description: "Izolowane spięcie pośladków leżąc",
@@ -518,13 +469,6 @@ async function main() {
         creatorUserId: "1",
       },
       {
-        name: "Przysiad pistolowy",
-        muscleGroups: ["QUADS", "GLUTES"],
-        description: "Jednostronny przysiad na jednej nodze",
-        creatorUserId: "1",
-      },
-
-      {
         name: "Plank",
         muscleGroups: ["ABS", "OBLIQUES"],
         description: "Podstawowe ćwiczenie izometryczne",
@@ -534,18 +478,6 @@ async function main() {
         name: "Plank boczny",
         muscleGroups: ["OBLIQUES", "ABS"],
         description: "Wzmacnia skośne brzucha",
-        creatorUserId: "1",
-      },
-      {
-        name: "Brzuszki",
-        muscleGroups: ["ABS"],
-        description: "Klasyczne skurcze brzucha",
-        creatorUserId: "1",
-      },
-      {
-        name: "Unoszenie nóg w leżeniu",
-        muscleGroups: ["ABS", "HIP_FLEXORS"],
-        description: "Dolna część brzucha",
         creatorUserId: "1",
       },
       {
@@ -561,18 +493,6 @@ async function main() {
         creatorUserId: "1",
       },
       {
-        name: "Rowerek",
-        muscleGroups: ["ABS", "OBLIQUES"],
-        description: "Rotacja tułowia z unoszeniem nóg",
-        creatorUserId: "1",
-      },
-      {
-        name: "Skręty tułowia rosyjskie",
-        muscleGroups: ["OBLIQUES", "ABS"],
-        description: "Rotacja z obciążeniem",
-        creatorUserId: "1",
-      },
-      {
         name: "Dead bug",
         muscleGroups: ["ABS", "HIP_FLEXORS"],
         description: "Stabilizacja core",
@@ -585,60 +505,12 @@ async function main() {
         creatorUserId: "1",
       },
       {
-        name: "Mountain climbers",
-        muscleGroups: ["ABS", "HIP_FLEXORS"],
-        description: "Dynamiczne ćwiczenie cardio",
-        creatorUserId: "1",
-      },
-      {
         name: "Hollow body hold",
         muscleGroups: ["ABS"],
         description: "Zaawansowana deska",
         creatorUserId: "1",
       },
 
-      {
-        name: "Burpees",
-        muscleGroups: ["FULL_BODY"],
-        description: "Intensywne ćwiczenie cardio",
-        creatorUserId: "1",
-      },
-      {
-        name: "Rwanie sztangi",
-        muscleGroups: ["FULL_BODY", "SHOULDERS", "BACK", "QUADS"],
-        description: "Olimpijskie ćwiczenie siłowe",
-        creatorUserId: "1",
-      },
-      {
-        name: "Podrzut sztangi",
-        muscleGroups: ["FULL_BODY", "SHOULDERS", "QUADS"],
-        description: "Olimpijskie ćwiczenie siłowe",
-        creatorUserId: "1",
-      },
-      {
-        name: "Thruster",
-        muscleGroups: ["FULL_BODY", "QUADS", "SHOULDERS"],
-        description: "Przysiad z wypchnięciem nad głowę",
-        creatorUserId: "1",
-      },
-      {
-        name: "Swing kettlebell",
-        muscleGroups: ["FULL_BODY", "GLUTES", "HAMSTRINGS"],
-        description: "Dynamiczne mahanie kettlebell",
-        creatorUserId: "1",
-      },
-      {
-        name: "Man maker",
-        muscleGroups: ["FULL_BODY"],
-        description: "Połączenie burpees z wiosłowaniem",
-        creatorUserId: "1",
-      },
-      {
-        name: "Battle ropes",
-        muscleGroups: ["FULL_BODY", "SHOULDERS"],
-        description: "Machanie linami",
-        creatorUserId: "1",
-      },
       {
         name: "Farmer walk",
         muscleGroups: ["FULL_BODY", "FOREARMS", "TRAPS"],
@@ -656,24 +528,6 @@ async function main() {
         name: "Odwrotne zwijanie nadgarstków",
         muscleGroups: ["FOREARMS"],
         description: "Górna część przedramion",
-        creatorUserId: "1",
-      },
-      {
-        name: "Chwyt ze sztangą",
-        muscleGroups: ["FOREARMS"],
-        description: "Statyczne trzymanie ciężaru",
-        creatorUserId: "1",
-      },
-      {
-        name: "Most zapaśniczy",
-        muscleGroups: ["NECK", "TRAPS"],
-        description: "Wzmacnianie karku",
-        creatorUserId: "1",
-      },
-      {
-        name: "Odwodzenie szyi z obciążeniem",
-        muscleGroups: ["NECK"],
-        description: "Izolacja mięśni karku",
         creatorUserId: "1",
       },
     ],

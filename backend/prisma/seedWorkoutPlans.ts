@@ -65,10 +65,10 @@ export async function seedWorkoutPlans() {
       exerciseNames: [
         "Przysiady bułgarskie",
         "Glute bridge",
+        "Ściąganie drążka wyciągu górnego",
         "Wznosy tułowia na ławce rzymskiej",
-        "Wiosłowanie na wyciągu dolnym",
         "Uginanie hantli młotkowe",
-        "Wyciskanie francuskie hantlem",
+        "Francuskie wyciskanie hantli nad głowę",
         "Unoszenie hantli bokiem",
       ],
     },
@@ -77,7 +77,7 @@ export async function seedWorkoutPlans() {
       exerciseNames: [
         "Martwy ciąg rumuński",
         "Przysiad sumo",
-        "Ściąganie drążka wyciągu górnego",
+        "Wiosłowanie na wyciągu dolnym",
         "Odwodzenie nogi na maszynie",
         "Wspięcia na palce siedząc",
         "Prostowanie ramion na wyciągu z liną",
