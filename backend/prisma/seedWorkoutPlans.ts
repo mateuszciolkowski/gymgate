@@ -4,9 +4,6 @@ import { BUILT_IN_USER_ID } from "../src/config/constants.js";
 export async function seedWorkoutPlans() {
   console.log("🌱 Seeding built-in workout plans...");
 
-  await prisma.workoutPlan.deleteMany({ where: { creatorUserId: null } });
-  console.log("✓ Cleared existing built-in plans");
-
   const globalExerciseName = "Prostowanie ramienia na wyciągu jednorącz";
   let globalExercise = await prisma.exercise.findFirst({
     where: { name: globalExerciseName, creatorUserId: null },
@@ -110,20 +107,51 @@ export async function seedWorkoutPlans() {
     );
   }
 
+  // Upsert: preserve existing plan IDs to avoid invalidating frontend caches
+  const existingPlans = await prisma.workoutPlan.findMany({
+    where: { creatorUserId: null },
+  });
+  const existingByName = new Map(existingPlans.map((p) => [p.name, p]));
+  const definitionNames = new Set(planDefinitions.map((p) => p.name));
+
+  // Delete plans no longer in definitions
+  for (const existing of existingPlans) {
+    if (!definitionNames.has(existing.name)) {
+      await prisma.workoutPlan.delete({ where: { id: existing.id } });
+      console.log(`✓ Removed obsolete built-in plan: ${existing.name}`);
+    }
+  }
+
   for (const plan of planDefinitions) {
-    await prisma.workoutPlan.create({
-      data: {
-        name: plan.name,
-        creatorUserId: null,
-        isPublic: true,
-        items: {
-          create: plan.exerciseNames.map((name, index) => ({
+    const existing = existingByName.get(plan.name);
+    if (existing) {
+      // Keep existing plan ID, just replace its items
+      await prisma.$transaction(async (tx) => {
+        await tx.workoutPlanItem.deleteMany({ where: { planId: existing.id } });
+        await tx.workoutPlanItem.createMany({
+          data: plan.exerciseNames.map((name, index) => ({
+            planId: existing.id,
             exerciseId: byName.get(name)!,
             orderInPlan: index,
           })),
+        });
+      });
+      console.log(`✓ Updated built-in plan: ${plan.name}`);
+    } else {
+      await prisma.workoutPlan.create({
+        data: {
+          name: plan.name,
+          creatorUserId: null,
+          isPublic: true,
+          items: {
+            create: plan.exerciseNames.map((name, index) => ({
+              exerciseId: byName.get(name)!,
+              orderInPlan: index,
+            })),
+          },
         },
-      },
-    });
-    console.log(`✓ Created built-in plan: ${plan.name}`);
+      });
+      console.log(`✓ Created built-in plan: ${plan.name}`);
+    }
   }
 }

@@ -641,7 +641,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify(data),
         });
 
-        if (!response.ok) throw new Error("Błąd tworzenia treningu");
+        if (!response.ok) {
+          if (response.status === 404) {
+            // Plan ID may be stale — refresh plans and surface a clear message
+            fetchAllFromServer().catch(() => {});
+            throw new Error("Plan nie istnieje — plany zostały odświeżone, spróbuj ponownie.");
+          }
+          throw new Error("Błąd tworzenia treningu");
+        }
 
         const result = await response.json();
         const newWorkout = result.data;
@@ -692,7 +699,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         return tempWorkout;
       }
     },
-    [isOfflineError, queueSyncOperation, user?.id],
+    [isOfflineError, queueSyncOperation, user?.id, fetchAllFromServer],
   );
 
   const updateWorkout = useCallback(
@@ -1911,6 +1918,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (!response.ok) {
+      if (response.status === 404) {
+        fetchAllFromServer().catch(() => {});
+        throw new Error("Plan nie istnieje — plany zostały odświeżone, spróbuj ponownie.");
+      }
       const err = await response.json().catch(() => ({}));
       throw new Error(err?.message || "Błąd duplikacji planu");
     }
@@ -1922,7 +1933,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     await localStore.put("plans", newPlan);
 
     return newPlan;
-  }, []);
+  }, [fetchAllFromServer]);
 
   const skipPlanExercise = useCallback(async (workoutId: string, exerciseId: string) => {
     const realWorkoutId = getRealId(workoutId);
