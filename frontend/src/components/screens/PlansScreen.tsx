@@ -30,6 +30,7 @@ interface PlanCardProps {
 const PlanCard = memo(function PlanCard({ plan, isOwner, onEdit, onDuplicate }: PlanCardProps) {
   const muscles = getPlanMuscles(plan);
   const [duplicating, setDuplicating] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const { deletePlan } = useData();
 
   const handleDelete = async () => {
@@ -60,42 +61,93 @@ const PlanCard = memo(function PlanCard({ plan, isOwner, onEdit, onDuplicate }: 
         marginBottom: 12,
       }}
     >
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="flex-1 min-w-0">
-          <h3
-            className="font-barlow font-bold leading-tight truncate"
-            style={{ fontSize: 17, color: "var(--gg-text)" }}
-          >
-            {plan.name}
-          </h3>
-          <p className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
-            {plan.items.length} {plan.items.length === 1 ? "ćwiczenie" : plan.items.length < 5 ? "ćwiczenia" : "ćwiczeń"}
-            {plan.isPublic && (
-              <span className="ml-2" style={{ color: "var(--gg-a1)" }}>• Publiczny</span>
-            )}
-          </p>
-        </div>
-      </div>
-
-      {muscles.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-3">
-          {muscles.map((m) => (
-            <span
-              key={m}
-              className="text-[11px] font-medium px-2 py-0.5 rounded-full"
-              style={{
-                background: "var(--gg-surface2)",
-                color: "var(--gg-text-sub)",
-                border: "1px solid var(--gg-border)",
-              }}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full text-left border-none bg-transparent cursor-pointer p-0"
+      >
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <div className="flex-1 min-w-0">
+            <h3
+              className="font-barlow font-bold leading-tight truncate"
+              style={{ fontSize: 17, color: "var(--gg-text)" }}
             >
-              {muscleLabel(m)}
-            </span>
+              {plan.name}
+            </h3>
+            <p className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+              {plan.items.length} {plan.items.length === 1 ? "ćwiczenie" : plan.items.length < 5 ? "ćwiczenia" : "ćwiczeń"}
+              {plan.isPublic && (
+                <span className="ml-2" style={{ color: "var(--gg-a1)" }}>• Publiczny</span>
+              )}
+            </p>
+          </div>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{
+              color: "var(--gg-text-muted)",
+              flexShrink: 0,
+              marginTop: 3,
+              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s",
+            }}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
+
+        {muscles.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-1">
+            {muscles.map((m) => (
+              <span
+                key={m}
+                className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+                style={{
+                  background: "var(--gg-surface2)",
+                  color: "var(--gg-text-sub)",
+                  border: "1px solid var(--gg-border)",
+                }}
+              >
+                {muscleLabel(m)}
+              </span>
+            ))}
+          </div>
+        )}
+      </button>
+
+      {expanded && plan.items.length > 0 && (
+        <div
+          className="mt-2 mb-3"
+          style={{
+            borderTop: "1px solid var(--gg-border)",
+            paddingTop: 10,
+          }}
+        >
+          {plan.items.map((item, index) => (
+            <div
+              key={item.id}
+              className="flex items-center gap-2 py-1"
+            >
+              <span
+                className="text-[11px] font-bold w-5 text-right flex-shrink-0"
+                style={{ color: "var(--gg-text-muted)" }}
+              >
+                {index + 1}.
+              </span>
+              <span className="text-[13px]" style={{ color: "var(--gg-text-sub)" }}>
+                {item.exercise.name}
+              </span>
+            </div>
           ))}
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 mt-2">
         {isOwner && onEdit && (
           <button
             onClick={onEdit}
