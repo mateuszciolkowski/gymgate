@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, memo, useRef, useMemo } from "react";
 import { useData } from "@/contexts/DataContext";
 import { useWorkoutData, WorkoutNotFoundError } from "@/contexts/DataContext";
+import { computeWorkoutElapsed } from "@/utils/workoutTimer";
 import type { ExerciseStats } from "@/types";
 import { ExerciseSelectionModal } from "./ExerciseSelectionModal";
 import { MUSCLE_GROUPS } from "@/constants";
@@ -95,11 +96,14 @@ export function WorkoutDetailScreen({
     if (!workout || workout.status !== "DRAFT") return;
 
     const startedAt = new Date(workout.createdAt).getTime();
-    setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+    const { elapsed: initialElapsed, isStale } = computeWorkoutElapsed(workout);
+    setElapsed(initialElapsed);
 
-    timerRef.current = setInterval(() => {
-      setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
-    }, 1000);
+    if (!isStale) {
+      timerRef.current = setInterval(() => {
+        setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+      }, 1000);
+    }
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
