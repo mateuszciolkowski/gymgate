@@ -40,7 +40,10 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:migrate": "prisma migrate dev",
     "seed": "tsx prisma/seed.ts",
-    "seed:plans": "tsx prisma/seed-plans.ts"
+    "seed:plans": "tsx prisma/seed-plans.ts",
+    "seed:local": "tsx prisma/seed-local.ts",
+    "db:local:up": "docker-compose -f docker-compose.local.yml up -d",
+    "db:local:down": "docker-compose -f docker-compose.local.yml down"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

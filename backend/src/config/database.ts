@@ -6,14 +6,13 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// Dodaj connection_limit do URL jeśli go nie ma
 const getDatabaseUrl = () => {
-  const url = process.env.DATABASE_URL || "";
-  if (url.includes("connection_limit")) {
-    return url;
-  }
-  const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}connection_limit=3`;
+  const isLocal = process.env.DB_ENV === "local";
+  const rawUrl = (isLocal ? process.env.DATABASE_URL_LOCAL : process.env.DATABASE_URL) || "";
+  if (isLocal) console.log("🏠 DB_ENV=local → connecting to local PostgreSQL (5433)");
+  if (rawUrl.includes("connection_limit")) return rawUrl;
+  const separator = rawUrl.includes("?") ? "&" : "?";
+  return `${rawUrl}${separator}connection_limit=3`;
 };
 
 const prisma =

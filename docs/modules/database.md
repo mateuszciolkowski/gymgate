@@ -153,6 +153,54 @@ make migrate-reset # ⚠ reset DB i replay wszystkich migracji (niszczy dane)
 Pliki migracji: `backend/prisma/migrations/`  
 Schemat: `backend/prisma/schema.prisma`
 
+## Tryb lokalny (DB_ENV=local)
+
+Przełącznik `DB_ENV` w `.env` pozwala wybrać bazę danych bez zmiany URL:
+
+| Wartość | Baza | Kiedy używać |
+|---|---|---|
+| `remote` (domyślne) | Supabase | prod / staging |
+| `local` | Docker PostgreSQL, port 5433 | testowanie lokalne, development |
+
+Potrzebne zmienne w `.env`:
+```env
+DB_ENV=remote
+DATABASE_URL_LOCAL="postgresql://postgres:postgres@localhost:5433/gymgate_local"
+DIRECT_URL_LOCAL="postgresql://postgres:postgres@localhost:5433/gymgate_local"
+```
+
+### Pierwsze uruchomienie lokalnej bazy
+
+```bash
+cd backend
+make local-setup   # start kontenera + migracje + seed (jednorazowo)
+# Zmień DB_ENV=local w .env
+make dev           # backend łączy się z lokalną bazą
+```
+
+### Dostępne komendy Makefile
+
+```bash
+make local-up       # uruchom kontener PostgreSQL (port 5433)
+make local-down     # zatrzymaj kontener (dane w Docker volume przetrwają)
+make local-migrate  # nałóż migracje na lokalną bazę
+make local-seed     # seeduj: ćwiczenia + plany + testowy user z historią
+make local-setup    # local-up + local-migrate + local-seed (first-time setup)
+make local-reset    # local-migrate + local-seed (wyczyść i zaseeduj ponownie)
+```
+
+### Testowy użytkownik (seed-local)
+
+| | |
+|---|---|
+| Email | `test@gymgate.com` |
+| Hasło | `Test1234!` |
+| Treningi | 16 zakończonych (4 typy: klatka / plecy / nogi / barki-ramiona, 4 cykle ~3 miesiące) |
+| Dane | Progresja obciążeń widoczna, `ExerciseUserStats` wypełnione |
+| Aktywny trening | 1 DRAFT (klatka, 2 ćwiczenia bez serii) |
+
+Skrypt: `backend/prisma/seed-local.ts` — zawsze używa `DATABASE_URL_LOCAL`, niezależnie od `DB_ENV`.
+
 ## Uwagi implementacyjne
 
 - `BigInt.prototype.toJSON` jest patchowany globalnie w `backend/src/index.ts` – umożliwia serializację BigInt do JSON.
