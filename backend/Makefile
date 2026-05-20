@@ -80,7 +80,9 @@ local-setup: local-up local-migrate local-seed ## Full local DB setup: start + m
 	@echo ""
 	@echo "✅ Local DB ready! Now set DB_ENV=local in .env and run: make dev"
 
-local-reset: local-migrate local-seed ## Re-apply migrations and re-seed local database
+local-reset: ## Reset local database: wipe all data, re-apply migrations, and re-seed
+	DATABASE_URL=$(LOCAL_DB_URL) DIRECT_URL=$(LOCAL_DB_URL) npx prisma migrate reset --force --skip-seed
+	$(MAKE) local-seed
 
 # ── Development ───────────────────────────────────────────────────────────────
 
