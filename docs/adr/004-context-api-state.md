@@ -1,31 +1,31 @@
-# ADR-004 – Context API zamiast zewnętrznego state managera
+# ADR-004 – Context API Instead of External State Manager
 
-**Status:** Zaakceptowany  
-**Data:** 2024
+**Status:** Accepted  
+**Date:** 2024
 
-## Kontekst
+## Context
 
-Frontend wymaga globalnego stanu dla danych domenowych (treningi, ćwiczenia, statystyki) oraz stanu sesji. Dostępne opcje w ekosystemie React to Redux Toolkit, Zustand, Jotai lub natywne Context API.
+The frontend requires global state for domain data (workouts, exercises, statistics) and session state. Available options in the React ecosystem include Redux Toolkit, Zustand, Jotai, or the native Context API.
 
-## Decyzja
+## Decision
 
-Zastosowano wyłącznie **React Context API** (`AuthContext` + `DataContext`) – bez żadnej zewnętrznej biblioteki stanu.
+Only **React Context API** (`AuthContext` + `DataContext`) is used – without any external state library.
 
-## Uzasadnienie
+## Rationale
 
-- **Prostota** – projekt ma jeden główny przepływ danych; dwa contexty (`AuthContext`, `DataContext`) w pełni pokrywają potrzeby.
-- **Zero zależności** – brak dodatkowych paczek zmniejsza rozmiar bundle i ryzyko breaking changes.
-- **Spójność z React 19** – natywne możliwości Reacta (Actions, `useOptimistic`) nie wymagają adaptera.
-- **Czytelność** – `DataContext` eksponuje jasno zdefiniowany interfejs (`DataContextType`) ze wszystkimi akcjami.
+- **Simplicity** – the project has a single main data flow; two contexts (`AuthContext`, `DataContext`) fully cover the needs.
+- **Zero dependencies** – no additional packages reduces bundle size and risk of breaking changes.
+- **Consistency with React 19** – native React capabilities (Actions, `useOptimistic`) do not require an adapter.
+- **Readability** – `DataContext` exposes a clearly defined interface (`DataContextType`) with all actions.
 
-## Konsekwencje
+## Consequences
 
-- `DataContext` jest monolitycznym plikiem (~1800 LOC) – wymaga dyscypliny przy rozbudowie.
-- Każda zmiana stanu w `DataContext` re-renderuje wszystkich konsumentów; `useCallback`, `useMemo` i `useRef` są stosowane w celu ograniczenia zbędnych re-renderów.
-- `exercisesRef`, `workoutsRef`, `statsRef` – refy stosowane w callbackach w celu uniknięcia stale closures bez rozszerzania tablicy zależności `useEffect`.
+- `DataContext` is a monolithic file (~1800 LOC) – requires discipline when extending.
+- Every state change in `DataContext` re-renders all consumers; `useCallback`, `useMemo`, and `useRef` are used to limit unnecessary re-renders.
+- `exercisesRef`, `workoutsRef`, `statsRef` – refs used in callbacks to avoid stale closures without expanding `useEffect` dependency arrays.
 
-## Rozważane alternatywy
+## Alternatives Considered
 
-- **Zustand** – pominięty jako nadmiarowy dla obecnej skali; można rozważyć przy dalszej rozbudowie.
-- **Redux Toolkit** – pominięty jako over-engineering dla tej aplikacji.
-- **Jotai / Recoil** – atomowy model stanu niezgodny z obecną strukturą globalnego store'u.
+- **Zustand** – skipped as unnecessary for the current scale; can be reconsidered for further expansion.
+- **Redux Toolkit** – skipped as over-engineering for this application.
+- **Jotai / Recoil** – atomic state model incompatible with the current global store structure.

@@ -77,7 +77,7 @@ Every module follows strict layering: `routes → controller → service → rep
 - Algorithm: `plan.items.sort(orderInPlan).filter(!added && !skipped).first()`
 - UI: amber button `[+ <exercise name>] [⏭]`; `⏭` calls `skipPlanExercise(workoutId, exerciseId)`
 - `skipPlanExercise` is optimistic: updates `workout.skippedPlanExerciseIds` locally + IndexedDB, then `POST /api/workouts/:id/skip-plan-exercise`; rolls back on API failure
-- When all exercises are added or skipped → "Plan ukończony" indicator
+- When all exercises are added or skipped → "Plan completed" indicator
 - Manual `ExerciseSelectionModal` works in parallel without any changes
 
 **Plan CRUD (online-only):** `createPlan`, `updatePlan`, `deletePlan`, `duplicatePlan` require active network connection (throw immediately offline). `skipPlanExercise` and the plan suggestion work fully offline.
@@ -145,13 +145,13 @@ Full project documentation lives in **`docs/`** — start there for architecture
 
 ```
 docs/
-├── README.md          ← punkt wejścia (mapa + quick start)
-├── ARCHITECTURE.md    ← diagram systemu, stos tech, schemat DB, deployment
-├── ONBOARDING.md      ← środowisko dev, konwencje
-├── PLANS.md           ← konwencja plików planistycznych
-├── modules/           ← szczegóły każdego modułu (auth, workout, exercise, plan, offline-sync, database)
+├── README.md          ← entry point (map + quick start)
+├── ARCHITECTURE.md    ← system diagram, tech stack, DB schema, deployment
+├── ONBOARDING.md      ← dev environment, conventions
+├── PLANS.md           ← plan file convention
+├── modules/           ← details for each module (auth, workout, exercise, plan, offline-sync, database)
 ├── adr/               ← Architecture Decision Records
-└── api/openapi.yaml   ← kompletna spec REST API (OpenAPI 3.1)
+└── api/openapi.yaml   ← complete REST API spec (OpenAPI 3.1)
 ```
 
 After any API logic change, update:

@@ -1,82 +1,82 @@
-# Moduł: Auth
+# Module: Auth
 
-## Odpowiedzialność
+## Responsibility
 
-Obsługa rejestracji, logowania i weryfikacji sesji użytkownika. Zarządzanie profilem użytkownika należy do modułu `user`.
+Handles user registration, login, and session verification. User profile management belongs to the `user` module.
 
-## Endpointy
+## Endpoints
 
-| Metoda | Ścieżka              |   Auth wymagany    | Opis                            |
-| ------ | -------------------- | :----------------: | ------------------------------- |
-| POST   | `/api/auth/register` |         ✗          | Rejestracja nowego konta        |
-| POST   | `/api/auth/login`    |         ✗          | Logowanie, zwraca JWT           |
-| GET    | `/api/auth/me`       | ✗ (self-validates) | Profil zalogowanego użytkownika |
+| Method | Path                 |      Auth Required      | Description                     |
+| ------ | -------------------- | :---------------------: | ------------------------------- |
+| POST   | `/api/auth/register` |            ✗            | Register a new account          |
+| POST   | `/api/auth/login`    |            ✗            | Login, returns JWT              |
+| GET    | `/api/auth/me`       | ✗ (self-validates)      | Logged-in user profile          |
 
-> `/api/auth/me` nie korzysta z `authMiddleware` – token weryfikowany jest bezpośrednio w kontrolerze, co pozwala na zwracać `401` zamiast blokowania na poziomie middleware.
+> `/api/auth/me` does not use `authMiddleware` – the token is verified directly in the controller, allowing it to return `401` instead of blocking at the middleware level.
 
-## Przepływ rejestracji
+## Registration Flow
 
 ```
 POST /api/auth/register
   ↓ validate(registerSchema)   – Zod: email, password, firstName, lastName, phone?
   ↓ authService.register()
-      ├─ sprawdź email (userRepo.findUserByEmail) → 409 jeśli istnieje
+      ├─ check email (userRepo.findUserByEmail) → 409 if exists
       ├─ bcrypt.hash(password, 10)
       ├─ userRepo.createUser(...)
       └─ jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: "7d" })
   ↓ 201 { success: true, data: { user, token } }
 ```
 
-## Przepływ logowania
+## Login Flow
 
 ```
 POST /api/auth/login
   ↓ validate(loginSchema)      – Zod: email, password
   ↓ authService.login()
-      ├─ userRepo.findUserByEmail → 401 jeśli nie istnieje
-      ├─ bcrypt.compare(password, hash) → 401 jeśli niezgodne
+      ├─ userRepo.findUserByEmail → 401 if not found
+      ├─ bcrypt.compare(password, hash) → 401 if mismatch
       └─ jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: "7d" })
   ↓ 200 { success: true, data: { user, token } }
 ```
 
-## Token JWT
+## JWT Token
 
 - **Payload:** `{ userId: string, email: string }`
-- **Czas życia:** 7 dni
-- **Sekret:** `JWT_SECRET` (env var, wymagany)
+- **Lifetime:** 7 days
+- **Secret:** `JWT_SECRET` (env var, required)
 - **Transport:** `Authorization: Bearer <token>` header
 
-## Middleware authMiddleware
+## authMiddleware
 
-Plik: `backend/src/common/middleware/auth.ts`
+File: `backend/src/common/middleware/auth.ts`
 
 ```typescript
-// Dołącza do request:
+// Attaches to request:
 req.userId; // string (UUID)
 req.userEmail; // string
 ```
 
-Odpowiedź `401` jest zwracana przy braku tokenu lub gdy token jest nieprawidłowy/wygasły.
+Returns `401` when the token is missing, invalid, or expired.
 
 ## Frontend – AuthContext
 
-Plik: `frontend/src/contexts/AuthContext.tsx`
+File: `frontend/src/contexts/AuthContext.tsx`
 
-- Token przechowywany jest w `localStorage` pod kluczem `gymgate_token`
-- Cache danych użytkownika zapisywany jest w `localStorage` pod kluczem `gymgate_user`
-- Przy starcie aplikacji wywoływany jest `GET /api/auth/me` – przy braku sieci użytkownik odtwarzany jest z cache
-- `authFetch` (`frontend/src/utils/auth.ts`) interceptuje `401`, czyści storage i przeładowuje stronę
+- Token stored in `localStorage` under key `gymgate_token`
+- User data cache stored in `localStorage` under key `gymgate_user`
+- On app start, `GET /api/auth/me` is called – if offline, user is restored from cache
+- `authFetch` (`frontend/src/utils/auth.ts`) intercepts `401`, clears storage, and reloads the page
 
-## Błędy
+## Errors
 
-| Kod | Sytuacja                                               |
-| --- | ------------------------------------------------------ |
-| 401 | Nieprawidłowy email lub hasło / brak lub wygasły token |
-| 409 | Email już zajęty (rejestracja)                         |
-| 422 | Błąd walidacji Zod                                     |
-| 500 | Brak `JWT_SECRET` w env                                |
+| Code | Situation                                              |
+| ---- | ------------------------------------------------------ |
+| 401  | Invalid email or password / missing or expired token   |
+| 409  | Email already taken (registration)                     |
+| 422  | Zod validation error                                   |
+| 500  | Missing `JWT_SECRET` in env                            |
 
-## Pliki
+## Files
 
 ```
 backend/src/modules/auth/

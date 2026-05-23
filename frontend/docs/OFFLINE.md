@@ -1,129 +1,129 @@
-# GymGate Frontend — Architektura offline-first
+# GymGate Frontend — Offline-first Architecture
 
-## Filozofia
+## Philosophy
 
-Aplikacja działa na zasadzie **local-first**: dane użytkownika w IndexedDB są zawsze źródłem prawdy dla UI. Serwer jest synchronizowany w tle — nigdy nie blokuje interakcji.
+The application operates on a **local-first** principle: user data in IndexedDB is always the source of truth for the UI. The server is synchronized in the background — it never blocks interaction.
 
-Dane dodane przez użytkownika offline **nigdy nie są nadpisywane** przez dane z serwera dopóki nie zostaną wysłane.
+Data added by the user offline **is never overwritten** by server data until it has been sent.
 
 ---
 
-## Komponenty systemu
+## System Components
 
 ### 1. `localStore.ts` — IndexedDB
 
-Wrapper na IndexedDB z 6 store'ami:
+Wrapper around IndexedDB with 6 stores:
 
-| Store | Klucz | Zawartość |
+| Store | Key | Contents |
 |---|---|---|
-| `workouts` | `id` | Pełne obiekty Workout (z items i sets) |
-| `exercises` | `id` | Obiekty Exercise |
-| `stats` | `id` | ExerciseUserStats per ćwiczenie |
-| `activeWorkout` | `"current"` | ID aktywnego treningu |
-| `pendingSync` | `id` | Kolejka operacji do wysłania (SyncOperation[]) |
-| `metadata` | `key` | Ostatni sync, statsOverview, cache progresji |
+| `workouts` | `id` | Full Workout objects (with items and sets) |
+| `exercises` | `id` | Exercise objects |
+| `stats` | `id` | ExerciseUserStats per exercise |
+| `activeWorkout` | `"current"` | Active workout ID |
+| `pendingSync` | `id` | Queue of operations to send (SyncOperation[]) |
+| `metadata` | `key` | Last sync, statsOverview, progression cache |
 
-`SyncOperation` przechowuje: typ (`create/update/delete`), encję (`workout/workoutItem/set/exercise`), endpoint, metodę HTTP, dane, timestamp i licznik prób.
+`SyncOperation` stores: type (`create/update/delete`), entity (`workout/workoutItem/set/exercise`), endpoint, HTTP method, data, timestamp, and retry count.
 
 ---
 
-### 2. `syncManager.ts` — Menedżer synchronizacji
+### 2. `syncManager.ts` — Sync Manager
 
-Singleton odpowiedzialny za:
-- Śledzenie stanu online/offline (`window.addEventListener("online"/"offline")`)
-- Wysyłanie kolejkowanych operacji do serwera
-- Pobieranie świeżych danych z serwera po synchronizacji
-- Emitowanie zdarzeń sukcesu i niepowodzenia synchronizacji
+Singleton responsible for:
+- Tracking online/offline state (`window.addEventListener("online"/"offline")`)
+- Sending queued operations to the server
+- Fetching fresh data from the server after synchronization
+- Emitting sync success and failure events
 
-**Cykl pracy:**
+**Work cycle:**
 
 ```
 syncManager.start()
-  → syncNow() wywołany natychmiast
-  → setInterval co 2 minuty
+  → syncNow() called immediately
+  → setInterval every 2 minutes
 
 syncNow():
-  1. processPendingOperations()  – wyślij kolejkę (FIFO po timestamp)
-  2. fetchFreshData()            – pobierz świeże dane z serwera
-  3. setLastSync(Date.now())     – zapisz timestamp do IndexedDB
-  4. notify listeners            – powiadom DataContext o nowych danych
+  1. processPendingOperations()  – send queue (FIFO by timestamp)
+  2. fetchFreshData()            – fetch fresh data from server
+  3. setLastSync(Date.now())     – save timestamp to IndexedDB
+  4. notify listeners            – notify DataContext of new data
 ```
 
-**Zdarzenie online:** `handleOnline` wywołuje `syncNow()` natychmiast po przywróceniu połączenia.
+**Online event:** `handleOnline` calls `syncNow()` immediately after connection is restored.
 
 ---
 
-### 3. `DataContext.tsx` — Globalny store
+### 3. `DataContext.tsx` — Global Store
 
-Jedyna globalna warstwa stanu w aplikacji. Eksponuje:
+The only global state layer in the application. Exposes:
 - `workouts[]`, `exercises[]`, `stats[]`, `statsOverview`, `activeWorkoutId`
-- Wszystkie akcje mutujące dane
+- All data-mutating actions
 - `isOnline`, `lastSync`, `failedSyncOperations`
 
 ---
 
-## Wzorzec optymistycznej aktualizacji
+## Optimistic Update Pattern
 
-Każda mutacja (dodanie serii, zmiana ciężaru, etc.) przebiega w stałym schemacie:
+Every mutation (adding a set, changing weight, etc.) follows a fixed pattern:
 
 ```
-1. Natychmiastowa aktualizacja React state (UI reaguje w <1ms)
-2. Zapis do IndexedDB (persistencja offline)
-3. Próba wywołania API:
-   a) Sukces online  → remap temp IDs na prawdziwe, zaktualizuj IDB
-   b) Błąd offline   → dodaj do kolejki pendingSync
-   c) Błąd serwera   → rollback (przywróć poprzedni stan)
+1. Immediate React state update (UI responds in <1ms)
+2. Save to IndexedDB (offline persistence)
+3. Attempt API call:
+   a) Online success  → remap temp IDs to real ones, update IDB
+   b) Offline error   → add to pendingSync queue
+   c) Server error    → rollback (restore previous state)
 ```
 
-Użytkownik nigdy nie czeka. W razie awarii serwera dane wracają do stanu sprzed akcji.
+The user never waits. If the server fails, data reverts to the pre-action state.
 
 ---
 
-## Tymczasowe ID i ich rozwiązywanie
+## Temporary IDs and Resolution
 
-Gdy encja jest tworzona offline, dostaje prefiks `temp_`:
+When an entity is created offline, it gets a `temp_` prefix:
 - `temp_workout_1749219600000`
 - `temp_item_1749219600001`
 - `temp_set_1749219600002`
 
-Te ID trafiają do `pendingSync` w endpoint-ach i payloadach kolejkowanych operacji.
+These IDs end up in `pendingSync` in the endpoints and payloads of queued operations.
 
-**Rozwiązywanie przy synchronizacji** (`processPendingOperations`):
+**Resolution during synchronization** (`processPendingOperations`):
 
 ```
-Operacje sortowane po timestamp → przetwarzane FIFO
+Operations sorted by timestamp → processed FIFO
 
-Dla każdej operacji:
+For each operation:
   resolvedEndpoint = replaceTempIds(op.endpoint, tempIdMap)
   resolvedData     = replaceTempIdsDeep(op.data, tempIdMap)
 
-  Jeśli unresolved temp IDs → skip (zależność jeszcze nie rozwiązana)
+  If unresolved temp IDs → skip (dependency not yet resolved)
 
-  Po sukcesie API:
+  After API success:
     tempIdMap.set(clientTempId, response.data.id)
     tempIdMap.set(clientTempItemId, response.data.id)
     tempIdMap.set(clientTempSetId, response.data.sets[0].id)
 ```
 
-`tempIdMap` jest budowany progresywnie w ramach jednego wywołania `processPendingOperations`. Kolejne operacje w tej samej sesji synchronizacji mogą korzystać z mapowań poprzednich.
+`tempIdMap` is built progressively within a single `processPendingOperations` call. Subsequent operations in the same sync session can use mappings from previous ones.
 
-Równolegle — gdy akcja wywoływana jest online — `DataContext.idMappingRef` mapuje temp ID na prawdziwe ID w pamięci React (dla bieżącej sesji bez restartu).
+In parallel — when an action is called online — `DataContext.idMappingRef` maps temp IDs to real IDs in React memory (for the current session without restart).
 
 ---
 
-## Ochrona danych offline przy odświeżeniu strony
+## Protecting Offline Data on Page Refresh
 
 ### Problem
 
-Gdy użytkownik:
-1. Tworzy trening offline → `temp_workout_xxx` trafia do IndexedDB
-2. Odświeża stronę przy aktywnym połączeniu
+When the user:
+1. Creates a workout offline → `temp_workout_xxx` goes to IndexedDB
+2. Refreshes the page with an active connection
 
-Bez ochrony: `fetchAllFromServer` wywołuje `localStore.clear("workouts")` zanim SyncManager wyśle pending ops → temp workout znika z IndexedDB.
+Without protection: `fetchAllFromServer` calls `localStore.clear("workouts")` before SyncManager sends pending ops → temp workout disappears from IndexedDB.
 
-### Rozwiązanie (Fix A)
+### Solution (Fix A)
 
-`fetchAllFromServer` przed wyczyszczeniem IndexedDB sprawdza kolejkę:
+`fetchAllFromServer` checks the queue before clearing IndexedDB:
 
 ```typescript
 const pendingOps = await localStore.getPendingSyncOperations();
@@ -131,95 +131,95 @@ const hasPendingWorkoutMutations = pendingOps.some(
   (op) => op.entity === "workout" || op.entity === "workoutItem" || op.entity === "set"
 );
 
-// Jeśli są pending ops → pomiń pobieranie/czyszczenie workoutów
-// Exercises, stats i statsOverview są zawsze odświeżane (bezpieczne)
+// If there are pending ops → skip fetching/clearing workouts
+// Exercises, stats, and statsOverview are always refreshed (safe)
 ```
 
-To samo zachowanie ma `fetchFreshData` w SyncManager — Fix A powiela ten guard do `fetchAllFromServer`.
+The same behavior applies to `fetchFreshData` in SyncManager — Fix A replicates this guard to `fetchAllFromServer`.
 
 ---
 
-## Sekwencja startowa aplikacji
+## Application Startup Sequence
 
 ```
-użytkownik zalogowany → useEffect:
+user logged in → useEffect:
 
 1. loadLocalData():
-   - Odczyt z IndexedDB (workouts, exercises, stats, etc.)
-   - Ustawienie React state natychmiast → UI dostępne bez sieci
+   - Read from IndexedDB (workouts, exercises, stats, etc.)
+   - Set React state immediately → UI available without network
    - initialLoadDone.current = true
-   - Jeśli data stale (>5 min) lub pusta → fetchAllFromServer()
-     (z guardem pending ops — nie nadpisuje danych offline)
+   - If data stale (>5 min) or empty → fetchAllFromServer()
+     (with pending ops guard — does not overwrite offline data)
 
-2. Rejestracja sync listener:
-   - Listener sprawdza `initialLoadDone.current` → nie odpala przed etapem 1
+2. Register sync listener:
+   - Listener checks `initialLoadDone.current` → does not fire before step 1
 
 3. syncManager.start():
-   - syncNow() natychmiast:
-     a) processPendingOperations() — wysyła kolejkę
-     b) fetchFreshData()           — pobiera świeże dane
-     c) listener fires             — aktualizuje React state z IndexedDB
+   - syncNow() immediately:
+     a) processPendingOperations() — sends queue
+     b) fetchFreshData()           — fetches fresh data
+     c) listener fires             — updates React state from IndexedDB
 ```
 
-**Dlaczego listener sprawdza `initialLoadDone.current`?** (Fix C)
+**Why does the listener check `initialLoadDone.current`?** (Fix C)
 
-Oba `useEffect`-y startują razem. SyncManager startuje asynchronicznie i jego listener mógłby zaktualizować state z IndexedDB zanim `loadLocalData` ustawi `initialLoadDone.current`, powodując nadpisanie świeżo załadowanych danych danymi z poprzedniego cyklu.
-
----
-
-## Powiadomienie o utracie danych
-
-Jeśli operacja z kolejki przekroczy 3 próby (`MAX_RETRIES = 3`), SyncManager:
-1. Usuwa ją z `pendingSync`
-2. Wywołuje `onSyncFailure` callbacks z listą nieudanych operacji
-
-`DataContext` subskrybuje te zdarzenia i ustawia `failedSyncOperations[]`.
-
-UI (`App.tsx`) renderuje baner informacyjny gdy `failedSyncOperations.length > 0`. Użytkownik może go zamknąć przez `dismissSyncFailures()`.
+Both `useEffect`s start together. SyncManager starts asynchronously and its listener could update state from IndexedDB before `loadLocalData` sets `initialLoadDone.current`, causing freshly loaded data to be overwritten by data from the previous cycle.
 
 ---
 
-## Przepływ po przywróceniu połączenia
+## Data Loss Notification
+
+If a queued operation exceeds 3 attempts (`MAX_RETRIES = 3`), SyncManager:
+1. Removes it from `pendingSync`
+2. Calls `onSyncFailure` callbacks with the list of failed operations
+
+`DataContext` subscribes to these events and sets `failedSyncOperations[]`.
+
+UI (`App.tsx`) renders an informational banner when `failedSyncOperations.length > 0`. The user can dismiss it via `dismissSyncFailures()`.
+
+---
+
+## Flow After Connection Restored
 
 ```
 window: "online" event
   → SyncManager.handleOnline()
   → syncNow():
-      processPendingOperations() → wyślij kolejkę FIFO
-        ↓ sukces każdej op → tempIdMap budowany progresywnie
+      processPendingOperations() → send queue FIFO
+        ↓ success for each op → tempIdMap built progressively
       fetchFreshData():
-        jeśli brak pending ops → pobierz workouty z serwera
-        (dane serwera mają teraz prawdziwe ID zamiast temp_*)
-      listeners → aktualizuj React state z IndexedDB
+        if no pending ops → fetch workouts from server
+        (server data now has real IDs instead of temp_*)
+      listeners → update React state from IndexedDB
 ```
 
 ---
 
-## Stany aplikacji dla danych
+## Application Data States
 
-| Stan | IndexedDB | React state | Serwer |
+| State | IndexedDB | React state | Server |
 |---|---|---|---|
-| Online, świeże dane | = serwer | = IndexedDB | ✓ |
-| Online, pending ops | = serwer + optymistycznie | = IndexedDB | oczekuje |
-| Offline, nowe dane | = optymistycznie | = IndexedDB | nie wysłano |
-| Restart po offline | = optymistycznie | = IndexedDB | nie wysłano |
-| Powrót online | serwer + optymistycznie | via listener | ✓ po sync |
+| Online, fresh data | = server | = IndexedDB | ✓ |
+| Online, pending ops | = server + optimistic | = IndexedDB | pending |
+| Offline, new data | = optimistic | = IndexedDB | not sent |
+| Restart after offline | = optimistic | = IndexedDB | not sent |
+| Back online | server + optimistic | via listener | ✓ after sync |
 
 ---
 
-## Struktura plików
+## File Structure
 
 ```
 frontend/src/
   utils/
     localStore.ts    – IndexedDB CRUD + pendingSync + metadata
-    syncManager.ts   – background sync, kolejkowanie, failure callbacks
+    syncManager.ts   – background sync, queuing, failure callbacks
     auth.ts          – authFetch (auto-JWT), getAuthHeaders
   contexts/
-    DataContext.tsx  – globalny store, optymistyczne aktualizacje, rollback
-    AuthContext.tsx  – sesja, login, logout
+    DataContext.tsx  – global store, optimistic updates, rollback
+    AuthContext.tsx  – session, login, logout
   hooks/
-    useWorkout.ts    – hook dla WorkoutDetailScreen
-    useWorkouts.ts   – hook dla listy treningów
-    useExercises.ts  – hook dla listy ćwiczeń
+    useWorkout.ts    – hook for WorkoutDetailScreen
+    useWorkouts.ts   – hook for workout list
+    useExercises.ts  – hook for exercise list
 ```

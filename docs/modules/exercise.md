@@ -1,10 +1,10 @@
-# Moduł: Exercise
+# Module: Exercise
 
-## Odpowiedzialność
+## Responsibility
 
-CRUD ćwiczeń. Ćwiczenia są **globalne** (bez `creatorUserId`) lub **prywatne** (z `creatorUserId` = id użytkownika). Usunięcie użytkownika kaskadowo usuwa jego prywatne ćwiczenia.
+Exercise CRUD. Exercises are **global** (no `creatorUserId`) or **private** (with `creatorUserId` = user's id). Deleting a user cascades to their private exercises.
 
-## Model domenowy
+## Domain Model
 
 ```
 Exercise
@@ -12,34 +12,34 @@ Exercise
   name            string (max 200)
   muscleGroups    MuscleGroup[]   ← enum, min 1 element
   description     string?
-  creatorUserId   string?         ← null = ćwiczenie globalne
+  creatorUserId   string?         ← null = global exercise
   photos          ExercisePhoto[]
 
 ExercisePhoto
   id, exerciseId, photoStage (START | MIDDLE | END), photoUrl
 ```
 
-## Grupy mięśniowe (MuscleGroup enum)
+## Muscle Groups (MuscleGroup enum)
 
 `CHEST | BACK | SHOULDERS | BICEPS | TRICEPS | FOREARMS | ABS | OBLIQUES | LOWER_BACK | QUADS | HAMSTRINGS | GLUTES | CALVES | ADDUCTORS | HIP_FLEXORS | TRAPS | LATS | MIDDLE_BACK | NECK | FULL_BODY`
 
-## Endpointy (wszystkie wymagają authMiddleware)
+## Endpoints (all require authMiddleware)
 
-| Metoda | Ścieżka               | Opis                                              |
-|--------|-----------------------|--------------------------------------------------|
-| GET    | `/api/exercises`      | Lista ćwiczeń (filtr: muscleGroup, name, creatorUserId) |
-| GET    | `/api/exercises/:id`  | Pojedyncze ćwiczenie                              |
-| POST   | `/api/exercises`      | Utwórz ćwiczenie (creatorUserId = zalogowany user) |
-| PATCH  | `/api/exercises/:id`  | Edytuj ćwiczenie                                  |
-| DELETE | `/api/exercises/:id`  | Usuń ćwiczenie                                    |
+| Method | Path                  | Description                                               |
+|--------|-----------------------|----------------------------------------------------------|
+| GET    | `/api/exercises`      | List exercises (filter: muscleGroup, name, creatorUserId) |
+| GET    | `/api/exercises/:id`  | Single exercise                                           |
+| POST   | `/api/exercises`      | Create exercise (creatorUserId = logged-in user)          |
+| PATCH  | `/api/exercises/:id`  | Edit exercise                                             |
+| DELETE | `/api/exercises/:id`  | Delete exercise                                           |
 
-## Query params (GET /api/exercises)
+## Query Params (GET /api/exercises)
 
 ```typescript
 {
   muscleGroup?: MuscleGroup
-  name?: string           // filtr po nazwie (case-insensitive)
-  creatorUserId?: string  // "null" zwraca ćwiczenia globalne
+  name?: string           // filter by name (case-insensitive)
+  creatorUserId?: string  // "null" returns global exercises
 }
 ```
 
@@ -59,15 +59,15 @@ ExercisePhoto
 }
 ```
 
-## Błędy
+## Errors
 
-| Kod | Sytuacja |
-|-----|----------|
-| 401 | Brak / wygasły token |
-| 404 | Ćwiczenie nie istnieje |
-| 422 | Błąd walidacji Zod |
+| Code | Situation |
+|------|-----------|
+| 401  | Missing / expired token |
+| 404  | Exercise not found |
+| 422  | Zod validation error |
 
-## Pliki
+## Files
 
 ```
 backend/src/modules/exercise/
@@ -76,5 +76,5 @@ backend/src/modules/exercise/
   exercise.service.ts
   exercise.repository.ts
   exercise.schema.ts    ← createExerciseSchema, updateExerciseSchema, filterExercisesSchema
-  API.md                ← pełne req/res kontrakty
+  API.md                ← full req/res contracts
 ```

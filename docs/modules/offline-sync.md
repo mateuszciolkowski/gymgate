@@ -1,41 +1,41 @@
-# Moduł: Offline / Sync
+# Module: Offline / Sync
 
-## Odpowiedzialność
+## Responsibility
 
-Zapewnienie działania aplikacji przy braku połączenia z siecią oraz synchronizacja lokalnych zmian z serwerem po jego odzyskaniu.
+Ensures the application works without a network connection and synchronizes local changes with the server once connectivity is restored.
 
-## Architektura
+## Architecture
 
 ```
 DataContext (React)
   │
-  ├─ authFetch()         ← każde żądanie API przechodzi przez authFetch
-  │    └─ przy 401 → clearStorage + reload
+  ├─ authFetch()         ← every API request goes through authFetch
+  │    └─ on 401 → clearStorage + reload
   │
-  ├─ isOfflineError()    ← TypeError lub !navigator.onLine
+  ├─ isOfflineError()    ← TypeError or !navigator.onLine
   │
-  ├─ queueSyncOperation()  ← zapisuje operację do IndexedDB (pendingSync store)
+  ├─ queueSyncOperation()  ← saves operation to IndexedDB (pendingSync store)
   │
   └─ SyncManager (singleton)
-       ├─ start()         ← wywołany przy montowaniu DataProvider
-       ├─ syncNow()       ← wołany: przy starcie, co 2 min, po powrocie online
+       ├─ start()         ← called when DataProvider mounts
+       ├─ syncNow()       ← called: on start, every 2 min, on reconnect
        ├─ processPendingOperations()
        └─ fetchFreshData()
 ```
 
 ## localStore – IndexedDB
 
-Plik: `frontend/src/utils/localStore.ts`
+File: `frontend/src/utils/localStore.ts`
 
-Baza: `gymgate_db` (v1), 6 object stores:
+Database: `gymgate_db` (v1), 6 object stores:
 
-| Store           | keyPath | Zawartość                                       |
+| Store           | keyPath | Contents                                        |
 | --------------- | ------- | ----------------------------------------------- |
 | `exercises`     | `id`    | Exercise[]                                      |
-| `workouts`      | `id`    | Workout[] (z items i sets)                      |
+| `workouts`      | `id`    | Workout[] (with items and sets)                 |
 | `activeWorkout` | `key`   | `{ key: "current", workoutId: string\|null }`   |
 | `stats`         | `id`    | ExerciseUserStats[]                             |
-| `pendingSync`   | `id`    | SyncOperation[] (z indeksem na timestamp)       |
+| `pendingSync`   | `id`    | SyncOperation[] (with timestamp index)          |
 | `metadata`      | `key`   | lastSync, statsOverview, statsProgression cache |
 
 ## SyncOperation
@@ -45,68 +45,68 @@ interface SyncOperation {
   id: string; // "sync_<timestamp>_<random>"
   type: "create" | "update" | "delete";
   entity: "workout" | "exercise" | "set" | "workoutItem";
-  endpoint: string; // np. "/api/workouts/temp_workout_abc/exercises"
+  endpoint: string; // e.g. "/api/workouts/temp_workout_abc/exercises"
   method: string; // "POST" | "PATCH" | "DELETE"
   data?: unknown;
   timestamp: number;
-  retries: number; // max 3, po przekroczeniu → permanentnie failed
+  retries: number; // max 3, after exceeding → permanently failed
 }
 ```
 
-## Przepływ synchronizacji
+## Sync Flow
 
 ```
 syncNow()
   1. processPendingOperations()
-     ├─ sortuj po timestamp (FIFO)
-     ├─ dla każdej operacji:
-     │   ├─ zamień temp_* IDs na prawdziwe (tempIdMap z poprzednich odpowiedzi)
-     │   ├─ sprawdź czy wszystkie temp IDs zostały rozwiązane → pomiń jeśli nie
-     │   ├─ wyślij request (authFetch)
-     │   ├─ sukces → usuń z pendingSync, zapisz mapowanie temp→real ID
-     │   └─ błąd → retries++; jeśli >= 3 → permanentlyFailed[]
-     └─ powiadom failureListeners jeśli są permanentnie nieudane
+     ├─ sort by timestamp (FIFO)
+     ├─ for each operation:
+     │   ├─ replace temp_* IDs with real ones (tempIdMap from previous responses)
+     │   ├─ check if all temp IDs are resolved → skip if not
+     │   ├─ send request (authFetch)
+     │   ├─ success → remove from pendingSync, save temp→real ID mapping
+     │   └─ error → retries++; if >= 3 → permanentlyFailed[]
+     └─ notify failureListeners if there are permanently failed ops
 
   2. fetchFreshData()
      ├─ GET /api/workouts, /api/exercises, /api/workouts/stats/all,
      │   /api/workouts/stats/overview
-     └─ nadpisz IndexedDB świeżymi danymi
+     └─ overwrite IndexedDB with fresh data
 
   3. setLastSync(Date.now())
-  4. powiadom listeners (DataContext refreshuje stan)
+  4. notify listeners (DataContext refreshes state)
 ```
 
 ## Optimistic Update Pattern
 
-Każda mutacja w `DataContext` wykonuje:
+Every mutation in `DataContext` performs:
 
 ```
-1. setState(...)           ← natychmiastowy update UI
-2. localStore.put(...)     ← zapis w IndexedDB
-3. authFetch(...)          ← request do API
-   ├─ sukces → idMapping: temp_* → real UUID
-   └─ isOfflineError → queueSyncOperation(...)  ← dodaj do kolejki
-       └─ rollback setState() jeśli błąd serwera (nie offline)
+1. setState(...)           ← immediate UI update
+2. localStore.put(...)     ← save to IndexedDB
+3. authFetch(...)          ← request to API
+   ├─ success → idMapping: temp_* → real UUID
+   └─ isOfflineError → queueSyncOperation(...)  ← add to queue
+       └─ rollback setState() if server error (not offline)
 ```
 
-## Tymczasowe ID (temp IDs)
+## Temporary IDs (temp IDs)
 
-Przy braku połączenia encje tworzone są z ID w formacie `temp_<entity>_<randomhex>`, np. `temp_workout_a1b2c3`.
+When offline, entities are created with IDs in the format `temp_<entity>_<randomhex>`, e.g. `temp_workout_a1b2c3`.
 
-`SyncManager` podczas replaying operacji zastępuje wszystkie `temp_*` w `endpoint` i `data` prawdziwymi UUID z `tempIdMap`. Operacje z nierozwiązanymi temp IDs są pomijane do następnej rundy synchronizacji.
+`SyncManager` during operation replay replaces all `temp_*` in `endpoint` and `data` with real UUIDs from `tempIdMap`. Operations with unresolved temp IDs are skipped until the next sync round.
 
-## Obsługa błędów synchronizacji (UI)
+## Sync Failure Handling (UI)
 
-Komponent `SyncFailureBanner` (`App.tsx`) wyświetlany jest gdy `failedSyncOperations.length > 0`. Dostępne akcje:
+The `SyncFailureBanner` component (`App.tsx`) is displayed when `failedSyncOperations.length > 0`. Available actions:
 
-- **Ponów** – wywołuje `syncNow()`
-- **Zamknij** – wywołuje `dismissSyncFailures()` (tylko ukrywa UI, nie usuwa operacji)
+- **Retry** – calls `syncNow()`
+- **Dismiss** – calls `dismissSyncFailures()` (only hides UI, does not remove operations)
 
-## Interwał synchronizacji
+## Sync Interval
 
-`SYNC_INTERVAL = 2 * 60 * 1000` (2 minuty). `syncNow()` wywoływana jest również natychmiast przy zdarzeniu `window online`.
+`SYNC_INTERVAL = 2 * 60 * 1000` (2 minutes). `syncNow()` is also called immediately on the `window online` event.
 
-## Pliki
+## Files
 
 ```
 frontend/src/utils/
@@ -116,5 +116,5 @@ frontend/src/utils/
 frontend/src/contexts/
   DataContext.tsx  ← DataProvider, queueSyncOperation, optimistic updates
 frontend/docs/
-  OFFLINE.md       ← dodatkowe notatki dot. trybu offline
+  OFFLINE.md       ← additional notes on offline mode
 ```

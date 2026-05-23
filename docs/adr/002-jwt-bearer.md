@@ -1,31 +1,31 @@
-# ADR-002 – JWT Bearer zamiast sesji cookie
+# ADR-002 – JWT Bearer Instead of Session Cookies
 
-**Status:** Zaakceptowany  
-**Data:** 2024
+**Status:** Accepted  
+**Date:** 2024
 
-## Kontekst
+## Context
 
-Aplikacja wymaga mechanizmu uwierzytelniania dla SPA React komunikującego się z REST API. Kluczowe wymagania to działanie offline (token musi być dostępny lokalnie) oraz brak konieczności zarządzania stanem sesji po stronie serwera.
+The application requires an authentication mechanism for a React SPA communicating with a REST API. Key requirements are offline support (the token must be available locally) and no need for server-side session state management.
 
-## Decyzja
+## Decision
 
-Zastosowano **JWT** (JSON Web Token) przesyłany w nagłówku `Authorization: Bearer <token>`. Token przechowywany jest w `localStorage` pod kluczem `gymgate_token`. Czas życia: **7 dni**.
+**JWT** (JSON Web Token) is used, transmitted in the `Authorization: Bearer <token>` header. The token is stored in `localStorage` under the key `gymgate_token`. Lifetime: **7 days**.
 
-## Uzasadnienie
+## Rationale
 
-- **Stateless** – serwer nie przechowuje sesji; walidacja tokenu jest niezależna od bazy danych.
-- **Offline support** – token w `localStorage` pozostaje dostępny bez połączenia z siecią; `AuthContext` odtwarza stan użytkownika z cache nawet gdy `GET /api/auth/me` jest niedostępny.
-- **Cross-origin** – podejście nie wymaga specjalnej obsługi CORS dla cookie (`SameSite`, `Secure`); upraszcza konfigurację dla Railway + Vercel.
-- **Prostota** – nie zachodzi potrzeba implementacji refresh token flow na obecnym etapie projektu.
+- **Stateless** – the server does not store sessions; token validation is independent of the database.
+- **Offline support** – the token in `localStorage` remains available without a network connection; `AuthContext` restores user state from cache even when `GET /api/auth/me` is unavailable.
+- **Cross-origin** – this approach does not require special CORS handling for cookies (`SameSite`, `Secure`); simplifies configuration for Railway + Vercel.
+- **Simplicity** – no need to implement a refresh token flow at the current project stage.
 
-## Konsekwencje
+## Consequences
 
-- Token **nie jest automatycznie unieważniany** po stronie serwera (brak blacklisty) – zmiana hasła nie unieważnia istniejących tokenów.
-- `localStorage` jest podatny na XSS; wymagane są CSP i sanityzacja inputów.
-- `authFetch` (`frontend/src/utils/auth.ts`) interceptuje odpowiedź `401`, usuwa token z `localStorage` i przeładowuje stronę.
+- The token **is not automatically invalidated** server-side (no blacklist) – changing a password does not invalidate existing tokens.
+- `localStorage` is vulnerable to XSS; CSP and input sanitization are required.
+- `authFetch` (`frontend/src/utils/auth.ts`) intercepts `401` responses, removes the token from `localStorage`, and reloads the page.
 
-## Rozważane alternatywy
+## Alternatives Considered
 
-- **httpOnly cookie** – zapewnia lepszą ochronę przed XSS, lecz komplikuje obsługę CORS i tryb offline. Uwaga: stary `backend/docs/ARCHITECTURE.md` błędnie opisywał "httpOnly cookie" – faktycznie stosowany jest Bearer header.
-- **Refresh token** – pominięty jako nadmiarowy dla obecnej skali projektu.
-- **Sesje serwerowe** – wykluczone ze względu na wymaganie bezstanowości serwera i wsparcia dla trybu offline.
+- **httpOnly cookie** – provides better XSS protection but complicates CORS handling and offline mode. Note: the old `backend/docs/ARCHITECTURE.md` incorrectly described "httpOnly cookie" – Bearer header is actually used.
+- **Refresh token** – skipped as unnecessary for the current project scale.
+- **Server sessions** – excluded due to the requirement for server statelessness and offline support.

@@ -44,7 +44,7 @@ Base URL: `/api/workouts`
 
 `lastNote` can be `null` when the latest completed workout item for this exercise had no note.
 
-**Walidacja `workoutPlanId`:** serwer sprawdza, czy plan jest widoczny dla wywołującego (właściciel, built-in lub cudzy `isPublic=true`). Brak widoczności → `404` (`Plan not found`). Zapobiega podpinaniu treningu pod prywatny plan innego użytkownika.
+**`workoutPlanId` validation:** the server checks whether the plan is visible to the caller (owner, built-in, or another user's `isPublic=true`). If not visible → `404` (`Plan not found`). This prevents attaching a workout to another user's private plan.
 
 ### 2. Get User Workouts
 
@@ -87,8 +87,8 @@ Each stats entry may include `lastNote: null` if no note was saved on the latest
         "id": "uuid",
         "exerciseId": "uuid",
         "orderInWorkout": 1,
-        "notes": "Długa rozgrzewka",
-        "previousNote": "Zostań przy wolnym negatywie",
+        "notes": "Long warm-up",
+        "previousNote": "Stick with slow negatives",
         "exercise": {
           "id": "uuid",
           "name": "Wyciskanie sztangi",
@@ -170,21 +170,14 @@ Each stats entry may include `lastNote: null` if no note was saved on the latest
     "exerciseId": "uuid",
     "orderInWorkout": 1,
     "notes": "Optional notes",
-    "previousNote": "Notatka z ostatniego zakończonego treningu z tym ćwiczeniem",
+    "previousNote": "Note from the last completed workout with this exercise",
     "exercise": {...},
-    "sets": [
-      {
-        "id": "uuid",
-        "setNumber": 1,
-        "weight": 0,
-        "repetitions": 1
-      }
-    ]
+    "sets": []
   }
 }
 ```
 
-**Note:** First set is created automatically with default values (0 kg, 1 rep)
+**Note:** No default set is created server-side. The frontend displays a draft set pre-filled with `ExerciseUserStats.lastWeight/lastReps` that is only persisted when the user confirms it.
 
 **One-time previous note behavior:**
 
@@ -249,15 +242,15 @@ Each stats entry may include `lastNote: null` if no note was saved on the latest
 
 ## Workout Plan Integration
 
-Gdy workout został utworzony z `workoutPlanId`, frontend może pobierać sugestie następnych ćwiczeń oraz odkładać konkretne ćwiczenia z planu na liście „pominiętych".
+When a workout was created with `workoutPlanId`, the frontend can fetch suggestions for the next exercises and mark specific plan exercises as "skipped".
 
 ### 12. Get Next Exercise From Plan
 
 **GET** `/api/workouts/:id/next-from-plan`
 
-Zwraca pierwsze nieukończone ćwiczenie z planu posortowane po `orderInPlan`, z pominięciem:
-- ćwiczeń już dodanych do workoutu (`workout.items`),
-- ćwiczeń z `workout.skippedPlanExerciseIds`.
+Returns the first uncompleted exercise from the plan sorted by `orderInPlan`, excluding:
+- exercises already added to the workout (`workout.items`),
+- exercises in `workout.skippedPlanExerciseIds`.
 
 **Response (200):**
 
@@ -270,18 +263,18 @@ Zwraca pierwsze nieukończone ćwiczenie z planu posortowane po `orderInPlan`, z
     "remaining": 3,
     "next": {
       "exerciseId": "uuid",
-      "exerciseName": "Wyciskanie sztangi nad głowę (OHP)",
+      "exerciseName": "Overhead Press (OHP)",
       "orderInPlan": 2
     }
   }
 }
 ```
 
-- `planAttached: false` — workout nie jest powiązany z planem; `next: null`, `remaining: 0`, `finished: false`.
-- `finished: true` — wszystkie ćwiczenia z planu zostały już dodane lub pominięte; `next: null`.
-- `remaining` — liczba pozostałych ćwiczeń z planu (nie-dodanych i nie-pominiętych).
+- `planAttached: false` — workout is not linked to a plan; `next: null`, `remaining: 0`, `finished: false`.
+- `finished: true` — all exercises from the plan have been added or skipped; `next: null`.
+- `remaining` — number of remaining exercises from the plan (not added and not skipped).
 
-**Błędy:** `403` (cudzy workout), `404` (workout nie istnieje).
+**Errors:** `403` (another user's workout), `404` (workout does not exist).
 
 ### 13. Skip Plan Exercise
 
@@ -295,7 +288,7 @@ Zwraca pierwsze nieukończone ćwiczenie z planu posortowane po `orderInPlan`, z
 }
 ```
 
-Dodaje `exerciseId` do `workout.skippedPlanExerciseIds`. Idempotentne — kolejne wywołanie z tym samym `exerciseId` nie zmienia stanu.
+Adds `exerciseId` to `workout.skippedPlanExerciseIds`. Idempotent — subsequent calls with the same `exerciseId` do not change state.
 
 **Response (200):**
 
@@ -309,8 +302,8 @@ Dodaje `exerciseId` do `workout.skippedPlanExerciseIds`. Idempotentne — kolejn
 }
 ```
 
-**Błędy:**
-- `400` — ćwiczenie nie należy do planu tego workoutu lub workout nie ma planu
+**Errors:**
+- `400` — exercise does not belong to this workout's plan or workout has no plan
 - `403` — cudzy workout
 - `404` — workout nie istnieje
 
@@ -390,7 +383,7 @@ All values are calculated only from workouts with status `COMPLETED`.
     "lastReps": 8,
     "lastWorkoutDate": "2025-12-28T10:00:00Z",
     "totalWorkouts": 15,
-    "lastNote": "Skupić się na wolniejszym opuszczaniu sztangi"
+    "lastNote": "Focus on slower bar descent"
   }
 }
 ```
@@ -401,7 +394,7 @@ All values are calculated only from workouts with status `COMPLETED`.
 {
   "success": true,
   "data": null,
-  "message": "To twoje pierwsze wykonanie tego ćwiczenia"
+  "message": "This is your first time performing this exercise"
 }
 ```
 
@@ -431,7 +424,7 @@ All values are calculated only from workouts with status `COMPLETED`.
       "lastReps": 8,
       "lastWorkoutDate": "2025-12-28T10:00:00Z",
       "totalWorkouts": 15,
-      "lastNote": "Skupić się na wolniejszym opuszczaniu sztangi"
+      "lastNote": "Focus on slower bar descent"
     }
   ],
   "count": 25

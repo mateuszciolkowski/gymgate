@@ -1,15 +1,15 @@
 # Workout Plan Endpoints
 
-Wszystkie endpointy wymagają nagłówka `Authorization: Bearer <JWT>` lub ważnego cookie `token` (zob. `auth/API.md`).
+All endpoints require the `Authorization: Bearer <JWT>` header or a valid `token` cookie (see `auth/API.md`).
 
-Plany **built-in** mają `creatorUserId = null`. Plany użytkowników mają `creatorUserId = <userId>`.
-Konwencja: ćwiczenia o `creatorUserId IN (null, "1")` są traktowane jako globalne — mogą być częścią planu publicznego.
+**Built-in** plans have `creatorUserId = null`. User plans have `creatorUserId = <userId>`.
+Convention: exercises with `creatorUserId IN (null, "1")` are treated as global — they can be part of a public plan.
 
 ---
 
 ## GET /api/plans
 
-Lista planów filtrowana zakładką.
+List plans filtered by tab.
 
 **Query Parameters:**
 ```typescript
@@ -18,10 +18,10 @@ Lista planów filtrowana zakładką.
 }
 ```
 
-Filtry:
-- `mine` — plany, których `creatorUserId === <userId>`
-- `builtin` — plany z `creatorUserId === null`
-- `community` — plany publiczne innych użytkowników (`isPublic=true AND creatorUserId != <userId>`)
+Filters:
+- `mine` — plans where `creatorUserId === <userId>`
+- `builtin` — plans with `creatorUserId === null`
+- `community` — public plans of other users (`isPublic=true AND creatorUserId != <userId>`)
 
 **Response:**
 ```typescript
@@ -36,7 +36,7 @@ interface WorkoutPlan {
   name: string
   creatorUserId: string | null
   isPublic: boolean
-  items: WorkoutPlanItem[]   // posortowane po orderInPlan asc
+  items: WorkoutPlanItem[]   // sorted by orderInPlan asc
   createdAt: string
   updatedAt: string
 }
@@ -46,7 +46,7 @@ interface WorkoutPlanItem {
   planId: string
   exerciseId: string
   orderInPlan: number
-  exercise: Exercise         // pełny obiekt z exercise/API.md
+  exercise: Exercise         // full object from exercise/API.md
 }
 ```
 
@@ -54,70 +54,70 @@ interface WorkoutPlanItem {
 
 ## GET /api/plans/:id
 
-Szczegóły planu. Dostępne dla właściciela, planów built-in oraz publicznych planów innych użytkowników.
+Plan details. Accessible to the owner, for built-in plans, and for public plans of other users.
 
 **Response:** `{ success: true, data: WorkoutPlan }`
 
-**Błędy:** `404` gdy plan nie istnieje lub nie jest widoczny dla użytkownika.
+**Errors:** `404` when the plan does not exist or is not visible to the user.
 
 ---
 
 ## POST /api/plans
 
-Tworzy plan należący do bieżącego użytkownika.
+Creates a plan belonging to the current user.
 
 **Body:**
 ```typescript
 {
-  name: string              // 3-100 znaków, unikalna nazwa per user
-  exerciseIds: string[]     // 1-50 UUID, bez duplikatów
+  name: string              // 3-100 characters, unique name per user
+  exerciseIds: string[]     // 1-50 UUIDs, no duplicates
   isPublic?: boolean        // default false
 }
 ```
 
 **Response (201):** `{ success: true, data: WorkoutPlan }`
 
-**Błędy:**
-- `409` — `Plan with this name already exists` (duplikat nazwy; odporne na race condition: serwer chwyta unique violation z DB)
-- `400` — `Exercises not found: <id>, ...` (co najmniej jedno ćwiczenie nie istnieje)
-- `400` — `Cannot make plan public: contains private exercises (<name>, ...)` (przy `isPublic=true` z prywatnymi ćwiczeniami)
+**Errors:**
+- `409` — `Plan with this name already exists` (duplicate name; resilient to race conditions: server catches unique violation from DB)
+- `400` — `Exercises not found: <id>, ...` (at least one exercise does not exist)
+- `400` — `Cannot make plan public: contains private exercises (<name>, ...)` (when `isPublic=true` with private exercises)
 
 ---
 
 ## PUT /api/plans/:id
 
-Aktualizuje plan. Tylko właściciel.
+Updates a plan. Owner only.
 
 **Body:**
 ```typescript
 {
   name?: string             // 3-100
-  exerciseIds?: string[]    // jeśli podane: replace-all, kolejność = orderInPlan
+  exerciseIds?: string[]    // if provided: replace-all, order = orderInPlan
   isPublic?: boolean
 }
 ```
 
 **Response:** `{ success: true, data: WorkoutPlan }`
 
-**Błędy:** `403` (nie właściciel), `404` (brak), `400` (walidacja ćwiczeń / public), `409` (duplikat nazwy).
+**Errors:** `403` (not owner), `404` (not found), `400` (exercise validation / public), `409` (duplicate name).
 
 ---
 
 ## DELETE /api/plans/:id
 
-Usuwa plan (cascade `WorkoutPlanItem`). Powiązane `Workout.workoutPlanId` zostaje wyzerowane (`SET NULL`).
+Deletes a plan (cascades `WorkoutPlanItem`). Related `Workout.workoutPlanId` is set to null (`SET NULL`).
 
-**Response (204):** brak body.
+**Response (204):** no body.
 
-**Błędy:** `403` (nie właściciel), `404` (brak).
+**Errors:** `403` (not owner), `404` (not found).
 
 ---
 
 ## POST /api/plans/:id/duplicate
 
-Tworzy prywatną kopię widocznego planu (built-in, własny lub cudzy public).
-Nazwa kopii: `<original> (kopia)` lub `<original> (kopia N)` przy konflikcie.
+Creates a private copy of a visible plan (built-in, own, or another user's public).
+Copy name: `<original> (copy)` or `<original> (copy N)` on conflict.
 
 **Response (201):** `{ success: true, data: WorkoutPlan }` — `isPublic=false`, `creatorUserId=<userId>`.
 
-**Błędy:** `404` (źródło niewidoczne).
+**Errors:** `404` (source not visible).

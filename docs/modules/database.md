@@ -1,62 +1,62 @@
-# Moduł: Baza danych
+# Module: Database
 
-## Technologia
+## Technology
 
-PostgreSQL 16 zarządzany przez **Prisma ORM** (`prisma@5.22`). W produkcji: Supabase. Lokalnie: Docker (`postgres:16-alpine`) lub dowolna instancja PostgreSQL.
+PostgreSQL 16 managed by **Prisma ORM** (`prisma@5.22`). Production: Supabase. Local: Docker (`postgres:16-alpine`) or any PostgreSQL instance.
 
-## Konfiguracja połączenia
+## Connection Configuration
 
 ```env
-DATABASE_URL="postgresql://..."   # przez pooler (Prisma Accelerate / PgBouncer) lub bezpośrednie
-DIRECT_URL="postgresql://..."     # bezpośrednie połączenie, używane przy migracjach
+DATABASE_URL="postgresql://..."   # via pooler (Prisma Accelerate / PgBouncer) or direct
+DIRECT_URL="postgresql://..."     # direct connection, used for migrations
 ```
 
 Singleton Prisma client: `backend/src/config/database.ts`
 
-## Schemat – tabele i relacje
+## Schema – Tables and Relations
 
 ### `users`
 
-| Kolumna          | Typ          | Opis                            |
-|------------------|--------------|---------------------------------|
-| `id`             | UUID PK      |                                 |
-| `email`          | STRING UNIQUE|                                 |
-| `password`       | STRING       | hash bcrypt                     |
-| `firstName`      | STRING       |                                 |
-| `lastName`       | STRING       |                                 |
-| `phone`          | STRING?      |                                 |
-| `activeWorkoutId`| UUID? UNIQUE | FK → workouts (nullable, SetNull) |
-| `updatedAt`      | DATETIME     |                                 |
+| Column           | Type         | Description                             |
+|------------------|--------------|-----------------------------------------|
+| `id`             | UUID PK      |                                         |
+| `email`          | STRING UNIQUE|                                         |
+| `password`       | STRING       | bcrypt hash                             |
+| `firstName`      | STRING       |                                         |
+| `lastName`       | STRING       |                                         |
+| `phone`          | STRING?      |                                         |
+| `activeWorkoutId`| UUID? UNIQUE | FK → workouts (nullable, SetNull)       |
+| `updatedAt`      | DATETIME     |                                         |
 
 ### `exercises`
 
-| Kolumna        | Typ          | Opis                               |
-|----------------|--------------|------------------------------------|
-| `id`           | UUID PK      |                                    |
-| `name`         | STRING       |                                    |
-| `muscleGroups` | MuscleGroup[]| enum array                         |
-| `description`  | STRING?      |                                    |
-| `creatorUserId`| UUID?        | FK → users (Cascade); null = globalne |
-| `createdAt`    | DATETIME     |                                    |
-| `updatedAt`    | DATETIME     |                                    |
+| Column         | Type         | Description                                |
+|----------------|--------------|--------------------------------------------|
+| `id`           | UUID PK      |                                            |
+| `name`         | STRING       |                                            |
+| `muscleGroups` | MuscleGroup[]| enum array                                 |
+| `description`  | STRING?      |                                            |
+| `creatorUserId`| UUID?        | FK → users (Cascade); null = global        |
+| `createdAt`    | DATETIME     |                                            |
+| `updatedAt`    | DATETIME     |                                            |
 
 ### `exercise_photos`
 
-| Kolumna      | Typ        | Opis                        |
+| Column       | Type       | Description                 |
 |--------------|------------|-----------------------------|
 | `id`         | UUID PK    |                             |
 | `exerciseId` | UUID       | FK → exercises (Cascade)    |
 | `photoStage` | PhotoStage | START \| MIDDLE \| END      |
-| `photoUrl`   | STRING     | URL lub ścieżka lokalna     |
+| `photoUrl`   | STRING     | URL or local path           |
 | `createdAt`  | DATETIME   |                             |
 
 ### `workouts`
 
-| Kolumna          | Typ           | Opis                       |
+| Column           | Type          | Description                |
 |------------------|---------------|----------------------------|
 | `id`             | UUID PK       |                            |
 | `userId`         | UUID          | FK → users (Cascade)       |
-| `workoutDate`    | DATETIME      | domyślnie: now()           |
+| `workoutDate`    | DATETIME      | default: now()             |
 | `status`         | WorkoutStatus | DRAFT \| COMPLETED         |
 | `workoutName`    | STRING?       |                            |
 | `gymName`        | STRING?       |                            |
@@ -68,65 +68,65 @@ Singleton Prisma client: `backend/src/config/database.ts`
 
 ### `workout_items`
 
-| Kolumna         | Typ      | Opis                              |
-|-----------------|----------|-----------------------------------|
-| `id`            | UUID PK  |                                   |
-| `workoutId`     | UUID     | FK → workouts (Cascade)           |
-| `exerciseId`    | UUID     | FK → exercises (Cascade)          |
-| `orderInWorkout`| INT      | kolejność ćwiczenia w treningu    |
-| `notes`         | STRING?  | notatka do bieżącego treningu     |
-| `previousNote`  | STRING?  | carry-over z poprzedniego treningu|
-| `createdAt`     | DATETIME |                                   |
-| `updatedAt`     | DATETIME |                                   |
+| Column          | Type     | Description                           |
+|-----------------|----------|---------------------------------------|
+| `id`            | UUID PK  |                                       |
+| `workoutId`     | UUID     | FK → workouts (Cascade)               |
+| `exerciseId`    | UUID     | FK → exercises (Cascade)              |
+| `orderInWorkout`| INT      | exercise order within workout         |
+| `notes`         | STRING?  | note for current workout              |
+| `previousNote`  | STRING?  | carry-over from previous workout      |
+| `createdAt`     | DATETIME |                                       |
+| `updatedAt`     | DATETIME |                                       |
 
 ### `workout_sets`
 
-| Kolumna      | Typ            | Opis                  |
+| Column       | Type           | Description           |
 |--------------|----------------|-----------------------|
 | `id`         | UUID PK        |                       |
 | `itemId`     | UUID           | FK → workout_items (Cascade) |
-| `setNumber`  | INT            | numer serii           |
-| `weight`     | Decimal(6,2)   | ciężar w kg           |
-| `repetitions`| INT            | liczba powtórzeń      |
+| `setNumber`  | INT            | set number            |
+| `weight`     | Decimal(6,2)   | weight in kg          |
+| `repetitions`| INT            | number of repetitions |
 | `createdAt`  | DATETIME       |                       |
 | `updatedAt`  | DATETIME       |                       |
 
 ### `exercise_user_stats`
 
-Cache statystyk, odbudowywany przy każdej zmianie zakończonych treningów.
+Stats cache, rebuilt on every change to completed workouts.
 
-| Kolumna          | Typ          | Opis                              |
-|------------------|--------------|-----------------------------------|
-| `id`             | UUID PK      |                                   |
-| `userId`         | UUID         | FK → users (Cascade)              |
-| `exerciseId`     | UUID         | FK → exercises (Cascade)          |
-| `maxWeight`      | Decimal(6,2) | najwyższy kiedykolwiek ciężar     |
-| `maxWeightReps`  | INT          | powtórzenia przy maxWeight        |
-| `maxWeightDate`  | DATETIME     |                                   |
-| `lastWeight`     | Decimal(6,2) | ciężar z ostatniego COMPLETED     |
-| `lastReps`       | INT          |                                   |
-| `lastWorkoutDate`| DATETIME     |                                   |
-| `totalWorkouts`  | INT          | liczba COMPLETED z tym ćwiczeniem |
-| `lastNote`       | STRING?      |                                   |
-| `createdAt`      | DATETIME     |                                   |
-| `updatedAt`      | DATETIME     |                                   |
+| Column           | Type         | Description                           |
+|------------------|--------------|---------------------------------------|
+| `id`             | UUID PK      |                                       |
+| `userId`         | UUID         | FK → users (Cascade)                  |
+| `exerciseId`     | UUID         | FK → exercises (Cascade)              |
+| `maxWeight`      | Decimal(6,2) | highest weight ever lifted            |
+| `maxWeightReps`  | INT          | repetitions at maxWeight              |
+| `maxWeightDate`  | DATETIME     |                                       |
+| `lastWeight`     | Decimal(6,2) | weight from last COMPLETED workout    |
+| `lastReps`       | INT          |                                       |
+| `lastWorkoutDate`| DATETIME     |                                       |
+| `totalWorkouts`  | INT          | count of COMPLETED with this exercise |
+| `lastNote`       | STRING?      |                                       |
+| `createdAt`      | DATETIME     |                                       |
+| `updatedAt`      | DATETIME     |                                       |
 
 **UNIQUE:** `(userId, exerciseId)`
 
 ### `exercise_pending_notes`
 
-Tabela przejściowa dla mechanizmu carry-over notatek.
+Transient table for the note carry-over mechanism.
 
-| Kolumna      | Typ      | Opis                           |
-|--------------|----------|-------------------------------|
-| `id`         | UUID PK  |                               |
-| `userId`     | UUID     | FK → users (Cascade)          |
-| `exerciseId` | UUID     | FK → exercises (Cascade)      |
-| `note`       | STRING   |                               |
-| `createdAt`  | DATETIME |                               |
-| `updatedAt`  | DATETIME |                               |
+| Column       | Type     | Description                    |
+|--------------|----------|--------------------------------|
+| `id`         | UUID PK  |                                |
+| `userId`     | UUID     | FK → users (Cascade)           |
+| `exerciseId` | UUID     | FK → exercises (Cascade)       |
+| `note`       | STRING   |                                |
+| `createdAt`  | DATETIME |                                |
+| `updatedAt`  | DATETIME |                                |
 
-**UNIQUE:** `(userId, exerciseId)` – jeden pending note na ćwiczenie na użytkownika.
+**UNIQUE:** `(userId, exerciseId)` – one pending note per exercise per user.
 
 ## Enums
 
@@ -142,67 +142,67 @@ enum PhotoStage { START | MIDDLE | END }
 enum WorkoutStatus { DRAFT | COMPLETED }
 ```
 
-## Migracje
+## Migrations
 
 ```bash
-make migrate-dev   # prisma migrate dev – tworzy nową migrację (środowisko dev)
-make migrate       # prisma migrate deploy – aplikuje migracje (prod/staging)
-make migrate-reset # ⚠ reset DB i replay wszystkich migracji (niszczy dane)
+make migrate-dev   # prisma migrate dev – creates a new migration (dev environment)
+make migrate       # prisma migrate deploy – applies migrations (prod/staging)
+make migrate-reset # ⚠ resets DB and replays all migrations (destroys data)
 ```
 
-Pliki migracji: `backend/prisma/migrations/`  
-Schemat: `backend/prisma/schema.prisma`
+Migration files: `backend/prisma/migrations/`  
+Schema: `backend/prisma/schema.prisma`
 
-## Tryb lokalny (DB_ENV=local)
+## Local Mode (DB_ENV=local)
 
-Przełącznik `DB_ENV` w `.env` pozwala wybrać bazę danych bez zmiany URL:
+The `DB_ENV` switch in `.env` allows selecting the database without changing the URL:
 
-| Wartość | Baza | Kiedy używać |
+| Value | Database | When to use |
 |---|---|---|
-| `remote` (domyślne) | Supabase | prod / staging |
-| `local` | Docker PostgreSQL, port 5433 | testowanie lokalne, development |
+| `remote` (default) | Supabase | prod / staging |
+| `local` | Docker PostgreSQL, port 5433 | local testing, development |
 
-Potrzebne zmienne w `.env`:
+Required variables in `.env`:
 ```env
 DB_ENV=remote
 DATABASE_URL_LOCAL="postgresql://postgres:postgres@localhost:5433/gymgate_local"
 DIRECT_URL_LOCAL="postgresql://postgres:postgres@localhost:5433/gymgate_local"
 ```
 
-### Pierwsze uruchomienie lokalnej bazy
+### First Local Database Run
 
 ```bash
 cd backend
-make local-setup   # start kontenera + migracje + seed (jednorazowo)
-# Zmień DB_ENV=local w .env
-make dev           # backend łączy się z lokalną bazą
+make local-setup   # start container + migrations + seed (one-time)
+# Change DB_ENV=local in .env
+make dev           # backend connects to local database
 ```
 
-### Dostępne komendy Makefile
+### Available Makefile Commands
 
 ```bash
-make local-up       # uruchom kontener PostgreSQL (port 5433)
-make local-down     # zatrzymaj kontener (dane w Docker volume przetrwają)
-make local-migrate  # nałóż migracje na lokalną bazę
-make local-seed     # seeduj: ćwiczenia + plany + testowy user z historią
+make local-up       # start PostgreSQL container (port 5433)
+make local-down     # stop container (data in Docker volume persists)
+make local-migrate  # apply migrations to local database
+make local-seed     # seed: exercises + plans + test user with history
 make local-setup    # local-up + local-migrate + local-seed (first-time setup)
-make local-reset    # local-migrate + local-seed (wyczyść i zaseeduj ponownie)
+make local-reset    # local-migrate + local-seed (wipe and re-seed)
 ```
 
-### Testowy użytkownik (seed-local)
+### Test User (seed-local)
 
 | | |
 |---|---|
 | Email | `test@gymgate.com` |
-| Hasło | `Test1234!` |
-| Treningi | 16 zakończonych (4 typy: klatka / plecy / nogi / barki-ramiona, 4 cykle ~3 miesiące) |
-| Dane | Progresja obciążeń widoczna, `ExerciseUserStats` wypełnione |
-| Aktywny trening | 1 DRAFT (klatka, 2 ćwiczenia bez serii) |
+| Password | `Test1234!` |
+| Workouts | 16 completed (4 types: chest / back / legs / shoulders-arms, 4 cycles ~3 months) |
+| Data | Weight progression visible, `ExerciseUserStats` populated |
+| Active workout | 1 DRAFT (chest, 2 exercises without sets) |
 
-Skrypt: `backend/prisma/seed-local.ts` — zawsze używa `DATABASE_URL_LOCAL`, niezależnie od `DB_ENV`.
+Script: `backend/prisma/seed-local.ts` — always uses `DATABASE_URL_LOCAL`, regardless of `DB_ENV`.
 
-## Uwagi implementacyjne
+## Implementation Notes
 
-- `BigInt.prototype.toJSON` jest patchowany globalnie w `backend/src/index.ts` – umożliwia serializację BigInt do JSON.
-- `DIRECT_URL` jest wymagany gdy `DATABASE_URL` przechodzi przez pooler (np. Supabase używa PgBouncer dla transakcyjnych połączeń).
-- Singleton Prisma client (`config/database.ts`) zamykany jest gracefully przy `SIGTERM` / `SIGINT`.
+- `BigInt.prototype.toJSON` is patched globally in `backend/src/index.ts` – enables BigInt JSON serialization.
+- `DIRECT_URL` is required when `DATABASE_URL` goes through a pooler (e.g. Supabase uses PgBouncer for transactional connections).
+- Singleton Prisma client (`config/database.ts`) is closed gracefully on `SIGTERM` / `SIGINT`.

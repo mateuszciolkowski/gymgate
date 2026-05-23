@@ -18,7 +18,7 @@ Critical product flow:
 ## 2) Domain Invariants (DO NOT BREAK)
 
 1. A user can have only one active workout (`activeWorkoutId`) at a time.
-2. Adding an exercise to a workout must create a default set (`0 kg`, `1 rep`).
+2. Adding an exercise to a workout must **not** create a default set — the first set is a frontend-only draft pre-filled from stats.
 3. Marking a workout as `COMPLETED` must update exercise stats and clear `activeWorkoutId`.
 4. Frontend behavior must remain stable in unstable network conditions (local cache + deferred sync).
 5. API contracts between frontend and backend must remain consistent.

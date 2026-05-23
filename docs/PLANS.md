@@ -1,29 +1,29 @@
-# Konwencja plików planistycznych
+# Plan File Convention
 
-Pliki z planami realizacji przechowujemy w katalogu `plans/` w root repozytorium.
+Plan files are stored in the `plans/` directory at the repository root.
 
-## Lokalizacja
+## Location
 
-- Katalog: `plans/`
+- Directory: `plans/`
 
-## Format nazwy pliku
+## File Naming Format
 
 ```
-YYYY-MM-DD_HH-MM_co_ma_zrobic.md
+YYYY-MM-DD_HH-MM_what_to_do.md
 ```
 
-Przykłady:
+Examples:
 - `2026-05-14_21-26_workout_plans_feature.md`
 - `2026-05-15_07-41_workout_plans_pr1_implementation.md`
 
-## Cykl życia pliku
+## File Lifecycle
 
-Pliki planistyczne są **tymczasowe** — istnieją tylko w trakcie aktywnej realizacji zadania.
+Plan files are **temporary** — they exist only during active task implementation.
 
-| Etap | Działanie |
+| Stage | Action |
 |---|---|
-| Planowanie | Tworzysz plik wg konwencji w `plans/` |
-| Implementacja | Plik pozostaje jako punkt odniesienia |
-| Merge / zakończenie | **Plik jest usuwany** — historia zmian żyje w git, dokument planistyczny nie jest potrzebny w repozytorium |
+| Planning | Create a file following the convention in `plans/` |
+| Implementation | File remains as a reference point |
+| Merge / completion | **File is deleted** — change history lives in git, the planning document is no longer needed in the repository |
 
-> Katalog `plans/` jest prawidłowo pusty gdy wszystkie bieżące zadania są ukończone.
+> The `plans/` directory is correctly empty when all current tasks are completed.

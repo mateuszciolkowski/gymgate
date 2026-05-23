@@ -92,7 +92,7 @@ make dev   # backend connects to local PostgreSQL on port 5433
 | Field  | Value              |
 |--------|--------------------|
 | Email  | `test@gymgate.com` |
-| Hasło  | `Test1234!`        |
+| Password  | `Test1234!`        |
 
 **Stopping / resetting:**
 

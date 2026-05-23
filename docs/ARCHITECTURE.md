@@ -1,15 +1,15 @@
-# GymGate – Architektura systemu
+# GymGate – System Architecture
 
-## Diagram systemu
+## System Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                      PRZEGLĄDARKA                        │
+│                        BROWSER                           │
 │                                                          │
 │  React 19 SPA (Vite)                                     │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
 │  │  AuthContext │  │  DataContext │  │  IndexedDB   │  │
-│  │  (sesja JWT) │  │  (global     │  │  (localStore)│  │
+│  │  (JWT session)│  │  (global     │  │  (localStore)│  │
 │  └──────────────┘  │   store)     │  └──────────────┘  │
 │                    └──────┬───────┘         ▲           │
 │                           │ authFetch        │           │
@@ -37,110 +37,110 @@
                    PostgreSQL (Supabase)
 ```
 
-## Stos technologiczny
+## Tech Stack
 
 ### Backend
 
-| Warstwa        | Technologia             | Wersja |
-| -------------- | ----------------------- | ------ |
-| Runtime        | Node.js                 | 20 LTS |
-| Framework      | Express                 | 5.x    |
-| Język          | TypeScript              | 5.9    |
-| ORM            | Prisma                  | 5.22   |
-| Baza danych    | PostgreSQL (Supabase)   | 16     |
-| Auth           | JWT (`jsonwebtoken`)    | 9.x    |
-| Hashing        | bcryptjs                | 3.x    |
-| Walidacja      | Zod                     | 4.x    |
-| Testy          | Vitest + Supertest      | 4.x    |
-| Konteneryzacja | Docker / docker-compose | -      |
-| Deploy         | Railway (Nixpacks)      | -      |
+| Layer          | Technology              | Version |
+| -------------- | ----------------------- | ------- |
+| Runtime        | Node.js                 | 20 LTS  |
+| Framework      | Express                 | 5.x     |
+| Language       | TypeScript              | 5.9     |
+| ORM            | Prisma                  | 5.22    |
+| Database       | PostgreSQL (Supabase)   | 16      |
+| Auth           | JWT (`jsonwebtoken`)    | 9.x     |
+| Hashing        | bcryptjs                | 3.x     |
+| Validation     | Zod                     | 4.x     |
+| Tests          | Vitest + Supertest      | 4.x     |
+| Containerization | Docker / docker-compose | -     |
+| Deploy         | Railway (Nixpacks)      | -       |
 
 ### Frontend
 
-| Warstwa         | Technologia                 | Wersja |
-| --------------- | --------------------------- | ------ |
-| Framework       | React                       | 19     |
-| Bundler         | Vite                        | 7.x    |
-| Język           | TypeScript                  | 5.9    |
-| Styling         | Tailwind CSS                | 4.x    |
-| State           | Context API (bez bibliotek) | -      |
-| Offline storage | IndexedDB (`localStore`)    | -      |
-| Testy E2E       | Playwright                  | 1.x    |
-| Deploy          | Vercel                      | -      |
+| Layer           | Technology                  | Version |
+| --------------- | --------------------------- | ------- |
+| Framework       | React                       | 19      |
+| Bundler         | Vite                        | 7.x     |
+| Language        | TypeScript                  | 5.9     |
+| Styling         | Tailwind CSS                | 4.x     |
+| State           | Context API (no libraries)  | -       |
+| Offline storage | IndexedDB (`localStore`)    | -       |
+| E2E Tests       | Playwright                  | 1.x     |
+| Deploy          | Vercel                      | -       |
 
-## Architektura backendu
+## Backend Architecture
 
-### Podział modułów
+### Module Structure
 
 ```
 backend/src/
 ├── modules/
-│   ├── auth/        – rejestracja, login, GET /me
-│   ├── user/        – profil użytkownika
-│   ├── exercise/    – CRUD ćwiczeń (globalne + user-created)
-│   ├── workout/     – treningi, pozycje, serie, statystyki, integracja z planem
-│   └── plan/        – CRUD planów treningowych, duplikacja, suggest/skip
+│   ├── auth/        – registration, login, GET /me
+│   ├── user/        – user profile
+│   ├── exercise/    – exercise CRUD (global + user-created)
+│   ├── workout/     – workouts, items, sets, stats, plan integration
+│   └── plan/        – workout plan CRUD, duplication, suggest/skip
 ├── common/
 │   └── middleware/
 │       ├── auth.ts      – JWT guard (authMiddleware)
 │       └── validate.ts  – Zod guard (validate(schema))
 ├── config/
 │   └── database.ts  – singleton Prisma client
-└── index.ts         – punkt wejściowy Express
+└── index.ts         – Express entry point
 ```
 
-### Warstwa modułu (strict layering)
+### Module Layering (strict)
 
 ```
 routes → controller → service → repository
 ```
 
-| Warstwa      | Odpowiedzialność                                           |
+| Layer        | Responsibility                                             |
 | ------------ | ---------------------------------------------------------- |
-| `routes`     | Router Express, aplikuje middleware auth + validate        |
-| `controller` | Mapuje HTTP req/res, deleguje do service, zwraca odpowiedź |
-| `service`    | Logika biznesowa (rebuild stats, pending note sync, itd.)  |
-| `repository` | Wyłącznie zapytania Prisma, zero logiki biznesowej         |
+| `routes`     | Express router, applies auth + validate middleware         |
+| `controller` | Maps HTTP req/res, delegates to service, returns response  |
+| `service`    | Business logic (rebuild stats, pending note sync, etc.)    |
+| `repository` | Prisma queries only, no business logic                     |
 
-### Middleware pipeline
+### Middleware Pipeline
 
 ```
-Każde żądanie chronione:
+Every protected request:
   authMiddleware  →  validate(schema)  →  controller
 ```
 
-- `authMiddleware` – weryfikuje `Authorization: Bearer <token>`, dołącza `req.userId` i `req.userEmail`
-- `validate(schema)` – waliduje `req.body` / `req.query` przez Zod; zwraca `422` gdy dane nie przechodzą
+- `authMiddleware` – verifies `Authorization: Bearer <token>`, attaches `req.userId` and `req.userEmail`
+- `validate(schema)` – validates `req.body` / `req.query` via Zod; returns `422` on failure
 
-## Architektura frontendu
+## Frontend Architecture
 
-### State management
+### State Management
 
-Jedynym globalnym stanem jest `DataContext`. Żadna zewnętrzna biblioteka stanu nie jest stosowana (Redux, Zustand, itp.).
+The only global state is `DataContext`. No external state library is used (Redux, Zustand, etc.).
 
 ```
-AuthContext   – sesja JWT + dane user (localStorage)
+AuthContext   – JWT session + user data (localStorage)
 DataContext   – workouts[], exercises[], stats[], plans[], activeWorkoutId
                 → optimistic updates + IndexedDB + API calls
-SyncManager   – background sync co 2 min + flush po powrocie online
-localStore    – wrapper IndexedDB (stores: workouts, exercises, stats, plans, pendingSync, metadata)
+SyncManager   – background sync every 2 min + flush on reconnect
+localStore    – IndexedDB wrapper (stores: workouts, exercises, stats, plans, pendingSync, metadata)
 ```
 
-### Wzorzec aktualizacji (optimistic update)
+### Update Pattern (optimistic update)
 
 ```
-1. Aktualizuj UI natychmiast (setState + localStore)
-2. Wyślij request do API w tle
-3. Na błąd sieciowy → dodaj do pendingSync w IndexedDB
-4. Na błąd serwera → rollback
-5. SyncManager odtwarza pendingSync przy powrocie online (max 3 retry)
+1. Update UI immediately (setState + localStore)
+2. Send request to API in background
+3. On network error → add to pendingSync in IndexedDB
+4. On server error → rollback
+5. SyncManager replays pendingSync on reconnect (max 3 retries)
 ```
 
-### Router (SPA bez biblioteki)
+### Router (SPA without library)
 
-Nawigacja opiera się na własnym hooku `useNavigation` i `useState<Screen>` – bez React Router. Ekrany: `trainings`, `workout-detail`, `exercises`, `add-exercise`, `edit-exercise`, `stats`, `stats-exercise-detail`, `menu`.
+Navigation is based on a custom `useNavigation` hook and `useState<Screen>` – no React Router. Screens: `trainings`, `workout-detail`, `exercises`, `add-exercise`, `edit-exercise`, `stats`, `stats-exercise-detail`, `menu`.
 
-## Schemat bazy danych
+## Database Schema
 
 ```
 User (users)
@@ -154,7 +154,7 @@ Workout (workouts)
   id, userId, workoutDate, status(DRAFT|COMPLETED), workoutName?,
   gymName?, location?, workoutNotes?, durationSeconds?,
   workoutPlanId? (→ WorkoutPlan, onDelete: SetNull),
-  skippedPlanExerciseIds[] (ćwiczenia pominięte w tym treningu)
+  skippedPlanExerciseIds[] (exercises skipped in this workout)
   → items: WorkoutItem[]
 
 WorkoutItem (workout_items)
@@ -171,7 +171,7 @@ ExerciseUserStats (exercise_user_stats)
 
 ExercisePendingNote (exercise_pending_notes)
   id, userId, exerciseId, note
-  → UNIQUE(userId, exerciseId)  ← tabela przejściowa dla carry-over notatek
+  → UNIQUE(userId, exerciseId)  ← transient table for note carry-over
 
 WorkoutPlan (workout_plans)
   id, name, creatorUserId? (null = built-in), isPublic
@@ -185,21 +185,21 @@ WorkoutPlanItem (workout_plan_items)
 
 ## Deployment
 
-| Środowisko | Backend                | Frontend      | Baza danych          |
-| ---------- | ---------------------- | ------------- | -------------------- |
-| Produkcja  | Railway (Nixpacks)     | Vercel        | Supabase PG 16       |
-| Lokalnie   | `npm run dev` / Docker | `npm run dev` | Docker PG / Supabase |
+| Environment | Backend                | Frontend      | Database             |
+| ----------- | ---------------------- | ------------- | -------------------- |
+| Production  | Railway (Nixpacks)     | Vercel        | Supabase PG 16       |
+| Local       | `npm run dev` / Docker | `npm run dev` | Docker PG / Supabase |
 
 ### CORS
 
-`ALLOWED_ORIGINS` (env var, CSV) – domyślnie `http://localhost:5173` + `https://gymgate.vercel.app`.
+`ALLOWED_ORIGINS` (env var, CSV) – defaults to `http://localhost:5173` + `https://gymgate.vercel.app`.
 
 ## Architecture Decision Records
 
-Szczegółowe uzasadnienia decyzji projektowych: [`docs/adr/`](./adr/)
+Detailed rationale for design decisions: [`docs/adr/`](./adr/)
 
-- [ADR-001 – PostgreSQL jako baza danych](./adr/001-postgresql.md)
-- [ADR-002 – JWT Bearer zamiast sesji cookie](./adr/002-jwt-bearer.md)
-- [ADR-003 – Offline-first z IndexedDB](./adr/003-offline-indexeddb.md)
-- [ADR-004 – Context API zamiast zewnętrznego state managera](./adr/004-context-api-state.md)
-- [ADR-005 – Rebuild stats zamiast aktualizacji inkrementalnej](./adr/005-stats-rebuild.md)
+- [ADR-001 – PostgreSQL as the database](./adr/001-postgresql.md)
+- [ADR-002 – JWT Bearer instead of session cookies](./adr/002-jwt-bearer.md)
+- [ADR-003 – Offline-first with IndexedDB](./adr/003-offline-indexeddb.md)
+- [ADR-004 – Context API instead of external state manager](./adr/004-context-api-state.md)
+- [ADR-005 – Full stats rebuild instead of incremental updates](./adr/005-stats-rebuild.md)

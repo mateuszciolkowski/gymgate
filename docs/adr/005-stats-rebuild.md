@@ -1,40 +1,40 @@
-# ADR-005 – Pełny rebuild statystyk zamiast aktualizacji inkrementalnej
+# ADR-005 – Full Stats Rebuild Instead of Incremental Updates
 
-**Status:** Zaakceptowany  
-**Data:** 2024
+**Status:** Accepted  
+**Date:** 2024
 
-## Kontekst
+## Context
 
-`ExerciseUserStats` zawiera zagregowane dane (maxWeight, lastWeight, totalWorkouts) zależne od wszystkich zakończonych treningów użytkownika dla danego ćwiczenia. Te dane muszą być aktualizowane gdy:
+`ExerciseUserStats` contains aggregated data (maxWeight, lastWeight, totalWorkouts) dependent on all completed workouts for a given exercise by a user. This data must be updated when:
 
-- trening zmienia status na `COMPLETED` (lub powraca z `COMPLETED` do `DRAFT`),
-- trening jest usuwany,
-- seria w `COMPLETED` treningu jest dodana, edytowana lub usunięta,
-- notatka `WorkoutItem` w `COMPLETED` treningu jest edytowana,
-- ćwiczenie jest dodawane do już `COMPLETED` treningu,
-- ćwiczenie jest usuwane z `COMPLETED` treningu.
+- a workout changes status to `COMPLETED` (or reverts from `COMPLETED` to `DRAFT`),
+- a workout is deleted,
+- a set in a `COMPLETED` workout is added, edited, or deleted,
+- a `WorkoutItem` note in a `COMPLETED` workout is edited,
+- an exercise is added to an already `COMPLETED` workout,
+- an exercise is removed from a `COMPLETED` workout.
 
-Podejście inkrementalne (np. `UPDATE stats SET maxWeight = MAX(maxWeight, newWeight)`) jest trudne w przypadku usunięcia rekordu, który był rekordem osobistym.
+An incremental approach (e.g. `UPDATE stats SET maxWeight = MAX(maxWeight, newWeight)`) is difficult when deleting the record that was the personal best.
 
-## Decyzja
+## Decision
 
-Przy każdym ze wskazanych zdarzeń wywoływana jest funkcja `rebuildExerciseStatsFromCompletedWorkouts(userId, exerciseIds)`, która **usuwa i tworzy od nowa** rekordy `ExerciseUserStats`, agregując dane ze wszystkich `COMPLETED` workoutów.
+On each of the listed events, the function `rebuildExerciseStatsFromCompletedWorkouts(userId, exerciseIds)` is called, which **deletes and recreates** `ExerciseUserStats` records by aggregating data from all `COMPLETED` workouts.
 
-## Uzasadnienie
+## Rationale
 
-- **Poprawność** – rebuild gwarantuje spójność nawet przy usunięciu rekordu osobistego lub retroaktywnej edycji serii.
-- **Prostota** – jedna funkcja odpowiada za cały stan statystyk; nie jest wymagana logika rozróżniania, czy usunięta seria była rekordem.
-- **Skala** – przy typowym użytkowaniu (dziesiątki–setki treningów) koszt pełnego rebuild jest pomijalny.
-- **Transakcje** – rebuild można opakować w transakcję Prisma, co zapewnia atomowość operacji.
+- **Correctness** – rebuild guarantees consistency even when deleting a personal record or retroactively editing sets.
+- **Simplicity** – a single function handles the entire stats state; no logic needed to determine whether a deleted set was the record.
+- **Scale** – with typical usage (tens to hundreds of workouts), the cost of a full rebuild is negligible.
+- **Transactions** – rebuild can be wrapped in a Prisma transaction, ensuring atomicity.
 
-## Konsekwencje
+## Consequences
 
-- Przy bardzo dużej liczbie zakończonych treningów (tysiące) koszt rebuild może być znaczący; warto rozważyć cache invalidation + lazy rebuild lub background job.
-- Funkcja wywoływana jest synchronicznie w ramach żądania HTTP – wprowadza dodatkową latency do `PATCH /api/workouts/:id` i `DELETE /api/workouts/:id`.
-- Lokalizacja: `backend/src/modules/workout/workout.service.ts`, funkcja `rebuildExerciseStatsFromCompletedWorkouts`.
+- With a very large number of completed workouts (thousands), rebuild cost may become significant; consider cache invalidation + lazy rebuild or a background job.
+- The function is called synchronously within the HTTP request – introduces additional latency to `PATCH /api/workouts/:id` and `DELETE /api/workouts/:id`.
+- Location: `backend/src/modules/workout/workout.service.ts`, function `rebuildExerciseStatsFromCompletedWorkouts`.
 
-## Rozważane alternatywy
+## Alternatives Considered
 
-- **Inkrementalna aktualizacja** – pominięta ze względu na złożoność obsługi przypadku usunięcia rekordu osobistego.
-- **Event sourcing / triggers DB** – pominięte jako over-engineering dla obecnej skali projektu.
-- **Background job (queue)** – opcja do rozważenia w przyszłości przy > 10k treningów na użytkownika.
+- **Incremental update** – rejected due to complexity of handling personal record deletion.
+- **Event sourcing / DB triggers** – rejected as over-engineering for the current project scale.
+- **Background job (queue)** – option to consider in the future with > 10k workouts per user.

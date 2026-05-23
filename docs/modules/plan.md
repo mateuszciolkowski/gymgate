@@ -1,10 +1,10 @@
-# Moduł: Plan
+# Module: Plan
 
-## Odpowiedzialność
+## Responsibility
 
-Zarządzanie planami treningowymi (`WorkoutPlan`) — szablonami ćwiczeń, które użytkownik może przypisać do treningu. Moduł obsługuje CRUD planów, duplikację oraz integrację z `WorkoutDetailScreen` (suggest / skip).
+Manages workout plans (`WorkoutPlan`) — exercise templates that a user can assign to a workout. The module handles plan CRUD, duplication, and integration with `WorkoutDetailScreen` (suggest / skip).
 
-## Modele domenowe
+## Domain Models
 
 ```
 WorkoutPlan
@@ -13,96 +13,96 @@ WorkoutPlan
 
 WorkoutPlanItem
   id, planId, exerciseId, orderInPlan
-  UNIQUE(planId, exerciseId)  ← ćwiczenie może wystąpić raz w planie
+  UNIQUE(planId, exerciseId)  ← an exercise can appear once per plan
 ```
 
-**Widoczność planów:**
+**Plan visibility:**
 
-| Typ | `creatorUserId` | Dostępny dla |
+| Type | `creatorUserId` | Accessible to |
 |---|---|---|
-| Built-in | `null` | Wszyscy użytkownicy |
-| Własny | `<userId>` | Tylko właściciel |
-| Publiczny | `<userId>` + `isPublic=true` | Wszyscy użytkownicy (read + duplicate) |
+| Built-in | `null` | All users |
+| Own | `<userId>` | Owner only |
+| Public | `<userId>` + `isPublic=true` | All users (read + duplicate) |
 
-## Endpointy (wszystkie wymagają authMiddleware)
+## Endpoints (all require authMiddleware)
 
-| Metoda | Ścieżka | Opis |
+| Method | Path | Description |
 |---|---|---|
-| GET | `/api/plans?tab=mine\|builtin\|community` | Lista planów z filtrem zakładki |
-| GET | `/api/plans/:id` | Szczegóły (items + exercise); dostępny jeśli widoczny dla usera |
-| POST | `/api/plans` | Utwórz plan (właściciel = bieżący user) |
-| PUT | `/api/plans/:id` | Zastąp items / zmień nazwę / isPublic (tylko właściciel) |
-| DELETE | `/api/plans/:id` | Usuń plan (tylko właściciel); cascade na items, SetNull na workouts |
-| POST | `/api/plans/:id/duplicate` | Prywatna kopia widocznego planu |
+| GET | `/api/plans?tab=mine\|builtin\|community` | List plans with tab filter |
+| GET | `/api/plans/:id` | Details (items + exercise); accessible if visible to user |
+| POST | `/api/plans` | Create plan (owner = current user) |
+| PUT | `/api/plans/:id` | Replace items / change name / isPublic (owner only) |
+| DELETE | `/api/plans/:id` | Delete plan (owner only); cascade on items, SetNull on workouts |
+| POST | `/api/plans/:id/duplicate` | Private copy of a visible plan |
 
-## Walidacja Zod
+## Zod Validation
 
-- `name`: 3–100 znaków, unikalna per user (`UNIQUE(creatorUserId, name)` w DB)
-- `exerciseIds`: 1–50 UUID, bez duplikatów
-- `isPublic=true`: wszystkie exercises muszą mieć `creatorUserId IN (null, "1")` — backend zwraca `400` z listą prywatnych ćwiczeń
+- `name`: 3–100 characters, unique per user (`UNIQUE(creatorUserId, name)` in DB)
+- `exerciseIds`: 1–50 UUIDs, no duplicates
+- `isPublic=true`: all exercises must have `creatorUserId IN (null, "1")` — backend returns `400` with list of private exercises
 
-## Kluczowe przepływy
+## Key Flows
 
-### Tworzenie planu
+### Creating a Plan
 
 ```
 POST /api/plans
-  ↓ assertExercisesExistAndPublic(ids, requirePublic)   ← jeden fetch, dwa warunki
+  ↓ assertExercisesExistAndPublic(ids, requirePublic)   ← one fetch, two conditions
   ↓ assertNameAvailable(userId, name)
-  ↓ repository.create() owinięte w runCreateWithUniqueGuard()
-       ← guard mapuje Prisma P2002 (race condition) na 409
-  ↓ 201 { data: WorkoutPlan z items[] }
+  ↓ repository.create() wrapped in runCreateWithUniqueGuard()
+       ← guard maps Prisma P2002 (race condition) to 409
+  ↓ 201 { data: WorkoutPlan with items[] }
 ```
 
-### Aktualizacja planu
+### Updating a Plan
 
-Strategia items: **replace-all transakcyjnie** (`deleteMany` + `createMany`). Jeśli `exerciseIds` nie podano — items nienaruszone.
+Items strategy: **replace-all transactionally** (`deleteMany` + `createMany`). If `exerciseIds` not provided — items unchanged.
 
 ```
 PUT /api/plans/:id
-  ↓ assertExercisesExistAndPublic(newIds, nextIsPublic) jeśli nowe ids
-    assertExercisesArePublic(currentIds)                jeśli tylko isPublic się zmienia
-  ↓ assertNameAvailable() jeśli name != currentName
+  ↓ assertExercisesExistAndPublic(newIds, nextIsPublic) if new ids
+    assertExercisesArePublic(currentIds)                if only isPublic changes
+  ↓ assertNameAvailable() if name != currentName
   ↓ $transaction: deleteMany items → createMany items → update plan
   ↓ 200 { data: WorkoutPlan }
 ```
 
-### Duplikacja
+### Duplication
 
 ```
 POST /api/plans/:id/duplicate
-  ↓ getPlanById() ← sprawdza widoczność (własny | built-in | cudzy public)
-  ↓ findFreeCopyName(): „<original> (kopia)" → „(kopia 2)" → ... → max 999
-  ↓ repository.create() z isPublic=false, creatorUserId=userId
+  ↓ getPlanById() ← checks visibility (own | built-in | other's public)
+  ↓ findFreeCopyName(): "<original> (copy)" → "(copy 2)" → ... → max 999
+  ↓ repository.create() with isPublic=false, creatorUserId=userId
   ↓ 201 { data: WorkoutPlan }
 ```
 
-## Integracja z treningiem (workout plan flow)
+## Workout Integration (workout plan flow)
 
-Szczegółowy opis przepływu po stronie frontendu → [`workout.md#integracja-z-planem`](./workout.md#integracja-z-planem).
+Detailed frontend flow description → [`workout.md#plan-integration`](./workout.md#plan-integration).
 
-Endpointy workout używane w tej integracji:
+Workout endpoints used in this integration:
 
-| Metoda | Ścieżka | Opis |
+| Method | Path | Description |
 |---|---|---|
-| POST | `/api/workouts` | `workoutPlanId?` w body — przypisuje plan do treningu |
-| GET | `/api/workouts/:id/next-from-plan` | Pierwsze nieukończone ćwiczenie z planu |
-| POST | `/api/workouts/:id/skip-plan-exercise` | Dodaj `exerciseId` do `skippedPlanExerciseIds` (idempotentne) |
+| POST | `/api/workouts` | `workoutPlanId?` in body — assigns plan to workout |
+| GET | `/api/workouts/:id/next-from-plan` | First uncompleted exercise from plan |
+| POST | `/api/workouts/:id/skip-plan-exercise` | Add `exerciseId` to `skippedPlanExerciseIds` (idempotent) |
 
 ## Offline
 
-- **Plan CRUD (create / update / delete / duplicate)** — wymaga połączenia sieciowego; funkcje rzucają błąd natychmiast gdy offline
-- **Plan suggestion + skip** — działa w pełni offline: `nextFromPlan` jest wyliczany lokalnie z `DataContext.plans`, `skipPlanExercise` stosuje optimistic update + IndexedDB, request do API jest wysyłany gdy sieć jest dostępna; rollback na błąd API
+- **Plan CRUD (create / update / delete / duplicate)** — requires network connection; functions throw immediately when offline
+- **Plan suggestion + skip** — works fully offline: `nextFromPlan` is computed locally from `DataContext.plans`, `skipPlanExercise` applies optimistic update + IndexedDB, API request is sent when network is available; rollback on API error
 
-## Pliki
+## Files
 
 ```
 backend/src/modules/plan/
   plan.routes.ts
   plan.controller.ts
-  plan.service.ts      ← CRUD, duplikacja, walidacja isPublic, race condition guard
-  plan.repository.ts   ← findAll (3 taby), findById, create, update ($transaction), delete
+  plan.service.ts      ← CRUD, duplication, isPublic validation, race condition guard
+  plan.repository.ts   ← findAll (3 tabs), findById, create, update ($transaction), delete
   plan.schema.ts       ← Zod: createPlanSchema, updatePlanSchema, listPlansSchema
-  plan.service.test.ts ← 16 testów: CRUD, walidacja, duplikacja, autoryzacja
-  API.md               ← szczegółowe req/res kontrakty
+  plan.service.test.ts ← 16 tests: CRUD, validation, duplication, authorization
+  API.md               ← detailed req/res contracts
 ```

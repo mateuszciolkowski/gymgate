@@ -1,31 +1,31 @@
-# ADR-001 – PostgreSQL jako baza danych
+# ADR-001 – PostgreSQL as the Database
 
-**Status:** Zaakceptowany  
-**Data:** 2024
+**Status:** Accepted  
+**Date:** 2024
 
-## Kontekst
+## Context
 
-Projekt wymaga relacyjnej bazy danych do przechowywania treningów, ćwiczeń, serii i statystyk. Dane są silnie powiązane relacyjnie (User → Workout → WorkoutItem → WorkoutSet), a integralność referencyjna jest krytyczna.
+The project requires a relational database to store workouts, exercises, sets, and statistics. Data is strongly related (User → Workout → WorkoutItem → WorkoutSet), and referential integrity is critical.
 
-## Decyzja
+## Decision
 
-Wybrano **PostgreSQL 16** zarządzany przez Supabase (produkcja) i Docker (`postgres:16-alpine`) do lokalnego developmentu.
+**PostgreSQL 16** was chosen, managed by Supabase (production) and Docker (`postgres:16-alpine`) for local development.
 
-## Uzasadnienie
+## Rationale
 
-- **Relacyjność** – model domenowy opiera się na kaskadowych zależnościach (Cascade delete), które SQL obsługuje natywnie.
-- **Prisma support** – Prisma ORM ma pierwszorzędne wsparcie dla PostgreSQL, w tym typy takie jak `Decimal(6,2)` niezbędne dla ciężarów.
-- **Supabase** – zapewnia hosting PG bez zarządzania infrastrukturą, z wbudowanym connection pooler (PgBouncer).
-- **Enum arrays** (`MuscleGroup[]`) – PostgreSQL natywnie obsługuje tablicowe kolumny enum używane dla grup mięśniowych.
-- **Dojrzałość** – sprawdzona technologia z szeroką społecznością i ekosystemem.
+- **Relational model** – the domain model relies on cascading dependencies (Cascade delete), which SQL handles natively.
+- **Prisma support** – Prisma ORM has first-class support for PostgreSQL, including types like `Decimal(6,2)` needed for weights.
+- **Supabase** – provides hosted PG without infrastructure management, with a built-in connection pooler (PgBouncer).
+- **Enum arrays** (`MuscleGroup[]`) – PostgreSQL natively supports array enum columns used for muscle groups.
+- **Maturity** – proven technology with a broad community and ecosystem.
 
-## Konsekwencje
+## Consequences
 
-- Wymagane są `DATABASE_URL` i `DIRECT_URL` (dla migracji przez pooler).
-- `BigInt` wymaga patchowania `toJSON` (patch zastosowany w `index.ts`).
-- Lokalne środowisko wymaga uruchomionego Dockera lub dostępu do zewnętrznej instancji PG.
+- `DATABASE_URL` and `DIRECT_URL` are required (for migrations through a pooler).
+- `BigInt` requires `toJSON` patching (patch applied in `index.ts`).
+- Local environment requires running Docker or access to an external PG instance.
 
-## Rozważane alternatywy
+## Alternatives Considered
 
-- **SQLite** – pominięty ze względu na brak wsparcia dla enum arrays i potrzebę hostowanej bazy.
-- **MongoDB** – pominięty ze względu na silnie relacyjną strukturę danych projektu.
+- **SQLite** – rejected due to lack of enum array support and the need for a hosted database.
+- **MongoDB** – rejected due to the strongly relational data structure of the project.

@@ -1,119 +1,119 @@
-# Moduł: Workout
+# Module: Workout
 
-## Odpowiedzialność
+## Responsibility
 
-Zarządzanie treningami (Workout), pozycjami ćwiczeń w treningu (WorkoutItem), seriami (WorkoutSet) oraz statystykami per ćwiczenie (ExerciseUserStats).
+Manages workouts (Workout), exercise items within a workout (WorkoutItem), sets (WorkoutSet), and per-exercise statistics (ExerciseUserStats).
 
-## Modele domenowe
+## Domain Models
 
 ```
 Workout  (status: DRAFT | COMPLETED)
-  └─ WorkoutItem[]   (ćwiczenie wewnątrz treningu)
-       └─ WorkoutSet[]  (seria: weight, repetitions)
+  └─ WorkoutItem[]   (exercise within a workout)
+       └─ WorkoutSet[]  (set: weight, repetitions)
 
-ExerciseUserStats   (cache statystyk, UNIQUE userId+exerciseId)
-ExercisePendingNote (tabela przejściowa dla notatek, UNIQUE userId+exerciseId)
+ExerciseUserStats   (stats cache, UNIQUE userId+exerciseId)
+ExercisePendingNote (transient table for notes, UNIQUE userId+exerciseId)
 ```
 
-## Endpointy (wszystkie wymagają authMiddleware)
+## Endpoints (all require authMiddleware)
 
-### Workouty
+### Workouts
 
-| Metoda | Ścieżka                | Opis                                                  |
-| ------ | ---------------------- | ----------------------------------------------------- |
-| POST   | `/api/workouts`        | Utwórz nowy trening (status: DRAFT); opcjonalnie `workoutPlanId` |
-| GET    | `/api/workouts`        | Lista treningów użytkownika (paginacja, filtr status) |
-| GET    | `/api/workouts/active` | Aktywny trening użytkownika                           |
-| DELETE | `/api/workouts/active` | Wyczyść wskaźnik aktywnego treningu                   |
-| GET    | `/api/workouts/:id`    | Trening z items + sets + exercise                     |
-| PATCH  | `/api/workouts/:id`    | Edytuj / zamknij trening (`status: COMPLETED`)        |
-| DELETE | `/api/workouts/:id`    | Usuń trening (cascade: items → sets, rebuild stats)   |
+| Method | Path                    | Description                                                   |
+| ------ | ----------------------- | ------------------------------------------------------------- |
+| POST   | `/api/workouts`         | Create new workout (status: DRAFT); optionally `workoutPlanId` |
+| GET    | `/api/workouts`         | List user workouts (pagination, status filter)                |
+| GET    | `/api/workouts/active`  | User's active workout                                         |
+| DELETE | `/api/workouts/active`  | Clear active workout pointer                                  |
+| GET    | `/api/workouts/:id`     | Workout with items + sets + exercise                          |
+| PATCH  | `/api/workouts/:id`     | Edit / close workout (`status: COMPLETED`)                    |
+| DELETE | `/api/workouts/:id`     | Delete workout (cascade: items → sets, rebuild stats)         |
 
-### Pozycje (WorkoutItem)
+### Items (WorkoutItem)
 
-| Metoda | Ścieżka                              | Opis                        |
-| ------ | ------------------------------------ | --------------------------- |
-| POST   | `/api/workouts/:workoutId/exercises` | Dodaj ćwiczenie do treningu |
-| PATCH  | `/api/workouts/items/:itemId`        | Edytuj notatki / kolejność  |
-| DELETE | `/api/workouts/items/:itemId`        | Usuń ćwiczenie z treningu   |
+| Method | Path                                  | Description                 |
+| ------ | ------------------------------------- | --------------------------- |
+| POST   | `/api/workouts/:workoutId/exercises`  | Add exercise to workout     |
+| PATCH  | `/api/workouts/items/:itemId`         | Edit notes / order          |
+| DELETE | `/api/workouts/items/:itemId`         | Remove exercise from workout|
 
-### Serie (WorkoutSet)
+### Sets (WorkoutSet)
 
-| Metoda | Ścieżka                            | Opis         |
-| ------ | ---------------------------------- | ------------ |
-| POST   | `/api/workouts/items/:itemId/sets` | Dodaj serię  |
-| PATCH  | `/api/workouts/sets/:setId`        | Edytuj serię |
-| DELETE | `/api/workouts/sets/:setId`        | Usuń serię   |
+| Method | Path                                | Description  |
+| ------ | ----------------------------------- | ------------ |
+| POST   | `/api/workouts/items/:itemId/sets`  | Add set      |
+| PATCH  | `/api/workouts/sets/:setId`         | Edit set     |
+| DELETE | `/api/workouts/sets/:setId`         | Delete set   |
 
-### Statystyki
+### Statistics
 
-| Metoda | Ścieżka                                       | Opis                                       |
-| ------ | --------------------------------------------- | ------------------------------------------ |
-| GET    | `/api/workouts/stats/all`                     | Wszystkie ExerciseUserStats użytkownika    |
-| GET    | `/api/workouts/stats/exercise/:exerciseId`    | Stats dla konkretnego ćwiczenia            |
-| GET    | `/api/workouts/stats/overview`                | Globalny przegląd (totalWorkouts, records) |
-| GET    | `/api/workouts/stats/progression/:exerciseId` | Historyczna progresja ćwiczenia            |
+| Method | Path                                           | Description                                |
+| ------ | ---------------------------------------------- | ------------------------------------------ |
+| GET    | `/api/workouts/stats/all`                      | All ExerciseUserStats for the user         |
+| GET    | `/api/workouts/stats/exercise/:exerciseId`     | Stats for a specific exercise              |
+| GET    | `/api/workouts/stats/overview`                 | Global overview (totalWorkouts, records)   |
+| GET    | `/api/workouts/stats/progression/:exerciseId`  | Historical exercise progression            |
 
-## Kluczowe przepływy
+## Key Flows
 
-### Dodanie ćwiczenia do treningu
+### Adding an Exercise to a Workout
 
 ```
 POST /api/workouts/:workoutId/exercises
-  ↓ addExerciseToWorkoutWithPendingNote() – transakcja:
-      1. Pobierz ExercisePendingNote dla (userId, exerciseId)
-      2. Utwórz WorkoutItem z previousNote = pending?.note
-      3. Usuń ExercisePendingNote
-  ↓ (jeśli workout.status === "COMPLETED") rebuildExerciseStatsFromCompletedWorkouts(userId, exerciseId)
-  ↓ 201 { data: WorkoutItem z sets: [] }
+  ↓ addExerciseToWorkoutWithPendingNote() – transaction:
+      1. Fetch ExercisePendingNote for (userId, exerciseId)
+      2. Create WorkoutItem with previousNote = pending?.note
+      3. Delete ExercisePendingNote
+  ↓ (if workout.status === "COMPLETED") rebuildExerciseStatsFromCompletedWorkouts(userId, exerciseId)
+  ↓ 201 { data: WorkoutItem with sets: [] }
 ```
 
-Po stronie frontendu (`DataContext`) stosowany jest optimistic update: item tworzony jest z `temp_*` ID i **pustą listą serii** (`sets: []`). Pierwsza seria jest wyłącznie po stronie frontendu — jako `draftSet` w `WorkoutItemCard`, pre-wypełniony wartościami `ExerciseUserStats.lastWeight/lastReps`. Serwer nie tworzy domyślnej serii — eliminuje to problem "phantom default set" w historii ćwiczenia.
+On the frontend side (`DataContext`), an optimistic update is applied: the item is created with a `temp_*` ID and **an empty sets list** (`sets: []`). The first set exists only on the frontend — as a `draftSet` in `WorkoutItemCard`, pre-filled with `ExerciseUserStats.lastWeight/lastReps` values. The server does not create a default set — this eliminates the "phantom default set" problem in exercise history.
 
-### Zamknięcie treningu
+### Completing a Workout
 
 ```
 PATCH /api/workouts/:id  { status: "COMPLETED" }
   ↓ workoutService.updateWorkout()
       └─ rebuildExerciseStatsFromCompletedWorkouts(userId, exerciseIds)
-           ← agreguje wszystkie COMPLETED workouty, nadpisuje ExerciseUserStats
+           ← aggregates all COMPLETED workouts, overwrites ExerciseUserStats
 ```
 
-> **Ważne:** Statystyki są zawsze **przebudowywane w całości** (nie inkrementalnie). Ta sama funkcja wywoływana jest również przy:
+> **Important:** Stats are always **fully rebuilt** (not incrementally). The same function is also called when:
 >
-> - usunięciu treningu
-> - edycji lub usunięciu serii w `COMPLETED` treningu
-> - edycji notatki `WorkoutItem` w `COMPLETED` treningu
-> - dodaniu ćwiczenia do już `COMPLETED` treningu
+> - deleting a workout
+> - editing or deleting a set in a `COMPLETED` workout
+> - editing a `WorkoutItem` note in a `COMPLETED` workout
+> - adding an exercise to an already `COMPLETED` workout
 
-### Mechanizm notatek (carry-over)
+### Note Mechanism (carry-over)
 
 ```
-WorkoutItem.notes        – notatka do bieżącego treningu
-WorkoutItem.previousNote – notatka z poprzedniego treningu (one-time, skonsumowana przy dodaniu)
-ExercisePendingNote      – staging: upsertowana przy każdej zmianie notes,
-                           usuwana gdy ćwiczenie jest dodawane do treningu
+WorkoutItem.notes        – note for the current workout
+WorkoutItem.previousNote – note from the previous workout (one-time, consumed on add)
+ExercisePendingNote      – staging: upserted on every notes change,
+                           deleted when exercise is added to a workout
 ```
 
-## Integracja z planem
+## Plan Integration
 
-Workout może być powiązany z `WorkoutPlan` przez `workoutPlanId`. Trening startuje pusty — plan jest referencją live (nie snapshotem). Szczegółowy opis modułu planów → [`plan.md`](./plan.md).
+A Workout can be linked to a `WorkoutPlan` via `workoutPlanId`. The workout starts empty — the plan is a live reference (not a snapshot). Detailed plan module description → [`plan.md`](./plan.md).
 
-### Nowe pola w Workout
+### New Workout Fields
 
-| Pole | Typ | Opis |
+| Field | Type | Description |
 |---|---|---|
-| `workoutPlanId` | `String?` | FK do `WorkoutPlan`; `SET NULL` przy usunięciu planu |
-| `skippedPlanExerciseIds` | `String[]` | Ćwiczenia pominięte w tym konkretnym treningu |
+| `workoutPlanId` | `String?` | FK to `WorkoutPlan`; `SET NULL` on plan deletion |
+| `skippedPlanExerciseIds` | `String[]` | Exercises skipped in this specific workout |
 
-### Endpointy integracji
+### Integration Endpoints
 
-| Metoda | Ścieżka | Opis |
+| Method | Path | Description |
 |---|---|---|
-| GET | `/api/workouts/:id/next-from-plan` | Pierwsze nieukończone ćwiczenie z planu |
-| POST | `/api/workouts/:id/skip-plan-exercise` | Dodaj exerciseId do skippedPlanExerciseIds (idempotentne) |
+| GET | `/api/workouts/:id/next-from-plan` | First uncompleted exercise from the plan |
+| POST | `/api/workouts/:id/skip-plan-exercise` | Add exerciseId to skippedPlanExerciseIds (idempotent) |
 
-### Algorytm `nextFromPlan` (backend + frontend)
+### `nextFromPlan` Algorithm (backend + frontend)
 
 ```
 plan.items
@@ -123,30 +123,30 @@ plan.items
   .first() || null
 ```
 
-Frontend wylicza `nextFromPlan` **lokalnie** z `DataContext.plans` bez dodatkowego requestu — reaguje live na zmiany planu w trakcie trwającego treningu. Backend endpoint `/next-from-plan` istnieje dla innych klientów.
+The frontend computes `nextFromPlan` **locally** from `DataContext.plans` without an extra request — it reacts live to plan changes during an ongoing workout. The backend endpoint `/next-from-plan` exists for other clients.
 
-### Przepływ suggest / skip (frontend)
+### Suggest / Skip Flow (frontend)
 
 ```
 WorkoutDetailScreen (DRAFT + workoutPlanId != null):
   1. activePlan = plans.find(p.id === workout.workoutPlanId)
-  2. nextFromPlan = algorytm powyżej (useMemo, live)
-  3a. Klik [+ <ćwiczenie>] → addExercise(nextFromPlan.exerciseId)
-       ← reuse istniejącego endpointu POST /api/workouts/:id/exercises
-       ← gwarantuje: previousNote + defaultSet z stats
-  3b. Klik [⏭] → skipPlanExercise(workoutId, exerciseId)
-       ← optimistic: dodaje do skippedPlanExerciseIds w state + IndexedDB
+  2. nextFromPlan = algorithm above (useMemo, live)
+  3a. Click [+ <exercise>] → addExercise(nextFromPlan.exerciseId)
+       ← reuses existing endpoint POST /api/workouts/:id/exercises
+       ← guarantees: previousNote + defaultSet from stats
+  3b. Click [⏭] → skipPlanExercise(workoutId, exerciseId)
+       ← optimistic: adds to skippedPlanExerciseIds in state + IndexedDB
        ← POST /api/workouts/:id/skip-plan-exercise
-       ← rollback (state + IndexedDB) na błąd API
-  4. Brak nextFromPlan → "Plan ukończony"
-  5. Manualny ExerciseSelectionModal działa równolegle bez zmian
+       ← rollback (state + IndexedDB) on API error
+  4. No nextFromPlan → "Plan completed"
+  5. Manual ExerciseSelectionModal works in parallel without changes
 ```
 
-## Zapis rekordu osobistego
+## Personal Record Tracking
 
-Rekord (PR) = najwyższy `weight` kiedykolwiek podniesiony dla danego ćwiczenia przez danego użytkownika (`maxWeight`). `maxWeightReps` to kontekst dla tego rekordu, nie osobna metryka rankingowa.
+Record (PR) = highest `weight` ever lifted for a given exercise by a given user (`maxWeight`). `maxWeightReps` is context for that record, not a separate ranking metric.
 
-## Pliki
+## Files
 
 ```
 backend/src/modules/workout/
@@ -155,5 +155,5 @@ backend/src/modules/workout/
   workout.service.ts      ← rebuildExerciseStats, addExerciseToWorkoutWithPendingNote
   workout.repository.ts
   workout.schema.ts       ← Zod schemas
-  API.md                  ← szczegółowe req/res kontrakty
+  API.md                  ← detailed req/res contracts
 ```
