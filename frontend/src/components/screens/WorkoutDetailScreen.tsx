@@ -518,7 +518,8 @@ export function WorkoutDetailScreen({
                   </div>
                 </div>
               ) : isEditingInfo ? (
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3.5">
+                  <h3 className="text-[14px] font-bold m-0" style={{ color: "var(--gg-text)" }}>Edytuj dane</h3>
                   <div>
                     <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Nazwa treningu</label>
                     <input type="text" value={editWorkoutName} onChange={(e) => setEditWorkoutName(e.target.value)} placeholder="np. Trening nóg" style={inputStyle} />
@@ -531,9 +532,9 @@ export function WorkoutDetailScreen({
                     <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Data treningu</label>
                     <input type="date" value={editWorkoutDate} onChange={(e) => setEditWorkoutDate(e.target.value)} max={new Date().toISOString().split("T")[0]} style={inputStyle} />
                   </div>
-                  <div className="flex gap-2 mt-1">
-                    <button onClick={() => setIsEditingInfo(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer" style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text-sub)" }}>Anuluj</button>
-                    <button onClick={handleSaveWorkoutInfo} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer text-white border-none" style={{ background: "var(--gg-grad-btn)", boxShadow: "0 3px 14px var(--gg-glow)" }}>Zapisz</button>
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={() => setIsEditingInfo(false)} className="flex-1 py-3 rounded-xl text-sm font-bold cursor-pointer" style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text-sub)" }}>Anuluj</button>
+                    <button onClick={handleSaveWorkoutInfo} className="flex-1 py-3 rounded-xl text-sm font-bold cursor-pointer text-white border-none" style={{ background: "var(--gg-grad-btn)", boxShadow: "0 3px 14px var(--gg-glow)" }}>Zapisz</button>
                   </div>
                 </div>
               ) : (
@@ -609,7 +610,7 @@ export function WorkoutDetailScreen({
           <div
             className="mb-4 rounded-[18px]"
             style={{
-              padding: "14px 16px",
+              padding: isEditMode ? "20px 20px" : "14px 16px",
               background: "var(--gg-surface)",
               border: "1.5px solid var(--gg-border)",
               boxShadow: "var(--gg-shadow)",
@@ -659,7 +660,8 @@ export function WorkoutDetailScreen({
                 </div>
               </>
             ) : (
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3.5">
+                <h3 className="text-[14px] font-bold m-0" style={{ color: "var(--gg-text)" }}>Edytuj trening</h3>
                 <div>
                   <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Nazwa treningu</label>
                   <input type="text" value={editWorkoutName} onChange={(e) => setEditWorkoutName(e.target.value)} placeholder="np. Trening nóg" style={inputStyle} />
@@ -672,18 +674,19 @@ export function WorkoutDetailScreen({
                   <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Data treningu</label>
                   <input type="date" value={editWorkoutDate} onChange={(e) => setEditWorkoutDate(e.target.value)} max={new Date().toISOString().split("T")[0]} style={inputStyle} />
                 </div>
-                <div>
+                <div className="pt-2" style={{ borderTop: "1px solid var(--gg-border)" }}>
                   <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Notatki</label>
-                  <textarea value={editWorkoutNotes} onChange={(e) => setEditWorkoutNotes(e.target.value)} placeholder="Dodaj notatki do treningu..." rows={3} style={{ ...inputStyle, resize: "none" }} />
+                  <textarea value={editWorkoutNotes} onChange={(e) => setEditWorkoutNotes(e.target.value)} placeholder="Dodaj notatki do treningu..." rows={2} style={{ ...inputStyle, resize: "none" }} />
                 </div>
-                <div>
+                <div className="pt-2" style={{ borderTop: "1px solid var(--gg-border)" }}>
+                  <label className="block text-[12px] font-bold uppercase tracking-wide mb-2" style={{ color: "var(--gg-text-sub)" }}>Czas trwania</label>
                   <div className="flex gap-2">
                     <div className="flex-1">
-                      <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Rozpoczęcie</label>
+                      <label className="block text-[11px] mb-1" style={{ color: "var(--gg-text-muted)" }}>Rozpoczęcie</label>
                       <input type="time" value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} style={inputStyle} />
                     </div>
                     <div className="flex-1">
-                      <label className="block text-[12px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "var(--gg-text-sub)" }}>Zakończenie</label>
+                      <label className="block text-[11px] mb-1" style={{ color: "var(--gg-text-muted)" }}>Zakończenie</label>
                       <input type="time" value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} style={inputStyle} />
                     </div>
                   </div>
@@ -693,9 +696,9 @@ export function WorkoutDetailScreen({
                     </p>
                   )}
                 </div>
-                <div className="flex gap-2 mt-1">
-                  <button onClick={() => setIsEditMode(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer" style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text-sub)" }}>Anuluj</button>
-                  <button onClick={handleSaveCompletedEdits} className="flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer text-white border-none" style={{ background: "var(--gg-grad-btn)", boxShadow: "0 3px 14px var(--gg-glow)" }}>Zapisz</button>
+                <div className="flex gap-2 mt-2">
+                  <button onClick={() => setIsEditMode(false)} className="flex-1 py-3 rounded-xl text-sm font-bold cursor-pointer" style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text-sub)" }}>Anuluj</button>
+                  <button onClick={handleSaveCompletedEdits} className="flex-1 py-3 rounded-xl text-sm font-bold cursor-pointer text-white border-none" style={{ background: "var(--gg-grad-btn)", boxShadow: "0 3px 14px var(--gg-glow)" }}>Zapisz</button>
                 </div>
               </div>
             )}
