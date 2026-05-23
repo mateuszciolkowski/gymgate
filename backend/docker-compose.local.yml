@@ -1,0 +1,24 @@
+name: gymgate_local_db
+
+services:
+  gg_db_local:
+    image: postgres:16-alpine
+    container_name: gymgate_db_local
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      POSTGRES_DB: gymgate_local
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - gymgate_local_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gymgate_local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  gymgate_local_data:
+    name: gymgate_local_data

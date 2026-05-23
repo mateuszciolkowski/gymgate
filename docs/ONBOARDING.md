@@ -43,18 +43,23 @@ API_PORT=3000
 > `DATABASE_URL` i `DIRECT_URL` mogą być identyczne przy bezpośrednim połączeniu z PostgreSQL.  
 > Różnią się, gdy `DATABASE_URL` przechodzi przez connection pooler (PgBouncer / Prisma Accelerate).
 
-### 2b. Uruchomienie przez Docker
+### 2b. Uruchomienie
 
-Backend (API + baza danych) uruchamiany jest wyłącznie przez Docker Compose przy użyciu `make`:
+**Tryb dev (zalecany do lokalnego developmentu):**
+
+```bash
+make dev    # nodemon + tsx, restartuje przy zmianach plików
+```
+
+**Docker (emulacja produkcji, bez hot-reload):**
 
 ```bash
 make up     # build obrazu + uruchomienie kontenera (detached)
-make logs   # śledzenie logów kontenera
-make down   # zatrzymanie i usunięcie kontenera
+make logs   # śledzenie logów
+make down   # zatrzymanie
 ```
 
-Kontener po uruchomieniu automatycznie wykonuje `prisma migrate deploy` oraz `npm run build && npm run start`.  
-Port API ustawiany jest przez `API_PORT` w `.env` (domyślnie `3000`).
+Kontener automatycznie wykonuje `prisma migrate deploy` oraz `npm run build && npm run start`.
 
 Weryfikacja:
 
@@ -63,7 +68,27 @@ curl http://localhost:3000/health
 # → {"status":"ok","timestamp":"..."}
 ```
 
-### 2c. Operacje na bazie (wewnątrz kontenera)
+### 2c. Lokalna baza danych PostgreSQL (opcja offline)
+
+Jeśli chcesz pracować bez połączenia z zewnętrzną bazą, możesz uruchomić lokalnego PostgreSQL na porcie 5433:
+
+```bash
+make local-setup   # jednorazowo: start kontenera + migracje + seed danych testowych
+```
+
+Następnie dodaj do `backend/.env`:
+
+```env
+DB_ENV=local
+DATABASE_URL_LOCAL="postgresql://postgres:postgres@localhost:5433/gymgate_local"
+```
+
+Uruchom backend przez `make dev` — połączy się z lokalną bazą.  
+Dane testowe: `test@gymgate.com` / `Test1234!` (16 ukończonych treningów + 1 aktywny DRAFT).
+
+Pełna dokumentacja opcji A/B/C: [`docs/running-locally.md`](./running-locally.md)
+
+### 2d. Operacje na bazie (wewnątrz kontenera Docker)
 
 ```bash
 make docker-migrate   # prisma migrate deploy wewnątrz kontenera
@@ -115,16 +140,31 @@ npm run lint       # eslint
 ## 5. Makefile – dostępne komendy
 
 ```bash
-# Cykl życia kontenera
+# Cykl życia kontenera Docker
 make up             # build obrazu + uruchomienie (detached)
 make down           # zatrzymanie i usunięcie kontenera
 make build          # rebuild obrazu bez uruchamiania
 make logs           # śledzenie logów
 make restart        # restart kontenera
 
-# Baza danych (wewnątrz kontenera)
+# Dev / jakość
+make dev            # nodemon + tsx (watch mode)
+make test           # vitest
+make typecheck      # tsc --noEmit
+
+# Baza danych – zdalna
+make migrate        # prisma migrate deploy
+make seed           # seed bazy
+
+# Baza danych – wewnątrz kontenera
 make docker-migrate # prisma migrate deploy
 make docker-seed    # seed bazy
+
+# Lokalna baza danych (port 5433)
+make local-setup    # jednorazowo: start + migracje + seed
+make local-up       # start kontenera PostgreSQL
+make local-down     # zatrzymanie (dane zachowane)
+make local-reset    # wipe danych + migracje od zera + seed
 
 # Pomoc
 make help           # lista wszystkich targetów z opisami
@@ -207,6 +247,5 @@ types/
 | Moduł offline/sync     | [`docs/modules/offline-sync.md`](./modules/offline-sync.md)             |
 | OpenAPI spec           | [`docs/api/openapi.yaml`](./api/openapi.yaml)                           |
 | ADR                    | [`docs/adr/`](./adr/)                                                   |
-| Backend – uruchomienie | [`backend/docs/running-locally.md`](../backend/docs/running-locally.md) |
-| Backend – architektura | [`backend/docs/ARCHITECTURE.md`](../backend/docs/ARCHITECTURE.md)       |
-| Postman collection     | [`backend/postman/`](../backend/postman/)                               |
+| Backend – uruchomienie | [`docs/running-locally.md`](./running-locally.md)                        |
+| Postman collection     | [`backend/postman/`](../backend/postman/)                                |
