@@ -133,6 +133,7 @@ export interface WorkoutPlan {
   name: string;
   creatorUserId: string | null;
   isPublic: boolean;
+  isFavorite: boolean;
   items: WorkoutPlanItem[];
   createdAt: string;
   updatedAt: string;

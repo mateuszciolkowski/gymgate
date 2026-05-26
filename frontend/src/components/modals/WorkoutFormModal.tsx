@@ -25,9 +25,12 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
   const { user } = useAuth();
 
   const userId = user?.id ?? "";
-  const visiblePlans = plans.filter(
-    (p) => p.creatorUserId === userId || p.creatorUserId === null || p.isPublic,
-  );
+  const visiblePlans = plans
+    .filter((p) => p.creatorUserId === userId || p.creatorUserId === null || p.isPublic)
+    .sort((a, b) => {
+      if (a.isFavorite === b.isFavorite) return 0;
+      return a.isFavorite ? -1 : 1;
+    });
 
   const selectedPlanName = visiblePlans.find((p) => p.id === workoutPlanId)?.name;
 
@@ -275,7 +278,10 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
                         gap: 8,
                       }}
                     >
-                      <span style={{ fontSize: 14, color: "var(--gg-text)", fontFamily: "'DM Sans', sans-serif", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ fontSize: 14, color: "var(--gg-text)", fontFamily: "'DM Sans', sans-serif", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>
+                        {plan.isFavorite && (
+                          <span style={{ color: "var(--gg-a1)", fontSize: 13, flexShrink: 0 }}>★</span>
+                        )}
                         {plan.name}
                       </span>
                       {workoutPlanId === plan.id ? (

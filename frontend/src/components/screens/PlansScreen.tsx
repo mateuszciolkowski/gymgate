@@ -25,9 +25,10 @@ interface PlanCardProps {
   isOwner: boolean;
   onEdit?: () => void;
   onDuplicate: () => void;
+  onFavoriteToggle: () => void;
 }
 
-const PlanCard = memo(function PlanCard({ plan, isOwner, onEdit, onDuplicate }: PlanCardProps) {
+const PlanCard = memo(function PlanCard({ plan, isOwner, onEdit, onDuplicate, onFavoriteToggle }: PlanCardProps) {
   const muscles = getPlanMuscles(plan);
   const [duplicating, setDuplicating] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -180,6 +181,22 @@ const PlanCard = memo(function PlanCard({ plan, isOwner, onEdit, onDuplicate }: 
           </button>
         )}
 
+        <button
+          onClick={onFavoriteToggle}
+          className="flex items-center justify-center rounded-[11px] border-none cursor-pointer"
+          style={{
+            width: 38,
+            background: "var(--gg-surface2)",
+            border: "1px solid var(--gg-border)",
+            color: plan.isFavorite ? "var(--gg-a1)" : "var(--gg-text-muted)",
+            fontSize: 18,
+          }}
+          aria-label={plan.isFavorite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+          title={plan.isFavorite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+        >
+          {plan.isFavorite ? "★" : "☆"}
+        </button>
+
         {isOwner && (
           <button
             onClick={handleDelete}
@@ -206,7 +223,7 @@ const PlanCard = memo(function PlanCard({ plan, isOwner, onEdit, onDuplicate }: 
 });
 
 export const PlansScreen = memo(function PlansScreen({ onCreatePlan, onEditPlan }: PlansScreenProps) {
-  const { plans, duplicatePlan } = useData();
+  const { plans, duplicatePlan, favoritePlan, unfavoritePlan } = useData();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<PlanTab>("mine");
 
@@ -313,6 +330,17 @@ export const PlansScreen = memo(function PlansScreen({ onCreatePlan, onEditPlan 
                   await duplicatePlan(plan.id);
                 } catch {
                   alert("Nie udało się zduplikować planu");
+                }
+              }}
+              onFavoriteToggle={async () => {
+                try {
+                  if (plan.isFavorite) {
+                    await unfavoritePlan(plan.id);
+                  } else {
+                    await favoritePlan(plan.id);
+                  }
+                } catch {
+                  alert("Nie udało się zmienić ulubionego");
                 }
               }}
             />

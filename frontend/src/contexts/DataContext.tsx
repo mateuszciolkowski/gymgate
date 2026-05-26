@@ -109,6 +109,8 @@ interface DataContextType {
   updatePlan: (id: string, data: { name?: string; exerciseIds?: string[]; isPublic?: boolean }) => Promise<void>;
   deletePlan: (id: string) => Promise<void>;
   duplicatePlan: (id: string) => Promise<WorkoutPlan>;
+  favoritePlan: (id: string) => Promise<void>;
+  unfavoritePlan: (id: string) => Promise<void>;
 
   // Akcje - Plan integration
   skipPlanExercise: (workoutId: string, exerciseId: string) => Promise<void>;
@@ -1935,6 +1937,35 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return newPlan;
   }, [fetchAllFromServer]);
 
+  const favoritePlan = useCallback(async (id: string) => {
+    if (!navigator.onLine) throw new Error("Brak połączenia z serwerem — spróbuj ponownie gdy będziesz online.");
+
+    const response = await authFetch(`${API_BASE}/api/plans/${id}/favorite`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) throw new Error("Błąd dodawania do ulubionych");
+
+    setPlans((prev) => prev.map((p) => (p.id === id ? { ...p, isFavorite: true } : p)));
+    const updated = plansRef.current.find((p) => p.id === id);
+    if (updated) await localStore.put("plans", { ...updated, isFavorite: true });
+  }, []);
+
+  const unfavoritePlan = useCallback(async (id: string) => {
+    if (!navigator.onLine) throw new Error("Brak połączenia z serwerem — spróbuj ponownie gdy będziesz online.");
+
+    const response = await authFetch(`${API_BASE}/api/plans/${id}/favorite`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok && response.status !== 204) throw new Error("Błąd usuwania z ulubionych");
+
+    setPlans((prev) => prev.map((p) => (p.id === id ? { ...p, isFavorite: false } : p)));
+    const updated = plansRef.current.find((p) => p.id === id);
+    if (updated) await localStore.put("plans", { ...updated, isFavorite: false });
+  }, []);
+
   const skipPlanExercise = useCallback(async (workoutId: string, exerciseId: string) => {
     const realWorkoutId = getRealId(workoutId);
 
@@ -2044,6 +2075,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       updatePlan,
       deletePlan,
       duplicatePlan,
+      favoritePlan,
+      unfavoritePlan,
       skipPlanExercise,
       completeWorkout,
       syncNow,
@@ -2080,6 +2113,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       updatePlan,
       deletePlan,
       duplicatePlan,
+      favoritePlan,
+      unfavoritePlan,
       skipPlanExercise,
       completeWorkout,
       syncNow,
