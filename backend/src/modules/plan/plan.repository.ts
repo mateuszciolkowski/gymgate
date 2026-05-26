@@ -1,4 +1,5 @@
 import prisma from "../../config/database.js";
+import type { Prisma } from "@prisma/client";
 import type { PlanTab } from "./plan.schema.js";
 
 const itemsInclude = {
@@ -17,14 +18,18 @@ function favoritedByInclude(userId: string) {
   };
 }
 
-type RawPlanWithFavorite = {
-  favoritedBy?: { id: string }[];
-  [key: string]: unknown;
-};
+type PlanWithFavoriteRaw = Prisma.WorkoutPlanGetPayload<{
+  include: {
+    items: { include: { exercise: true } };
+    favoritedBy: { select: { id: true } };
+  };
+}>;
 
-function toDto<T extends RawPlanWithFavorite>(plan: T) {
+export type PlanDto = Omit<PlanWithFavoriteRaw, "favoritedBy"> & { isFavorite: boolean };
+
+function toDto(plan: PlanWithFavoriteRaw): PlanDto {
   const { favoritedBy, ...rest } = plan;
-  return { ...rest, isFavorite: (favoritedBy?.length ?? 0) > 0 };
+  return { ...rest, isFavorite: favoritedBy.length > 0 };
 }
 
 export class PlanRepository {

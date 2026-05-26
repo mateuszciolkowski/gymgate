@@ -112,24 +112,12 @@ export class PlanService {
   }
 
   async favoritePlan(id: string, userId: string) {
-    const plan = await this.repository.findById(id);
-    if (!plan) throw new NotFoundError("Plan not found");
-
-    const isOwner = plan.creatorUserId === userId;
-    const isBuiltIn = plan.creatorUserId === null;
-    const isVisiblePublic = plan.isPublic && plan.creatorUserId !== null;
-
-    if (!isOwner && !isBuiltIn && !isVisiblePublic) {
-      throw new NotFoundError("Plan not found");
-    }
-
+    await this.getPlanById(id, userId);
     await this.repository.addFavorite(userId, id);
   }
 
   async unfavoritePlan(id: string, userId: string) {
-    const plan = await this.repository.findById(id);
-    if (!plan) throw new NotFoundError("Plan not found");
-
+    await this.getPlanById(id, userId);
     await this.repository.removeFavorite(userId, id);
   }
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -25,12 +25,16 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
   const { user } = useAuth();
 
   const userId = user?.id ?? "";
-  const visiblePlans = plans
-    .filter((p) => p.creatorUserId === userId || p.creatorUserId === null || p.isPublic)
-    .sort((a, b) => {
-      if (a.isFavorite === b.isFavorite) return 0;
-      return a.isFavorite ? -1 : 1;
-    });
+  const visiblePlans = useMemo(
+    () =>
+      plans
+        .filter((p) => p.creatorUserId === userId || p.creatorUserId === null || p.isPublic)
+        .sort((a, b) => {
+          if (a.isFavorite === b.isFavorite) return 0;
+          return a.isFavorite ? -1 : 1;
+        }),
+    [plans, userId],
+  );
 
   const selectedPlanName = visiblePlans.find((p) => p.id === workoutPlanId)?.name;
 
