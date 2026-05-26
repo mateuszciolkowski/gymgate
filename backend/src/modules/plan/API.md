@@ -121,3 +121,34 @@ Copy name: `<original> (copy)` or `<original> (copy N)` on conflict.
 **Response (201):** `{ success: true, data: WorkoutPlan }` — `isPublic=false`, `creatorUserId=<userId>`.
 
 **Errors:** `404` (source not visible).
+
+---
+
+## POST /api/plans/:id/favorite
+
+Adds a plan to the current user's favorites. Idempotent — already-favorited plan is a no-op.
+Accessible for: own plans, built-in plans (`creatorUserId=null`), visible public community plans.
+
+**Response (200):** `{ success: true }`
+
+**Errors:** `404` (plan not found or not accessible to the user).
+
+---
+
+## DELETE /api/plans/:id/favorite
+
+Removes a plan from the current user's favorites. Idempotent — removing a non-favorited plan is a no-op.
+
+**Response (204):** no body.
+
+**Errors:** `404` (plan does not exist).
+
+---
+
+## isFavorite flag
+
+All `WorkoutPlan` objects returned by `GET /api/plans` and `GET /api/plans/:id` include:
+
+```typescript
+isFavorite: boolean  // true when the authenticated user has favorited this plan
+```

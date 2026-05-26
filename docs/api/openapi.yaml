@@ -142,6 +142,29 @@ components:
         totalSets: { type: integer }
         totalVolume: { type: number }
 
+    WorkoutPlanItem:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        planId: { type: string, format: uuid }
+        exerciseId: { type: string, format: uuid }
+        orderInPlan: { type: integer }
+        exercise: { $ref: "#/components/schemas/Exercise" }
+
+    WorkoutPlan:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        creatorUserId: { type: string, format: uuid, nullable: true }
+        isPublic: { type: boolean }
+        isFavorite: { type: boolean, description: "True when the authenticated user has favorited this plan" }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/WorkoutPlanItem" }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
     Error:
       type: object
       properties:
@@ -733,4 +756,190 @@ paths:
                 properties:
                   success: { type: boolean }
                   data: { $ref: "#/components/schemas/User" }
+        "404": { description: Nie znaleziono }
+
+  # ── PLANS ─────────────────────────────────────────────────────────────────
+
+  /api/plans:
+    get:
+      tags: [Plans]
+      summary: Lista planów (z filtrem tab)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: tab
+          schema: { type: string, enum: [mine, builtin, community], default: mine }
+      responses:
+        "200":
+          description: Lista planów
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/WorkoutPlan" }
+                  count: { type: integer }
+    post:
+      tags: [Plans]
+      summary: Utwórz plan
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, exerciseIds]
+              properties:
+                name: { type: string, minLength: 3, maxLength: 100 }
+                exerciseIds:
+                  type: array
+                  items: { type: string, format: uuid }
+                  minItems: 1
+                  maxItems: 50
+                isPublic: { type: boolean, default: false }
+      responses:
+        "201":
+          description: Plan utworzony
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/WorkoutPlan" }
+        "400": { description: Błędne dane }
+        "409": { description: Nazwa już istnieje }
+
+  /api/plans/{id}:
+    get:
+      tags: [Plans]
+      summary: Szczegóły planu
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Plan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/WorkoutPlan" }
+        "404": { description: Nie znaleziono }
+    put:
+      tags: [Plans]
+      summary: Aktualizuj plan (właściciel)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 3, maxLength: 100 }
+                exerciseIds:
+                  type: array
+                  items: { type: string, format: uuid }
+                isPublic: { type: boolean }
+      responses:
+        "200":
+          description: Plan zaktualizowany
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/WorkoutPlan" }
+        "403": { description: Brak uprawnień }
+        "404": { description: Nie znaleziono }
+    delete:
+      tags: [Plans]
+      summary: Usuń plan (właściciel)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204": { description: Usunięto }
+        "403": { description: Brak uprawnień }
+        "404": { description: Nie znaleziono }
+
+  /api/plans/{id}/duplicate:
+    post:
+      tags: [Plans]
+      summary: Duplikuj plan (prywatna kopia)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "201":
+          description: Kopia planu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/WorkoutPlan" }
+        "404": { description: Nie znaleziono }
+
+  /api/plans/{id}/favorite:
+    post:
+      tags: [Plans]
+      summary: Dodaj plan do ulubionych (idempotent)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Dodano do ulubionych
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+        "404": { description: Nie znaleziono lub niedostępny }
+    delete:
+      tags: [Plans]
+      summary: Usuń plan z ulubionych (idempotent)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204": { description: Usunięto z ulubionych }
         "404": { description: Nie znaleziono }
