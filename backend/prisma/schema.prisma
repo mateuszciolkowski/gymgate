@@ -89,12 +89,13 @@ model User {
   activeWorkoutId String?  @unique
   updatedAt       DateTime @updatedAt
 
-  exercises     Exercise[]
-  workouts      Workout[]
-  stats         ExerciseUserStats[]
-  pendingNotes  ExercisePendingNote[]
-  workoutPlans  WorkoutPlan[]
-  activeWorkout Workout?               @relation("ActiveWorkout", fields: [activeWorkoutId], references: [id], onDelete: SetNull)
+  exercises      Exercise[]
+  workouts       Workout[]
+  stats          ExerciseUserStats[]
+  pendingNotes   ExercisePendingNote[]
+  workoutPlans   WorkoutPlan[]
+  favoritePlans  UserFavoritePlan[]
+  activeWorkout  Workout?               @relation("ActiveWorkout", fields: [activeWorkoutId], references: [id], onDelete: SetNull)
 
   @@map("users")
 }
@@ -131,9 +132,10 @@ model WorkoutPlan {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  creator  User?             @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
-  items    WorkoutPlanItem[]
-  workouts Workout[]
+  creator     User?             @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
+  items       WorkoutPlanItem[]
+  workouts    Workout[]
+  favoritedBy UserFavoritePlan[]
 
   @@unique([creatorUserId, name])
   @@map("workout_plans")
@@ -218,4 +220,17 @@ model ExerciseUserStats {
 
   @@unique([userId, exerciseId])
   @@map("exercise_user_stats")
+}
+
+model UserFavoritePlan {
+  id        String   @id @default(uuid())
+  userId    String
+  planId    String
+  createdAt DateTime @default(now())
+
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan WorkoutPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, planId])
+  @@map("user_favorite_plans")
 }
