@@ -16,6 +16,8 @@ export class PlanController {
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
     this.duplicate = this.duplicate.bind(this);
+    this.favorite = this.favorite.bind(this);
+    this.unfavorite = this.unfavorite.bind(this);
   }
 
   async getAll(req: AuthRequest, res: Response) {
@@ -78,6 +80,26 @@ export class PlanController {
       const plan = await this.service.duplicatePlan(id, req.userId!);
 
       res.status(201).json({ success: true, data: plan });
+    } catch (error) {
+      sendError(res, error);
+    }
+  }
+
+  async favorite(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params as { id: string };
+      await this.service.favoritePlan(id, req.userId!);
+      res.json({ success: true });
+    } catch (error) {
+      sendError(res, error);
+    }
+  }
+
+  async unfavorite(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params as { id: string };
+      await this.service.unfavoritePlan(id, req.userId!);
+      res.status(204).send();
     } catch (error) {
       sendError(res, error);
     }

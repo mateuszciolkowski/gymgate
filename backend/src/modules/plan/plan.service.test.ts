@@ -12,6 +12,8 @@ vi.mock("./plan.repository.js", () => {
         delete: vi.fn(),
         findExercisesByIds: vi.fn(),
         findByCreatorAndName: vi.fn(),
+        addFavorite: vi.fn(),
+        removeFavorite: vi.fn(),
       };
     }),
   };
@@ -141,7 +143,7 @@ describe("PlanService", () => {
       await service.updatePlan("p1", {}, "owner");
 
       expect(mockRepo.findExercisesByIds).not.toHaveBeenCalled();
-      expect(mockRepo.update).toHaveBeenCalledWith("p1", {});
+      expect(mockRepo.update).toHaveBeenCalledWith("p1", {}, "owner");
     });
 
     it("rejects switching to public when current items are private", async () => {
@@ -276,6 +278,49 @@ describe("PlanService", () => {
       await expect(service.getPlanById("p1", "user-1")).rejects.toThrow(
         "Plan not found",
       );
+    });
+  });
+
+  describe("favoritePlan", () => {
+    it("adds favorite for own plan", async () => {
+      mockRepo.findById.mockResolvedValue({ id: "p1", creatorUserId: "user-1", isPublic: false, items: [] });
+      await service.favoritePlan("p1", "user-1");
+      expect(mockRepo.addFavorite).toHaveBeenCalledWith("user-1", "p1");
+    });
+
+    it("adds favorite for built-in plan (creatorUserId null)", async () => {
+      mockRepo.findById.mockResolvedValue({ id: "p2", creatorUserId: null, isPublic: false, items: [] });
+      await service.favoritePlan("p2", "user-99");
+      expect(mockRepo.addFavorite).toHaveBeenCalledWith("user-99", "p2");
+    });
+
+    it("adds favorite for visible public plan of another user", async () => {
+      mockRepo.findById.mockResolvedValue({ id: "p3", creatorUserId: "user-2", isPublic: true, items: [] });
+      await service.favoritePlan("p3", "user-1");
+      expect(mockRepo.addFavorite).toHaveBeenCalledWith("user-1", "p3");
+    });
+
+    it("throws NotFoundError when plan does not exist", async () => {
+      mockRepo.findById.mockResolvedValue(null);
+      await expect(service.favoritePlan("no-plan", "user-1")).rejects.toThrow("Plan not found");
+    });
+
+    it("throws NotFoundError for private plan of another user", async () => {
+      mockRepo.findById.mockResolvedValue({ id: "p4", creatorUserId: "user-2", isPublic: false, items: [] });
+      await expect(service.favoritePlan("p4", "user-1")).rejects.toThrow("Plan not found");
+    });
+  });
+
+  describe("unfavoritePlan", () => {
+    it("removes favorite when plan exists", async () => {
+      mockRepo.findById.mockResolvedValue({ id: "p1", creatorUserId: "user-1", isPublic: false, items: [] });
+      await service.unfavoritePlan("p1", "user-1");
+      expect(mockRepo.removeFavorite).toHaveBeenCalledWith("user-1", "p1");
+    });
+
+    it("throws NotFoundError when plan does not exist", async () => {
+      mockRepo.findById.mockResolvedValue(null);
+      await expect(service.unfavoritePlan("no-plan", "user-1")).rejects.toThrow("Plan not found");
     });
   });
 });

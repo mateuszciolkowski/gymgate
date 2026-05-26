@@ -44,4 +44,18 @@ router.post(
   controller.duplicate,
 );
 
+router.post(
+  "/:id/favorite",
+  authMiddleware,
+  validate(getPlanSchema),
+  controller.favorite,
+);
+
+router.delete(
+  "/:id/favorite",
+  authMiddleware,
+  validate(getPlanSchema),
+  controller.unfavorite,
+);
+
 export { router as planRouter };

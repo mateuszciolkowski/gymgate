@@ -1,12 +1,31 @@
 import prisma from "../../config/database.js";
 import type { PlanTab } from "./plan.schema.js";
 
-const planInclude = {
+const itemsInclude = {
   items: {
     include: { exercise: true },
     orderBy: { orderInPlan: "asc" as const },
   },
 };
+
+function favoritedByInclude(userId: string) {
+  return {
+    favoritedBy: {
+      where: { userId },
+      select: { id: true },
+    },
+  };
+}
+
+type RawPlanWithFavorite = {
+  favoritedBy?: { id: string }[];
+  [key: string]: unknown;
+};
+
+function toDto<T extends RawPlanWithFavorite>(plan: T) {
+  const { favoritedBy, ...rest } = plan;
+  return { ...rest, isFavorite: (favoritedBy?.length ?? 0) > 0 };
+}
 
 export class PlanRepository {
   async findAll(tab: PlanTab, userId: string) {
@@ -21,18 +40,26 @@ export class PlanRepository {
               NOT: { creatorUserId: userId },
             };
 
-    return prisma.workoutPlan.findMany({
+    const plans = await prisma.workoutPlan.findMany({
       where,
-      include: planInclude,
+      include: { ...itemsInclude, ...favoritedByInclude(userId) },
       orderBy: { createdAt: "desc" },
     });
+
+    return plans.map(toDto);
   }
 
-  async findById(id: string) {
-    return prisma.workoutPlan.findUnique({
+  async findById(id: string, userId?: string) {
+    const plan = await prisma.workoutPlan.findUnique({
       where: { id },
-      include: planInclude,
+      include: {
+        ...itemsInclude,
+        ...(userId ? favoritedByInclude(userId) : {}),
+      },
     });
+
+    if (!plan) return null;
+    return userId ? toDto(plan) : plan;
   }
 
   async create(data: {
@@ -41,7 +68,7 @@ export class PlanRepository {
     isPublic: boolean;
     exerciseIds: string[];
   }) {
-    return prisma.workoutPlan.create({
+    const plan = await prisma.workoutPlan.create({
       data: {
         name: data.name,
         creatorUserId: data.creatorUserId,
@@ -53,8 +80,9 @@ export class PlanRepository {
           })),
         },
       },
-      include: planInclude,
+      include: itemsInclude,
     });
+    return { ...plan, isFavorite: false };
   }
 
   async update(
@@ -64,8 +92,9 @@ export class PlanRepository {
       isPublic?: boolean | undefined;
       exerciseIds?: string[] | undefined;
     },
+    userId: string,
   ) {
-    return prisma.$transaction(async (tx) => {
+    const plan = await prisma.$transaction(async (tx) => {
       if (data.exerciseIds) {
         await tx.workoutPlanItem.deleteMany({ where: { planId: id } });
         await tx.workoutPlanItem.createMany({
@@ -83,9 +112,11 @@ export class PlanRepository {
           ...(data.name !== undefined && { name: data.name }),
           ...(data.isPublic !== undefined && { isPublic: data.isPublic }),
         },
-        include: planInclude,
+        include: { ...itemsInclude, ...favoritedByInclude(userId) },
       });
     });
+
+    return toDto(plan);
   }
 
   async delete(id: string) {
@@ -102,6 +133,20 @@ export class PlanRepository {
   async findByCreatorAndName(creatorUserId: string, name: string) {
     return prisma.workoutPlan.findFirst({
       where: { creatorUserId, name },
+    });
+  }
+
+  async addFavorite(userId: string, planId: string) {
+    await prisma.userFavoritePlan.upsert({
+      where: { userId_planId: { userId, planId } },
+      create: { userId, planId },
+      update: {},
+    });
+  }
+
+  async removeFavorite(userId: string, planId: string) {
+    await prisma.userFavoritePlan.deleteMany({
+      where: { userId, planId },
     });
   }
 }
