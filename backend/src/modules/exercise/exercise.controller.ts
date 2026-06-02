@@ -90,7 +90,8 @@ export class ExerciseController {
       const exercise = await this.service.updateExercise(
         id,
         req.body,
-        req.userId!
+        req.userId!,
+        req.userIsAdmin
       );
 
       res.json({
@@ -113,7 +114,7 @@ export class ExerciseController {
   async delete(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params as { id: string };
-      await this.service.deleteExercise(id, req.userId!);
+      await this.service.deleteExercise(id, req.userId!, req.userIsAdmin);
 
       res.status(204).send();
     } catch (error) {
