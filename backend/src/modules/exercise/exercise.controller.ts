@@ -90,7 +90,8 @@ export class ExerciseController {
       const exercise = await this.service.updateExercise(
         id,
         req.body,
-        req.userId!
+        req.userId!,
+        req.userIsAdmin
       );
 
       res.json({
@@ -98,14 +99,12 @@ export class ExerciseController {
         data: exercise,
       });
     } catch (error) {
-      const statusCode =
-        error instanceof Error && error.message === "Exercise not found"
-          ? 404
-          : 400;
+      const msg = error instanceof Error ? error.message : "";
+      const statusCode = msg === "Exercise not found" ? 404 : msg.startsWith("Unauthorized") ? 403 : 400;
 
       res.status(statusCode).json({
         success: false,
-        error: error instanceof Error ? error.message : "Bad request",
+        error: msg || "Bad request",
       });
     }
   }
@@ -113,18 +112,16 @@ export class ExerciseController {
   async delete(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params as { id: string };
-      await this.service.deleteExercise(id, req.userId!);
+      await this.service.deleteExercise(id, req.userId!, req.userIsAdmin);
 
       res.status(204).send();
     } catch (error) {
-      const statusCode =
-        error instanceof Error && error.message === "Exercise not found"
-          ? 404
-          : 500;
+      const msg = error instanceof Error ? error.message : "";
+      const statusCode = msg === "Exercise not found" ? 404 : msg.startsWith("Unauthorized") ? 403 : 500;
 
       res.status(statusCode).json({
         success: false,
-        error: error instanceof Error ? error.message : "Internal server error",
+        error: msg || "Internal server error",
       });
     }
   }

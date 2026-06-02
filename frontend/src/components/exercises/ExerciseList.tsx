@@ -213,7 +213,8 @@ interface ExerciseItemProps {
 function ExerciseItem({ exercise, mode, stats, onSelect, onEdit, onDelete, performedHighlight }: ExerciseItemProps) {
   const { user } = useAuth();
   const creatorId = exercise.creator?.id;
-  const canEdit = user && creatorId != null && String(creatorId) === String(user.id);
+  const isGlobal = creatorId == null || creatorId === "1";
+  const canEdit = user && ((creatorId != null && creatorId === user.id) || (user.isAdmin && isGlobal));
   const isPerformed = performedHighlight && !!stats;
 
   return (

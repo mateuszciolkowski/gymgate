@@ -179,16 +179,36 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
 
         {isAdmin && (
           <div
-            className="flex items-center justify-between rounded-[14px]"
-            style={{ padding: "14px 16px", background: "var(--gg-surface)", border: "1.5px solid var(--gg-border)" }}
+            className="flex items-center justify-between rounded-[14px] transition-all duration-200"
+            style={{
+              padding: "14px 16px",
+              background: isGlobal ? "color-mix(in srgb, var(--gg-a2) 6%, var(--gg-surface))" : "var(--gg-surface)",
+              border: `1.5px solid ${isGlobal ? "var(--gg-a2)" : "var(--gg-border)"}`,
+            }}
           >
-            <div>
-              <p className="text-[14px] font-semibold" style={{ color: "var(--gg-text)" }}>
-                Dodaj dla wszystkich
-              </p>
-              <p className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
-                Ćwiczenie będzie widoczne globalnie
-              </p>
+            <div className="flex items-center gap-2.5">
+              <div
+                className="flex items-center justify-center flex-shrink-0 rounded-[10px]"
+                style={{
+                  width: 34,
+                  height: 34,
+                  background: isGlobal ? "color-mix(in srgb, var(--gg-a2) 15%, transparent)" : "var(--gg-surface2)",
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isGlobal ? "var(--gg-a2)" : "var(--gg-text-muted)"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-[14px] font-semibold" style={{ color: "var(--gg-text)" }}>
+                  Globalne ćwiczenie
+                </p>
+                <p className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+                  Widoczne dla wszystkich użytkowników
+                </p>
+              </div>
             </div>
             <button
               type="button"
@@ -199,21 +219,22 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
               className="relative flex-shrink-0 rounded-full transition-colors duration-200"
               style={{
                 width: 44,
-                height: 24,
-                background: isGlobal ? "var(--gg-a2)" : "var(--gg-border)",
-                border: "none",
+                height: 26,
+                background: isGlobal ? "var(--gg-a2)" : "var(--gg-surface2)",
+                border: `1.5px solid ${isGlobal ? "var(--gg-a2)" : "var(--gg-border)"}`,
                 cursor: "pointer",
               }}
             >
               <span
-                className="absolute top-[2px] rounded-full transition-transform duration-200"
+                className="absolute rounded-full transition-transform duration-200"
                 style={{
-                  width: 20,
-                  height: 20,
+                  width: 18,
+                  height: 18,
                   background: "white",
+                  top: 2,
                   left: 2,
-                  transform: isGlobal ? "translateX(20px)" : "translateX(0)",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
+                  transform: isGlobal ? "translateX(18px)" : "translateX(0)",
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.22)",
                 }}
               />
             </button>
