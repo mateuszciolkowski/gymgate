@@ -15,6 +15,7 @@ export const createExerciseSchema = z.object({
     muscleGroups: z.array(muscleGroupSchema).min(1, 'At least one muscle group is required'),
     description: z.string().optional(),
     photos: z.array(exercisePhotoSchema).optional(),
+    isGlobal: z.boolean().optional(),
   }),
 });
 

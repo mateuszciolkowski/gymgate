@@ -218,6 +218,7 @@ function AuthenticatedApp({
   theme,
   setTheme,
 }: AuthenticatedAppProps) {
+  const { user: authUser } = useAuth();
   const {
     createWorkout,
     createExercise,
@@ -347,6 +348,7 @@ function AuthenticatedApp({
     if (screen === "add-exercise") {
       return (
         <AddExerciseScreen
+          isAdmin={authUser?.isAdmin}
           onBack={() => {
             if (selectedWorkoutId) {
               setScreen("workout-detail");

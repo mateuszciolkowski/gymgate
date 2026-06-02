@@ -6,6 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 export interface AuthRequest extends Request {
   userId?: string;
   userEmail?: string;
+  userIsAdmin?: boolean;
 }
 
 export const authMiddleware = (
@@ -32,9 +33,11 @@ export const authMiddleware = (
     const decoded = jwt.verify(token, JWT_SECRET) as {
       userId: string;
       email: string;
+      isAdmin?: boolean;
     };
     req.userId = decoded.userId;
     req.userEmail = decoded.email;
+    req.userIsAdmin = decoded.isAdmin ?? false;
 
     next();
   } catch (error) {

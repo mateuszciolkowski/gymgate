@@ -86,6 +86,7 @@ model User {
   firstName       String   
   lastName        String  
   phone           String?
+  isAdmin         Boolean  @default(false)
   activeWorkoutId String?  @unique
   updatedAt       DateTime @updatedAt
 

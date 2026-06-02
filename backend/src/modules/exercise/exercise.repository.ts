@@ -51,13 +51,13 @@ export class ExerciseRepository {
     });
   }
 
-  async create(data: CreateExerciseDto & { userId?: string }) {
-    const { photos, description, userId, ...exerciseData } = data;
+  async create(data: CreateExerciseDto & { userId?: string; isGlobal?: boolean }) {
+    const { photos, description, userId, isGlobal, ...exerciseData } = data;
 
     const createInput: any = {
       ...exerciseData,
       description: description ?? null,
-      creatorUserId: userId || "1",
+      creatorUserId: isGlobal ? null : (userId || "1"),
     };
 
     if (photos && photos.length > 0) {

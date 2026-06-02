@@ -26,7 +26,7 @@ export class ExerciseService {
     return exercise;
   }
 
-  async createExercise(data: CreateExerciseDto) {
+  async createExercise(data: CreateExerciseDto & { userId?: string; isGlobal?: boolean }) {
     return this.repository.create(data);
   }
 

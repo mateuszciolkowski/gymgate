@@ -7,6 +7,7 @@ interface User {
   firstName: string;
   lastName: string;
   phone?: string;
+  isAdmin: boolean;
 }
 
 interface AuthContextType {

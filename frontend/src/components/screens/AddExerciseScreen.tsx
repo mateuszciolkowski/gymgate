@@ -3,7 +3,8 @@ import { MUSCLE_GROUPS } from '../../constants'
 
 interface AddExerciseScreenProps {
   onBack: () => void
-  onAddExercise: (exercise: { name: string; muscleGroups: string[]; description?: string }) => Promise<void>
+  onAddExercise: (exercise: { name: string; muscleGroups: string[]; description?: string; isGlobal?: boolean }) => Promise<void>
+  isAdmin?: boolean
 }
 
 const fieldStyle: React.CSSProperties = {
@@ -31,11 +32,13 @@ const labelStyle: React.CSSProperties = {
 
 export const AddExerciseScreen = memo(function AddExerciseScreen({
   onBack,
-  onAddExercise
+  onAddExercise,
+  isAdmin = false,
 }: AddExerciseScreenProps) {
   const [name, setName] = useState('')
   const [selectedGroups, setSelectedGroups] = useState<string[]>([''])
   const [description, setDescription] = useState('')
+  const [isGlobal, setIsGlobal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -57,7 +60,7 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
     try {
       setIsSubmitting(true)
       setError(null)
-      await onAddExercise({ name: name.trim(), muscleGroups: validGroups, description: description.trim() || undefined })
+      await onAddExercise({ name: name.trim(), muscleGroups: validGroups, description: description.trim() || undefined, isGlobal: isAdmin ? isGlobal : undefined })
       onBack()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Błąd dodawania ćwiczenia')
@@ -173,6 +176,49 @@ export const AddExerciseScreen = memo(function AddExerciseScreen({
             style={{ ...fieldStyle, resize: "none" }}
           />
         </div>
+
+        {isAdmin && (
+          <div
+            className="flex items-center justify-between rounded-[14px]"
+            style={{ padding: "14px 16px", background: "var(--gg-surface)", border: "1.5px solid var(--gg-border)" }}
+          >
+            <div>
+              <p className="text-[14px] font-semibold" style={{ color: "var(--gg-text)" }}>
+                Dodaj dla wszystkich
+              </p>
+              <p className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+                Ćwiczenie będzie widoczne globalnie
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isGlobal}
+              onClick={() => setIsGlobal(v => !v)}
+              disabled={isSubmitting}
+              className="relative flex-shrink-0 rounded-full transition-colors duration-200"
+              style={{
+                width: 44,
+                height: 24,
+                background: isGlobal ? "var(--gg-a2)" : "var(--gg-border)",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              <span
+                className="absolute top-[2px] rounded-full transition-transform duration-200"
+                style={{
+                  width: 20,
+                  height: 20,
+                  background: "white",
+                  left: 2,
+                  transform: isGlobal ? "translateX(20px)" : "translateX(0)",
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
+                }}
+              />
+            </button>
+          </div>
+        )}
 
         {error && (
           <div
