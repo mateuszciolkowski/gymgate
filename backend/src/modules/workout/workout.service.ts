@@ -236,11 +236,8 @@ export const addSetToWorkoutItem = async (
     throw new Error("Brak uprawnień");
   }
 
-  let setNumber = data.setNumber;
-  if (!setNumber) {
-    const maxSetNumber = await workoutRepo.getMaxSetNumber(itemId);
-    setNumber = maxSetNumber + 1;
-  }
+  const maxSetNumber = await workoutRepo.getMaxSetNumber(itemId);
+  const setNumber = maxSetNumber + 1;
 
   const createdSet = await workoutRepo.addSetToWorkoutItem(
     itemId,
