@@ -99,14 +99,12 @@ export class ExerciseController {
         data: exercise,
       });
     } catch (error) {
-      const statusCode =
-        error instanceof Error && error.message === "Exercise not found"
-          ? 404
-          : 400;
+      const msg = error instanceof Error ? error.message : "";
+      const statusCode = msg === "Exercise not found" ? 404 : msg.startsWith("Unauthorized") ? 403 : 400;
 
       res.status(statusCode).json({
         success: false,
-        error: error instanceof Error ? error.message : "Bad request",
+        error: msg || "Bad request",
       });
     }
   }
@@ -118,14 +116,12 @@ export class ExerciseController {
 
       res.status(204).send();
     } catch (error) {
-      const statusCode =
-        error instanceof Error && error.message === "Exercise not found"
-          ? 404
-          : 500;
+      const msg = error instanceof Error ? error.message : "";
+      const statusCode = msg === "Exercise not found" ? 404 : msg.startsWith("Unauthorized") ? 403 : 500;
 
       res.status(statusCode).json({
         success: false,
-        error: error instanceof Error ? error.message : "Internal server error",
+        error: msg || "Internal server error",
       });
     }
   }

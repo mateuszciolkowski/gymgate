@@ -214,7 +214,7 @@ function ExerciseItem({ exercise, mode, stats, onSelect, onEdit, onDelete, perfo
   const { user } = useAuth();
   const creatorId = exercise.creator?.id;
   const isGlobal = creatorId == null || creatorId === "1";
-  const canEdit = user && (String(creatorId) === String(user.id) || (user.isAdmin && isGlobal));
+  const canEdit = user && ((creatorId != null && creatorId === user.id) || (user.isAdmin && isGlobal));
   const isPerformed = performedHighlight && !!stats;
 
   return (
