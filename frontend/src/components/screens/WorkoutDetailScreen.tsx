@@ -1247,11 +1247,11 @@ const WorkoutItemCard = memo(
                 )}
                 {draftSet && canEdit && (
                   <DraftSetRow
-                    setNumber={item.sets.length + 1}
+                    setNumber={Math.max(0, ...item.sets.map((s) => s.setNumber)) + 1}
                     defaultWeight={draftSet.weight}
                     defaultReps={draftSet.reps}
                     onConfirm={(w, r) => {
-                      onAddSet(item.id, { weight: w, repetitions: r, setNumber: item.sets.length + 1 });
+                      onAddSet(item.id, { weight: w, repetitions: r, setNumber: Math.max(0, ...item.sets.map((s) => s.setNumber)) + 1 });
                       setDraftSet(null);
                     }}
                     onCancel={() => setDraftSet(null)}
