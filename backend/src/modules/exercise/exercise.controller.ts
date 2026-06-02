@@ -62,6 +62,11 @@ export class ExerciseController {
 
   async create(req: AuthRequest, res: Response) {
     try {
+      if (req.body.isGlobal && !req.userIsAdmin) {
+        res.status(403).json({ success: false, error: "Brak uprawnień do tworzenia globalnych ćwiczeń" });
+        return;
+      }
+
       const exercise = await this.service.createExercise({
         ...req.body,
         userId: req.userId,

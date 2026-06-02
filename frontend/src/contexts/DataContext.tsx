@@ -869,6 +869,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       name: string;
       muscleGroups: string[];
       description?: string;
+      isGlobal?: boolean;
     }) => {
       try {
         const response = await authFetch(`${API_BASE}/api/exercises`, {

@@ -29,7 +29,7 @@ export const register = async (data: RegisterDto) => {
     throw new Error("Błąd konfiguracji serwera");
   }
 
-  const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
+  const token = jwt.sign({ userId: user.id, email: user.email, isAdmin: user.isAdmin }, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
   });
 
@@ -56,7 +56,7 @@ export const login = async (data: LoginDto) => {
   }
 
   try {
-    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
+    const token = jwt.sign({ userId: user.id, email: user.email, isAdmin: user.isAdmin }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
 

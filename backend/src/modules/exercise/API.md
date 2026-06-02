@@ -53,6 +53,7 @@
     photoStage: PhotoStage       // START, MIDDLE, END
     photoUrl: string
   }>
+  isGlobal?: boolean             // admin only – sets creatorUserId: null
 }
 ```
 
@@ -63,6 +64,11 @@
   data: Exercise
 }
 ```
+
+**Errors:**
+| Code | Situation |
+|------|-----------|
+| 403  | `isGlobal: true` sent by non-admin user |
 
 ---
 
