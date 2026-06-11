@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useData } from "@/contexts/data";
-import type { Exercise } from "@/hooks/useExercises";
+import type { Exercise } from "@/types";
 import type { ExerciseStats } from "@/types";
 import { MUSCLE_GROUPS } from "../../constants";
 import { useAuth } from "@/contexts/AuthContext";

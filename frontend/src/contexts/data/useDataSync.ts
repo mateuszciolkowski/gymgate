@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { localStore } from "@/utils/localStore";
 import { syncManager } from "@/utils/syncManager";
 import type { Workout, ExerciseStats, StatsOverview, WorkoutPlan } from "@/types";
-import type { Exercise } from "@/hooks/useExercises";
+import type { Exercise } from "@/types";
 import type { DataStore } from "./useDataStore";
 
 /**

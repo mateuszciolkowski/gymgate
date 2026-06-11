@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { localStore } from "@/utils/localStore";
 import { authFetch, getAuthHeaders } from "@/utils/auth";
 import { API_BASE } from "@/config/api";
-import type { Exercise } from "@/hooks/useExercises";
+import type { Exercise } from "@/types";
 import type { DataStore } from "./useDataStore";
 
 /** Akcje na ćwiczeniach: CRUD z obsługą offline (temp ID + kolejka sync). */

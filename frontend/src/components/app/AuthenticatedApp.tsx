@@ -3,7 +3,7 @@ import type { Theme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/data";
 import type { TabType, Screen, Workout, WorkoutPlan } from "@/types";
-import type { Exercise } from "@/hooks/useExercises";
+import type { Exercise } from "@/types";
 import {
   computeWorkoutLastActivity,
   STALE_WORKOUT_MS,

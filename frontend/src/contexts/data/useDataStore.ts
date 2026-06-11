@@ -13,7 +13,7 @@ import type {
   StatsProgressMetric,
   WorkoutPlan,
 } from "@/types";
-import type { Exercise } from "@/hooks/useExercises";
+import type { Exercise } from "@/types";
 
 export type DataStore = ReturnType<typeof useDataStore>;
 

@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { sendError, BadRequestError } from "../../common/errors.js";
 import { getUserById as getUser } from "./user.service.js";
 
 export const getUserById = async (req: Request, res: Response) => {
@@ -6,25 +7,12 @@ export const getUserById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "User ID is required",
-      });
+      throw new BadRequestError("User ID is required");
     }
 
     const user = await getUser(id);
-    res.json(user);
+    res.json({ success: true, data: user });
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(404).json({
-        success: false,
-        message: error.message,
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        message: "An unknown error occurred",
-      });
-    }
+    sendError(res, error);
   }
 };

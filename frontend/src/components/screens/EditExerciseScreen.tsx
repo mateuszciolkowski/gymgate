@@ -1,5 +1,5 @@
 import { memo, useState, useEffect } from 'react'
-import type { Exercise } from '../../hooks/useExercises'
+import type { Exercise } from "@/types"
 import { MUSCLE_GROUPS } from '../../constants'
 
 interface EditExerciseScreenProps {

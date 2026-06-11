@@ -363,11 +363,14 @@ paths:
                 properties:
                   success: { type: boolean }
                   data: { $ref: "#/components/schemas/Exercise" }
+        "403": { description: Ćwiczenie należy do innego użytkownika }
+        "404": { description: Nie znaleziono }
     delete:
       tags: [Exercises]
       summary: Usuń ćwiczenie
       responses:
         "204": { description: Usunięto }
+        "403": { description: Ćwiczenie należy do innego użytkownika }
         "404": { description: Nie znaleziono }
 
   # ── WORKOUTS ──────────────────────────────────────────────────────────────

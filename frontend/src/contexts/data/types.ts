@@ -7,7 +7,7 @@ import type {
   StatsProgressMetric,
   WorkoutPlan,
 } from "@/types";
-import type { Exercise } from "@/hooks/useExercises";
+import type { Exercise } from "@/types";
 
 export class WorkoutNotFoundError extends Error {
   constructor(message = "Workout not found") {
