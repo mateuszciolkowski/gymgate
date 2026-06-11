@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from 'react'
 import type { Exercise } from "@/types"
-import { MUSCLE_GROUPS } from '../../constants'
+import { MUSCLE_GROUPS } from "@/constants"
 
 interface EditExerciseScreenProps {
   exercise: Exercise

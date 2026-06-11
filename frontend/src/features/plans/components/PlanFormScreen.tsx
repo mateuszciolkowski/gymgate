@@ -18,7 +18,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useData } from "@/contexts/data";
 import type { WorkoutPlan } from "@/types";
-import { ExerciseSelectionModal } from "./ExerciseSelectionModal";
+import { ExerciseSelectionModal } from "@/features/exercises";
 import { MUSCLE_GROUPS } from "@/constants/muscleGroups";
 
 interface PlanExerciseItem {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useData, useWorkoutData, WorkoutNotFoundError } from "@/contexts/data";
 import { computeWorkoutElapsed } from "@/utils/workoutTimer";
-import { ExerciseSelectionModal } from "../ExerciseSelectionModal";
+import { ExerciseSelectionModal } from "@/features/exercises";
 import { WorkoutItemCard } from "./WorkoutItemCard";
 import { fmtTimer, fmtDuration, fmtDate, inputStyle } from "./formatters";
 

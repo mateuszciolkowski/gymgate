@@ -1,1 +1,0 @@
-export { WorkoutFormModal } from "./WorkoutFormModal";

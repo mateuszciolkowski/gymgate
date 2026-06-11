@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { ExerciseList } from "../exercises/ExerciseList";
+import { ExerciseList } from "./ExerciseList";
 
 interface ExerciseSelectionModalProps {
   onClose: () => void;

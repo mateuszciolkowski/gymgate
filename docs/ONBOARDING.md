@@ -207,20 +207,28 @@ index.ts               ← Express app, CORS, routing, graceful shutdown
 ```
 contexts/
   AuthContext.tsx      ← login, register, logout, token in localStorage
-  DataContext.tsx      ← single global store; optimistic updates
+  data/                ← single global store; optimistic updates
+    DataContext.tsx    ← provider composing the hooks below
+    useDataStore.ts    ← state, refs, shared helpers (temp IDs, sync queue)
+    useDataSync.ts     ← bootstrap from IndexedDB, sync manager lifecycle
+    useWorkoutActions.ts / useWorkoutItemActions.ts /
+    useExerciseActions.ts / usePlanActions.ts ← domain actions
+    hooks.ts           ← useData + selector hooks (useWorkoutData, ...)
 hooks/
-  useWorkout.ts        ← hook for WorkoutDetailScreen
-  useWorkouts.ts       ← hook for workout list
-  useExercises.ts      ← hook for exercise list
   useNavigation.ts     ← custom SPA router (useState<Screen>)
   useTheme.ts          ← dark/light mode
 utils/
   localStore.ts        ← IndexedDB wrapper (6 stores)
   syncManager.ts       ← background sync, pendingSync queue, retry
   auth.ts              ← authFetch (auto 401 handling) + getAuthHeaders
-components/screens/    ← all app screens
+features/              ← feature-driven UI (each with components/ + index.ts)
+  auth/  workouts/  exercises/  plans/  stats/  menu/
+components/            ← shared UI only (ui/, icons/, layouts/, navigation/, app/)
+config/
+  api.ts               ← API_BASE (single source)
 types/
   workout.ts           ← domain types (Workout, WorkoutItem, WorkoutSet, ...)
+  exercise.ts          ← Exercise type
 ```
 
 ---

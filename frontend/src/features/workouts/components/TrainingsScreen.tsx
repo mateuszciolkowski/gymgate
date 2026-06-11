@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from "react";
 import { EmptyState } from "@/components/ui";
 import { useData } from "@/contexts/data";
-import { WorkoutFormModal } from "@/components/modals";
+import { WorkoutFormModal } from "./WorkoutFormModal";
 import type { Workout } from "@/types";
 
 interface TrainingsScreenProps {

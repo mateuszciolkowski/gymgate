@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { useData } from "@/contexts/data";
-import { ExerciseList } from "../exercises/ExerciseList";
+import { ExerciseList } from "./ExerciseList";
 import type { Exercise } from "@/types";
 
 interface ExercisesScreenProps {

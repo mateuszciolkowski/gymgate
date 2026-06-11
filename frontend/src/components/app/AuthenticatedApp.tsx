@@ -12,18 +12,20 @@ import {
   MainLayout,
   BottomNavigation,
   NavigationDrawer,
+} from "@/components";
+import {
   TrainingsScreen,
+  WorkoutDetailScreen,
+  WorkoutFormModal,
+} from "@/features/workouts";
+import {
   ExercisesScreen,
-  StatsScreen,
-  StatsExerciseDetailScreen,
-  MenuScreen,
   AddExerciseScreen,
   EditExerciseScreen,
-  WorkoutDetailScreen,
-  PlansScreen,
-  PlanFormScreen,
-} from "@/components";
-import { WorkoutFormModal } from "@/components/modals";
+} from "@/features/exercises";
+import { StatsScreen, StatsExerciseDetailScreen } from "@/features/stats";
+import { PlansScreen, PlanFormScreen } from "@/features/plans";
+import { MenuScreen } from "@/features/menu";
 import { SyncFailureBanner } from "./SyncFailureBanner";
 import { StaleWorkoutDialog } from "./StaleWorkoutDialog";
 

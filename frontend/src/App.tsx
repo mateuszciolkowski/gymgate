@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useNavigation, useTheme } from "./hooks";
 import { useAuth } from "./contexts/AuthContext";
 import { AuthenticatedApp } from "./components/app/AuthenticatedApp";
-import { LoginScreen } from "./components/screens/LoginScreen";
-import { RegisterScreen } from "./components/screens/RegisterScreen";
+import { LoginScreen, RegisterScreen } from "./features/auth";
 
 function App() {
   const { user, isLoading, login, register } = useAuth();

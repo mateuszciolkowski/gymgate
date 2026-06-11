@@ -1,5 +1,5 @@
 import { memo, useState } from 'react'
-import { MUSCLE_GROUPS } from '../../constants'
+import { MUSCLE_GROUPS } from "@/constants"
 
 interface AddExerciseScreenProps {
   onBack: () => void
