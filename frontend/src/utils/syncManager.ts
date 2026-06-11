@@ -5,8 +5,8 @@
 
 import { localStore, type SyncOperation } from "./localStore";
 import { authFetch, getAuthHeaders } from "./auth";
+import { API_BASE } from "@/config/api";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const SYNC_INTERVAL = 2 * 60 * 1000; // 2 minuty
 const MAX_RETRIES = 3;
 

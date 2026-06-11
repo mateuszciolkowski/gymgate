@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { authFetch, getAuthHeaders } from "../utils/auth";
+import { API_BASE } from "@/config/api";
 
 export interface Exercise {
   id: string;
@@ -38,8 +39,6 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
   );
   const [loading, setLoading] = useState(autoFetch && !cachedData);
   const [error, setError] = useState<string | null>(null);
-
-  const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   const muscleGroup = filters?.muscleGroup;
   const name = filters?.name;
@@ -87,7 +86,7 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
         setLoading(false);
       }
     },
-    [API_BASE, muscleGroup, name, cacheKey],
+    [muscleGroup, name, cacheKey],
   );
 
   useEffect(() => {
@@ -129,7 +128,7 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
         throw err;
       }
     },
-    [API_BASE],
+    [],
   );
 
   const updateExercise = useCallback(
@@ -166,7 +165,7 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
         throw err;
       }
     },
-    [API_BASE],
+    [],
   );
 
   const deleteExercise = useCallback(
@@ -190,7 +189,7 @@ export function useExercises(filters?: ExerciseFilters, autoFetch = true) {
         throw err;
       }
     },
-    [API_BASE],
+    [],
   );
 
   useEffect(() => {

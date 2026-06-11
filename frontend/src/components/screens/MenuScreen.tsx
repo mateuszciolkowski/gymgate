@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useData } from "@/contexts/DataContext";
+import { useData } from "@/contexts/data";
 import type { Theme } from "@/hooks/useTheme";
 
 interface MenuScreenProps {

@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { useData } from "@/contexts/DataContext";
+import { useData } from "@/contexts/data";
 import { ExerciseList } from "../exercises/ExerciseList";
 import type { Exercise } from "@/hooks/useExercises";
 

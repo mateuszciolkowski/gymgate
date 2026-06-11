@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useData } from "@/contexts/DataContext";
+import { useData } from "@/contexts/data";
 import type { Exercise } from "@/hooks/useExercises";
 import type { ExerciseStats } from "@/types";
 import { MUSCLE_GROUPS } from "../../constants";

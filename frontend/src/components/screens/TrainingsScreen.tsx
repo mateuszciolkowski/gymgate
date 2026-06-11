@@ -1,6 +1,6 @@
 import { memo, useMemo, useState } from "react";
 import { EmptyState } from "@/components/ui";
-import { useData } from "@/contexts/DataContext";
+import { useData } from "@/contexts/data";
 import { WorkoutFormModal } from "@/components/modals";
 import type { Workout } from "@/types";
 

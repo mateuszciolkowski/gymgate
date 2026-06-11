@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { useData } from "@/contexts/DataContext";
+import { useData } from "@/contexts/data";
 import { useAuth } from "@/contexts/AuthContext";
 import type { WorkoutPlan } from "@/types";
 import { MUSCLE_GROUPS } from "@/constants/muscleGroups";

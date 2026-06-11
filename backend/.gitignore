@@ -79,3 +79,19 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 /src/generated/prisma
+
+# -----------------------------------------------------------------------------
+# Artefakty kompilacji obok źródeł (tsc uruchomione bez outDir)
+# -----------------------------------------------------------------------------
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
+src/**/*.d.ts.map
+prisma/*.js
+prisma/*.js.map
+prisma/*.d.ts
+prisma/*.d.ts.map
+prisma.config.js
+prisma.config.js.map
+prisma.config.d.ts
+prisma.config.d.ts.map

@@ -16,7 +16,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useData } from "@/contexts/DataContext";
+import { useData } from "@/contexts/data";
 import type { WorkoutPlan } from "@/types";
 import { ExerciseSelectionModal } from "./ExerciseSelectionModal";
 import { MUSCLE_GROUPS } from "@/constants/muscleGroups";

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { authFetch, getAuthHeaders } from "../utils/auth";
+import { API_BASE } from "@/config/api";
 import type {
   Workout,
   CreateWorkoutDto,
@@ -10,7 +11,6 @@ import type {
   ExerciseStats,
 } from "@/types";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export function useWorkouts(status?: "DRAFT" | "COMPLETED", autoFetch = true) {
   const [workouts, setWorkouts] = useState<Workout[]>([]);

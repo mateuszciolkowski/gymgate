@@ -5,7 +5,7 @@ export { EditExerciseScreen } from "./EditExerciseScreen";
 export { StatsScreen } from "./StatsScreen";
 export { StatsExerciseDetailScreen } from "./StatsExerciseDetailScreen";
 export { MenuScreen } from "./MenuScreen";
-export { WorkoutDetailScreen } from "./WorkoutDetailScreen";
+export { WorkoutDetailScreen } from "./workout-detail";
 export { ExerciseSelectionModal } from "./ExerciseSelectionModal";
 export { LoginScreen } from "./LoginScreen";
 export { RegisterScreen } from "./RegisterScreen";

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useData } from "@/contexts/DataContext";
+import { useData } from "@/contexts/data";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface WorkoutFormModalProps {

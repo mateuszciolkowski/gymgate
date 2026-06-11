@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useState } from "react";
-import { useData, useStatsData } from "@/contexts/DataContext";
+import { useData, useStatsData } from "@/contexts/data";
 import type { ExerciseStats } from "@/types";
 import { StatsProgressChart } from "./StatsProgressChart";
 

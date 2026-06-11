@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { useStatsData } from "@/contexts/DataContext";
+import { useStatsData } from "@/contexts/data";
 import type { Workout } from "@/types/workout";
 
 interface StatsScreenProps {
