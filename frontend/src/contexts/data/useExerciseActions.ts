@@ -9,6 +9,7 @@ import type { DataStore } from "./useDataStore";
 export function useExerciseActions(store: DataStore) {
   const {
     user,
+    exercisesRef,
     setExercises,
     getRealId,
     isOfflineError,
@@ -111,19 +112,15 @@ export function useExerciseActions(store: DataStore) {
       } catch (error) {
         if (!isOfflineError(error)) throw error;
 
-        let updatedExercise: Exercise | null = null;
-        setExercises((prev) =>
-          prev.map((e) => {
-            if (e.id !== id) return e;
-            updatedExercise = {
-              ...e,
-              ...data,
-              updatedAt: new Date().toISOString(),
-            } as Exercise;
-            return updatedExercise;
-          }),
-        );
-        if (updatedExercise) {
+        // Oblicz synchronicznie z ref - updater setState jest asynchroniczny
+        const currentExercise = exercisesRef.current.find((e) => e.id === id);
+        if (currentExercise) {
+          const updatedExercise = {
+            ...currentExercise,
+            ...data,
+            updatedAt: new Date().toISOString(),
+          } as Exercise;
+          setExercises((prev) => prev.map((e) => (e.id === id ? updatedExercise : e)));
           await localStore.put("exercises", updatedExercise);
         }
 
@@ -136,7 +133,7 @@ export function useExerciseActions(store: DataStore) {
         });
       }
     },
-    [getRealId, isOfflineError, queueSyncOperation, setExercises],
+    [exercisesRef, getRealId, isOfflineError, queueSyncOperation, setExercises],
   );
 
   const deleteExercise = useCallback(

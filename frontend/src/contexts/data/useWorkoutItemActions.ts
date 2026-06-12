@@ -57,19 +57,19 @@ export function useWorkoutItemActions(store: DataStore) {
         sets: [],
       };
 
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) =>
-        prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          const itemWithOrder = {
-            ...newItem,
-            orderInWorkout: w.items.length + 1,
-          };
-          updatedWorkout = { ...w, items: [...w.items, itemWithOrder as WorkoutItem] };
-          return updatedWorkout;
-        }),
-      );
-      if (updatedWorkout) {
+      // Oblicz zaktualizowany trening synchronicznie z ref - updater setState
+      // jest asynchroniczny, więc nie można odczytać wyniku zaraz po wywołaniu.
+      const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
+      if (currentWorkout) {
+        const itemWithOrder = {
+          ...newItem,
+          orderInWorkout: currentWorkout.items.length + 1,
+        };
+        const updatedWorkout: Workout = {
+          ...currentWorkout,
+          items: [...currentWorkout.items, itemWithOrder as WorkoutItem],
+        };
+        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
         await localStore.put("workouts", updatedWorkout);
       }
 
@@ -189,25 +189,17 @@ export function useWorkoutItemActions(store: DataStore) {
       const originalWorkout = workoutsRef.current.find((workout) => workout.id === workoutId);
       const removedItem = originalWorkout?.items.find((item) => item.id === itemId);
       const shouldRefreshStats = originalWorkout?.status === "COMPLETED";
-      // Zapisz oryginalny item do rollbacku
-      let originalItem: WorkoutItem | null = null;
+      // Zapisz oryginalny item do rollbacku (z ref - synchronicznie)
+      const originalItem: WorkoutItem | null =
+        originalWorkout?.items.find((i) => i.id === itemId) ?? null;
 
-      // Optymistyczna aktualizacja
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) => {
-        // Znajdź oryginalny item przed usunięciem
-        const workout = prev.find((w) => w.id === workoutId);
-        if (workout) {
-          originalItem = workout.items.find((i) => i.id === itemId) ?? null;
-        }
-
-        return prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          updatedWorkout = { ...w, items: w.items.filter((i) => i.id !== itemId) };
-          return updatedWorkout;
-        });
-      });
-      if (updatedWorkout) {
+      // Optymistyczna aktualizacja - oblicz synchronicznie z ref
+      if (originalWorkout) {
+        const updatedWorkout: Workout = {
+          ...originalWorkout,
+          items: originalWorkout.items.filter((i) => i.id !== itemId),
+        };
+        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
         await localStore.put("workouts", updatedWorkout);
       }
 
@@ -312,25 +304,20 @@ export function useWorkoutItemActions(store: DataStore) {
       const originalWorkout = workoutsRef.current.find((w) => w.id === workoutId);
       const originalItem = originalWorkout?.items.find((i) => i.id === itemId);
 
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) =>
-        prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          updatedWorkout = {
-            ...w,
-            items: w.items.map((item) => {
-              if (item.id !== itemId) return item;
-              return {
-                ...item,
-                notes: data.notes ?? null,
-                updatedAt: new Date().toISOString(),
-              };
-            }),
-          };
-          return updatedWorkout;
-        }),
-      );
-      if (updatedWorkout) {
+      // Optymistyczna aktualizacja - oblicz synchronicznie z ref
+      if (originalWorkout) {
+        const updatedWorkout: Workout = {
+          ...originalWorkout,
+          items: originalWorkout.items.map((item) => {
+            if (item.id !== itemId) return item;
+            return {
+              ...item,
+              notes: data.notes ?? null,
+              updatedAt: new Date().toISOString(),
+            };
+          }),
+        };
+        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
         await localStore.put("workouts", updatedWorkout);
       }
 
@@ -418,36 +405,31 @@ export function useWorkoutItemActions(store: DataStore) {
       // Tymczasowe ID
       const tempSetId = `temp_set_${Date.now()}`;
 
-      // Optymistyczna aktualizacja
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) =>
-        prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          updatedWorkout = {
-            ...w,
-            items: w.items.map((item) => {
-              if (item.id !== itemId) return item;
-              return {
-                ...item,
-                sets: [
-                  ...item.sets,
-                  {
-                    id: tempSetId,
-                    itemId,
-                    setNumber: data.setNumber,
-                    weight: String(data.weight),
-                    repetitions: data.repetitions,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                  },
-                ],
-              };
-            }),
-          };
-          return updatedWorkout;
-        }),
-      );
-      if (updatedWorkout) {
+      // Optymistyczna aktualizacja - oblicz synchronicznie z ref
+      const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
+      if (currentWorkout) {
+        const updatedWorkout: Workout = {
+          ...currentWorkout,
+          items: currentWorkout.items.map((item) => {
+            if (item.id !== itemId) return item;
+            return {
+              ...item,
+              sets: [
+                ...item.sets,
+                {
+                  id: tempSetId,
+                  itemId,
+                  setNumber: data.setNumber,
+                  weight: String(data.weight),
+                  repetitions: data.repetitions,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                },
+              ],
+            };
+          }),
+        };
+        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
         await localStore.put("workouts", updatedWorkout);
       }
 
@@ -572,44 +554,37 @@ export function useWorkoutItemActions(store: DataStore) {
         ?.items.find((item) => item.sets.some((set) => set.id === setId))?.exerciseId;
       let originalSet: WorkoutSet | null = null;
 
-      // Optymistyczna aktualizacja - znajdź original w callback
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) => {
-        // Znajdź oryginał przed modyfikacją
-        prev.forEach((w) => {
-          w.items.forEach((item) => {
-            const set = item.sets.find((s) => s.id === setId);
-            if (set && !originalSet) originalSet = { ...set };
-          });
+      // Optymistyczna aktualizacja - oblicz synchronicznie z ref
+      const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
+      if (currentWorkout) {
+        // Znajdź oryginał przed modyfikacją (do rollbacku)
+        currentWorkout.items.forEach((item) => {
+          const set = item.sets.find((s) => s.id === setId);
+          if (set && !originalSet) originalSet = { ...set };
         });
 
-        return prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          updatedWorkout = {
-            ...w,
-            items: w.items.map((item) => ({
-              ...item,
-              sets: item.sets.map((s) =>
-                s.id === setId
-                  ? {
-                      ...s,
-                      weight:
-                        data.weight !== undefined
-                          ? String(data.weight)
-                          : s.weight,
-                      repetitions:
-                        data.repetitions !== undefined
-                          ? data.repetitions
-                          : s.repetitions,
-                    }
-                  : s,
-              ),
-            })),
-          };
-          return updatedWorkout;
-        });
-      });
-      if (updatedWorkout) {
+        const updatedWorkout: Workout = {
+          ...currentWorkout,
+          items: currentWorkout.items.map((item) => ({
+            ...item,
+            sets: item.sets.map((s) =>
+              s.id === setId
+                ? {
+                    ...s,
+                    weight:
+                      data.weight !== undefined
+                        ? String(data.weight)
+                        : s.weight,
+                    repetitions:
+                      data.repetitions !== undefined
+                        ? data.repetitions
+                        : s.repetitions,
+                  }
+                : s,
+            ),
+          })),
+        };
+        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
         await localStore.put("workouts", updatedWorkout);
       }
 
@@ -715,33 +690,26 @@ export function useWorkoutItemActions(store: DataStore) {
         ?.items.find((item) => item.id === itemId)?.exerciseId;
       let originalSet: WorkoutSet | null = null;
 
-      // Optymistyczna aktualizacja - znajdź original w callback
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) => {
-        // Znajdź oryginał przed modyfikacją
-        prev.forEach((w) => {
-          w.items.forEach((item) => {
-            const set = item.sets.find((s) => s.id === setId);
-            if (set && !originalSet) originalSet = { ...set };
-          });
+      // Optymistyczna aktualizacja - oblicz synchronicznie z ref
+      const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
+      if (currentWorkout) {
+        // Znajdź oryginał przed modyfikacją (do rollbacku)
+        currentWorkout.items.forEach((item) => {
+          const set = item.sets.find((s) => s.id === setId);
+          if (set && !originalSet) originalSet = { ...set };
         });
 
-        return prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          updatedWorkout = {
-            ...w,
-            items: w.items.map((item) => {
-              if (item.id !== itemId) return item;
-              return {
-                ...item,
-                sets: item.sets.filter((s) => s.id !== setId),
-              };
-            }),
-          };
-          return updatedWorkout;
-        });
-      });
-      if (updatedWorkout) {
+        const updatedWorkout: Workout = {
+          ...currentWorkout,
+          items: currentWorkout.items.map((item) => {
+            if (item.id !== itemId) return item;
+            return {
+              ...item,
+              sets: item.sets.filter((s) => s.id !== setId),
+            };
+          }),
+        };
+        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
         await localStore.put("workouts", updatedWorkout);
       }
 

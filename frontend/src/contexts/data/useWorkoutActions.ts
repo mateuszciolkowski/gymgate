@@ -303,21 +303,21 @@ export function useWorkoutActions(store: DataStore) {
       const realWorkoutId = getRealId(workoutId);
 
       let previousWorkout: Workout | null = null;
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) =>
-        prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          const alreadySkipped = (w.skippedPlanExerciseIds ?? []).includes(exerciseId);
-          if (alreadySkipped) return w;
-          previousWorkout = w;
-          updatedWorkout = {
-            ...w,
-            skippedPlanExerciseIds: [...(w.skippedPlanExerciseIds ?? []), exerciseId],
-          };
-          return updatedWorkout;
-        }),
-      );
-      if (updatedWorkout) {
+      // Oblicz synchronicznie z ref - updater setState jest asynchroniczny
+      const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
+      if (
+        currentWorkout &&
+        !(currentWorkout.skippedPlanExerciseIds ?? []).includes(exerciseId)
+      ) {
+        previousWorkout = currentWorkout;
+        const updatedWorkout: Workout = {
+          ...currentWorkout,
+          skippedPlanExerciseIds: [
+            ...(currentWorkout.skippedPlanExerciseIds ?? []),
+            exerciseId,
+          ],
+        };
+        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
         await localStore.put("workouts", updatedWorkout);
       }
 
@@ -336,7 +336,7 @@ export function useWorkoutActions(store: DataStore) {
         }
       }
     },
-    [getRealId, setWorkouts],
+    [getRealId, setWorkouts, workoutsRef],
   );
 
   return useMemo(
