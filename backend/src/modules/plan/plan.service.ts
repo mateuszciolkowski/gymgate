@@ -170,7 +170,7 @@ export class PlanService {
     return candidate;
   }
 
-  // Wąsko-zakresowy guard na race condition między check-name a create.
+  // Narrowly scoped guard against a race condition between check-name and create.
   // Mapuje Prisma P2002 (unique violation na creatorUserId+name) na 409.
   private async runCreateWithUniqueGuard<T>(op: () => Promise<T>): Promise<T> {
     try {

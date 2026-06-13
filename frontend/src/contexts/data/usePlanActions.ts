@@ -7,7 +7,7 @@ import type { DataStore } from "./useDataStore";
 
 const OFFLINE_MESSAGE = "Brak połączenia z serwerem — spróbuj ponownie gdy będziesz online.";
 
-/** Akcje na planach treningowych - online-only (brak kolejki offline). */
+/** Workout plan actions - online-only (no offline queue). */
 export function usePlanActions(store: DataStore) {
   const { plansRef, setPlans, fetchAllFromServer } = store;
 

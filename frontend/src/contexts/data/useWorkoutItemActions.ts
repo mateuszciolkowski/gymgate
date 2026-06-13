@@ -7,8 +7,8 @@ import { WorkoutNotFoundError } from "./types";
 import type { DataStore } from "./useDataStore";
 
 /**
- * Akcje na pozycjach treningu i seriach - wszystkie z optymistyczną
- * aktualizacją UI + IndexedDB i kolejką sync w trybie offline.
+ * Workout item and set actions - all with optimistic UI + IndexedDB
+ * updates and an offline sync queue.
  */
 export function useWorkoutItemActions(store: DataStore) {
   const {
@@ -33,16 +33,16 @@ export function useWorkoutItemActions(store: DataStore) {
         "COMPLETED";
       const tempItemId = `temp_item_${Date.now()}`;
 
-      // Pobierz exercise z ref (nie z state - żeby nie tworzyć zależności)
+      // Read the exercise from the ref (not from state, to avoid creating a dependency)
       const exercise = exercisesRef.current.find((e) => e.id === exerciseId);
       if (!exercise) throw new Error("Nie znaleziono ćwiczenia");
 
-      // Optymistyczna aktualizacja - dodaj od razu do UI, bez serii (pierwsza seria = draftSet w UI)
+      // Optimistic update - add to the UI immediately, with no sets (the first set is a draftSet in the UI)
       const newItem = {
         id: tempItemId,
         workoutId,
         exerciseId,
-        orderInWorkout: 0, // będzie obliczone w callback
+        orderInWorkout: 0, // will be computed in the callback
         notes: null,
         previousNote: null,
         createdAt: new Date().toISOString(),
@@ -57,8 +57,8 @@ export function useWorkoutItemActions(store: DataStore) {
         sets: [],
       };
 
-      // Oblicz zaktualizowany trening synchronicznie z ref - updater setState
-      // jest asynchroniczny, więc nie można odczytać wyniku zaraz po wywołaniu.
+      // Compute the updated workout synchronously from the ref - the setState updater
+      // is asynchronous, so its result cannot be read immediately after the call.
       const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
       if (currentWorkout) {
         const itemWithOrder = {
@@ -189,11 +189,11 @@ export function useWorkoutItemActions(store: DataStore) {
       const originalWorkout = workoutsRef.current.find((workout) => workout.id === workoutId);
       const removedItem = originalWorkout?.items.find((item) => item.id === itemId);
       const shouldRefreshStats = originalWorkout?.status === "COMPLETED";
-      // Zapisz oryginalny item do rollbacku (z ref - synchronicznie)
+      // Save the original item for rollback (from the ref, synchronously)
       const originalItem: WorkoutItem | null =
         originalWorkout?.items.find((i) => i.id === itemId) ?? null;
 
-      // Optymistyczna aktualizacja - oblicz synchronicznie z ref
+      // Optimistic update - compute synchronously from the ref
       if (originalWorkout) {
         const updatedWorkout: Workout = {
           ...originalWorkout,
@@ -203,7 +203,7 @@ export function useWorkoutItemActions(store: DataStore) {
         await localStore.put("workouts", updatedWorkout);
       }
 
-      // Wyślij do serwera w tle - użyj prawdziwego ID jeśli mamy mapowanie
+      // Send to the server in the background - use the real ID if we have a mapping
       const realItemId = getRealId(itemId);
 
       if (!realItemId.startsWith("temp_")) {
@@ -279,7 +279,7 @@ export function useWorkoutItemActions(store: DataStore) {
           );
         }
       }
-      // Jeśli ID tymczasowe - usunięcie jest tylko lokalne
+      // If the ID is temporary, the removal is local only
       if (shouldRefreshStats) {
         await refreshStatsData();
         await invalidateProgressionCache(removedItem?.exerciseId);
@@ -304,7 +304,7 @@ export function useWorkoutItemActions(store: DataStore) {
       const originalWorkout = workoutsRef.current.find((w) => w.id === workoutId);
       const originalItem = originalWorkout?.items.find((i) => i.id === itemId);
 
-      // Optymistyczna aktualizacja - oblicz synchronicznie z ref
+      // Optimistic update - compute synchronously from the ref
       if (originalWorkout) {
         const updatedWorkout: Workout = {
           ...originalWorkout,
@@ -402,10 +402,10 @@ export function useWorkoutItemActions(store: DataStore) {
       const exerciseId = workoutsRef.current
         .find((workout) => workout.id === workoutId)
         ?.items.find((item) => item.id === itemId)?.exerciseId;
-      // Tymczasowe ID
+      // Temporary ID
       const tempSetId = `temp_set_${Date.now()}`;
 
-      // Optymistyczna aktualizacja - oblicz synchronicznie z ref
+      // Optimistic update - compute synchronously from the ref
       const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
       if (currentWorkout) {
         const updatedWorkout: Workout = {
@@ -433,8 +433,8 @@ export function useWorkoutItemActions(store: DataStore) {
         await localStore.put("workouts", updatedWorkout);
       }
 
-      // Wyślij do serwera w tle
-      // Użyj prawdziwego ID jeśli mamy mapowanie, w przeciwnym razie sprawdź czy to temp
+      // Send to the server in the background
+      // Use the real ID if we have a mapping, otherwise check whether it is a temp ID
       const realItemId = getRealId(itemId);
 
       const syncPayload = {
@@ -554,10 +554,10 @@ export function useWorkoutItemActions(store: DataStore) {
         ?.items.find((item) => item.sets.some((set) => set.id === setId))?.exerciseId;
       let originalSet: WorkoutSet | null = null;
 
-      // Optymistyczna aktualizacja - oblicz synchronicznie z ref
+      // Optimistic update - compute synchronously from the ref
       const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
       if (currentWorkout) {
-        // Znajdź oryginał przed modyfikacją (do rollbacku)
+        // Find the original before modifying (for rollback)
         currentWorkout.items.forEach((item) => {
           const set = item.sets.find((s) => s.id === setId);
           if (set && !originalSet) originalSet = { ...set };
@@ -588,7 +588,7 @@ export function useWorkoutItemActions(store: DataStore) {
         await localStore.put("workouts", updatedWorkout);
       }
 
-      // Wyślij do serwera w tle - użyj prawdziwego ID jeśli mamy mapowanie
+      // Send to the server in the background - use the real ID if we have a mapping
       const realSetId = getRealId(setId);
 
       if (realSetId.startsWith("temp_") || !navigator.onLine) {
@@ -690,10 +690,10 @@ export function useWorkoutItemActions(store: DataStore) {
         ?.items.find((item) => item.id === itemId)?.exerciseId;
       let originalSet: WorkoutSet | null = null;
 
-      // Optymistyczna aktualizacja - oblicz synchronicznie z ref
+      // Optimistic update - compute synchronously from the ref
       const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
       if (currentWorkout) {
-        // Znajdź oryginał przed modyfikacją (do rollbacku)
+        // Find the original before modifying (for rollback)
         currentWorkout.items.forEach((item) => {
           const set = item.sets.find((s) => s.id === setId);
           if (set && !originalSet) originalSet = { ...set };
@@ -713,7 +713,7 @@ export function useWorkoutItemActions(store: DataStore) {
         await localStore.put("workouts", updatedWorkout);
       }
 
-      // Wyślij do serwera w tle - użyj prawdziwego ID jeśli mamy mapowanie
+      // Send to the server in the background - use the real ID if we have a mapping
       const realSetId = getRealId(setId);
 
       if (realSetId.startsWith("temp_")) {

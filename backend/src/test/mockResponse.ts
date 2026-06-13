@@ -6,8 +6,8 @@ export interface MockResponse extends Response {
 }
 
 /**
- * Minimalny, łańcuchowalny mock Express Response do testów kontrolerów.
- * Zapisuje ostatni statusCode oraz body (z json/send).
+ * Minimal, chainable mock of the Express Response for controller tests.
+ * Records the last statusCode and body (from json/send).
  */
 export const createMockRes = (): MockResponse => {
   const res = {

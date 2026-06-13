@@ -270,7 +270,7 @@ export function AuthenticatedApp({
         return (
           <ExercisesScreen
             onAddExercise={() => {
-              // Wyczyść selectedWorkoutId żeby nowe ćwiczenie nie dodało się do treningu
+              // Clear selectedWorkoutId so the new exercise is not added to the workout
               setSelectedWorkoutId(null);
               setScreen("add-exercise");
             }}

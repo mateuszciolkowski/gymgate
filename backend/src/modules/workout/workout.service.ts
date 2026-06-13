@@ -31,8 +31,8 @@ export const createWorkout = async (userId: string, data: CreateWorkoutDto) => {
   }
 
   if (data.workoutPlanId) {
-    // Throws NotFoundError gdy plan nie istnieje lub nie jest widoczny dla usera.
-    // Zapobiega podpinaniu treningu pod prywatny plan innego użytkownika.
+    // Throws NotFoundError when the plan does not exist or is not visible to the user.
+    // Prevents attaching a workout to another user's private plan.
     await new PlanService().getPlanById(data.workoutPlanId, userId);
   }
 

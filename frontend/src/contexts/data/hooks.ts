@@ -9,7 +9,7 @@ export function useData() {
   return context;
 }
 
-// Pomocnicze hooki dla kompatybilności wstecznej
+// Helper hooks for backward compatibility
 export function useWorkoutsData() {
   const {
     workouts,
@@ -80,7 +80,7 @@ export function useWorkoutData(id: string) {
 
   const workout = getWorkout(id);
 
-  // Memoizuj funkcje żeby nie tworzyć nowych przy każdym renderze
+  // Memoize functions so new ones are not created on every render
   const memoizedFunctions = useMemo(
     () => ({
       refetch: () => refreshWorkout(id),

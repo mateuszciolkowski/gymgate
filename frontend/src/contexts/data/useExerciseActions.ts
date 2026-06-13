@@ -5,7 +5,7 @@ import { API_BASE } from "@/config/api";
 import type { Exercise } from "@/types";
 import type { DataStore } from "./useDataStore";
 
-/** Akcje na ćwiczeniach: CRUD z obsługą offline (temp ID + kolejka sync). */
+/** Exercise actions: CRUD with offline support (temp IDs + sync queue). */
 export function useExerciseActions(store: DataStore) {
   const {
     user,
@@ -112,7 +112,7 @@ export function useExerciseActions(store: DataStore) {
       } catch (error) {
         if (!isOfflineError(error)) throw error;
 
-        // Oblicz synchronicznie z ref - updater setState jest asynchroniczny
+        // Compute synchronously from the ref - the setState updater is asynchronous
         const currentExercise = exercisesRef.current.find((e) => e.id === id);
         if (currentExercise) {
           const updatedExercise = {

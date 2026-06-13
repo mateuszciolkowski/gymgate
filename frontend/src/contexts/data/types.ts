@@ -17,7 +17,7 @@ export class WorkoutNotFoundError extends Error {
 }
 
 export interface DataContextType {
-  // Dane
+  // Data
   workouts: Workout[];
   exercises: Exercise[];
   stats: ExerciseStats[];
@@ -25,12 +25,12 @@ export interface DataContextType {
   activeWorkoutId: string | null;
   plans: WorkoutPlan[];
 
-  // Stan
+  // State
   isLoading: boolean;
   isOnline: boolean;
   lastSync: number;
 
-  // Akcje - Workouts
+  // Actions - Workouts
   createWorkout: (data: {
     workoutName?: string;
     gymName?: string;
@@ -41,7 +41,7 @@ export interface DataContextType {
   deleteWorkout: (id: string) => Promise<void>;
   getWorkout: (id: string) => Workout | undefined;
 
-  // Akcje - Exercises
+  // Actions - Exercises
   createExercise: (data: {
     name: string;
     muscleGroups: string[];
@@ -50,7 +50,7 @@ export interface DataContextType {
   updateExercise: (id: string, data: Record<string, unknown>) => Promise<void>;
   deleteExercise: (id: string) => Promise<void>;
 
-  // Akcje - Workout Items & Sets
+  // Actions - Workout Items & Sets
   addExerciseToWorkout: (
     workoutId: string,
     exerciseId: string,
@@ -81,7 +81,7 @@ export interface DataContextType {
   ) => Promise<void>;
   completeWorkout: (id: string, durationSeconds?: number) => Promise<void>;
 
-  // Akcje - Plans
+  // Actions - Plans
   createPlan: (data: { name: string; exerciseIds: string[]; isPublic: boolean }) => Promise<WorkoutPlan>;
   updatePlan: (id: string, data: { name?: string; exerciseIds?: string[]; isPublic?: boolean }) => Promise<void>;
   deletePlan: (id: string) => Promise<void>;
@@ -89,7 +89,7 @@ export interface DataContextType {
   favoritePlan: (id: string) => Promise<void>;
   unfavoritePlan: (id: string) => Promise<void>;
 
-  // Akcje - Plan integration
+  // Actions - Plan integration
   skipPlanExercise: (workoutId: string, exerciseId: string) => Promise<void>;
 
   // Sync

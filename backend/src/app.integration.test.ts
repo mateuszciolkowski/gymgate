@@ -10,7 +10,7 @@ let app: Express;
 let tokenU1: string;
 
 beforeAll(async () => {
-  // Ustaw env PRZED importem app (authMiddleware czyta JWT_SECRET przy imporcie).
+  // Set env BEFORE importing app (authMiddleware reads JWT_SECRET at import time).
   process.env.NODE_ENV = "test";
   process.env.JWT_SECRET = SECRET;
 

@@ -18,13 +18,13 @@ import type { Exercise } from "@/types";
 export type DataStore = ReturnType<typeof useDataStore>;
 
 /**
- * Wewnętrzny rdzeń DataProvider: stan, refy i współdzielone helpery
- * (mapowanie temp ID, kolejka sync, cache statystyk, pobieranie z serwera).
+ * Internal core of DataProvider: state, refs, and shared helpers
+ * (temp ID mapping, sync queue, stats cache, fetching from the server).
  */
 export function useDataStore() {
   const { user } = useAuth();
 
-  // Stan
+  // State
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [stats, setStats] = useState<ExerciseStats[]>([]);
@@ -39,7 +39,7 @@ export function useDataStore() {
   const initialLoadDone = useRef(false);
   const progressionCacheRef = useRef<Map<string, ExerciseProgression>>(new Map());
 
-  // Refy mirrorujące stan - żeby callbacks nie zależały od state
+  // Refs mirroring state - so callbacks do not depend on state
   const exercisesRef = useRef<Exercise[]>([]);
   exercisesRef.current = exercises;
 
@@ -52,10 +52,10 @@ export function useDataStore() {
   const plansRef = useRef<WorkoutPlan[]>([]);
   plansRef.current = plans;
 
-  // Mapowanie tymczasowych ID na prawdziwe - nie powoduje re-renderów
+  // Maps temporary IDs to real ones - does not trigger re-renders
   const idMappingRef = useRef<Map<string, string>>(new Map());
 
-  // Pobierz prawdziwe ID (lub tymczasowe jeśli nie ma mapowania)
+  // Get the real ID (or the temporary one if no mapping exists)
   const getRealId = useCallback(
     (tempId: string): string => idMappingRef.current.get(tempId) || tempId,
     [],
@@ -289,7 +289,7 @@ export function useDataStore() {
     [],
   );
 
-  // Pobierz wszystkie dane z serwera
+  // Fetch all data from the server
   const fetchAllFromServer = useCallback(async () => {
     if (!isOnline) return;
 
@@ -396,7 +396,7 @@ export function useDataStore() {
 
   return {
     user,
-    // stan
+    // state
     workouts,
     exercises,
     stats,
@@ -407,7 +407,7 @@ export function useDataStore() {
     isOnline,
     lastSync,
     failedSyncOperations,
-    // settery
+    // setters
     setWorkouts,
     setExercises,
     setStats,
@@ -418,7 +418,7 @@ export function useDataStore() {
     setIsOnline,
     setLastSync,
     setFailedSyncOperations,
-    // refy
+    // refs
     initialLoadDone,
     progressionCacheRef,
     exercisesRef,
@@ -426,7 +426,7 @@ export function useDataStore() {
     statsRef,
     plansRef,
     idMappingRef,
-    // helpery
+    // helpers
     getRealId,
     isOfflineError,
     queueSyncOperation,

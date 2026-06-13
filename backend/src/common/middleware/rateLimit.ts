@@ -3,13 +3,13 @@ import rateLimit from "express-rate-limit";
 const isTestEnv = process.env.NODE_ENV === "test";
 
 /**
- * Limiter dla wrażliwych endpointów auth (login/register).
- * Chroni przed brute-force i enumeracją kont.
- * W środowisku testowym (NODE_ENV=test) jest pomijany, by nie zaburzać testów.
+ * Rate limiter for sensitive auth endpoints (login/register).
+ * Protects against brute-force attacks and account enumeration.
+ * Skipped in the test environment (NODE_ENV=test) so it does not interfere with tests.
  */
 export const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minut
-  limit: 10, // maks. 10 prób na okno na IP
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 10, // max 10 attempts per window per IP
   standardHeaders: "draft-7",
   legacyHeaders: false,
   skip: () => isTestEnv,

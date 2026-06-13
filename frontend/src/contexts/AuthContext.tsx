@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem(USER_KEY);
           }
         } catch (error) {
-          // Pozostaw token i odtwórz użytkownika z cache, aby umożliwić tryb offline
+          // Keep the token and restore the user from cache to enable offline mode
           if (cachedUser) {
             setToken(savedToken);
             setUser(cachedUser);

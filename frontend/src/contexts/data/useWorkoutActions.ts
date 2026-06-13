@@ -6,7 +6,7 @@ import type { Workout } from "@/types";
 import { WorkoutNotFoundError } from "./types";
 import type { DataStore } from "./useDataStore";
 
-/** Akcje na treningach: CRUD, zakończenie, odświeżenie, pomijanie ćwiczeń z planu. */
+/** Workout actions: CRUD, completion, refresh, and skipping plan exercises. */
 export function useWorkoutActions(store: DataStore) {
   const {
     user,
@@ -265,7 +265,7 @@ export function useWorkoutActions(store: DataStore) {
     [workoutsRef],
   );
 
-  // Odśwież pojedynczy workout
+  // Refresh a single workout
   const refreshWorkout = useCallback(
     async (id: string) => {
       try {
@@ -303,7 +303,7 @@ export function useWorkoutActions(store: DataStore) {
       const realWorkoutId = getRealId(workoutId);
 
       let previousWorkout: Workout | null = null;
-      // Oblicz synchronicznie z ref - updater setState jest asynchroniczny
+      // Compute synchronously from the ref - the setState updater is asynchronous
       const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
       if (
         currentWorkout &&

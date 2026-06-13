@@ -82,7 +82,7 @@ export const getUserFromToken = async (token: string) => {
   const decoded = verifyToken(token);
   const user = await userRepo.findUserById(decoded.userId);
   if (!user) {
-    // 401 (nie 404): ważny token bez istniejącego użytkownika ma wymusić wylogowanie
+    // 401 (not 404): a valid token without an existing user should force logout
     throw new UnauthorizedError("Użytkownik nie znaleziony");
   }
   const { password: _, ...userWithoutPassword } = user;

@@ -9,7 +9,7 @@ import { useExerciseActions } from "./useExerciseActions";
 import { usePlanActions } from "./usePlanActions";
 
 /**
- * DataProvider - Globalny store dla danych aplikacji
+ * DataProvider - Global store for application data
  * Offline-first approach z prostym cache'em
  */
 export function DataProvider({ children }: { children: React.ReactNode }) {

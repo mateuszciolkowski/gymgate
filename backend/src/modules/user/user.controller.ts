@@ -11,7 +11,7 @@ export const getUserById = async (req: AuthRequest, res: Response) => {
       throw new BadRequestError("User ID is required");
     }
 
-    // Tylko właściciel konta lub administrator może pobrać dane użytkownika.
+    // Only the account owner or an administrator may fetch the user's data.
     if (req.userId !== id && !req.userIsAdmin) {
       throw new ForbiddenError("Brak uprawnień do danych tego użytkownika");
     }

@@ -14,7 +14,7 @@ import workoutRouter from "./modules/workout/workout.routes.js";
 import authRouter from "./modules/auth/auth.routes.js";
 import { planRouter } from "./modules/plan/plan.routes.js";
 
-// Prisma zwraca BigInt dla niektórych pól agregacji — serializuj jako string.
+// Prisma returns BigInt for some aggregate fields — serialize it as a string.
 (BigInt.prototype as unknown as { toJSON: () => string }).toJSON = function () {
   return this.toString();
 };
@@ -27,8 +27,8 @@ const parseAllowedOrigins = (): string[] => {
 };
 
 /**
- * Buduje i konfiguruje aplikację Express bez uruchamiania nasłuchu.
- * Dzięki temu można ją testować przez supertest (createApp()).
+ * Builds and configures the Express app without starting the listener.
+ * This makes it testable via supertest (createApp()).
  */
 export const createApp = (): Express => {
   const app = express();

@@ -6,8 +6,8 @@ import type { Exercise } from "@/types";
 import type { DataStore } from "./useDataStore";
 
 /**
- * Cykl życia synchronizacji: nasłuch online/offline, początkowe ładowanie
- * z IndexedDB, subskrypcje sync managera oraz akcje syncNow/resetLocalCache.
+ * Synchronization lifecycle: online/offline listeners, initial load from
+ * IndexedDB, sync manager subscriptions, and the syncNow/resetLocalCache actions.
  */
 export function useDataSync(store: DataStore) {
   const {
@@ -30,7 +30,7 @@ export function useDataSync(store: DataStore) {
     fetchAllFromServer,
   } = store;
 
-  // Nasłuchuj na zmiany online/offline
+  // Listen for online/offline changes
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -44,7 +44,7 @@ export function useDataSync(store: DataStore) {
     };
   }, [setIsOnline]);
 
-  // Załaduj dane lokalne przy starcie
+  // Load local data on startup
   useEffect(() => {
     if (!user || initialLoadDone.current) return;
 
@@ -52,7 +52,7 @@ export function useDataSync(store: DataStore) {
       setIsLoading(true);
 
       try {
-        // Załaduj z IndexedDB
+        // Load from IndexedDB
         const [
           localWorkouts,
           localExercises,
@@ -81,7 +81,7 @@ export function useDataSync(store: DataStore) {
 
         initialLoadDone.current = true;
 
-        // Jeśli dane są stale (> 5 min) lub puste, pobierz świeże
+        // If data is stale (> 5 min) or empty, fetch fresh data
         const isStale = Date.now() - syncTime > 5 * 60 * 1000;
         const isEmpty =
           localWorkouts.length === 0 && localExercises.length === 0;
@@ -91,7 +91,7 @@ export function useDataSync(store: DataStore) {
         }
       } catch (error) {
         console.error("[DataProvider] Failed to load local data:", error);
-        // Fallback do serwera
+        // Fall back to the server
         await fetchAllFromServer();
       } finally {
         setIsLoading(false);
@@ -113,16 +113,16 @@ export function useDataSync(store: DataStore) {
     setWorkouts,
   ]);
 
-  // Uruchom sync manager
+  // Start the sync manager
   useEffect(() => {
     if (!user) return;
 
-    // Nasłuchuj na zakończenie synchronizacji
+    // Listen for sync completion
     const unsubscribe = syncManager.onSync(async () => {
-      // Pomiń jeśli lokalne dane nie zostały jeszcze załadowane (Fix C: brak wyścigu)
+      // Skip if local data has not been loaded yet (Fix C: no race condition)
       if (!initialLoadDone.current) return;
 
-      // Po synchronizacji odśwież dane z lokalnego store
+      // After syncing, refresh data from the local store
       const [
         localWorkouts,
         localExercises,
@@ -140,7 +140,7 @@ export function useDataSync(store: DataStore) {
           localStore.getAll<WorkoutPlan>("plans"),
         ]);
 
-      // Aktualizuj tylko jeśli dane się zmieniły (porównaj JSON)
+      // Update only if the data changed (compare JSON)
       setWorkouts((prev) => {
         const newJson = JSON.stringify(localWorkouts);
         const prevJson = JSON.stringify(prev);
@@ -176,10 +176,10 @@ export function useDataSync(store: DataStore) {
       });
 
       await invalidateProgressionCache();
-      // Nie wywołujemy setLastSync - powoduje niepotrzebny re-render
+      // We do not call setLastSync - it would cause an unnecessary re-render
     });
 
-    // Nasłuchuj na permanentnie nieudane operacje (Fix B)
+    // Listen for permanently failed operations (Fix B)
     const unsubscribeFailure = syncManager.onSyncFailure((ops) => {
       setFailedSyncOperations((prev) => [...prev, ...ops]);
     });
