@@ -4,6 +4,7 @@
         docker-migrate docker-seed \
         local-up local-down local-setup local-migrate local-seed local-reset \
         dev test typecheck \
+        check \
         clean
 
 LOCAL_DB_URL := postgresql://postgres:postgres@localhost:5433/gymgate_local
@@ -96,6 +97,10 @@ test: ## Run all tests (vitest)
 
 typecheck: ## TypeScript type-check without emitting
 	npm run typecheck
+
+check: ## Run full verification: type-check + all tests
+	npm run typecheck
+	npm test
 
 # ── Cleanup ───────────────────────────────────────────────────────────────────
 

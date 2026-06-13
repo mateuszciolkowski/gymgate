@@ -57,10 +57,10 @@ export const createWorkout = async (userId: string, data: CreateWorkoutDto) => {
 export const getWorkoutById = async (id: string, userId: string) => {
   const workout = await workoutRepo.findWorkoutById(id);
   if (!workout) {
-    throw new Error("Trening nie znaleziony");
+    throw new NotFoundError("Trening nie znaleziony");
   }
   if (workout.userId !== userId) {
-    throw new Error("Brak uprawnień do tego treningu");
+    throw new ForbiddenError("Brak uprawnień do tego treningu");
   }
   return workout;
 };
@@ -177,12 +177,12 @@ export const updateWorkoutItem = async (
 ) => {
   const item = await workoutRepo.findWorkoutItemById(itemId);
   if (!item) {
-    throw new Error("Pozycja treningowa nie znaleziona");
+    throw new NotFoundError("Pozycja treningowa nie znaleziona");
   }
 
   const workout = await workoutRepo.findWorkoutById(item.workoutId);
   if (workout?.userId !== userId) {
-    throw new Error("Brak uprawnień");
+    throw new ForbiddenError("Brak uprawnień");
   }
 
   const updateData: any = {};
@@ -205,12 +205,12 @@ export const updateWorkoutItem = async (
 export const deleteWorkoutItem = async (itemId: string, userId: string) => {
   const item = await workoutRepo.findWorkoutItemById(itemId);
   if (!item) {
-    throw new Error("Pozycja treningowa nie znaleziona");
+    throw new NotFoundError("Pozycja treningowa nie znaleziona");
   }
 
   const workout = await workoutRepo.findWorkoutById(item.workoutId);
   if (workout?.userId !== userId) {
-    throw new Error("Brak uprawnień");
+    throw new ForbiddenError("Brak uprawnień");
   }
 
   const deletedItem = await workoutRepo.deleteWorkoutItem(itemId);
@@ -228,12 +228,12 @@ export const addSetToWorkoutItem = async (
 ) => {
   const item = await workoutRepo.findWorkoutItemById(itemId);
   if (!item) {
-    throw new Error("Pozycja treningowa nie znaleziona");
+    throw new NotFoundError("Pozycja treningowa nie znaleziona");
   }
 
   const workout = await workoutRepo.findWorkoutById(item.workoutId);
   if (workout?.userId !== userId) {
-    throw new Error("Brak uprawnień");
+    throw new ForbiddenError("Brak uprawnień");
   }
 
   const maxSetNumber = await workoutRepo.getMaxSetNumber(itemId);
@@ -261,12 +261,12 @@ export const updateWorkoutSet = async (
   const set = await workoutRepo.updateWorkoutSet(setId, {});
   const item = await workoutRepo.findWorkoutItemById(set.itemId);
   if (!item) {
-    throw new Error("Nie znaleziono pozycji treningowej");
+    throw new NotFoundError("Nie znaleziono pozycji treningowej");
   }
 
   const workout = await workoutRepo.findWorkoutById(item.workoutId);
   if (workout?.userId !== userId) {
-    throw new Error("Brak uprawnień");
+    throw new ForbiddenError("Brak uprawnień");
   }
 
   const updateData: any = {};
@@ -283,16 +283,16 @@ export const updateWorkoutSet = async (
 export const deleteWorkoutSet = async (setId: string, userId: string) => {
   const sets = await workoutRepo.findWorkoutSetById(setId);
   if (!sets) {
-    throw new Error("Nie znaleziono serii");
+    throw new NotFoundError("Nie znaleziono serii");
   }
   const item = await workoutRepo.findWorkoutItemById(sets.itemId);
   if (!item) {
-    throw new Error("Nie znaleziono pozycji treningowej");
+    throw new NotFoundError("Nie znaleziono pozycji treningowej");
   }
 
   const workout = await workoutRepo.findWorkoutById(item.workoutId);
   if (workout?.userId !== userId) {
-    throw new Error("Brak uprawnień");
+    throw new ForbiddenError("Brak uprawnień");
   }
 
   const deletedSet = await workoutRepo.deleteWorkoutSet(setId);

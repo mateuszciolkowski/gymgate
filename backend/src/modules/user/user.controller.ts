@@ -1,13 +1,19 @@
-import type { Request, Response } from "express";
-import { sendError, BadRequestError } from "../../common/errors.js";
+import type { Response } from "express";
+import { sendError, BadRequestError, ForbiddenError } from "../../common/errors.js";
+import type { AuthRequest } from "../../common/middleware/auth.js";
 import { getUserById as getUser } from "./user.service.js";
 
-export const getUserById = async (req: Request, res: Response) => {
+export const getUserById = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
     if (!id) {
       throw new BadRequestError("User ID is required");
+    }
+
+    // Tylko właściciel konta lub administrator może pobrać dane użytkownika.
+    if (req.userId !== id && !req.userIsAdmin) {
+      throw new ForbiddenError("Brak uprawnień do danych tego użytkownika");
     }
 
     const user = await getUser(id);
