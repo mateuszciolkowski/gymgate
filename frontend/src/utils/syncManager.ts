@@ -1,13 +1,13 @@
 /**
  * SyncManager - Background synchronization manager
- * Synchronizuje dane lokalne z serwerem w tle
+ * Synchronizes local data with the server in the background.
  */
 
 import { localStore, type SyncOperation } from "./localStore";
 import { authFetch, getAuthHeaders } from "./auth";
+import { API_BASE } from "@/config/api";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
-const SYNC_INTERVAL = 2 * 60 * 1000; // 2 minuty
+const SYNC_INTERVAL = 2 * 60 * 1000; // 2 minutes
 const MAX_RETRIES = 3;
 
 type SyncCallback = () => void;
@@ -85,7 +85,7 @@ class SyncManager {
   private isOnline = navigator.onLine;
 
   constructor() {
-    // Nasłuchuj na zmiany stanu online/offline
+    // Listen for online/offline state changes
     window.addEventListener("online", this.handleOnline);
     window.addEventListener("offline", this.handleOffline);
   }
@@ -102,24 +102,24 @@ class SyncManager {
   };
 
   /**
-   * Rozpocznij automatyczną synchronizację
+   * Start automatic synchronization.
    */
   start() {
     if (this.syncInterval) return;
 
     console.log("[SyncManager] Starting background sync");
 
-    // Synchronizuj od razu
+    // Sync immediately
     this.syncNow();
 
-    // Ustaw interwał
+    // Set up the interval
     this.syncInterval = window.setInterval(() => {
       this.syncNow();
     }, SYNC_INTERVAL);
   }
 
   /**
-   * Zatrzymaj automatyczną synchronizację
+   * Stop automatic synchronization.
    */
   stop() {
     if (this.syncInterval) {
@@ -130,7 +130,7 @@ class SyncManager {
   }
 
   /**
-   * Dodaj listener na zakończenie synchronizacji
+   * Add a listener invoked when synchronization completes.
    */
   onSync(callback: SyncCallback) {
     this.listeners.add(callback);
@@ -138,7 +138,7 @@ class SyncManager {
   }
 
   /**
-   * Dodaj listener na permanentnie nieudane operacje (przekroczone MAX_RETRIES)
+   * Add a listener for permanently failed operations (MAX_RETRIES exceeded).
    */
   onSyncFailure(callback: SyncFailureCallback): () => void {
     this.failureListeners.add(callback);
@@ -151,7 +151,7 @@ class SyncManager {
   }
 
   /**
-   * Wykonaj synchronizację teraz
+   * Run synchronization now.
    */
   async syncNow(): Promise<void> {
     if (this.isSyncing || !this.isOnline) {
@@ -161,16 +161,16 @@ class SyncManager {
     this.isSyncing = true;
 
     try {
-      // 1. Wyślij oczekujące operacje
+      // 1. Send pending operations
       await this.processPendingOperations();
 
-      // 2. Pobierz świeże dane z serwera
+      // 2. Fetch fresh data from the server
       await this.fetchFreshData();
 
-      // 3. Zaktualizuj czas ostatniej synchronizacji
+      // 3. Update the last sync timestamp
       await localStore.setLastSync(Date.now());
 
-      // 4. Powiadom listenerów
+      // 4. Notify listeners
       this.listeners.forEach((cb) => cb());
 
       console.log("[SyncManager] Sync completed");
@@ -182,7 +182,7 @@ class SyncManager {
   }
 
   /**
-   * Przetwórz oczekujące operacje offline
+   * Process pending offline operations.
    */
   private async processPendingOperations(): Promise<void> {
     const operations = await localStore.getPendingSyncOperations();
@@ -195,7 +195,7 @@ class SyncManager {
       `[SyncManager] Processing ${operations.length} pending operations`,
     );
 
-    // Sortuj po timestamp
+    // Sort by timestamp
     operations.sort((a, b) => a.timestamp - b.timestamp);
 
     for (const op of operations) {
@@ -257,7 +257,7 @@ class SyncManager {
           }
           console.warn(`[SyncManager] Operation ${op.id} removed due to 404`);
         } else if (op.retries < MAX_RETRIES) {
-          // Zwiększ licznik prób
+          // Increment the retry counter
           await localStore.updatePendingSync({
             ...op,
             retries: op.retries + 1,
@@ -272,10 +272,10 @@ class SyncManager {
       } catch (error) {
         const isNetworkError = !navigator.onLine || error instanceof TypeError;
         if (isNetworkError) {
-          // Nie incrementujemy retries — operacja zostanie ponowiona przy następnym połączeniu
+          // Do not increment retries — the operation will be retried on the next connection
           console.warn(`[SyncManager] Network error for operation ${op.id}, will retry when online`);
         } else {
-          // Nieoczekiwany błąd (np. JSON parse) — traktujemy jak server error
+          // Unexpected error (e.g. JSON parse) — treated as a server error
           console.error(`[SyncManager] Failed to process operation ${op.id}:`, error);
           if (op.retries < MAX_RETRIES) {
             await localStore.updatePendingSync({ ...op, retries: op.retries + 1 });
@@ -341,7 +341,7 @@ class SyncManager {
   }
 
   /**
-   * Pobierz świeże dane z serwera
+   * Fetch fresh data from the server.
    */
   private async fetchFreshData(): Promise<void> {
     try {
@@ -352,7 +352,7 @@ class SyncManager {
         operation.entity === "workout",
       );
 
-      // Pobierz równolegle wszystkie dane
+      // Fetch all data in parallel
       const [workoutsRes, exercisesRes, activeRes, statsRes, overviewRes] =
         await Promise.all([
           hasPendingWorkoutMutations
@@ -366,7 +366,7 @@ class SyncManager {
           authFetch(`${API_BASE}/api/workouts/stats/overview`).catch(() => null),
         ]);
 
-      // Zapisz workouty
+      // Persist workouts
       if (workoutsRes?.ok) {
         const data = await workoutsRes.json();
         if (data.data) {
@@ -375,7 +375,7 @@ class SyncManager {
         }
       }
 
-      // Zapisz ćwiczenia
+      // Persist exercises
       if (exercisesRes?.ok) {
         const data = await exercisesRes.json();
         if (data.data) {
@@ -384,13 +384,13 @@ class SyncManager {
         }
       }
 
-      // Zapisz aktywny trening
+      // Persist the active workout
       if (activeRes?.ok) {
         const data = await activeRes.json();
         await localStore.setActiveWorkoutId(data.data?.activeWorkoutId || null);
       }
 
-      // Zapisz statystyki
+      // Persist stats
       if (statsRes?.ok) {
         const data = await statsRes.json();
         if (data.data) {
@@ -409,7 +409,7 @@ class SyncManager {
   }
 
   /**
-   * Zaplanuj operację do synchronizacji (dla trybu offline)
+   * Queue an operation for synchronization (used in offline mode).
    */
   async queueOperation(
     operation: Omit<SyncOperation, "id" | "timestamp" | "retries">,
@@ -420,7 +420,7 @@ class SyncManager {
       retries: 0,
     });
 
-    // Jeśli online, spróbuj od razu zsynchronizować
+    // If online, try to sync immediately
     if (this.isOnline) {
       this.syncNow();
     }
@@ -429,7 +429,7 @@ class SyncManager {
   }
 
   /**
-   * Sprawdź czy jesteśmy online
+   * Check whether we are online.
    */
   getIsOnline(): boolean {
     return this.isOnline;

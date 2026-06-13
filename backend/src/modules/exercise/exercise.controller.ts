@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { sendError, ForbiddenError } from "../../common/errors.js";
 import { ExerciseService } from "./exercise.service.js";
 import type { AuthRequest } from "../../common/middleware/auth.js";
 
@@ -31,10 +32,7 @@ export class ExerciseController {
         count: exercises.length,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : "Internal server error",
-      });
+      sendError(res, error);
     }
   }
 
@@ -48,23 +46,14 @@ export class ExerciseController {
         data: exercise,
       });
     } catch (error) {
-      const statusCode =
-        error instanceof Error && error.message === "Exercise not found"
-          ? 404
-          : 500;
-
-      res.status(statusCode).json({
-        success: false,
-        error: error instanceof Error ? error.message : "Internal server error",
-      });
+      sendError(res, error);
     }
   }
 
   async create(req: AuthRequest, res: Response) {
     try {
       if (req.body.isGlobal && !req.userIsAdmin) {
-        res.status(403).json({ success: false, error: "Brak uprawnień do tworzenia globalnych ćwiczeń" });
-        return;
+        throw new ForbiddenError("Brak uprawnień do tworzenia globalnych ćwiczeń");
       }
 
       const exercise = await this.service.createExercise({
@@ -77,10 +66,7 @@ export class ExerciseController {
         data: exercise,
       });
     } catch (error) {
-      res.status(400).json({
-        success: false,
-        error: error instanceof Error ? error.message : "Bad request",
-      });
+      sendError(res, error);
     }
   }
 
@@ -99,13 +85,7 @@ export class ExerciseController {
         data: exercise,
       });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "";
-      const statusCode = msg === "Exercise not found" ? 404 : msg.startsWith("Unauthorized") ? 403 : 400;
-
-      res.status(statusCode).json({
-        success: false,
-        error: msg || "Bad request",
-      });
+      sendError(res, error);
     }
   }
 
@@ -116,13 +96,7 @@ export class ExerciseController {
 
       res.status(204).send();
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "";
-      const statusCode = msg === "Exercise not found" ? 404 : msg.startsWith("Unauthorized") ? 403 : 500;
-
-      res.status(statusCode).json({
-        success: false,
-        error: msg || "Internal server error",
-      });
+      sendError(res, error);
     }
   }
 }
