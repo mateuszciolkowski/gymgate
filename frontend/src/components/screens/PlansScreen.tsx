@@ -261,6 +261,19 @@ export const PlansScreen = memo(function PlansScreen({ onCreatePlan, onEditPlan 
         </h1>
       </div>
 
+      {/* Star hint */}
+      {activeTab === "mine" && (
+        <div
+          className="flex items-center gap-2 rounded-[13px] px-4 py-3 mb-4"
+          style={{ background: "var(--gg-surface2)", border: "1px solid var(--gg-border)" }}
+        >
+          <span style={{ color: "var(--gg-a1)", fontSize: 16, flexShrink: 0 }}>★</span>
+          <p className="text-[13px]" style={{ color: "var(--gg-text-sub)" }}>
+            Zaznacz gwiazdkę przy planie, aby móc wybrać go podczas tworzenia treningu
+          </p>
+        </div>
+      )}
+
       {/* CTA */}
       <button
         onClick={onCreatePlan}

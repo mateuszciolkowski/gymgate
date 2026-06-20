@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useData } from "@/contexts/DataContext";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface WorkoutFormModalProps {
   onClose: () => void;
@@ -22,18 +21,9 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
   const planPickerRef = useRef<HTMLDivElement>(null);
 
   const { plans } = useData();
-  const { user } = useAuth();
-
-  const userId = user?.id ?? "";
   const visiblePlans = useMemo(
-    () =>
-      plans
-        .filter((p) => p.creatorUserId === userId || p.creatorUserId === null || p.isPublic)
-        .sort((a, b) => {
-          if (a.isFavorite === b.isFavorite) return 0;
-          return a.isFavorite ? -1 : 1;
-        }),
-    [plans, userId],
+    () => plans.filter((p) => p.isFavorite),
+    [plans],
   );
 
   const selectedPlanName = visiblePlans.find((p) => p.id === workoutPlanId)?.name;
