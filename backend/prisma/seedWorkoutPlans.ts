@@ -124,7 +124,7 @@ export async function seedWorkoutPlans() {
       ],
     },
     {
-      name: "FBW Kobieta v2 - Trening A",
+      name: "FBW Kobieta - Trening A - v2",
       exerciseNames: [
         "Przysiady bułgarskie",
         "Hip thrust ze sztangą",
@@ -136,7 +136,7 @@ export async function seedWorkoutPlans() {
       ],
     },
     {
-      name: "FBW Kobieta v2 - Trening B",
+      name: "FBW Kobieta - Trening B - v2",
       exerciseNames: [
         "Przysiad sumo",
         "Wypychanie nóg na suwnicy",
@@ -148,7 +148,7 @@ export async function seedWorkoutPlans() {
       ],
     },
     {
-      name: "FBW Kobieta v2 - Trening C",
+      name: "FBW Kobieta - Trening C - v2",
       exerciseNames: [
         "Martwy ciąg rumuński",
         "Step up",
@@ -159,7 +159,7 @@ export async function seedWorkoutPlans() {
       ],
     },
     {
-      name: "FBW Mężczyzna v2 - Trening A",
+      name: "FBW Mężczyzna - Trening A - v2",
       exerciseNames: [
         "Przysiady bułgarskie",
         "Hip thrust ze sztangą",
@@ -171,7 +171,7 @@ export async function seedWorkoutPlans() {
       ],
     },
     {
-      name: "FBW Mężczyzna v2 - Trening B",
+      name: "FBW Mężczyzna - Trening B - v2",
       exerciseNames: [
         "Martwy ciąg rumuński",
         "Wypychanie nóg na suwnicy",
@@ -184,7 +184,7 @@ export async function seedWorkoutPlans() {
       ],
     },
     {
-      name: "FBW Mężczyzna v2 - Trening C",
+      name: "FBW Mężczyzna - Trening C - v2",
       exerciseNames: [
         "Wyciskanie sztangi na ławce skośnej",
         "Ściąganie drążka wyciągu górnego",
