@@ -4,25 +4,27 @@ import { seedWorkoutPlans } from "./seedWorkoutPlans.js";
 async function main() {
   console.log("🌱 Seeding database...");
 
-  await prisma.user.deleteMany();
-  console.log("✓ Cleared users");
-
-  const testUser = await prisma.user.create({
-    data: {
-      id: "1",
-      email: "mateusz@gymgate.com",
-      firstName: "Mateusz",
-      lastName: "Ciołkowski",
-      phone: "+48123456789",
-      password: "test123",
-    },
-  });
-
-  console.log("✓ Created test user:", {
-    id: testUser.id,
-    email: testUser.email,
-    name: `${testUser.firstName} ${testUser.lastName}`,
-  });
+  // Never delete users — seed only adds missing data (safe for production)
+  const existingUser = await prisma.user.findUnique({ where: { id: "1" } });
+  if (!existingUser) {
+    const testUser = await prisma.user.create({
+      data: {
+        id: "1",
+        email: "mateusz@gymgate.com",
+        firstName: "Mateusz",
+        lastName: "Ciołkowski",
+        phone: "+48123456789",
+        password: "test123",
+      },
+    });
+    console.log("✓ Created test user:", {
+      id: testUser.id,
+      email: testUser.email,
+      name: `${testUser.firstName} ${testUser.lastName}`,
+    });
+  } else {
+    console.log("✓ Test user already exists, skipping");
+  }
 
   const exercises = await prisma.exercise.createMany({
     data: [
@@ -511,6 +513,18 @@ async function main() {
         creatorUserId: "1",
       },
 
+      {
+        name: "Kickback na wyciągu",
+        muscleGroups: ["GLUTES"],
+        description: "Izolacja pośladków — odrzut nogi w tył na wyciągu dolnym",
+        creatorUserId: null,
+      },
+      {
+        name: "Step up",
+        muscleGroups: ["QUADS", "GLUTES"],
+        description: "Wejście na podwyższenie — jednostronne ćwiczenie na nogi i pośladki",
+        creatorUserId: null,
+      },
       {
         name: "Farmer walk",
         muscleGroups: ["FULL_BODY", "FOREARMS", "TRAPS"],
