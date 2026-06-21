@@ -69,6 +69,7 @@ export class PlanRepository {
 
   async create(data: {
     name: string;
+    shortName?: string | undefined;
     creatorUserId: string;
     isPublic: boolean;
     exerciseIds: string[];
@@ -76,6 +77,7 @@ export class PlanRepository {
     const plan = await prisma.workoutPlan.create({
       data: {
         name: data.name,
+        shortName: data.shortName ?? null,
         creatorUserId: data.creatorUserId,
         isPublic: data.isPublic,
         items: {
@@ -94,6 +96,7 @@ export class PlanRepository {
     id: string,
     data: {
       name?: string | undefined;
+      shortName?: string | undefined;
       isPublic?: boolean | undefined;
       exerciseIds?: string[] | undefined;
     },
@@ -115,6 +118,7 @@ export class PlanRepository {
         where: { id },
         data: {
           ...(data.name !== undefined && { name: data.name }),
+          ...(data.shortName !== undefined && { shortName: data.shortName }),
           ...(data.isPublic !== undefined && { isPublic: data.isPublic }),
         },
         include: { ...itemsInclude, ...favoritedByInclude(userId) },

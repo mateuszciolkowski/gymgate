@@ -142,6 +142,7 @@ export const PlanFormScreen = memo(function PlanFormScreen({
   };
 
   const [name, setName] = useState(editingPlan?.name ?? "");
+  const [shortName, setShortName] = useState(editingPlan?.shortName ?? "");
   const [isPublic, setIsPublic] = useState(editingPlan?.isPublic ?? false);
   const [items, setItems] = useState<PlanExerciseItem[]>(buildInitialItems);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
@@ -204,6 +205,7 @@ export const PlanFormScreen = memo(function PlanFormScreen({
     try {
       const payload = {
         name: name.trim(),
+        shortName: shortName.trim() || undefined,
         exerciseIds: items.map((i) => i.exerciseId),
         isPublic,
       };
@@ -293,6 +295,41 @@ export const PlanFormScreen = memo(function PlanFormScreen({
             boxSizing: "border-box",
           }}
         />
+      </div>
+
+      {/* Short name field */}
+      <div className="mb-4">
+        <label
+          className="block text-[12px] font-bold uppercase tracking-[0.06em] mb-2"
+          style={{ color: "var(--gg-text-sub)" }}
+        >
+          Nazwa skrócona{" "}
+          <span style={{ color: "var(--gg-text-muted)", textTransform: "none", fontWeight: 400 }}>
+            (opcjonalnie)
+          </span>
+        </label>
+        <input
+          type="text"
+          value={shortName}
+          onChange={(e) => setShortName(e.target.value)}
+          placeholder="np. FBW Trening A"
+          maxLength={50}
+          style={{
+            width: "100%",
+            padding: "13px 14px",
+            borderRadius: 14,
+            fontSize: 14,
+            color: "var(--gg-text)",
+            background: "var(--gg-surface2)",
+            border: "1.5px solid var(--gg-border)",
+            outline: "none",
+            fontFamily: "'DM Sans', sans-serif",
+            boxSizing: "border-box",
+          }}
+        />
+        <p className="text-[11px] mt-1.5" style={{ color: "var(--gg-text-muted)" }}>
+          Wpisywana automatycznie jako nazwa treningu przy wyborze planu
+        </p>
       </div>
 
       {/* isPublic toggle */}

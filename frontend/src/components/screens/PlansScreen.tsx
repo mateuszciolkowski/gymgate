@@ -3,6 +3,7 @@ import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import type { WorkoutPlan } from "@/types";
 import { MUSCLE_GROUPS } from "@/constants/muscleGroups";
+import { fuzzyMatch } from "@/utils/fuzzyMatch";
 
 type PlanTab = "favorites" | "mine" | "builtin" | "community";
 type SortOption = "az" | "za" | "newest" | "oldest";
@@ -255,7 +256,7 @@ export const PlansScreen = memo(function PlansScreen({ onCreatePlan, onEditPlan 
   };
 
   const visiblePlans = tabPlans[activeTab]
-    .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
+    .filter((p) => fuzzyMatch(p.name, search))
     .sort(sortFn);
 
   return (
