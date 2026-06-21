@@ -205,7 +205,7 @@ export const PlanFormScreen = memo(function PlanFormScreen({
     try {
       const payload = {
         name: name.trim(),
-        shortName: shortName.trim() || undefined,
+        shortName: shortName.trim() || null,
         exerciseIds: items.map((i) => i.exerciseId),
         isPublic,
       };

@@ -69,7 +69,7 @@ export class PlanRepository {
 
   async create(data: {
     name: string;
-    shortName?: string | undefined;
+    shortName?: string | null | undefined;
     creatorUserId: string;
     isPublic: boolean;
     exerciseIds: string[];
@@ -96,7 +96,7 @@ export class PlanRepository {
     id: string,
     data: {
       name?: string | undefined;
-      shortName?: string | undefined;
+      shortName?: string | null | undefined;
       isPublic?: boolean | undefined;
       exerciseIds?: string[] | undefined;
     },

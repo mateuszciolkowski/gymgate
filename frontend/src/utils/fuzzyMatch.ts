@@ -23,7 +23,10 @@ function levenshtein(a: string, b: string): number {
 }
 
 function tokenTolerance(token: string): number {
-  return token.length <= 8 ? 2 : 3;
+  if (token.length <= 2) return 0;
+  if (token.length <= 4) return 1;
+  if (token.length <= 8) return 2;
+  return 3;
 }
 
 /** Check if queryToken fuzzy-matches any word in textWords */
@@ -48,7 +51,7 @@ function tokenMatches(queryToken: string, textWords: string[]): boolean {
  */
 export function fuzzyMatch(text: string, query: string): boolean {
   if (!query.trim()) return true;
-  const textWords = normalize(text).split(/\s+/);
+  const textWords = normalize(text).split(/\s+/).filter(Boolean);
   const queryTokens = normalize(query).split(/\s+/).filter(Boolean);
   return queryTokens.every((token) => tokenMatches(token, textWords));
 }

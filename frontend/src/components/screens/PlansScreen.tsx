@@ -249,8 +249,8 @@ export const PlansScreen = memo(function PlansScreen({ onCreatePlan, onEditPlan 
   ];
 
   const sortFn = (a: WorkoutPlan, b: WorkoutPlan) => {
-    if (sort === "az") return a.name.localeCompare(b.name);
-    if (sort === "za") return b.name.localeCompare(a.name);
+    if (sort === "az") return a.name.localeCompare(b.name, "pl");
+    if (sort === "za") return b.name.localeCompare(a.name, "pl");
     if (sort === "newest") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   };
