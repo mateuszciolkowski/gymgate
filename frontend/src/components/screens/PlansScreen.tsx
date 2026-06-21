@@ -3,8 +3,10 @@ import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import type { WorkoutPlan } from "@/types";
 import { MUSCLE_GROUPS } from "@/constants/muscleGroups";
+import { fuzzyMatch } from "@/utils/fuzzyMatch";
 
-type PlanTab = "mine" | "builtin" | "community";
+type PlanTab = "favorites" | "mine" | "builtin" | "community";
+type SortOption = "az" | "za" | "newest" | "oldest";
 
 interface PlansScreenProps {
   onCreatePlan: () => void;
@@ -225,23 +227,37 @@ const PlanCard = memo(function PlanCard({ plan, isOwner, onEdit, onDuplicate, on
 export const PlansScreen = memo(function PlansScreen({ onCreatePlan, onEditPlan }: PlansScreenProps) {
   const { plans, duplicatePlan, favoritePlan, unfavoritePlan } = useData();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<PlanTab>("mine");
+  const [activeTab, setActiveTab] = useState<PlanTab>("favorites");
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<SortOption>("az");
+  const [showFilters, setShowFilters] = useState(false);
 
   const userId = user?.id ?? "";
 
   const tabPlans: Record<PlanTab, WorkoutPlan[]> = {
+    favorites: plans.filter((p) => p.isFavorite),
     mine: plans.filter((p) => p.creatorUserId === userId),
     builtin: plans.filter((p) => p.creatorUserId === null),
     community: plans.filter((p) => p.creatorUserId !== null && p.creatorUserId !== userId && p.isPublic),
   };
 
   const tabs: { id: PlanTab; label: string }[] = [
+    { id: "favorites", label: "Ulubione" },
     { id: "mine", label: "Moje" },
     { id: "builtin", label: "Built-in" },
     { id: "community", label: "Społeczność" },
   ];
 
-  const visiblePlans = tabPlans[activeTab];
+  const sortFn = (a: WorkoutPlan, b: WorkoutPlan) => {
+    if (sort === "az") return a.name.localeCompare(b.name, "pl");
+    if (sort === "za") return b.name.localeCompare(a.name, "pl");
+    if (sort === "newest") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  };
+
+  const visiblePlans = tabPlans[activeTab]
+    .filter((p) => fuzzyMatch(p.name, search))
+    .sort(sortFn);
 
   return (
     <div className="px-5 pt-5 screen-enter">
@@ -311,13 +327,63 @@ export const PlansScreen = memo(function PlansScreen({ onCreatePlan, onEditPlan 
         ))}
       </div>
 
+      {/* Search & Sort */}
+      <div className="flex gap-2 mb-4">
+        <div className="flex-1 flex items-center gap-2 rounded-[12px] px-3" style={{ background: "var(--gg-surface2)", border: "1px solid var(--gg-border)", height: 38 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--gg-text-muted)", flexShrink: 0 }}>
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Szukaj planów…"
+            className="flex-1 bg-transparent border-none outline-none text-[13px]"
+            style={{ color: "var(--gg-text)" }}
+          />
+          {search && (
+            <button onClick={() => setSearch("")} className="border-none bg-transparent cursor-pointer p-0" style={{ color: "var(--gg-text-muted)", fontSize: 16, lineHeight: 1 }}>×</button>
+          )}
+        </div>
+        <button
+          onClick={() => setShowFilters((v) => !v)}
+          className="flex items-center justify-center rounded-[12px] border-none cursor-pointer gap-1 px-3 text-[12px] font-bold"
+          style={{ background: showFilters ? "var(--gg-a1)" : "var(--gg-surface2)", border: "1px solid var(--gg-border)", color: showFilters ? "white" : "var(--gg-text-sub)", height: 38, flexShrink: 0 }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+          </svg>
+          Sortuj
+        </button>
+      </div>
+
+      {showFilters && (
+        <div className="flex gap-2 mb-4 flex-wrap">
+          {([ ["az", "A–Z"], ["za", "Z–A"], ["newest", "Najnowsze"], ["oldest", "Najstarsze"] ] as [SortOption, string][]).map(([val, label]) => (
+            <button
+              key={val}
+              onClick={() => setSort(val)}
+              className="text-[12px] font-bold rounded-[9px] border-none cursor-pointer px-3 py-1.5"
+              style={{ background: sort === val ? "var(--gg-a1)" : "var(--gg-surface2)", color: sort === val ? "white" : "var(--gg-text-sub)", border: "1px solid var(--gg-border)" }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Plan list */}
       {visiblePlans.length === 0 ? (
         <div
           className="text-center py-12"
           style={{ color: "var(--gg-text-muted)" }}
         >
-          {activeTab === "mine" ? (
+          {activeTab === "favorites" ? (
+            <>
+              <p className="text-[15px] font-medium mb-1">Brak ulubionych</p>
+              <p className="text-[13px]">Kliknij ★ przy planie, aby dodać do ulubionych</p>
+            </>
+          ) : activeTab === "mine" ? (
             <>
               <p className="text-[15px] font-medium mb-1">Brak planów</p>
               <p className="text-[13px]">Stwórz swój pierwszy plan treningowy</p>

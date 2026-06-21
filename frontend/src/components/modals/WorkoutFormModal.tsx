@@ -28,6 +28,22 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
 
   const selectedPlanName = visiblePlans.find((p) => p.id === workoutPlanId)?.name;
 
+  // Auto-fill workoutName from plan.shortName when plan is selected,
+  // but only if the field is empty or contains the previous plan's shortName
+  const handlePlanSelect = (planId: string) => {
+    const prevPlan = visiblePlans.find((p) => p.id === workoutPlanId);
+    setWorkoutPlanId(planId);
+    if (planId) {
+      const plan = visiblePlans.find((p) => p.id === planId);
+      if (plan?.shortName) {
+        if (!workoutName.trim() || (prevPlan?.shortName && workoutName === prevPlan.shortName)) {
+          setWorkoutName(plan.shortName);
+        }
+      }
+    }
+    setPlanPickerOpen(false);
+  };
+
   useEffect(() => {
     if (!planPickerOpen) return;
     const handler = (e: MouseEvent) => {
@@ -257,7 +273,7 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
                     <button
                       key={plan.id}
                       type="button"
-                      onClick={() => { setWorkoutPlanId(plan.id); setPlanPickerOpen(false); }}
+                      onClick={() => handlePlanSelect(plan.id)}
                       style={{
                         width: "100%",
                         padding: "13px 14px",

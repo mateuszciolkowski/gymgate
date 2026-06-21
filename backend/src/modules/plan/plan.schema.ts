@@ -8,6 +8,7 @@ export const createPlanSchema = z.object({
       .string()
       .min(3, "Name must be at least 3 characters")
       .max(100, "Name must be at most 100 characters"),
+    shortName: z.string().max(50).nullable().optional(),
     exerciseIds: z
       .array(z.string().uuid())
       .min(1, "At least one exercise is required")
@@ -26,6 +27,7 @@ export const updatePlanSchema = z.object({
   }),
   body: z.object({
     name: z.string().min(3).max(100).optional(),
+    shortName: z.string().max(50).nullable().optional(),
     exerciseIds: z
       .array(z.string().uuid())
       .min(1)

@@ -105,8 +105,8 @@ interface DataContextType {
   completeWorkout: (id: string, durationSeconds?: number) => Promise<void>;
 
   // Akcje - Plans
-  createPlan: (data: { name: string; exerciseIds: string[]; isPublic: boolean }) => Promise<WorkoutPlan>;
-  updatePlan: (id: string, data: { name?: string; exerciseIds?: string[]; isPublic?: boolean }) => Promise<void>;
+  createPlan: (data: { name: string; shortName?: string | null; exerciseIds: string[]; isPublic: boolean }) => Promise<WorkoutPlan>;
+  updatePlan: (id: string, data: { name?: string; shortName?: string | null; exerciseIds?: string[]; isPublic?: boolean }) => Promise<void>;
   deletePlan: (id: string) => Promise<void>;
   duplicatePlan: (id: string) => Promise<WorkoutPlan>;
   favoritePlan: (id: string) => Promise<void>;
@@ -1850,7 +1850,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   );
 
   const createPlan = useCallback(
-    async (data: { name: string; exerciseIds: string[]; isPublic: boolean }): Promise<WorkoutPlan> => {
+    async (data: { name: string; shortName?: string | null; exerciseIds: string[]; isPublic: boolean }): Promise<WorkoutPlan> => {
       if (!navigator.onLine) throw new Error("Brak połączenia z serwerem — spróbuj ponownie gdy będziesz online.");
 
       const response = await authFetch(`${API_BASE}/api/plans`, {
@@ -1876,7 +1876,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   );
 
   const updatePlan = useCallback(
-    async (id: string, data: { name?: string; exerciseIds?: string[]; isPublic?: boolean }) => {
+    async (id: string, data: { name?: string; shortName?: string | null; exerciseIds?: string[]; isPublic?: boolean }) => {
       if (!navigator.onLine) throw new Error("Brak połączenia z serwerem — spróbuj ponownie gdy będziesz online.");
 
       const response = await authFetch(`${API_BASE}/api/plans/${id}`, {

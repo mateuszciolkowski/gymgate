@@ -4,6 +4,7 @@ import type { Exercise } from "@/hooks/useExercises";
 import type { ExerciseStats } from "@/types";
 import { MUSCLE_GROUPS } from "../../constants";
 import { useAuth } from "@/contexts/AuthContext";
+import { fuzzyMatch } from "@/utils/fuzzyMatch";
 
 interface ExerciseListProps {
   mode: "select" | "manage";
@@ -49,9 +50,8 @@ export function ExerciseList({
     }
 
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
       list = list.filter(
-        (ex) => ex.name.toLowerCase().includes(q) || ex.muscleGroups.some((mg) => mg.toLowerCase().includes(q)),
+        (ex) => fuzzyMatch(ex.name, searchQuery) || ex.muscleGroups.some((mg) => fuzzyMatch(mg, searchQuery)),
       );
     }
 
