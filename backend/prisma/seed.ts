@@ -167,6 +167,12 @@ async function main() {
         creatorUserId: "1",
       },
       {
+        name: "Wiosłowanie na maszynie",
+        muscleGroups: ["BACK", "MIDDLE_BACK", "LATS"],
+        description: "Wiosłowanie na maszynie — kontrolowany ruch, bezpieczne dla kręgosłupa",
+        creatorUserId: "1",
+      },
+      {
         name: "Ściąganie drążka wyciągu górnego",
         muscleGroups: ["BACK", "LATS", "BICEPS"],
         description: "Alternatywa dla podciągania",

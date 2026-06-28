@@ -64,9 +64,10 @@ export async function seedWorkoutPlans() {
     }
   }
 
-  const planDefinitions: { name: string; exerciseNames: string[] }[] = [
+  const planDefinitions: { name: string; shortName: string; exerciseNames: string[] }[] = [
     {
       name: "FBW Mężczyzna - Trening A - v1",
+      shortName: "FBW Trening A",
       exerciseNames: [
         "Podciąganie na drążku nachwytem",
         "Przysiady bułgarskie",
@@ -78,6 +79,7 @@ export async function seedWorkoutPlans() {
     },
     {
       name: "FBW Mężczyzna - Trening B - v1",
+      shortName: "FBW Trening B",
       exerciseNames: [
         "Wyciskanie sztangi nad głowę (OHP)",
         "Wiosłowanie focze hantlami na ławce skośnej",
@@ -90,6 +92,7 @@ export async function seedWorkoutPlans() {
     },
     {
       name: "FBW Mężczyzna - Trening C - v1",
+      shortName: "FBW Trening C",
       exerciseNames: [
         "Wyciskanie sztangi na ławce płaskiej",
         "Martwy ciąg klasyczny",
@@ -102,6 +105,7 @@ export async function seedWorkoutPlans() {
     },
     {
       name: "FBW Kobieta - Trening A - v1",
+      shortName: "FBW Trening A",
       exerciseNames: [
         "Przysiady bułgarskie",
         "Glute bridge",
@@ -114,6 +118,7 @@ export async function seedWorkoutPlans() {
     },
     {
       name: "FBW Kobieta - Trening B - v1",
+      shortName: "FBW Trening B",
       exerciseNames: [
         "Martwy ciąg rumuński",
         "Przysiad sumo",
@@ -125,6 +130,7 @@ export async function seedWorkoutPlans() {
     },
     {
       name: "FBW Kobieta - Trening A - v2",
+      shortName: "FBW Trening A",
       exerciseNames: [
         "Przysiady bułgarskie",
         "Hip thrust ze sztangą",
@@ -137,6 +143,7 @@ export async function seedWorkoutPlans() {
     },
     {
       name: "FBW Kobieta - Trening B - v2",
+      shortName: "FBW Trening B",
       exerciseNames: [
         "Przysiad sumo",
         "Wypychanie nóg na suwnicy",
@@ -144,11 +151,13 @@ export async function seedWorkoutPlans() {
         "Ściąganie drążka wyciągu górnego",
         "Wyciskanie hantli na ławce skośnej",
         "Francuskie wyciskanie hantli nad głowę",
+        "Prostowanie nóg na maszynie",
         "Wypychanie łydek na suwnicy",
       ],
     },
     {
       name: "FBW Kobieta - Trening C - v2",
+      shortName: "FBW Trening C",
       exerciseNames: [
         "Martwy ciąg rumuński",
         "Step up",
@@ -160,6 +169,7 @@ export async function seedWorkoutPlans() {
     },
     {
       name: "FBW Mężczyzna - Trening A - v2",
+      shortName: "FBW Trening A",
       exerciseNames: [
         "Przysiady bułgarskie",
         "Hip thrust ze sztangą",
@@ -172,10 +182,11 @@ export async function seedWorkoutPlans() {
     },
     {
       name: "FBW Mężczyzna - Trening B - v2",
+      shortName: "FBW Trening B",
       exerciseNames: [
         "Martwy ciąg rumuński",
         "Wypychanie nóg na suwnicy",
-        "Wiosłowanie T-bar",
+        "Wiosłowanie na maszynie",
         "Wyciskanie hantli nad głowę",
         "Uginanie hantli siedząc",
         "Rozpiętki na maszynie",
@@ -185,6 +196,7 @@ export async function seedWorkoutPlans() {
     },
     {
       name: "FBW Mężczyzna - Trening C - v2",
+      shortName: "FBW Trening C",
       exerciseNames: [
         "Wyciskanie sztangi na ławce skośnej",
         "Ściąganie drążka wyciągu górnego",
@@ -238,6 +250,10 @@ export async function seedWorkoutPlans() {
     if (existing) {
       // Keep existing plan ID, just replace its items
       await prisma.$transaction(async (tx) => {
+        await tx.workoutPlan.update({
+          where: { id: existing.id },
+          data: { shortName: plan.shortName },
+        });
         await tx.workoutPlanItem.deleteMany({ where: { planId: existing.id } });
         await tx.workoutPlanItem.createMany({
           data: plan.exerciseNames.map((name, index) => ({
@@ -252,6 +268,7 @@ export async function seedWorkoutPlans() {
       await prisma.workoutPlan.create({
         data: {
           name: plan.name,
+          shortName: plan.shortName,
           creatorUserId: null,
           isPublic: true,
           items: {
