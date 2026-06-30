@@ -1145,7 +1145,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
         if (result.data) {
           idMappingRef.current.set(tempItemId, result.data.id);
-          void localStore.addIdMappings({ [tempItemId]: result.data.id });
+          await localStore.addIdMappings({ [tempItemId]: result.data.id });
 
           let remappedWorkout: Workout | null = null;
           setWorkouts((prev) =>
@@ -1523,7 +1523,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const result = await response.json();
         if (result.data) {
           idMappingRef.current.set(tempSetId, result.data.id);
-          void localStore.addIdMappings({ [tempSetId]: result.data.id });
+          await localStore.addIdMappings({ [tempSetId]: result.data.id });
         }
         if (shouldRefreshStats) {
           await refreshStatsData();

@@ -34,6 +34,8 @@ vi.mock("./workout.repository.js", () => ({
   clearPendingExerciseNote: vi.fn(),
   findWorkoutWithPlan: vi.fn(),
   setSkippedPlanExerciseIds: vi.fn(),
+  findWorkoutStatus: vi.fn(),
+  clearActiveWorkoutIfMatches: vi.fn(),
 }));
 
 describe("workout.service", () => {
@@ -511,42 +513,42 @@ describe("workout.service", () => {
     vi.mocked(workoutRepo.getActiveWorkout).mockResolvedValue({
       activeWorkoutId: "w1",
     } as any);
-    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
-      id: "w1",
+    vi.mocked(workoutRepo.findWorkoutStatus).mockResolvedValue({
       status: "DRAFT",
     } as any);
 
     const result = await workoutService.getActiveWorkoutId("u1");
 
     expect(result).toBe("w1");
-    expect(workoutRepo.clearActiveWorkout).not.toHaveBeenCalled();
+    expect(workoutRepo.clearActiveWorkoutIfMatches).not.toHaveBeenCalled();
   });
 
-  it("getActiveWorkoutId: self-heals stale pointer to a COMPLETED workout", async () => {
+  it("getActiveWorkoutId: self-heals stale pointer to a COMPLETED workout (conditional clear)", async () => {
     vi.mocked(workoutRepo.getActiveWorkout).mockResolvedValue({
       activeWorkoutId: "w1",
     } as any);
-    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
-      id: "w1",
+    vi.mocked(workoutRepo.findWorkoutStatus).mockResolvedValue({
       status: "COMPLETED",
     } as any);
 
     const result = await workoutService.getActiveWorkoutId("u1");
 
     expect(result).toBeNull();
-    expect(workoutRepo.clearActiveWorkout).toHaveBeenCalledWith("u1");
+    // Conditional clear keyed on the stale id, so a concurrent createWorkout
+    // that activated a new workout is not clobbered.
+    expect(workoutRepo.clearActiveWorkoutIfMatches).toHaveBeenCalledWith("u1", "w1");
   });
 
   it("getActiveWorkoutId: self-heals pointer to a missing workout", async () => {
     vi.mocked(workoutRepo.getActiveWorkout).mockResolvedValue({
       activeWorkoutId: "w-gone",
     } as any);
-    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue(null as any);
+    vi.mocked(workoutRepo.findWorkoutStatus).mockResolvedValue(null as any);
 
     const result = await workoutService.getActiveWorkoutId("u1");
 
     expect(result).toBeNull();
-    expect(workoutRepo.clearActiveWorkout).toHaveBeenCalledWith("u1");
+    expect(workoutRepo.clearActiveWorkoutIfMatches).toHaveBeenCalledWith("u1", "w-gone");
   });
 
   it("getStatsOverview: returns aggregated stats from repository", async () => {

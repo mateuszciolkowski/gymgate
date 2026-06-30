@@ -60,7 +60,11 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
-    const dateObj = new Date(workoutDate);
+    // Parsuj YYYY-MM-DD w czasie LOKALNYM. `new Date("YYYY-MM-DD")` parsuje jako
+    // północ UTC, co po setHours/setMinutes (lokalne) potrafi przesunąć datę o
+    // dzień w strefach z ujemnym offsetem.
+    const [year, month, day] = workoutDate.split("-").map(Number);
+    const dateObj = new Date(year, month - 1, day);
     dateObj.setHours(new Date().getHours());
     dateObj.setMinutes(new Date().getMinutes());
     try {

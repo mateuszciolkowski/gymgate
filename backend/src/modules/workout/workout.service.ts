@@ -401,9 +401,11 @@ export const getActiveWorkoutId = async (userId: string) => {
   // Self-heal: jeśli wskaźnik aktywnego treningu pokazuje na trening, który już
   // nie istnieje albo jest COMPLETED, wyczyść go. Bez tego zakończony (lub
   // usunięty) trening wracałby jako "w trakcie" po ponownym wejściu do aplikacji.
-  const workout = await workoutRepo.findWorkoutById(activeId);
+  const workout = await workoutRepo.findWorkoutStatus(activeId);
   if (!workout || workout.status === "COMPLETED") {
-    await workoutRepo.clearActiveWorkout(userId);
+    // Czyszczenie warunkowe (tylko gdy wskaźnik nadal == activeId), by nie
+    // nadpisać treningu, który równoległy createWorkout właśnie aktywował.
+    await workoutRepo.clearActiveWorkoutIfMatches(userId, activeId);
     return null;
   }
 
