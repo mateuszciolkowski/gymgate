@@ -576,9 +576,23 @@ export const exercises = [
 
 export async function seedExercises() {
   console.log("🌱 Seeding exercises...");
+
+  // Exercise.name has no unique constraint, so createMany({ skipDuplicates })
+  // cannot de-dupe by name — it only avoids PK collisions, and every run gets
+  // a fresh UUID. Filter against existing names to keep the seed idempotent.
+  const existing = await prisma.exercise.findMany({ select: { name: true } });
+  const existingNames = new Set(existing.map((e) => e.name));
+  const toCreate = exercises.filter((e) => !existingNames.has(e.name));
+
+  if (toCreate.length === 0) {
+    console.log("✓ All exercises already exist, skipping");
+    return;
+  }
+
   const result = await prisma.exercise.createMany({
-    data: exercises.map((e) => ({ ...e, muscleGroups: [...e.muscleGroups] })),
-    skipDuplicates: true,
+    data: toCreate.map((e) => ({ ...e, muscleGroups: [...e.muscleGroups] })),
   });
-  console.log(`✓ Created ${result.count} exercises (skipped existing)`);
+  console.log(
+    `✓ Created ${result.count} exercises (skipped ${exercises.length - toCreate.length} existing)`,
+  );
 }
