@@ -29,6 +29,71 @@ export const createWorkout = (data: Prisma.WorkoutCreateInput) => {
   });
 };
 
+const workoutInclude = {
+  items: {
+    include: {
+      exercise: {
+        include: {
+          photos: true,
+        },
+      },
+      sets: {
+        orderBy: { setNumber: "asc" as const },
+      },
+    },
+    orderBy: { orderInWorkout: "asc" as const },
+  },
+} satisfies Prisma.WorkoutInclude;
+
+/**
+ * Tworzy trening w sposób odporny na wyścig (rapid double/triple-tap, równoległe
+ * żądania offline-sync). Blokuje wiersz użytkownika (SELECT ... FOR UPDATE), więc
+ * równoległe żądania tego samego usera są serializowane: pierwszy tworzy DRAFT i
+ * ustawia activeWorkoutId, kolejne widzą już aktywny trening i go zwracają zamiast
+ * tworzyć duplikat.
+ *
+ * @returns workout oraz flagę `reused` (true => zwrócono istniejący aktywny trening)
+ */
+export const createWorkoutWithActiveGuard = async (
+  userId: string,
+  data: Prisma.WorkoutCreateInput,
+): Promise<{ workout: WorkoutWithItems; reused: boolean }> => {
+  return prisma.$transaction(async (tx) => {
+    // Lock wiersza użytkownika — serializuje równoległe tworzenie treningu.
+    await tx.$queryRaw`SELECT id FROM "users" WHERE id = ${userId} FOR UPDATE`;
+
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: { activeWorkoutId: true },
+    });
+
+    if (user?.activeWorkoutId) {
+      const active = await tx.workout.findUnique({
+        where: { id: user.activeWorkoutId },
+        include: workoutInclude,
+      });
+      // Reużyj tylko jeśli aktywny trening nadal istnieje i jest w trakcie (DRAFT).
+      if (active && active.status === "DRAFT") {
+        return { workout: active, reused: true };
+      }
+    }
+
+    const workout = await tx.workout.create({
+      data,
+      include: workoutInclude,
+    });
+
+    await tx.user.update({
+      where: { id: userId },
+      data: { activeWorkoutId: workout.id },
+    });
+
+    return { workout, reused: false };
+  });
+};
+
+type WorkoutWithItems = Prisma.WorkoutGetPayload<{ include: typeof workoutInclude }>;
+
 export const findWorkoutById = (id: string) => {
   return prisma.workout.findUnique({
     where: { id },

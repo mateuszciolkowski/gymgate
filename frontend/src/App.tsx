@@ -309,8 +309,10 @@ function AuthenticatedApp({
       setIsWorkoutFormOpen(false);
       setSelectedWorkoutId(newWorkout.id);
       setScreen("workout-detail");
-    } catch {
+    } catch (error) {
       alert("Nie udało się utworzyć treningu");
+      // Rzuć dalej, by modal odblokował przycisk i pozwolił spróbować ponownie.
+      throw error;
     }
   };
 

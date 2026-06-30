@@ -6,6 +6,7 @@ vi.mock("./workout.repository.js", () => ({
   getActiveWorkout: vi.fn(),
   findWorkoutById: vi.fn(),
   createWorkout: vi.fn(),
+  createWorkoutWithActiveGuard: vi.fn(),
   setActiveWorkout: vi.fn(),
   findWorkoutsByUser: vi.fn(),
   updateWorkout: vi.fn(),
@@ -41,39 +42,42 @@ describe("workout.service", () => {
     vi.mocked(workoutRepo.getLastWorkoutNote).mockResolvedValue(null);
   });
 
-  it("createWorkout: returns active workout when one already exists", async () => {
-    vi.mocked(workoutRepo.getActiveWorkout).mockResolvedValue({
-      activeWorkoutId: "w1",
-    } as any);
-    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
-      id: "w1",
-      userId: "u1",
-    } as any);
+  it("createWorkout: reuses active workout returned by the race-safe guard", async () => {
+    vi.mocked(workoutRepo.createWorkoutWithActiveGuard).mockResolvedValue({
+      workout: { id: "w1", userId: "u1", status: "DRAFT" } as any,
+      reused: true,
+    });
 
     const result = await workoutService.createWorkout("u1", {});
 
-    expect(result).toEqual({ id: "w1", userId: "u1" });
+    expect(result).toEqual({ id: "w1", userId: "u1", status: "DRAFT" });
+    expect(workoutRepo.createWorkoutWithActiveGuard).toHaveBeenCalledTimes(1);
+    // Legacy non-atomic path must not be used anymore.
     expect(workoutRepo.createWorkout).not.toHaveBeenCalled();
     expect(workoutRepo.setActiveWorkout).not.toHaveBeenCalled();
   });
 
-  it("createWorkout: creates new workout and sets activeWorkoutId when none exists", async () => {
-    vi.mocked(workoutRepo.getActiveWorkout).mockResolvedValue({
-      activeWorkoutId: null,
-    } as any);
-    vi.mocked(workoutRepo.createWorkout).mockResolvedValue({
-      id: "w-new",
-      userId: "u1",
-    } as any);
+  it("createWorkout: creates a new workout via the race-safe guard when none is active", async () => {
+    vi.mocked(workoutRepo.createWorkoutWithActiveGuard).mockResolvedValue({
+      workout: { id: "w-new", userId: "u1", status: "DRAFT" } as any,
+      reused: false,
+    });
 
     const result = await workoutService.createWorkout("u1", {
       workoutName: "Push Day",
       gymName: "Gym A",
     });
 
-    expect(workoutRepo.createWorkout).toHaveBeenCalled();
-    expect(workoutRepo.setActiveWorkout).toHaveBeenCalledWith("u1", "w-new");
-    expect(result).toEqual({ id: "w-new", userId: "u1" });
+    expect(workoutRepo.createWorkoutWithActiveGuard).toHaveBeenCalledWith(
+      "u1",
+      expect.objectContaining({
+        workoutName: "Push Day",
+        gymName: "Gym A",
+        user: { connect: { id: "u1" } },
+      }),
+    );
+    expect(workoutRepo.createWorkout).not.toHaveBeenCalled();
+    expect(result).toEqual({ id: "w-new", userId: "u1", status: "DRAFT" });
   });
 
   it("getWorkoutById: throws when workout belongs to another user", async () => {
@@ -503,6 +507,48 @@ describe("workout.service", () => {
     });
   });
 
+  it("getActiveWorkoutId: returns id when active workout exists and is DRAFT", async () => {
+    vi.mocked(workoutRepo.getActiveWorkout).mockResolvedValue({
+      activeWorkoutId: "w1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      status: "DRAFT",
+    } as any);
+
+    const result = await workoutService.getActiveWorkoutId("u1");
+
+    expect(result).toBe("w1");
+    expect(workoutRepo.clearActiveWorkout).not.toHaveBeenCalled();
+  });
+
+  it("getActiveWorkoutId: self-heals stale pointer to a COMPLETED workout", async () => {
+    vi.mocked(workoutRepo.getActiveWorkout).mockResolvedValue({
+      activeWorkoutId: "w1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      status: "COMPLETED",
+    } as any);
+
+    const result = await workoutService.getActiveWorkoutId("u1");
+
+    expect(result).toBeNull();
+    expect(workoutRepo.clearActiveWorkout).toHaveBeenCalledWith("u1");
+  });
+
+  it("getActiveWorkoutId: self-heals pointer to a missing workout", async () => {
+    vi.mocked(workoutRepo.getActiveWorkout).mockResolvedValue({
+      activeWorkoutId: "w-gone",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue(null as any);
+
+    const result = await workoutService.getActiveWorkoutId("u1");
+
+    expect(result).toBeNull();
+    expect(workoutRepo.clearActiveWorkout).toHaveBeenCalledWith("u1");
+  });
+
   it("getStatsOverview: returns aggregated stats from repository", async () => {
     vi.mocked(workoutRepo.getStatsOverview).mockResolvedValue({
       workoutsLastMonth: 3,
@@ -557,6 +603,136 @@ describe("workout.service", () => {
         },
       ],
     });
+  });
+
+  it("getWorkoutById: throws not-found when workout is missing", async () => {
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue(null as any);
+
+    await expect(workoutService.getWorkoutById("missing", "u1")).rejects.toThrow(
+      /nie znaleziony/,
+    );
+  });
+
+  it("addExerciseToWorkout: rebuilds stats when adding to a COMPLETED workout", async () => {
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "COMPLETED",
+    } as any);
+    vi.mocked(workoutRepo.getMaxOrderInWorkout).mockResolvedValue(0);
+    vi.mocked(workoutRepo.addExerciseToWorkoutWithPendingNote).mockResolvedValue({
+      id: "item-1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+    } as any);
+    vi.mocked(workoutRepo.getExerciseProgression).mockResolvedValue([]);
+
+    await workoutService.addExerciseToWorkout("w1", "u1", { exerciseId: "e1" });
+
+    expect(workoutRepo.getExerciseProgression).toHaveBeenCalledWith("u1", "e1");
+    expect(workoutRepo.deleteExerciseStats).toHaveBeenCalledWith("u1", "e1");
+  });
+
+  it("deleteWorkoutItem: rejects when caller is not the owner", async () => {
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+      exerciseId: "e1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "other",
+      status: "DRAFT",
+    } as any);
+
+    await expect(
+      workoutService.deleteWorkoutItem("item-1", "u1"),
+    ).rejects.toThrow(/uprawnień/);
+    expect(workoutRepo.deleteWorkoutItem).not.toHaveBeenCalled();
+  });
+
+  it("deleteWorkoutItem: deletes and rebuilds stats for a COMPLETED workout", async () => {
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+      exerciseId: "e1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "COMPLETED",
+    } as any);
+    vi.mocked(workoutRepo.deleteWorkoutItem).mockResolvedValue({ id: "item-1" } as any);
+    vi.mocked(workoutRepo.getExerciseProgression).mockResolvedValue([]);
+
+    await workoutService.deleteWorkoutItem("item-1", "u1");
+
+    expect(workoutRepo.deleteWorkoutItem).toHaveBeenCalledWith("item-1");
+    expect(workoutRepo.deleteExerciseStats).toHaveBeenCalledWith("u1", "e1");
+  });
+
+  it("addSetToWorkoutItem: rejects when caller is not the owner", async () => {
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "other",
+    } as any);
+
+    await expect(
+      workoutService.addSetToWorkoutItem("item-1", "u1", { weight: 10, repetitions: 5 }),
+    ).rejects.toThrow(/uprawnień/);
+    expect(workoutRepo.addSetToWorkoutItem).not.toHaveBeenCalled();
+  });
+
+  it("deleteWorkoutSet: deletes the set and rebuilds stats for a COMPLETED workout", async () => {
+    vi.mocked(workoutRepo.findWorkoutSetById).mockResolvedValue({
+      id: "set-1",
+      itemId: "item-1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+      exerciseId: "e1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+      status: "COMPLETED",
+    } as any);
+    vi.mocked(workoutRepo.deleteWorkoutSet).mockResolvedValue({ id: "set-1" } as any);
+    vi.mocked(workoutRepo.getExerciseProgression).mockResolvedValue([]);
+
+    await workoutService.deleteWorkoutSet("set-1", "u1");
+
+    expect(workoutRepo.deleteWorkoutSet).toHaveBeenCalledWith("set-1");
+    expect(workoutRepo.deleteExerciseStats).toHaveBeenCalledWith("u1", "e1");
+  });
+
+  it("deleteWorkoutSet: throws when the set does not exist", async () => {
+    vi.mocked(workoutRepo.findWorkoutSetById).mockResolvedValue(null as any);
+
+    await expect(workoutService.deleteWorkoutSet("gone", "u1")).rejects.toThrow(
+      /Nie znaleziono serii/,
+    );
+  });
+
+  it("clearActiveWorkout: delegates to the repository", async () => {
+    await workoutService.clearActiveWorkout("u1");
+    expect(workoutRepo.clearActiveWorkout).toHaveBeenCalledWith("u1");
+  });
+
+  it("getAllUserStats / getExerciseStatsForUser: pass through to the repository", async () => {
+    vi.mocked(workoutRepo.getAllUserStats).mockResolvedValue([{ id: "s1" }] as any);
+    vi.mocked(workoutRepo.getExerciseStats).mockResolvedValue({ id: "s1" } as any);
+
+    expect(await workoutService.getAllUserStats("u1")).toEqual([{ id: "s1" }]);
+    expect(await workoutService.getExerciseStatsForUser("u1", "e1")).toEqual({ id: "s1" });
+    expect(workoutRepo.getExerciseStats).toHaveBeenCalledWith("u1", "e1");
   });
 
   describe("getNextFromPlan", () => {
