@@ -1,212 +1,155 @@
 import prisma from "../src/config/database.js";
-import { BUILT_IN_USER_ID } from "../src/config/constants.js";
+
+/**
+ * Single source of truth for built-in workout plans.
+ * Requires all referenced exercises to exist already (see seedExercises.ts).
+ */
+const planDefinitions: { name: string; shortName: string; exerciseNames: string[] }[] = [
+  {
+    name: "FBW Mężczyzna - Trening A - v1",
+    shortName: "FBW Trening A",
+    exerciseNames: [
+      "Podciąganie na drążku nachwytem",
+      "Przysiady bułgarskie",
+      "Glute bridge",
+      "Wyciskanie hantli na ławce skośnej",
+      "Uginanie na modlitewniku",
+      "Wyciskanie francuskie hantlem",
+    ],
+  },
+  {
+    name: "FBW Mężczyzna - Trening B - v1",
+    shortName: "FBW Trening B",
+    exerciseNames: [
+      "Wyciskanie sztangi nad głowę (OHP)",
+      "Wiosłowanie focze hantlami na ławce skośnej",
+      "Dipy na poręczach",
+      "Uginanie na ławce skośnej",
+      "Wspięcia na palce siedząc",
+      "Wznosy tułowia na ławce rzymskiej",
+      "Rozpiętki na maszynie",
+    ],
+  },
+  {
+    name: "FBW Mężczyzna - Trening C - v1",
+    shortName: "FBW Trening C",
+    exerciseNames: [
+      "Wyciskanie sztangi na ławce płaskiej",
+      "Martwy ciąg klasyczny",
+      "Wypychanie nóg na suwnicy",
+      "Prostowanie ramienia na wyciągu jednorącz",
+      "Uginanie sztangi łamanej",
+      "Uginanie hantli młotkowe",
+      "Odwodzenie linki wyciągu jednorącz na tył barku",
+    ],
+  },
+  {
+    name: "FBW Kobieta - Trening A - v1",
+    shortName: "FBW Trening A",
+    exerciseNames: [
+      "Przysiady bułgarskie",
+      "Glute bridge",
+      "Ściąganie drążka wyciągu górnego",
+      "Wznosy tułowia na ławce rzymskiej",
+      "Uginanie hantli młotkowe",
+      "Francuskie wyciskanie hantli nad głowę",
+      "Unoszenie hantli bokiem",
+    ],
+  },
+  {
+    name: "FBW Kobieta - Trening B - v1",
+    shortName: "FBW Trening B",
+    exerciseNames: [
+      "Martwy ciąg rumuński",
+      "Przysiad sumo",
+      "Wiosłowanie na wyciągu dolnym",
+      "Odwodzenie nogi na maszynie",
+      "Wspięcia na palce siedząc",
+      "Prostowanie ramion na wyciągu z liną",
+    ],
+  },
+  {
+    name: "FBW Kobieta - Trening A - v2",
+    shortName: "FBW Trening A",
+    exerciseNames: [
+      "Przysiady bułgarskie",
+      "Hip thrust ze sztangą",
+      "Podciągnie na maszynie",
+      "Wznosy tułowia na ławce rzymskiej",
+      "Prostowanie ramion na wyciągu z liną",
+      "Uginanie hantli młotkowe",
+      "Face pulls",
+    ],
+  },
+  {
+    name: "FBW Kobieta - Trening B - v2",
+    shortName: "FBW Trening B",
+    exerciseNames: [
+      "Przysiad sumo",
+      "Wypychanie nóg na suwnicy",
+      "Kickback na wyciągu",
+      "Ściąganie drążka wyciągu górnego",
+      "Wyciskanie hantli na ławce skośnej",
+      "Francuskie wyciskanie hantli nad głowę",
+      "Prostowanie nóg na maszynie",
+      "Wypychanie łydek na suwnicy",
+    ],
+  },
+  {
+    name: "FBW Kobieta - Trening C - v2",
+    shortName: "FBW Trening C",
+    exerciseNames: [
+      "Martwy ciąg rumuński",
+      "Step up",
+      "Wiosłowanie hantlem",
+      "Prostowanie nóg na maszynie",
+      "Wyciskanie hantli nad głowę",
+      "Uginanie na modlitewniku",
+    ],
+  },
+  {
+    name: "FBW Mężczyzna - Trening A - v2",
+    shortName: "FBW Trening A",
+    exerciseNames: [
+      "Przysiady bułgarskie",
+      "Hip thrust ze sztangą",
+      "Wyciskanie hantli na ławce skośnej",
+      "Podciąganie na drążku nachwytem",
+      "Bayesian curl",
+      "Face pulls",
+      "Wyprosty ramion z linkami wyciągu dolnego nad głową",
+    ],
+  },
+  {
+    name: "FBW Mężczyzna - Trening B - v2",
+    shortName: "FBW Trening B",
+    exerciseNames: [
+      "Martwy ciąg rumuński",
+      "Wypychanie nóg na suwnicy",
+      "Wiosłowanie na maszynie",
+      "Wyciskanie hantli nad głowę",
+      "Uginanie hantli siedząc",
+      "Rozpiętki na maszynie",
+      "Rozpiętki odwrotne na maszynie",
+      "Wypychanie łydek na suwnicy",
+    ],
+  },
+  {
+    name: "FBW Mężczyzna - Trening C - v2",
+    shortName: "FBW Trening C",
+    exerciseNames: [
+      "Wyciskanie sztangi na ławce skośnej",
+      "Ściąganie drążka wyciągu górnego",
+      "Unoszenie hantli bokiem",
+      "Prostowanie nóg na maszynie",
+      "Prostowanie ramienia na wyciągu jednorącz",
+      "Uginanie hantli młotkowe",
+    ],
+  },
+];
 
 export async function seedWorkoutPlans() {
   console.log("🌱 Seeding built-in workout plans...");
-
-  // Ensure global exercises exist
-  const globalExercises = [
-    {
-      name: "Prostowanie ramienia na wyciągu jednorącz",
-      muscleGroups: ["TRICEPS"],
-      description: "Jednostronne prostowanie ramienia na wyciągu górnym — izolacja tricepsa",
-    },
-    {
-      name: "Kickback na wyciągu",
-      muscleGroups: ["GLUTES"],
-      description: "Izolacja pośladków — odrzut nogi w tył na wyciągu dolnym",
-    },
-    {
-      name: "Step up",
-      muscleGroups: ["QUADS", "GLUTES"],
-      description: "Wejście na podwyższenie — jednostronne ćwiczenie na nogi i pośladki",
-    },
-  ];
-  for (const ex of globalExercises) {
-    const exists = await prisma.exercise.findFirst({ where: { name: ex.name, creatorUserId: null } });
-    if (!exists) {
-      await prisma.exercise.create({ data: { ...ex, creatorUserId: null } });
-      console.log("✓ Created global exercise:", ex.name);
-    }
-  }
-
-  // Add description to "Podciągnie na maszynie" if missing
-  await prisma.exercise.updateMany({
-    where: { name: "Podciągnie na maszynie", description: null },
-    data: { description: "Podciąganie wspomagane na maszynie — ułatwiona wersja podciągania na drążku" },
-  });
-
-  // Merge duplicate Glute Bridge: migrate workout_items from user copy to seed copy, then delete user copy
-  const seedGlute = await prisma.exercise.findFirst({ where: { name: "Glute bridge", creatorUserId: "1" } });
-  const userGlute = await prisma.exercise.findFirst({ where: { name: "Glute Bridge", creatorUserId: { not: "1" } } });
-  if (seedGlute && userGlute) {
-    await prisma.workoutItem.updateMany({
-      where: { exerciseId: userGlute.id },
-      data: { exerciseId: seedGlute.id },
-    });
-    await prisma.exercise.delete({ where: { id: userGlute.id } });
-    console.log("✓ Merged duplicate Glute Bridge");
-  }
-
-  // Rename existing v1 plans (add " - v1" suffix if not already present)
-  const v1PlanNames = [
-    "FBW Mężczyzna - Trening A",
-    "FBW Mężczyzna - Trening B",
-    "FBW Mężczyzna - Trening C",
-    "FBW Kobieta - Trening A",
-    "FBW Kobieta - Trening B",
-  ];
-  for (const name of v1PlanNames) {
-    const plan = await prisma.workoutPlan.findFirst({ where: { name, creatorUserId: null } });
-    if (plan) {
-      await prisma.workoutPlan.update({ where: { id: plan.id }, data: { name: `${name} - v1` } });
-      console.log(`✓ Renamed to v1: ${name}`);
-    }
-  }
-
-  const planDefinitions: { name: string; shortName: string; exerciseNames: string[] }[] = [
-    {
-      name: "FBW Mężczyzna - Trening A - v1",
-      shortName: "FBW Trening A",
-      exerciseNames: [
-        "Podciąganie na drążku nachwytem",
-        "Przysiady bułgarskie",
-        "Glute bridge",
-        "Wyciskanie hantli na ławce skośnej",
-        "Uginanie na modlitewniku",
-        "Wyciskanie francuskie hantlem",
-      ],
-    },
-    {
-      name: "FBW Mężczyzna - Trening B - v1",
-      shortName: "FBW Trening B",
-      exerciseNames: [
-        "Wyciskanie sztangi nad głowę (OHP)",
-        "Wiosłowanie focze hantlami na ławce skośnej",
-        "Dipy na poręczach",
-        "Uginanie na ławce skośnej",
-        "Wspięcia na palce siedząc",
-        "Wznosy tułowia na ławce rzymskiej",
-        "Rozpiętki na maszynie",
-      ],
-    },
-    {
-      name: "FBW Mężczyzna - Trening C - v1",
-      shortName: "FBW Trening C",
-      exerciseNames: [
-        "Wyciskanie sztangi na ławce płaskiej",
-        "Martwy ciąg klasyczny",
-        "Wypychanie nóg na suwnicy",
-        "Prostowanie ramienia na wyciągu jednorącz",
-        "Uginanie sztangi łamanej",
-        "Uginanie hantli młotkowe",
-        "Odwodzenie linki wyciągu jednorącz na tył barku",
-      ],
-    },
-    {
-      name: "FBW Kobieta - Trening A - v1",
-      shortName: "FBW Trening A",
-      exerciseNames: [
-        "Przysiady bułgarskie",
-        "Glute bridge",
-        "Ściąganie drążka wyciągu górnego",
-        "Wznosy tułowia na ławce rzymskiej",
-        "Uginanie hantli młotkowe",
-        "Francuskie wyciskanie hantli nad głowę",
-        "Unoszenie hantli bokiem",
-      ],
-    },
-    {
-      name: "FBW Kobieta - Trening B - v1",
-      shortName: "FBW Trening B",
-      exerciseNames: [
-        "Martwy ciąg rumuński",
-        "Przysiad sumo",
-        "Wiosłowanie na wyciągu dolnym",
-        "Odwodzenie nogi na maszynie",
-        "Wspięcia na palce siedząc",
-        "Prostowanie ramion na wyciągu z liną",
-      ],
-    },
-    {
-      name: "FBW Kobieta - Trening A - v2",
-      shortName: "FBW Trening A",
-      exerciseNames: [
-        "Przysiady bułgarskie",
-        "Hip thrust ze sztangą",
-        "Podciągnie na maszynie",
-        "Wznosy tułowia na ławce rzymskiej",
-        "Prostowanie ramion na wyciągu z liną",
-        "Uginanie hantli młotkowe",
-        "Face pulls",
-      ],
-    },
-    {
-      name: "FBW Kobieta - Trening B - v2",
-      shortName: "FBW Trening B",
-      exerciseNames: [
-        "Przysiad sumo",
-        "Wypychanie nóg na suwnicy",
-        "Kickback na wyciągu",
-        "Ściąganie drążka wyciągu górnego",
-        "Wyciskanie hantli na ławce skośnej",
-        "Francuskie wyciskanie hantli nad głowę",
-        "Prostowanie nóg na maszynie",
-        "Wypychanie łydek na suwnicy",
-      ],
-    },
-    {
-      name: "FBW Kobieta - Trening C - v2",
-      shortName: "FBW Trening C",
-      exerciseNames: [
-        "Martwy ciąg rumuński",
-        "Step up",
-        "Wiosłowanie hantlem",
-        "Prostowanie nóg na maszynie",
-        "Wyciskanie hantli nad głowę",
-        "Uginanie na modlitewniku",
-      ],
-    },
-    {
-      name: "FBW Mężczyzna - Trening A - v2",
-      shortName: "FBW Trening A",
-      exerciseNames: [
-        "Przysiady bułgarskie",
-        "Hip thrust ze sztangą",
-        "Wyciskanie hantli na ławce skośnej",
-        "Podciąganie na drążku nachwytem",
-        "Francuskie wyciskanie hantli nad głowę",
-        "Bayesian curl",
-        "Face pulls",
-      ],
-    },
-    {
-      name: "FBW Mężczyzna - Trening B - v2",
-      shortName: "FBW Trening B",
-      exerciseNames: [
-        "Martwy ciąg rumuński",
-        "Wypychanie nóg na suwnicy",
-        "Wiosłowanie na maszynie",
-        "Wyciskanie hantli nad głowę",
-        "Uginanie hantli siedząc",
-        "Rozpiętki na maszynie",
-        "Rozpiętki odwrotne na maszynie",
-        "Wypychanie łydek na suwnicy",
-      ],
-    },
-    {
-      name: "FBW Mężczyzna - Trening C - v2",
-      shortName: "FBW Trening C",
-      exerciseNames: [
-        "Wyciskanie sztangi na ławce skośnej",
-        "Ściąganie drążka wyciągu górnego",
-        "Unoszenie hantli bokiem",
-        "Prostowanie nóg na maszynie",
-        "Prostowanie ramienia na wyciągu jednorącz",
-        "Uginanie hantli młotkowe",
-      ],
-    },
-  ];
 
   const allNames = Array.from(
     new Set(planDefinitions.flatMap((p) => p.exerciseNames)),
