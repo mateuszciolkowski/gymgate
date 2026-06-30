@@ -20,16 +20,6 @@ import {
 type StatsProgressMetric = "maxSetWeight" | "volume";
 
 export const createWorkout = async (userId: string, data: CreateWorkoutDto) => {
-  const existingActive = await workoutRepo.getActiveWorkout(userId);
-  if (existingActive?.activeWorkoutId) {
-    const activeWorkout = await workoutRepo.findWorkoutById(
-      existingActive.activeWorkoutId
-    );
-    if (activeWorkout) {
-      return activeWorkout;
-    }
-  }
-
   if (data.workoutPlanId) {
     // Throws NotFoundError gdy plan nie istnieje lub nie jest widoczny dla usera.
     // Zapobiega podpinaniu treningu pod prywatny plan innego użytkownika.
@@ -47,9 +37,13 @@ export const createWorkout = async (userId: string, data: CreateWorkoutDto) => {
       plan: { connect: { id: data.workoutPlanId } },
     }),
   };
-  const workout = await workoutRepo.createWorkout(workoutData);
 
-  await workoutRepo.setActiveWorkout(userId, workout.id);
+  // Odporne na wyścig: lock wiersza usera serializuje równoległe żądania, więc
+  // potrójne tapnięcie / równoległy sync nie tworzy zduplikowanych treningów.
+  const { workout } = await workoutRepo.createWorkoutWithActiveGuard(
+    userId,
+    workoutData,
+  );
 
   return workout;
 };
@@ -401,7 +395,21 @@ const syncPendingNoteForExercise = async (
 
 export const getActiveWorkoutId = async (userId: string) => {
   const result = await workoutRepo.getActiveWorkout(userId);
-  return result?.activeWorkoutId || null;
+  const activeId = result?.activeWorkoutId;
+  if (!activeId) return null;
+
+  // Self-heal: jeśli wskaźnik aktywnego treningu pokazuje na trening, który już
+  // nie istnieje albo jest COMPLETED, wyczyść go. Bez tego zakończony (lub
+  // usunięty) trening wracałby jako "w trakcie" po ponownym wejściu do aplikacji.
+  const workout = await workoutRepo.findWorkoutStatus(activeId);
+  if (!workout || workout.status === "COMPLETED") {
+    // Czyszczenie warunkowe (tylko gdy wskaźnik nadal == activeId), by nie
+    // nadpisać treningu, który równoległy createWorkout właśnie aktywował.
+    await workoutRepo.clearActiveWorkoutIfMatches(userId, activeId);
+    return null;
+  }
+
+  return activeId;
 };
 
 export const clearActiveWorkout = async (userId: string) => {

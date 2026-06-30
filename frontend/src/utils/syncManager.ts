@@ -191,6 +191,14 @@ class SyncManager {
 
     if (operations.length === 0) return;
 
+    // Zasiej mapę trwałymi mapowaniami temp->real z poprzednich przebiegów/sesji.
+    // Bez tego operacja-dziecko (np. zapis serii) przetworzona w innym przebiegu
+    // niż jej rodzic nigdy nie rozwiąże temp-ID i przepadnie po cichu.
+    const persistedMappings = await localStore.getIdMappings();
+    for (const [tempId, realId] of Object.entries(persistedMappings)) {
+      tempIdMap.set(tempId, realId);
+    }
+
     console.log(
       `[SyncManager] Processing ${operations.length} pending operations`,
     );
@@ -239,10 +247,8 @@ class SyncManager {
           );
           await localStore.removePendingSync(op.id);
           console.log(`[SyncManager] Operation ${op.id} completed`);
-        } else if (
-          response.status === 404 &&
-          (op.entity === "workout" || op.entity === "workoutItem" || op.entity === "set")
-        ) {
+        } else if (response.status === 404 && op.entity === "workout") {
+          // Cały trening zniknął z serwera — usuń go lokalnie.
           await localStore.removePendingSync(op.id);
           permanentlyFailed.push({
             ...op,
@@ -255,7 +261,24 @@ class SyncManager {
           if (workoutId) {
             this.workoutNotFoundListeners.forEach((cb) => cb(workoutId));
           }
-          console.warn(`[SyncManager] Operation ${op.id} removed due to 404`);
+          console.warn(
+            `[SyncManager] Workout operation ${op.id} removed due to 404 (workout gone)`,
+          );
+        } else if (
+          response.status === 404 &&
+          (op.entity === "workoutItem" || op.entity === "set")
+        ) {
+          // Pojedynczy element (ćwiczenie w treningu / seria) nie istnieje na
+          // serwerze. NIE kasujemy całego treningu — porzucamy tylko tę operację.
+          // Pełny refetch (fetchFreshData) pogodzi stan po opróżnieniu kolejki.
+          await localStore.removePendingSync(op.id);
+          permanentlyFailed.push({
+            ...op,
+            failureReason: "not_found",
+          });
+          console.warn(
+            `[SyncManager] Item/set operation ${op.id} dropped due to 404 (workout preserved)`,
+          );
         } else if (op.retries < MAX_RETRIES) {
           // Zwiększ licznik prób
           await localStore.updatePendingSync({
@@ -299,9 +322,13 @@ class SyncManager {
   ): Promise<void> {
     if (!resolvedData || !isPlainObject(responseData)) return;
 
+    const newlyCaptured: Record<string, string> = {};
     const capture = (tempId: unknown, realId: unknown) => {
       if (typeof tempId === "string" && typeof realId === "string") {
         tempIdMap.set(tempId, realId);
+        if (tempId.startsWith("temp_")) {
+          newlyCaptured[tempId] = realId;
+        }
       }
     };
 
@@ -321,6 +348,11 @@ class SyncManager {
           ? (responseSets[0] as Record<string, unknown>).id
           : responseData.id;
       capture(resolvedData.clientTempSetId, realSetId);
+    }
+
+    // Utrwal mapowania, by przeżyły kolejne przebiegi sync i reload strony.
+    if (Object.keys(newlyCaptured).length > 0) {
+      await localStore.addIdMappings(newlyCaptured);
     }
   }
 

@@ -8,7 +8,7 @@ interface WorkoutFormModalProps {
     gymName?: string;
     workoutDate: string;
     workoutPlanId?: string;
-  }) => void;
+  }) => void | Promise<void>;
 }
 
 export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
@@ -18,6 +18,7 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
   const [workoutDate, setWorkoutDate] = useState(today);
   const [workoutPlanId, setWorkoutPlanId] = useState<string>("");
   const [planPickerOpen, setPlanPickerOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const planPickerRef = useRef<HTMLDivElement>(null);
 
   const { plans } = useData();
@@ -55,17 +56,28 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
     return () => document.removeEventListener("mousedown", handler);
   }, [planPickerOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const dateObj = new Date(workoutDate);
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    // Parsuj YYYY-MM-DD w czasie LOKALNYM. `new Date("YYYY-MM-DD")` parsuje jako
+    // północ UTC, co po setHours/setMinutes (lokalne) potrafi przesunąć datę o
+    // dzień w strefach z ujemnym offsetem.
+    const [year, month, day] = workoutDate.split("-").map(Number);
+    const dateObj = new Date(year, month - 1, day);
     dateObj.setHours(new Date().getHours());
     dateObj.setMinutes(new Date().getMinutes());
-    onSubmit({
-      workoutName: workoutName.trim() || undefined,
-      gymName: gymName.trim() || undefined,
-      workoutDate: dateObj.toISOString(),
-      workoutPlanId: workoutPlanId || undefined,
-    });
+    try {
+      await onSubmit({
+        workoutName: workoutName.trim() || undefined,
+        gymName: gymName.trim() || undefined,
+        workoutDate: dateObj.toISOString(),
+        workoutPlanId: workoutPlanId || undefined,
+      });
+    } catch {
+      // Tworzenie nieudane — odblokuj przycisk, by user mógł spróbować ponownie.
+      setIsSubmitting(false);
+    }
   };
 
   const formattedDate = new Date(workoutDate).toLocaleDateString("pl-PL", {
@@ -314,26 +326,32 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
             <button
               type="button"
               onClick={onClose}
+              disabled={isSubmitting}
               className="font-dm-sans font-bold text-[15px] rounded-[15px] cursor-pointer"
               style={{
                 padding: 15,
                 background: "var(--gg-surface2)",
                 border: "1.5px solid var(--gg-border)",
                 color: "var(--gg-text-sub)",
+                opacity: isSubmitting ? 0.5 : 1,
+                cursor: isSubmitting ? "not-allowed" : "pointer",
               }}
             >
               Anuluj
             </button>
             <button
               type="submit"
-              className="font-dm-sans font-bold text-[15px] rounded-[15px] cursor-pointer text-white border-none"
+              disabled={isSubmitting}
+              className="font-dm-sans font-bold text-[15px] rounded-[15px] text-white border-none"
               style={{
                 padding: 15,
                 background: "var(--gg-grad-btn)",
                 boxShadow: "0 4px 20px var(--gg-glow)",
+                opacity: isSubmitting ? 0.7 : 1,
+                cursor: isSubmitting ? "not-allowed" : "pointer",
               }}
             >
-              Rozpocznij →
+              {isSubmitting ? "Tworzenie…" : "Rozpocznij →"}
             </button>
           </div>
         </form>
