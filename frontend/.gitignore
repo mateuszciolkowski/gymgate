@@ -73,6 +73,7 @@ yarn-debug.log*
 *.sublime-project
 *.sublime-workspace
 
-# Keep service worker source in VCS for offline shell support
+# Keep PWA static assets (icons, favicon) in VCS — vite-plugin-pwa generates
+# manifest.webmanifest and sw.js into dist/ at build time, not into public/
 !/public/
-!/public/sw.js
+!/public/**
