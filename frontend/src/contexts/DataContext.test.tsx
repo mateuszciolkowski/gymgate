@@ -30,7 +30,7 @@ vi.mock("./AuthContext", () => ({
   }),
 }));
 
-import { DataProvider, useData } from "./DataContext";
+import { DataProvider, useData } from "./data";
 import { syncManager } from "../utils/syncManager";
 import { authFetch } from "../utils/auth";
 import { localStore } from "../utils/localStore";

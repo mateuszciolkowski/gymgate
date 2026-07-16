@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
+import { API_BASE } from "@/config/api";
 
 interface User {
   id: string;
@@ -27,7 +28,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const API_URL = `${API_BASE}/api`;
 const TOKEN_KEY = "gymgate_token";
 const USER_KEY = "gymgate_user";
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem(USER_KEY);
           }
         } catch (error) {
-          // Pozostaw token i odtwórz użytkownika z cache, aby umożliwić tryb offline
+          // Keep the token and restore the user from cache to enable offline mode
           if (cachedUser) {
             setToken(savedToken);
             setUser(cachedUser);

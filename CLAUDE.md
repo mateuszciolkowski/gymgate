@@ -20,18 +20,26 @@ backend/src/
 
 frontend/src/
   contexts/
-    AuthContext.tsx  – session & user object
-    DataContext.tsx  – single global data store (workouts, exercises, stats)
-  hooks/
-    useWorkout.ts    – hook for WorkoutDetailScreen
-    useWorkouts.ts   – hook for workout list
-    useExercises.ts  – hook for exercise list
-  components/screens/ – all app screens (SPA with custom state-based router)
+    AuthContext.tsx        – session & user object
+    data/                  – global data store split into domain hooks
+      DataContext.tsx          – provider
+      useDataStore.ts          – core state + initial load
+      useDataSync.ts           – sync wiring
+      useWorkoutActions.ts     – workout mutations
+      useWorkoutItemActions.ts – workout item/set mutations
+      useExerciseActions.ts    – exercise mutations
+      usePlanActions.ts        – plan mutations
+      hooks.ts                 – domain hook accessors
+  features/                – feature modules, each with components/ + barrel index.ts
+    auth/ workouts/ exercises/ plans/ stats/ menu/
+  components/              – shared UI only (app/, navigation/, layouts/, ui/, icons/)
+  hooks/                   – useTheme, useNavigation
   utils/
-    localStore.ts   – IndexedDB wrapper (offline persistence)
-    syncManager.ts  – periodic sync + offline operation queue
-    auth.ts         – authFetch + getAuthHeaders helpers
-  types/workout.ts  – all domain types
+    localStore.ts          – IndexedDB wrapper (offline persistence)
+    syncManager.ts         – periodic sync + offline operation queue
+    auth.ts                – authFetch + getAuthHeaders helpers
+  config/api.ts            – single API_BASE
+  types/workout.ts         – all domain types
 ```
 
 ## Backend architecture

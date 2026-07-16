@@ -98,6 +98,12 @@
 }
 ```
 
+**Errors:**
+| Code | Situation |
+|------|-----------|
+| 403  | exercise belongs to another user |
+| 404  | exercise not found |
+
 ---
 
 ## DELETE /api/exercises/:id
@@ -113,6 +119,12 @@
 ```
 204 No Content
 ```
+
+**Errors:**
+| Code | Situation |
+|------|-----------|
+| 403  | exercise belongs to another user |
+| 404  | exercise not found |
 
 ---
 

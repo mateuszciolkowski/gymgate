@@ -1,6 +1,6 @@
 /**
  * LocalStore - IndexedDB based offline-first storage
- * Umożliwia pracę offline i szybkie działanie aplikacji
+ * Enables offline work and fast application performance.
  */
 
 const DB_NAME = "gymgate_db";
@@ -50,32 +50,32 @@ const openDB = (): Promise<IDBDatabase> => {
     request.onupgradeneeded = (event) => {
       const database = (event.target as IDBOpenDBRequest).result;
 
-      // Store dla ćwiczeń
+      // Store for exercises
       if (!database.objectStoreNames.contains("exercises")) {
         database.createObjectStore("exercises", { keyPath: "id" });
       }
 
-      // Store dla treningów
+      // Store for workouts
       if (!database.objectStoreNames.contains("workouts")) {
         database.createObjectStore("workouts", { keyPath: "id" });
       }
 
-      // Store dla aktywnego treningu
+      // Store for the active workout
       if (!database.objectStoreNames.contains("activeWorkout")) {
         database.createObjectStore("activeWorkout", { keyPath: "key" });
       }
 
-      // Store dla statystyk
+      // Store for stats
       if (!database.objectStoreNames.contains("stats")) {
         database.createObjectStore("stats", { keyPath: "id" });
       }
 
-      // Store dla planów treningowych
+      // Store for workout plans
       if (!database.objectStoreNames.contains("plans")) {
         database.createObjectStore("plans", { keyPath: "id" });
       }
 
-      // Store dla operacji do synchronizacji
+      // Store for pending sync operations
       if (!database.objectStoreNames.contains("pendingSync")) {
         const store = database.createObjectStore("pendingSync", {
           keyPath: "id",
@@ -83,7 +83,7 @@ const openDB = (): Promise<IDBDatabase> => {
         store.createIndex("timestamp", "timestamp", { unique: false });
       }
 
-      // Store dla metadanych (ostatnia synchronizacja itd.)
+      // Store for metadata (last sync timestamp, etc.)
       if (!database.objectStoreNames.contains("metadata")) {
         database.createObjectStore("metadata", { keyPath: "key" });
       }

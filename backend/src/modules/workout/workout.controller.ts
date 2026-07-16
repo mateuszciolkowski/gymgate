@@ -1,12 +1,11 @@
-import type { Request, Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../../common/middleware/auth.js";
 import * as workoutService from "./workout.service.js";
 import { sendError } from "../../common/errors.js";
 
 export const createWorkout = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || req.body?.userId || "1";
-    const workout = await workoutService.createWorkout(userId, req.body);
+    const workout = await workoutService.createWorkout(req.userId!, req.body);
     res.status(201).json({ success: true, data: workout });
   } catch (error) {
     sendError(res, error);
@@ -15,191 +14,125 @@ export const createWorkout = async (req: AuthRequest, res: Response) => {
 
 export const getWorkoutById = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
-    const workout = await workoutService.getWorkoutById(req.params.id!, userId);
+    const workout = await workoutService.getWorkoutById(
+      req.params.id!,
+      req.userId!,
+    );
     res.json({ success: true, data: workout });
   } catch (error) {
-    const statusCode =
-      error instanceof Error && error.message.includes("nie znaleziony")
-        ? 404
-        : 403;
-    res.status(statusCode).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const getUserWorkouts = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
     const workouts = await workoutService.getUserWorkouts(
-      userId,
-      req.query as any
+      req.userId!,
+      req.query as any,
     );
     res.json({ success: true, data: workouts, count: workouts.length });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const updateWorkout = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
     const workout = await workoutService.updateWorkout(
       req.params.id!,
-      userId,
-      req.body
+      req.userId!,
+      req.body,
     );
     res.json({ success: true, data: workout });
   } catch (error) {
-    const statusCode =
-      error instanceof Error && error.message.includes("nie znaleziony")
-        ? 404
-        : 403;
-    res.status(statusCode).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const deleteWorkout = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
-    await workoutService.deleteWorkout(req.params.id!, userId);
+    await workoutService.deleteWorkout(req.params.id!, req.userId!);
     res.json({ success: true, message: "Trening usunięty" });
   } catch (error) {
-    const statusCode =
-      error instanceof Error && error.message.includes("nie znaleziony")
-        ? 404
-        : 403;
-    res.status(statusCode).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const addExerciseToWorkout = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
     const workoutItem = await workoutService.addExerciseToWorkout(
       req.params.workoutId!,
-      userId,
-      req.body
+      req.userId!,
+      req.body,
     );
     res.status(201).json({ success: true, data: workoutItem });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const updateWorkoutItem = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
     const updatedItem = await workoutService.updateWorkoutItem(
       req.params.itemId!,
-      userId,
-      req.body
+      req.userId!,
+      req.body,
     );
     res.json({ success: true, data: updatedItem });
   } catch (error) {
-    const statusCode =
-      error instanceof Error && error.message.includes("nie znaleziona")
-        ? 404
-        : 403;
-    res.status(statusCode).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const deleteWorkoutItem = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
-    await workoutService.deleteWorkoutItem(req.params.itemId!, userId);
+    await workoutService.deleteWorkoutItem(req.params.itemId!, req.userId!);
     res.json({ success: true, message: "Ćwiczenie usunięte z treningu" });
   } catch (error) {
-    const statusCode =
-      error instanceof Error && error.message.includes("nie znaleziona")
-        ? 404
-        : 403;
-    res.status(statusCode).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const addSetToWorkoutItem = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
     const newSet = await workoutService.addSetToWorkoutItem(
       req.params.itemId!,
-      userId,
-      req.body
+      req.userId!,
+      req.body,
     );
     res.status(201).json({ success: true, data: newSet });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const updateWorkoutSet = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
     const set = await workoutService.updateWorkoutSet(
       req.params.setId!,
-      userId,
-      req.body
+      req.userId!,
+      req.body,
     );
     res.json({ success: true, data: set });
   } catch (error) {
-    const statusCode =
-      error instanceof Error && error.message.includes("Nie znaleziono")
-        ? 404
-        : 403;
-    res.status(statusCode).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const deleteWorkoutSet = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
-    await workoutService.deleteWorkoutSet(req.params.setId!, userId);
+    await workoutService.deleteWorkoutSet(req.params.setId!, req.userId!);
     res.json({ success: true, message: "Seria usunięta" });
   } catch (error) {
-    const statusCode =
-      error instanceof Error && error.message.includes("Nie znaleziono")
-        ? 404
-        : 403;
-    res.status(statusCode).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const getExerciseStats = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
     const stats = await workoutService.getExerciseStatsForUser(
-      userId,
-      req.params.exerciseId!
+      req.userId!,
+      req.params.exerciseId!,
     );
     if (!stats) {
       return res.json({
@@ -210,36 +143,25 @@ export const getExerciseStats = async (req: AuthRequest, res: Response) => {
     }
     res.json({ success: true, data: stats });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const getAllUserStats = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
-    const stats = await workoutService.getAllUserStats(userId);
+    const stats = await workoutService.getAllUserStats(req.userId!);
     res.json({ success: true, data: stats, count: stats.length });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const getStatsOverview = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
-    const overview = await workoutService.getStatsOverview(userId);
+    const overview = await workoutService.getStatsOverview(req.userId!);
     res.json({ success: true, data: overview });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
@@ -248,9 +170,8 @@ export const getExerciseProgression = async (
   res: Response,
 ) => {
   try {
-    const userId = req.userId || "1";
     const progression = await workoutService.getExerciseProgression(
-      userId,
+      req.userId!,
       req.params.exerciseId!,
       req.query as {
         metric?: "maxSetWeight" | "volume";
@@ -260,36 +181,27 @@ export const getExerciseProgression = async (
     );
     res.json({ success: true, data: progression });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const getActiveWorkout = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
-    const activeWorkoutId = await workoutService.getActiveWorkoutId(userId);
+    const activeWorkoutId = await workoutService.getActiveWorkoutId(
+      req.userId!,
+    );
     res.json({ success: true, data: { activeWorkoutId } });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 
 export const clearActiveWorkout = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.userId || "1";
-    await workoutService.clearActiveWorkout(userId);
+    await workoutService.clearActiveWorkout(req.userId!);
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    sendError(res, error);
   }
 };
 

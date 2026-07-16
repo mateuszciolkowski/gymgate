@@ -22,7 +22,7 @@ const prisma =
     datasourceUrl: getDatabaseUrl(),
   });
 
-// Singleton w KAŻDYM środowisku (nie tylko dev)
+// Singleton in EVERY environment (not just dev)
 globalForPrisma.prisma = prisma;
 
 console.log("✅ Prisma Client initialized with connection limit");

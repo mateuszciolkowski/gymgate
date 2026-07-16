@@ -1,3 +1,4 @@
+import { NotFoundError, ForbiddenError } from "../../common/errors.js";
 import { ExerciseRepository } from "./exercise.repository.js";
 import type {
   CreateExerciseDto,
@@ -20,7 +21,7 @@ export class ExerciseService {
     const exercise = await this.repository.findById(id);
 
     if (!exercise) {
-      throw new Error("Exercise not found");
+      throw new NotFoundError("Exercise not found");
     }
 
     return exercise;
@@ -36,7 +37,7 @@ export class ExerciseService {
 
     if (!isAdmin || !isGlobal) {
       if (exercise.creatorUserId !== userId) {
-        throw new Error("Unauthorized: You can only edit your own exercises");
+        throw new ForbiddenError("Unauthorized: You can only edit your own exercises");
       }
     }
 
@@ -49,7 +50,7 @@ export class ExerciseService {
 
     if (!isAdmin || !isGlobal) {
       if (exercise.creatorUserId !== userId) {
-        throw new Error("Unauthorized: You can only delete your own exercises");
+        throw new ForbiddenError("Unauthorized: You can only delete your own exercises");
       }
     }
 

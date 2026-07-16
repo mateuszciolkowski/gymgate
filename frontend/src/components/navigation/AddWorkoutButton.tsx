@@ -22,7 +22,7 @@ export const AddWorkoutButton = memo(function AddWorkoutButton({
   const activeClasses =
     "border-emerald-500 bg-emerald-500 text-white shadow-emerald-500/40";
 
-  // Gdy jest aktywny trening ale nie jesteśmy w jego widoku - pomarańczowy pulsujący
+  // When there is an active workout but we are not on its screen - orange pulsing
   const hasActiveButNotViewingClasses =
     "border-orange-500 bg-orange-500 text-white shadow-orange-500/40 animate-pulse";
 

@@ -64,6 +64,7 @@ docs/
 | **Temp IDs**          | Offline entities have prefix `temp_*`; SyncManager replaces them with real UUIDs after sync                   |
 | **API docs**          | After changing a contract, update `backend/src/modules/<module>/API.md` **and** `docs/api/openapi.yaml`       |
 | **Response format**   | Success: `{ success: true, data: ... }` / Error: `{ success: false, error: "..." }`                          |
+| **Language**          | Code comments and identifiers are **English**; user-facing strings (UI text, `alert()`, user-facing errors) stay **Polish** (the app's UI language) |
 | **Execution plans**   | Naming and location convention: [`PLANS.md`](./PLANS.md)                                                      |
 
 ---

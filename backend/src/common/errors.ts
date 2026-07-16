@@ -34,6 +34,12 @@ export class BadRequestError extends AppError {
   }
 }
 
+export class UnauthorizedError extends AppError {
+  constructor(message = "Unauthorized") {
+    super(message, 401);
+  }
+}
+
 export const sendError = (res: Response, error: unknown) => {
   if (error instanceof AppError) {
     return res

@@ -97,7 +97,7 @@ When offline, entities are created with IDs in the format `temp_<entity>_<random
 
 ## Sync Failure Handling (UI)
 
-The `SyncFailureBanner` component (`App.tsx`) is displayed when `failedSyncOperations.length > 0`. Available actions:
+The `SyncFailureBanner` component (`components/app/SyncFailureBanner.tsx`) is displayed when `failedSyncOperations.length > 0`. Available actions:
 
 - **Retry** – calls `syncNow()`
 - **Dismiss** – calls `dismissSyncFailures()` (only hides UI, does not remove operations)

@@ -9,11 +9,14 @@
   - **Content:**
     ```json
     {
-      "id": "string",
-      "email": "string",
-      "firstName": "string",
-      "lastName": "string",
-      "phone": "string"
+      "success": true,
+      "data": {
+        "id": "string",
+        "email": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "phone": "string"
+      }
     }
     ```
 - **Error Response:**
@@ -21,6 +24,7 @@
   - **Content:**
     ```json
     {
-      "message": "User not found"
+      "success": false,
+      "error": "User not found"
     }
     ```
