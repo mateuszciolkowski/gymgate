@@ -284,5 +284,88 @@ describe("DataContext.addSet 404 handling (data-loss fix)", () => {
     const w = result.current.workouts.find((x) => x.id === "w1");
     expect(w?.items[0].sets.length).toBe(1);
   });
+
+  it("addSet sends clientId matching the optimistic temp set id (backend idempotency)", async () => {
+    installFetch(() => Promise.resolve(makeRes(201, { data: { id: "s-real" } })));
+
+    const { result } = await renderData();
+    await waitFor(() => expect(result.current.workouts.length).toBe(1));
+
+    await act(async () => {
+      await result.current.addSet("w1", "i1", { weight: 50, repetitions: 8, setNumber: 1 });
+    });
+
+    const setPostCall = mockedFetch.mock.calls.find(
+      ([url, opts]) =>
+        String(url).includes("/items/i1/sets") &&
+        (opts as RequestInit | undefined)?.method === "POST",
+    );
+    const sentBody = JSON.parse((setPostCall?.[1] as RequestInit).body as string);
+    expect(sentBody.clientId).toMatch(/^temp_set_/);
+  });
+});
+
+describe("DataContext.addExerciseToWorkout", () => {
+  const exercise = {
+    id: "e1",
+    name: "Squat",
+    muscleGroups: [],
+    description: undefined,
+    photos: [],
+    creator: { id: "u1", firstName: "T", lastName: "U", email: "t@e.com" },
+  };
+  const workout = {
+    id: "w1",
+    userId: "u1",
+    status: "DRAFT",
+    workoutDate: new Date().toISOString(),
+    workoutName: "W",
+    gymName: null,
+    location: null,
+    workoutNotes: null,
+    workoutPlanId: null,
+    skippedPlanExerciseIds: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    items: [],
+  };
+
+  it("sends clientId matching the optimistic temp item id (backend idempotency)", async () => {
+    mockedFetch.mockImplementation((url: unknown, opts: unknown) => {
+      const u = String(url);
+      const method = (opts as RequestInit | undefined)?.method ?? "GET";
+      if (method === "POST" && u.endsWith("/api/workouts/w1/exercises")) {
+        return Promise.resolve(makeRes(201, { data: { id: "item-real", sets: [] } }));
+      }
+      if (u.endsWith("/api/workouts/active")) {
+        return Promise.resolve(makeRes(200, { data: { activeWorkoutId: "w1" } }));
+      }
+      if (u.endsWith("/api/workouts/w1")) {
+        return Promise.resolve(makeRes(200, { data: workout }));
+      }
+      if (u.endsWith("/api/workouts")) {
+        return Promise.resolve(makeRes(200, { data: [workout] }));
+      }
+      if (u.includes("/api/exercises")) {
+        return Promise.resolve(makeRes(200, { data: [exercise] }));
+      }
+      return Promise.resolve(makeRes(200, { data: [] }));
+    });
+
+    const { result } = await renderData();
+    await waitFor(() => expect(result.current.workouts.length).toBe(1));
+
+    await act(async () => {
+      await result.current.addExerciseToWorkout("w1", "e1");
+    });
+
+    const postCall = mockedFetch.mock.calls.find(
+      ([url, opts]) =>
+        String(url).endsWith("/api/workouts/w1/exercises") &&
+        (opts as RequestInit | undefined)?.method === "POST",
+    );
+    const sentBody = JSON.parse((postCall?.[1] as RequestInit).body as string);
+    expect(sentBody).toEqual({ exerciseId: "e1", clientId: expect.stringMatching(/^temp_item_/) });
+  });
 });
 

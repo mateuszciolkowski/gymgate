@@ -113,6 +113,9 @@ model Workout {
   durationSeconds        Int?
   workoutPlanId          String?
   skippedPlanExerciseIds String[]       @default([])
+  // ID wygenerowany po stronie klienta (offline-sync), używany do deduplikacji
+  // przy retry po timeout/utracie odpowiedzi. Nullable — nie backfillowany.
+  clientId               String?
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
 
@@ -121,6 +124,7 @@ model Workout {
   activeForUser User?         @relation("ActiveWorkout")
   plan          WorkoutPlan?  @relation(fields: [workoutPlanId], references: [id], onDelete: SetNull)
 
+  @@unique([userId, clientId])
   @@index([workoutPlanId])
   @@map("workouts")
 }
@@ -163,6 +167,9 @@ model WorkoutItem {
   orderInWorkout Int
   notes          String?
   previousNote   String?
+  // ID wygenerowany po stronie klienta (offline-sync), używany do deduplikacji
+  // przy retry po timeout/utracie odpowiedzi. Nullable — nie backfillowany.
+  clientId       String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
@@ -170,6 +177,7 @@ model WorkoutItem {
   exercise Exercise     @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
   sets     WorkoutSet[]
 
+  @@unique([workoutId, clientId])
   @@map("workout_items")
 }
 
@@ -194,11 +202,15 @@ model WorkoutSet {
   setNumber   Int
   weight      Decimal  @db.Decimal(6, 2)
   repetitions Int
+  // ID wygenerowany po stronie klienta (offline-sync), używany do deduplikacji
+  // przy retry po timeout/utracie odpowiedzi. Nullable — nie backfillowany.
+  clientId    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   item WorkoutItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
+  @@unique([itemId, clientId])
   @@map("workout_sets")
 }
 

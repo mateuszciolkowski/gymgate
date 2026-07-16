@@ -89,7 +89,7 @@ describe("syncManager", () => {
     mockedFetch.mockResolvedValue(makeRes(200, { data: null }));
   });
 
-  it("resolves temp ids in endpoint and data, strips internal fields, captures + persists mapping, removes op", async () => {
+  it("resolves temp ids in endpoint and data, maps internal field to clientId, captures + persists mapping, removes op", async () => {
     mockedStore.getIdMappings.mockResolvedValue({ temp_item_1: "item-real" });
     mockedStore.getPendingSyncOperations.mockResolvedValue([
       baseOp({
@@ -108,15 +108,20 @@ describe("syncManager", () => {
 
     // temp_item_1 resolved in the endpoint
     expect(sentUrl()).toContain("/api/workouts/items/item-real/sets");
-    // internal client field stripped before hitting the API
-    expect(sentBody()).toEqual({ weight: 50, repetitions: 8, setNumber: 1 });
+    // internal client field mapped to clientId (for backend dedupe) before hitting the API
+    expect(sentBody()).toEqual({
+      weight: 50,
+      repetitions: 8,
+      setNumber: 1,
+      clientId: "temp_set_9",
+    });
     // captured set mapping persisted
     expect(mockedStore.addIdMappings).toHaveBeenCalledWith({ temp_set_9: "set-real" });
     // op removed after success
     expect(mockedStore.removePendingSync).toHaveBeenCalledWith("op-1");
   });
 
-  it("captures workout create mapping (clientTempId -> response.id)", async () => {
+  it("captures workout create mapping (clientTempId -> response.id) and forwards it as clientId", async () => {
     mockedStore.getPendingSyncOperations.mockResolvedValue([
       baseOp({
         entity: "workout",
@@ -128,8 +133,23 @@ describe("syncManager", () => {
 
     await syncManager.syncNow();
 
-    expect(sentBody()).toEqual({ workoutName: "Push" });
+    expect(sentBody()).toEqual({ workoutName: "Push", clientId: "temp_workout_1" });
     expect(mockedStore.addIdMappings).toHaveBeenCalledWith({ temp_workout_1: "w-real" });
+  });
+
+  it("maps clientTempItemId to clientId for addExerciseToWorkout retries", async () => {
+    mockedStore.getPendingSyncOperations.mockResolvedValue([
+      baseOp({
+        entity: "workoutItem",
+        endpoint: "/api/workouts/w1/exercises",
+        data: { exerciseId: "e1", clientTempItemId: "temp_item_5" },
+      }),
+    ]);
+    mockedFetch.mockResolvedValueOnce(makeRes(201, { data: { id: "item-real" } }));
+
+    await syncManager.syncNow();
+
+    expect(sentBody()).toEqual({ exerciseId: "e1", clientId: "temp_item_5" });
   });
 
   it("captures set id from addExercise response shape (sets[0].id)", async () => {

@@ -63,17 +63,57 @@ const hasUnresolvedTempIds = (value: unknown): boolean => {
   return false;
 };
 
-const INTERNAL_SYNC_FIELDS = new Set([
-  "clientTempId",
-  "clientTempItemId",
-  "clientTempSetId",
-]);
+// Kolejność ma znaczenie tylko dla czytelności — dla każdej operacji "create" co
+// najwyżej jedno z tych pól jest obecne w danych (odpowiada temu, co tworzy dana
+// operacja: trening / ćwiczenie / seria). Wszystkie mapują się na to samo pole
+// `clientId` po stronie backendu, który dedupikuje po (scope, clientId) — dzięki
+// temu retry po timeout/utracie odpowiedzi nie tworzy duplikatu.
+const INTERNAL_SYNC_FIELDS = ["clientTempId", "clientTempItemId", "clientTempSetId"] as const;
 
-const stripInternalSyncFields = (
+/**
+ * Zamienia wewnętrzne pola śledzenia temp-ID (clientTempId / clientTempItemId /
+ * clientTempSetId) na pojedyncze pole `clientId` wysyłane do backendu. Backend
+ * używa go do deduplikacji operacji create — bez tego retry (np. po timeout, gdy
+ * odpowiedź serwera zginęła) tworzyłby duplikat treningu/ćwiczenia/serii.
+ * Dla operacji innych niż create (update/delete) pola te i tak nie występują
+ * w danych, więc payload wraca bez zmian.
+ */
+const mapInternalSyncFieldsToClientId = (
+  payload: Record<string, unknown>,
+): Record<string, unknown> => {
+  const result: Record<string, unknown> = {};
+  let clientId: unknown;
+
+  for (const [key, value] of Object.entries(payload)) {
+    if ((INTERNAL_SYNC_FIELDS as readonly string[]).includes(key)) {
+      clientId = value;
+      continue;
+    }
+    result[key] = value;
+  }
+
+  if (typeof clientId === "string") {
+    result.clientId = clientId;
+  }
+
+  return result;
+};
+
+/**
+ * Usuwa wewnętrzne pola śledzenia temp-ID bez zamiany na `clientId`. Używane
+ * WYŁĄCZNIE do sprawdzenia hasUnresolvedTempIds: wartość clientTempItemId /
+ * clientTempSetId / clientTempId to zawsze temp-ID *tworzonego właśnie* rekordu
+ * (nie referencja do cudzego rodzica), więc pasuje do TEMP_ID_PATTERN i fałszywie
+ * wyglądałoby na nierozwiązane odwołanie, gdyby zostało w payloadzie pod tym
+ * sprawdzeniem — także po przemapowaniu na `clientId` (ta sama wartość string).
+ */
+const omitInternalSyncFields = (
   payload: Record<string, unknown>,
 ): Record<string, unknown> =>
   Object.fromEntries(
-    Object.entries(payload).filter(([key]) => !INTERNAL_SYNC_FIELDS.has(key)),
+    Object.entries(payload).filter(
+      ([key]) => !(INTERNAL_SYNC_FIELDS as readonly string[]).includes(key),
+    ),
   );
 
 class SyncManager {
@@ -210,16 +250,24 @@ class SyncManager {
       try {
         const resolvedEndpoint = replaceTempIdsInString(op.endpoint, tempIdMap);
         const resolvedData = replaceTempIdsDeep(op.data, tempIdMap);
-        const apiData = isPlainObject(resolvedData)
-          ? stripInternalSyncFields(resolvedData)
+
+        // Sprawdzenie nierozwiązanych temp-ID musi pominąć wewnętrzne pola —
+        // ich wartość to zawsze temp-ID tworzonego właśnie rekordu (pasuje do
+        // wzorca temp_*), nie odwołanie do rodzica czekające na rozwiązanie.
+        const dataForUnresolvedCheck = isPlainObject(resolvedData)
+          ? omitInternalSyncFields(resolvedData)
           : resolvedData;
 
         if (
           hasUnresolvedTempIds(resolvedEndpoint) ||
-          hasUnresolvedTempIds(apiData)
+          hasUnresolvedTempIds(dataForUnresolvedCheck)
         ) {
           continue;
         }
+
+        const apiData = isPlainObject(resolvedData)
+          ? mapInternalSyncFieldsToClientId(resolvedData)
+          : resolvedData;
 
         const fetchOptions: RequestInit = {
           method: op.method,
