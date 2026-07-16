@@ -221,6 +221,21 @@ export const localStore = {
     } as unknown as { id: string });
   },
 
+  // Trwałe mapowanie tymczasowych ID (temp_*) na prawdziwe ID z serwera.
+  // Musi przeżyć przeładowanie strony i kolejne przebiegi synchronizacji,
+  // inaczej operacje-dzieci (np. zapis serii) odwołujące się do temp-ID
+  // rodzica nigdy się nie rozwiążą i dane przepadają po cichu.
+  async getIdMappings(): Promise<Record<string, string>> {
+    return (await this.getMetadata<Record<string, string>>("idMappings")) ?? {};
+  },
+
+  async addIdMappings(entries: Record<string, string>): Promise<void> {
+    const keys = Object.keys(entries);
+    if (keys.length === 0) return;
+    const current = await this.getIdMappings();
+    await this.setMetadata("idMappings", { ...current, ...entries });
+  },
+
   // Active workout helper
   async getActiveWorkoutId(): Promise<string | null> {
     const data = await this.get<{ key: string; workoutId: string | null }>(

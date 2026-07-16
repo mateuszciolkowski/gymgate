@@ -23,6 +23,12 @@ yarn-error.log
 # Pliki TypeScript/Babel
 *.tsbuildinfo
 
+# Skompilowane artefakty seedów Prisma (emitowane in-place przez tsc; seedy uruchamiane przez tsx)
+/prisma/*.js
+/prisma/*.js.map
+/prisma/*.d.ts
+/prisma/*.d.ts.map
+
 # -----------------------------------------------------------------------------
 # Logi i dane tymczasowe
 # -----------------------------------------------------------------------------

@@ -131,6 +131,7 @@ export interface WorkoutPlanItem {
 export interface WorkoutPlan {
   id: string;
   name: string;
+  shortName?: string | null;
   creatorUserId: string | null;
   isPublic: boolean;
   isFavorite: boolean;

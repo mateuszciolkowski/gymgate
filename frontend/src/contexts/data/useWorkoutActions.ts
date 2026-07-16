@@ -15,12 +15,15 @@ export function useWorkoutActions(store: DataStore) {
     setActiveWorkoutId,
     getRealId,
     isOfflineError,
+    applyWorkoutUpdate,
     queueSyncOperation,
     removePendingOperationsReferencingTempId,
     purgeLocalWorkout,
     invalidateProgressionCache,
     refreshStatsData,
+    refreshWorkout,
     fetchAllFromServer,
+    createWorkoutInFlightRef,
   } = store;
 
   const createWorkout = useCallback(
@@ -30,72 +33,95 @@ export function useWorkoutActions(store: DataStore) {
       workoutDate?: string;
       workoutPlanId?: string;
     }) => {
-      try {
-        const response = await authFetch(`${API_BASE}/api/workouts`, {
-          method: "POST",
-          headers: getAuthHeaders(),
-          body: JSON.stringify(data),
-        });
+      // If a creation is already in flight, return the same promise (dedup a double submit).
+      if (createWorkoutInFlightRef.current) {
+        return createWorkoutInFlightRef.current;
+      }
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            // Plan ID may be stale — refresh plans and surface a clear message
-            fetchAllFromServer().catch(() => {});
-            throw new Error("Plan nie istnieje — plany zostały odświeżone, spróbuj ponownie.");
+      const run = async (): Promise<Workout> => {
+        try {
+          const response = await authFetch(`${API_BASE}/api/workouts`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) {
+            if (response.status === 404) {
+              // Plan ID may be stale — refresh plans and surface a clear message
+              fetchAllFromServer().catch(() => {});
+              throw new Error("Plan nie istnieje — plany zostały odświeżone, spróbuj ponownie.");
+            }
+            throw new Error("Błąd tworzenia treningu");
           }
-          throw new Error("Błąd tworzenia treningu");
+
+          const result = await response.json();
+          const newWorkout = result.data;
+
+          setWorkouts((prev) => [newWorkout, ...prev]);
+          setActiveWorkoutId(newWorkout.id);
+          await localStore.put("workouts", newWorkout);
+          await localStore.setActiveWorkoutId(newWorkout.id);
+
+          return newWorkout;
+        } catch (error) {
+          if (!isOfflineError(error)) throw error;
+
+          const tempWorkoutId = `temp_workout_${Date.now()}`;
+          const nowIso = new Date().toISOString();
+          const tempWorkout: Workout = {
+            id: tempWorkoutId,
+            userId: user?.id || "offline-user",
+            workoutDate: data.workoutDate || nowIso,
+            status: "DRAFT",
+            workoutName: data.workoutName || null,
+            gymName: data.gymName || null,
+            location: null,
+            workoutNotes: null,
+            workoutPlanId: data.workoutPlanId ?? null,
+            skippedPlanExerciseIds: [],
+            items: [],
+            createdAt: nowIso,
+            updatedAt: nowIso,
+          };
+
+          setWorkouts((prev) => [tempWorkout, ...prev]);
+          setActiveWorkoutId(tempWorkoutId);
+          await localStore.put("workouts", tempWorkout);
+          await localStore.setActiveWorkoutId(tempWorkoutId);
+
+          await queueSyncOperation({
+            type: "create",
+            entity: "workout",
+            endpoint: "/api/workouts",
+            method: "POST",
+            data: {
+              ...data,
+              clientTempId: tempWorkoutId,
+            },
+          });
+
+          return tempWorkout;
         }
+      };
 
-        const result = await response.json();
-        const newWorkout = result.data;
-
-        setWorkouts((prev) => [newWorkout, ...prev]);
-        setActiveWorkoutId(newWorkout.id);
-        await localStore.put("workouts", newWorkout);
-        await localStore.setActiveWorkoutId(newWorkout.id);
-
-        return newWorkout;
-      } catch (error) {
-        if (!isOfflineError(error)) throw error;
-
-        const tempWorkoutId = `temp_workout_${Date.now()}`;
-        const nowIso = new Date().toISOString();
-        const tempWorkout: Workout = {
-          id: tempWorkoutId,
-          userId: user?.id || "offline-user",
-          workoutDate: data.workoutDate || nowIso,
-          status: "DRAFT",
-          workoutName: data.workoutName || null,
-          gymName: data.gymName || null,
-          location: null,
-          workoutNotes: null,
-          workoutPlanId: data.workoutPlanId ?? null,
-          skippedPlanExerciseIds: [],
-          items: [],
-          createdAt: nowIso,
-          updatedAt: nowIso,
-        };
-
-        setWorkouts((prev) => [tempWorkout, ...prev]);
-        setActiveWorkoutId(tempWorkoutId);
-        await localStore.put("workouts", tempWorkout);
-        await localStore.setActiveWorkoutId(tempWorkoutId);
-
-        await queueSyncOperation({
-          type: "create",
-          entity: "workout",
-          endpoint: "/api/workouts",
-          method: "POST",
-          data: {
-            ...data,
-            clientTempId: tempWorkoutId,
-          },
-        });
-
-        return tempWorkout;
+      const promise = run();
+      createWorkoutInFlightRef.current = promise;
+      try {
+        return await promise;
+      } finally {
+        createWorkoutInFlightRef.current = null;
       }
     },
-    [isOfflineError, queueSyncOperation, setActiveWorkoutId, setWorkouts, user?.id, fetchAllFromServer],
+    [
+      createWorkoutInFlightRef,
+      fetchAllFromServer,
+      isOfflineError,
+      queueSyncOperation,
+      setActiveWorkoutId,
+      setWorkouts,
+      user?.id,
+    ],
   );
 
   const updateWorkout = useCallback(
@@ -138,18 +164,11 @@ export function useWorkoutActions(store: DataStore) {
       } catch (error) {
         if (!isOfflineError(error)) throw error;
 
-        let updatedWorkout: Workout | null = null;
-        setWorkouts((prev) =>
-          prev.map((w) => {
-            if (w.id !== id) return w;
-            updatedWorkout = {
-              ...w,
-              ...data,
-              updatedAt: new Date().toISOString(),
-            } as Workout;
-            return updatedWorkout;
-          }),
-        );
+        const updatedWorkout = applyWorkoutUpdate(id, (w) => ({
+          ...w,
+          ...data,
+          updatedAt: new Date().toISOString(),
+        } as Workout));
 
         if (updatedWorkout) {
           await localStore.put("workouts", updatedWorkout);
@@ -170,7 +189,7 @@ export function useWorkoutActions(store: DataStore) {
         });
       }
     },
-    [getRealId, isOfflineError, purgeLocalWorkout, queueSyncOperation, setActiveWorkoutId, setWorkouts],
+    [applyWorkoutUpdate, getRealId, isOfflineError, purgeLocalWorkout, queueSyncOperation, setActiveWorkoutId, setWorkouts],
   );
 
   const deleteWorkout = useCallback(
@@ -230,14 +249,9 @@ export function useWorkoutActions(store: DataStore) {
       setWorkouts((prev) => prev.filter((w) => w.id !== id));
       await localStore.delete("workouts", id);
 
-      let removedActiveWorkout = false;
-      setActiveWorkoutId((current) => {
-        if (current !== id) return current;
-        removedActiveWorkout = true;
-        return null;
-      });
-
-      if (removedActiveWorkout) {
+      setActiveWorkoutId((current) => (current === id ? null : current));
+      const storedActiveWorkoutId = await localStore.getActiveWorkoutId();
+      if (storedActiveWorkoutId === id || storedActiveWorkoutId === realWorkoutId) {
         await localStore.setActiveWorkoutId(null);
       }
 
@@ -265,27 +279,6 @@ export function useWorkoutActions(store: DataStore) {
     [workoutsRef],
   );
 
-  // Refresh a single workout
-  const refreshWorkout = useCallback(
-    async (id: string) => {
-      try {
-        const response = await authFetch(`${API_BASE}/api/workouts/${id}`);
-        if (response.status === 404) {
-          await purgeLocalWorkout(id);
-          return;
-        }
-        if (response.ok) {
-          const result = await response.json();
-          setWorkouts((prev) => prev.map((w) => (w.id === id ? result.data : w)));
-          await localStore.put("workouts", result.data);
-        }
-      } catch (error) {
-        console.error("[DataProvider] Failed to refresh workout:", error);
-      }
-    },
-    [purgeLocalWorkout, setWorkouts],
-  );
-
   const completeWorkout = useCallback(
     async (id: string, durationSeconds?: number) => {
       await updateWorkout(id, {
@@ -302,23 +295,19 @@ export function useWorkoutActions(store: DataStore) {
     async (workoutId: string, exerciseId: string) => {
       const realWorkoutId = getRealId(workoutId);
 
-      let previousWorkout: Workout | null = null;
-      // Compute synchronously from the ref - the setState updater is asynchronous
-      const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
-      if (
-        currentWorkout &&
-        !(currentWorkout.skippedPlanExerciseIds ?? []).includes(exerciseId)
-      ) {
-        previousWorkout = currentWorkout;
-        const updatedWorkout: Workout = {
-          ...currentWorkout,
-          skippedPlanExerciseIds: [
-            ...(currentWorkout.skippedPlanExerciseIds ?? []),
-            exerciseId,
-          ],
-        };
-        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
-        await localStore.put("workouts", updatedWorkout);
+      const previousWorkout = workoutsRef.current.find((w) => w.id === workoutId) ?? null;
+      const alreadySkipped = (previousWorkout?.skippedPlanExerciseIds ?? []).includes(
+        exerciseId,
+      );
+
+      if (previousWorkout && !alreadySkipped) {
+        const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+          ...w,
+          skippedPlanExerciseIds: [...(w.skippedPlanExerciseIds ?? []), exerciseId],
+        }));
+        if (updatedWorkout) {
+          await localStore.put("workouts", updatedWorkout);
+        }
       }
 
       if (!realWorkoutId.startsWith("temp_") && navigator.onLine) {
@@ -329,14 +318,14 @@ export function useWorkoutActions(store: DataStore) {
             body: JSON.stringify({ exerciseId }),
           });
         } catch {
-          if (previousWorkout) {
-            setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? previousWorkout! : w)));
+          if (previousWorkout && !alreadySkipped) {
+            applyWorkoutUpdate(workoutId, () => previousWorkout);
             await localStore.put("workouts", previousWorkout);
           }
         }
       }
     },
-    [getRealId, setWorkouts, workoutsRef],
+    [applyWorkoutUpdate, getRealId, workoutsRef],
   );
 
   return useMemo(

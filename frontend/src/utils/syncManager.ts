@@ -63,17 +63,57 @@ const hasUnresolvedTempIds = (value: unknown): boolean => {
   return false;
 };
 
-const INTERNAL_SYNC_FIELDS = new Set([
-  "clientTempId",
-  "clientTempItemId",
-  "clientTempSetId",
-]);
+// Kolejność ma znaczenie tylko dla czytelności — dla każdej operacji "create" co
+// najwyżej jedno z tych pól jest obecne w danych (odpowiada temu, co tworzy dana
+// operacja: trening / ćwiczenie / seria). Wszystkie mapują się na to samo pole
+// `clientId` po stronie backendu, który dedupikuje po (scope, clientId) — dzięki
+// temu retry po timeout/utracie odpowiedzi nie tworzy duplikatu.
+const INTERNAL_SYNC_FIELDS = ["clientTempId", "clientTempItemId", "clientTempSetId"] as const;
 
-const stripInternalSyncFields = (
+/**
+ * Zamienia wewnętrzne pola śledzenia temp-ID (clientTempId / clientTempItemId /
+ * clientTempSetId) na pojedyncze pole `clientId` wysyłane do backendu. Backend
+ * używa go do deduplikacji operacji create — bez tego retry (np. po timeout, gdy
+ * odpowiedź serwera zginęła) tworzyłby duplikat treningu/ćwiczenia/serii.
+ * Dla operacji innych niż create (update/delete) pola te i tak nie występują
+ * w danych, więc payload wraca bez zmian.
+ */
+const mapInternalSyncFieldsToClientId = (
+  payload: Record<string, unknown>,
+): Record<string, unknown> => {
+  const result: Record<string, unknown> = {};
+  let clientId: unknown;
+
+  for (const [key, value] of Object.entries(payload)) {
+    if ((INTERNAL_SYNC_FIELDS as readonly string[]).includes(key)) {
+      clientId = value;
+      continue;
+    }
+    result[key] = value;
+  }
+
+  if (typeof clientId === "string") {
+    result.clientId = clientId;
+  }
+
+  return result;
+};
+
+/**
+ * Usuwa wewnętrzne pola śledzenia temp-ID bez zamiany na `clientId`. Używane
+ * WYŁĄCZNIE do sprawdzenia hasUnresolvedTempIds: wartość clientTempItemId /
+ * clientTempSetId / clientTempId to zawsze temp-ID *tworzonego właśnie* rekordu
+ * (nie referencja do cudzego rodzica), więc pasuje do TEMP_ID_PATTERN i fałszywie
+ * wyglądałoby na nierozwiązane odwołanie, gdyby zostało w payloadzie pod tym
+ * sprawdzeniem — także po przemapowaniu na `clientId` (ta sama wartość string).
+ */
+const omitInternalSyncFields = (
   payload: Record<string, unknown>,
 ): Record<string, unknown> =>
   Object.fromEntries(
-    Object.entries(payload).filter(([key]) => !INTERNAL_SYNC_FIELDS.has(key)),
+    Object.entries(payload).filter(
+      ([key]) => !(INTERNAL_SYNC_FIELDS as readonly string[]).includes(key),
+    ),
   );
 
 class SyncManager {
@@ -191,6 +231,14 @@ class SyncManager {
 
     if (operations.length === 0) return;
 
+    // Zasiej mapę trwałymi mapowaniami temp->real z poprzednich przebiegów/sesji.
+    // Bez tego operacja-dziecko (np. zapis serii) przetworzona w innym przebiegu
+    // niż jej rodzic nigdy nie rozwiąże temp-ID i przepadnie po cichu.
+    const persistedMappings = await localStore.getIdMappings();
+    for (const [tempId, realId] of Object.entries(persistedMappings)) {
+      tempIdMap.set(tempId, realId);
+    }
+
     console.log(
       `[SyncManager] Processing ${operations.length} pending operations`,
     );
@@ -202,16 +250,24 @@ class SyncManager {
       try {
         const resolvedEndpoint = replaceTempIdsInString(op.endpoint, tempIdMap);
         const resolvedData = replaceTempIdsDeep(op.data, tempIdMap);
-        const apiData = isPlainObject(resolvedData)
-          ? stripInternalSyncFields(resolvedData)
+
+        // Sprawdzenie nierozwiązanych temp-ID musi pominąć wewnętrzne pola —
+        // ich wartość to zawsze temp-ID tworzonego właśnie rekordu (pasuje do
+        // wzorca temp_*), nie odwołanie do rodzica czekające na rozwiązanie.
+        const dataForUnresolvedCheck = isPlainObject(resolvedData)
+          ? omitInternalSyncFields(resolvedData)
           : resolvedData;
 
         if (
           hasUnresolvedTempIds(resolvedEndpoint) ||
-          hasUnresolvedTempIds(apiData)
+          hasUnresolvedTempIds(dataForUnresolvedCheck)
         ) {
           continue;
         }
+
+        const apiData = isPlainObject(resolvedData)
+          ? mapInternalSyncFieldsToClientId(resolvedData)
+          : resolvedData;
 
         const fetchOptions: RequestInit = {
           method: op.method,
@@ -239,10 +295,8 @@ class SyncManager {
           );
           await localStore.removePendingSync(op.id);
           console.log(`[SyncManager] Operation ${op.id} completed`);
-        } else if (
-          response.status === 404 &&
-          (op.entity === "workout" || op.entity === "workoutItem" || op.entity === "set")
-        ) {
+        } else if (response.status === 404 && op.entity === "workout") {
+          // Cały trening zniknął z serwera — usuń go lokalnie.
           await localStore.removePendingSync(op.id);
           permanentlyFailed.push({
             ...op,
@@ -255,7 +309,24 @@ class SyncManager {
           if (workoutId) {
             this.workoutNotFoundListeners.forEach((cb) => cb(workoutId));
           }
-          console.warn(`[SyncManager] Operation ${op.id} removed due to 404`);
+          console.warn(
+            `[SyncManager] Workout operation ${op.id} removed due to 404 (workout gone)`,
+          );
+        } else if (
+          response.status === 404 &&
+          (op.entity === "workoutItem" || op.entity === "set")
+        ) {
+          // Pojedynczy element (ćwiczenie w treningu / seria) nie istnieje na
+          // serwerze. NIE kasujemy całego treningu — porzucamy tylko tę operację.
+          // Pełny refetch (fetchFreshData) pogodzi stan po opróżnieniu kolejki.
+          await localStore.removePendingSync(op.id);
+          permanentlyFailed.push({
+            ...op,
+            failureReason: "not_found",
+          });
+          console.warn(
+            `[SyncManager] Item/set operation ${op.id} dropped due to 404 (workout preserved)`,
+          );
         } else if (op.retries < MAX_RETRIES) {
           // Increment the retry counter
           await localStore.updatePendingSync({
@@ -299,9 +370,13 @@ class SyncManager {
   ): Promise<void> {
     if (!resolvedData || !isPlainObject(responseData)) return;
 
+    const newlyCaptured: Record<string, string> = {};
     const capture = (tempId: unknown, realId: unknown) => {
       if (typeof tempId === "string" && typeof realId === "string") {
         tempIdMap.set(tempId, realId);
+        if (tempId.startsWith("temp_")) {
+          newlyCaptured[tempId] = realId;
+        }
       }
     };
 
@@ -321,6 +396,11 @@ class SyncManager {
           ? (responseSets[0] as Record<string, unknown>).id
           : responseData.id;
       capture(resolvedData.clientTempSetId, realSetId);
+    }
+
+    // Utrwal mapowania, by przeżyły kolejne przebiegi sync i reload strony.
+    if (Object.keys(newlyCaptured).length > 0) {
+      await localStore.addIdMappings(newlyCaptured);
     }
   }
 

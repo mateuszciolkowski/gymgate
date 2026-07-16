@@ -61,6 +61,7 @@ export function useDataSync(store: DataStore) {
           localActiveId,
           syncTime,
           localPlans,
+          localIdMappings,
         ] = await Promise.all([
           localStore.getAll<Workout>("workouts"),
           localStore.getAll<Exercise>("exercises"),
@@ -69,7 +70,13 @@ export function useDataSync(store: DataStore) {
           localStore.getActiveWorkoutId(),
           localStore.getLastSync(),
           localStore.getAll<WorkoutPlan>("plans"),
+          localStore.getIdMappings(),
         ]);
+
+        // Restore temp->real ID mappings (survive a page reload).
+        Object.entries(localIdMappings).forEach(([tempId, realId]) => {
+          idMappingRef.current.set(tempId, realId);
+        });
 
         setWorkouts(localWorkouts);
         setExercises(localExercises);

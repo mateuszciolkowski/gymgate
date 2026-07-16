@@ -55,6 +55,11 @@ export function useDataStore() {
   // Maps temporary IDs to real ones - does not trigger re-renders
   const idMappingRef = useRef<Map<string, string>>(new Map());
 
+  // Dedup parallel/duplicate calls to createWorkout (e.g. triple-tapping the
+  // "Start" button on a slow connection). While one creation is in flight,
+  // subsequent calls return the same promise instead of creating a new workout.
+  const createWorkoutInFlightRef = useRef<Promise<Workout> | null>(null);
+
   // Get the real ID (or the temporary one if no mapping exists)
   const getRealId = useCallback(
     (tempId: string): string => idMappingRef.current.get(tempId) || tempId,
@@ -63,6 +68,40 @@ export function useDataStore() {
 
   const isOfflineError = useCallback(
     (error: unknown): boolean => !navigator.onLine || error instanceof TypeError,
+    [],
+  );
+
+  // Compute the new state synchronously from the ref, NOT inside the setState
+  // updater - React does not guarantee the updater runs synchronously, so a
+  // value captured inside it could still be null and the optimistic change
+  // would miss IndexedDB (losing sets/exercises). The ref is updated
+  // immediately so a subsequent call in the same tick already sees the
+  // changed object.
+  const applyWorkoutUpdate = useCallback(
+    (workoutId: string, update: (workout: Workout) => Workout): Workout | null => {
+      const current = workoutsRef.current.find((w) => w.id === workoutId);
+      if (!current) return null;
+      const updated = update(current);
+      workoutsRef.current = workoutsRef.current.map((w) =>
+        w.id === workoutId ? updated : w,
+      );
+      setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updated : w)));
+      return updated;
+    },
+    [],
+  );
+
+  const applyExerciseUpdate = useCallback(
+    (exerciseId: string, update: (exercise: Exercise) => Exercise): Exercise | null => {
+      const current = exercisesRef.current.find((e) => e.id === exerciseId);
+      if (!current) return null;
+      const updated = update(current);
+      exercisesRef.current = exercisesRef.current.map((e) =>
+        e.id === exerciseId ? updated : e,
+      );
+      setExercises((prev) => prev.map((e) => (e.id === exerciseId ? updated : e)));
+      return updated;
+    },
     [],
   );
 
@@ -196,6 +235,27 @@ export function useDataStore() {
       }
     },
     [getRealId, removePendingOperationsReferencingIds],
+  );
+
+  // Refresh a single workout from the server
+  const refreshWorkout = useCallback(
+    async (id: string) => {
+      try {
+        const response = await authFetch(`${API_BASE}/api/workouts/${id}`);
+        if (response.status === 404) {
+          await purgeLocalWorkout(id);
+          return;
+        }
+        if (response.ok) {
+          const result = await response.json();
+          setWorkouts((prev) => prev.map((w) => (w.id === id ? result.data : w)));
+          await localStore.put("workouts", result.data);
+        }
+      } catch (error) {
+        console.error("[DataProvider] Failed to refresh workout:", error);
+      }
+    },
+    [purgeLocalWorkout],
   );
 
   const invalidateProgressionCache = useCallback(
@@ -426,13 +486,17 @@ export function useDataStore() {
     statsRef,
     plansRef,
     idMappingRef,
+    createWorkoutInFlightRef,
     // helpers
     getRealId,
     isOfflineError,
+    applyWorkoutUpdate,
+    applyExerciseUpdate,
     queueSyncOperation,
     removePendingOperationsReferencingIds,
     removePendingOperationsReferencingTempId,
     purgeLocalWorkout,
+    refreshWorkout,
     invalidateProgressionCache,
     refreshStatsData,
     getExerciseProgression,

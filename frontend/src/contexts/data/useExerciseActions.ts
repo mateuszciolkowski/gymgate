@@ -9,10 +9,10 @@ import type { DataStore } from "./useDataStore";
 export function useExerciseActions(store: DataStore) {
   const {
     user,
-    exercisesRef,
     setExercises,
     getRealId,
     isOfflineError,
+    applyExerciseUpdate,
     queueSyncOperation,
     removePendingOperationsReferencingTempId,
   } = store;
@@ -112,15 +112,12 @@ export function useExerciseActions(store: DataStore) {
       } catch (error) {
         if (!isOfflineError(error)) throw error;
 
-        // Compute synchronously from the ref - the setState updater is asynchronous
-        const currentExercise = exercisesRef.current.find((e) => e.id === id);
-        if (currentExercise) {
-          const updatedExercise = {
-            ...currentExercise,
-            ...data,
-            updatedAt: new Date().toISOString(),
-          } as Exercise;
-          setExercises((prev) => prev.map((e) => (e.id === id ? updatedExercise : e)));
+        const updatedExercise = applyExerciseUpdate(id, (e) => ({
+          ...e,
+          ...data,
+          updatedAt: new Date().toISOString(),
+        } as Exercise));
+        if (updatedExercise) {
           await localStore.put("exercises", updatedExercise);
         }
 
@@ -133,7 +130,7 @@ export function useExerciseActions(store: DataStore) {
         });
       }
     },
-    [exercisesRef, getRealId, isOfflineError, queueSyncOperation, setExercises],
+    [applyExerciseUpdate, getRealId, isOfflineError, queueSyncOperation],
   );
 
   const deleteExercise = useCallback(

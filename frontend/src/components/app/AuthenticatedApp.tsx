@@ -149,8 +149,10 @@ export function AuthenticatedApp({
       setIsWorkoutFormOpen(false);
       setSelectedWorkoutId(newWorkout.id);
       setScreen("workout-detail");
-    } catch {
+    } catch (error) {
       alert("Nie udało się utworzyć treningu");
+      // Re-throw so the modal unlocks its button and allows retrying.
+      throw error;
     }
   };
 

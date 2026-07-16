@@ -82,8 +82,8 @@ export interface DataContextType {
   completeWorkout: (id: string, durationSeconds?: number) => Promise<void>;
 
   // Actions - Plans
-  createPlan: (data: { name: string; exerciseIds: string[]; isPublic: boolean }) => Promise<WorkoutPlan>;
-  updatePlan: (id: string, data: { name?: string; exerciseIds?: string[]; isPublic?: boolean }) => Promise<void>;
+  createPlan: (data: { name: string; shortName?: string | null; exerciseIds: string[]; isPublic: boolean }) => Promise<WorkoutPlan>;
+  updatePlan: (id: string, data: { name?: string; shortName?: string | null; exerciseIds?: string[]; isPublic?: boolean }) => Promise<void>;
   deletePlan: (id: string) => Promise<void>;
   duplicatePlan: (id: string) => Promise<WorkoutPlan>;
   favoritePlan: (id: string) => Promise<void>;

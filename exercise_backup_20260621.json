@@ -1,0 +1,4202 @@
+[
+  {
+    "id": "0558696e-a14d-4672-b5b2-2c132ad8eaa1",
+    "name": "Bayesian curl",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Uginanie bicepsów na wyciągu dolnym z tyłu — maksymalne rozciągnięcie",
+    "creatorUserId": null,
+    "createdAt": "2026-06-20T10:41:10.049Z",
+    "updatedAt": "2026-06-20T10:41:10.049Z"
+  },
+  {
+    "id": "c5b9110f-b986-46e0-a559-5760102392b1",
+    "name": "Dead bug",
+    "muscleGroups": [
+      "ABS",
+      "HIP_FLEXORS"
+    ],
+    "description": "Stabilizacja core",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "5a33e19f-1b1f-45dc-82aa-81135792840b",
+    "name": "Dead bug",
+    "muscleGroups": [
+      "ABS",
+      "HIP_FLEXORS"
+    ],
+    "description": "Stabilizacja core",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "2b90ac24-c32d-44f4-99b4-b8fbdc453c08",
+    "name": "Dead bug",
+    "muscleGroups": [
+      "ABS",
+      "HIP_FLEXORS"
+    ],
+    "description": "Stabilizacja core",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "d88595f4-8583-484d-9a9f-58d753f70d11",
+    "name": "Dead bug",
+    "muscleGroups": [
+      "ABS",
+      "HIP_FLEXORS"
+    ],
+    "description": "Stabilizacja core",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c82138c6-0694-452f-a651-03b4f6c28e2b",
+    "name": "Dipy na poręczach",
+    "muscleGroups": [
+      "TRICEPS",
+      "CHEST",
+      "SHOULDERS"
+    ],
+    "description": "Zaawansowane ćwiczenie z ciężarem ciała",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "31d983e6-ad3f-4762-84fa-89517cdc06ec",
+    "name": "Dipy na poręczach",
+    "muscleGroups": [
+      "TRICEPS",
+      "CHEST",
+      "SHOULDERS"
+    ],
+    "description": "Zaawansowane ćwiczenie z ciężarem ciała",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "47d90e88-d460-49cf-9ba6-87b6826b672d",
+    "name": "Dipy na poręczach",
+    "muscleGroups": [
+      "TRICEPS",
+      "CHEST",
+      "SHOULDERS"
+    ],
+    "description": "Zaawansowane ćwiczenie z ciężarem ciała",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "9375ce0b-5916-4151-ae42-d76e700b1e9e",
+    "name": "Dipy na poręczach",
+    "muscleGroups": [
+      "TRICEPS",
+      "CHEST",
+      "SHOULDERS"
+    ],
+    "description": "Zaawansowane ćwiczenie z ciężarem ciała",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "f3305d11-7a83-4559-b095-e5ac216e2225",
+    "name": "Face pulls",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRAPS",
+      "MIDDLE_BACK"
+    ],
+    "description": "Tylne partie barków i górna część pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "1ef880c5-2dc4-4e8f-a431-1740374dcec3",
+    "name": "Face pulls",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRAPS",
+      "MIDDLE_BACK"
+    ],
+    "description": "Tylne partie barków i górna część pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "d3a6108e-e03e-40e2-b811-2fdc32286cf0",
+    "name": "Face pulls",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRAPS",
+      "MIDDLE_BACK"
+    ],
+    "description": "Tylne partie barków i górna część pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "cb2387d4-786c-46ba-bcc8-83b8312b1272",
+    "name": "Face pulls",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRAPS",
+      "MIDDLE_BACK"
+    ],
+    "description": "Tylne partie barków i górna część pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "9ba7c589-7899-4b48-b7eb-76b6e1f130b4",
+    "name": "Farmer walk",
+    "muscleGroups": [
+      "FULL_BODY",
+      "FOREARMS",
+      "TRAPS"
+    ],
+    "description": "Chód farmera z obciążeniem",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "2c89d608-8600-4e00-9169-a42384b47e9d",
+    "name": "Farmer walk",
+    "muscleGroups": [
+      "FULL_BODY",
+      "FOREARMS",
+      "TRAPS"
+    ],
+    "description": "Chód farmera z obciążeniem",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "750b36c9-354d-40f7-81c6-75c31a929157",
+    "name": "Farmer walk",
+    "muscleGroups": [
+      "FULL_BODY",
+      "FOREARMS",
+      "TRAPS"
+    ],
+    "description": "Chód farmera z obciążeniem",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "b50444e0-5e31-4e22-bf5c-1a5beb15394a",
+    "name": "Farmer walk",
+    "muscleGroups": [
+      "FULL_BODY",
+      "FOREARMS",
+      "TRAPS"
+    ],
+    "description": "Chód farmera z obciążeniem",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "f8cf2e02-c358-40d2-82a7-c93ee53d4fb4",
+    "name": "Francuskie wyciskanie hantli nad głowę",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Wyciskanie hantli nad głowę w pozycji stojącej lub siedzącej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "6df91f08-1d55-4183-8e21-cb55c05c2b4f",
+    "name": "Francuskie wyciskanie hantli nad głowę",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Wyciskanie hantli nad głowę w pozycji stojącej lub siedzącej",
+    "creatorUserId": "1",
+    "createdAt": "2026-05-19T06:48:27.395Z",
+    "updatedAt": "2026-05-19T06:48:27.395Z"
+  },
+  {
+    "id": "466b17b4-698d-4e76-850a-4e120bd00734",
+    "name": "Francuskie wyciskanie hantli nad głowę",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Wyciskanie hantli nad głowę w pozycji stojącej lub siedzącej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "4db131ac-24d3-43a3-bdbb-2023b4835f2c",
+    "name": "Francuskie wyciskanie hantli nad głowę",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Wyciskanie hantli nad głowę w pozycji stojącej lub siedzącej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "3633bc5f-576b-428e-a0ea-69f3dce831a5",
+    "name": "Glute bridge",
+    "muscleGroups": [
+      "GLUTES"
+    ],
+    "description": null,
+    "creatorUserId": "1",
+    "createdAt": "2026-04-13T17:23:29.283Z",
+    "updatedAt": "2026-04-13T17:23:29.283Z"
+  },
+  {
+    "id": "f644e33e-075b-43de-b0a8-5f8f795d2e05",
+    "name": "Glute bridge",
+    "muscleGroups": [
+      "GLUTES"
+    ],
+    "description": "Izolowane spięcie pośladków leżąc",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "9530a654-0bdc-4e32-ac25-707227b773a9",
+    "name": "Glute bridge",
+    "muscleGroups": [
+      "GLUTES"
+    ],
+    "description": "Izolowane spięcie pośladków leżąc",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "b64a8195-7be1-4e6b-be93-6c92ee540a06",
+    "name": "Glute bridge",
+    "muscleGroups": [
+      "GLUTES"
+    ],
+    "description": "Izolowane spięcie pośladków leżąc",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "2f940cd5-5a0b-4bd4-b53b-2d6ba01eedfd",
+    "name": "Good morning",
+    "muscleGroups": [
+      "LOWER_BACK",
+      "HAMSTRINGS",
+      "GLUTES"
+    ],
+    "description": "Pochylanie tułowia ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "eb53834d-29c9-486d-be13-a84618041eaf",
+    "name": "Good morning",
+    "muscleGroups": [
+      "LOWER_BACK",
+      "HAMSTRINGS",
+      "GLUTES"
+    ],
+    "description": "Pochylanie tułowia ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "f78eabb5-6fe5-4425-aa06-885781435cc9",
+    "name": "Good morning",
+    "muscleGroups": [
+      "LOWER_BACK",
+      "HAMSTRINGS",
+      "GLUTES"
+    ],
+    "description": "Pochylanie tułowia ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c1aedcce-e152-44bb-9442-db38b5670314",
+    "name": "Good morning",
+    "muscleGroups": [
+      "LOWER_BACK",
+      "HAMSTRINGS",
+      "GLUTES"
+    ],
+    "description": "Pochylanie tułowia ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "d7dd1a8a-d5c1-402d-9a83-51adff583754",
+    "name": "Hack squats",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES"
+    ],
+    "description": "Przysiady na maszynie",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "ddb98e9c-e288-4b6b-9a04-72594876f5cb",
+    "name": "Hack squats",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES"
+    ],
+    "description": "Przysiady na maszynie",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "d6c71707-976f-41a7-9756-2202a7c7e44b",
+    "name": "Hack squats",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES"
+    ],
+    "description": "Przysiady na maszynie",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "03d99d88-a3fd-4ea0-889f-2cde20c7a46a",
+    "name": "Hack squats",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES"
+    ],
+    "description": "Przysiady na maszynie",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "76416213-6652-4258-b14a-e7b0f83a7f5d",
+    "name": "Hip thrust ze sztangą",
+    "muscleGroups": [
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Najlepsze na pośladki",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "72aaeea0-ed33-4103-9670-dc383fc88191",
+    "name": "Hip thrust ze sztangą",
+    "muscleGroups": [
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Najlepsze na pośladki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "4fce2fa9-3c07-4b07-8c23-9909399d0ba6",
+    "name": "Hip thrust ze sztangą",
+    "muscleGroups": [
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Najlepsze na pośladki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "8668d325-d279-4742-8d6a-0a44f0f066c4",
+    "name": "Hip thrust ze sztangą",
+    "muscleGroups": [
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Najlepsze na pośladki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "c442b7bd-3ead-4340-b953-560f1c2bcbcb",
+    "name": "Hollow body hold",
+    "muscleGroups": [
+      "ABS"
+    ],
+    "description": "Zaawansowana deska",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "6d9ba1f5-3421-41ac-b996-74f3d2899f40",
+    "name": "Hollow body hold",
+    "muscleGroups": [
+      "ABS"
+    ],
+    "description": "Zaawansowana deska",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "93ecca48-3a11-4d58-b3d6-d15c94e5671e",
+    "name": "Hollow body hold",
+    "muscleGroups": [
+      "ABS"
+    ],
+    "description": "Zaawansowana deska",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "8034089f-0867-4fae-8cbc-375452531fa0",
+    "name": "Hollow body hold",
+    "muscleGroups": [
+      "ABS"
+    ],
+    "description": "Zaawansowana deska",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "bced2d05-d057-4e03-a177-30f34ff78eff",
+    "name": "Kickback na wyciągu",
+    "muscleGroups": [
+      "GLUTES"
+    ],
+    "description": "Izolacja pośladków — odrzut nogi w tył na wyciągu dolnym",
+    "creatorUserId": null,
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "35e9f1e6-2ee7-4669-b5b2-e3ee4e3a84d3",
+    "name": "Kickback na wyciągu",
+    "muscleGroups": [
+      "GLUTES"
+    ],
+    "description": "Izolacja pośladków — odrzut nogi w tył na wyciągu dolnym",
+    "creatorUserId": null,
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "ea62d3db-bffb-483a-b675-35bb9a2ccc70",
+    "name": "Kickback na wyciągu",
+    "muscleGroups": [
+      "GLUTES"
+    ],
+    "description": "Izolacja pośladków — odrzut nogi w tył na wyciągu dolnym",
+    "creatorUserId": null,
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "98dc3dd7-30a1-422e-b703-f0c0b300eb3a",
+    "name": "Krzyżowanie linek wyciągu",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Ćwiczenie izolujące na linach",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "3ede079e-bdb6-48b1-a6d9-e14a030905a1",
+    "name": "Krzyżowanie linek wyciągu",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Ćwiczenie izolujące na linach",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "ae7c8741-2705-4f7e-8dde-b46fb81ec923",
+    "name": "Krzyżowanie linek wyciągu",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Ćwiczenie izolujące na linach",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "f1d2bf86-6124-4a20-b16b-932033f296e2",
+    "name": "Krzyżowanie linek wyciągu",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Ćwiczenie izolujące na linach",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "ce061705-7ec7-4b08-a94f-97ced9536f91",
+    "name": "Ławka rzymska",
+    "muscleGroups": [
+      "LOWER_BACK",
+      "HIP_FLEXORS"
+    ],
+    "description": null,
+    "creatorUserId": "896c1bd8-03d0-4de5-9f26-dc4121fdd0cd",
+    "createdAt": "2026-04-08T16:34:04.817Z",
+    "updatedAt": "2026-04-08T16:34:04.817Z"
+  },
+  {
+    "id": "7eb7f3bd-db2c-4ab3-b7a4-38c4187a8fe8",
+    "name": "Martwy ciąg klasyczny",
+    "muscleGroups": [
+      "BACK",
+      "HAMSTRINGS",
+      "GLUTES",
+      "LOWER_BACK",
+      "TRAPS"
+    ],
+    "description": "Król ćwiczeń na plecy i całe ciało",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "525c50b2-f7bd-4e1e-bda9-eded00717c08",
+    "name": "Martwy ciąg klasyczny",
+    "muscleGroups": [
+      "BACK",
+      "HAMSTRINGS",
+      "GLUTES",
+      "LOWER_BACK",
+      "TRAPS"
+    ],
+    "description": "Król ćwiczeń na plecy i całe ciało",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "71802de9-2d37-4dd3-a732-8f9d964966ce",
+    "name": "Martwy ciąg klasyczny",
+    "muscleGroups": [
+      "BACK",
+      "HAMSTRINGS",
+      "GLUTES",
+      "LOWER_BACK",
+      "TRAPS"
+    ],
+    "description": "Król ćwiczeń na plecy i całe ciało",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "8fa0d0b7-3480-4f44-9bd9-f19bf38a1cc9",
+    "name": "Martwy ciąg klasyczny",
+    "muscleGroups": [
+      "BACK",
+      "HAMSTRINGS",
+      "GLUTES",
+      "LOWER_BACK",
+      "TRAPS"
+    ],
+    "description": "Król ćwiczeń na plecy i całe ciało",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "901a5918-fae4-46a6-8827-7d67b9495aea",
+    "name": "Martwy ciąg rumuński",
+    "muscleGroups": [
+      "HAMSTRINGS",
+      "GLUTES",
+      "LOWER_BACK"
+    ],
+    "description": "Tylna część nóg i dolne plecy",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "ed409b21-deb8-45c4-8b61-4a2d632746e2",
+    "name": "Martwy ciąg rumuński",
+    "muscleGroups": [
+      "HAMSTRINGS",
+      "GLUTES",
+      "LOWER_BACK"
+    ],
+    "description": "Tylna część nóg i dolne plecy",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "3efee39e-cf8d-4cc9-b302-f2df51077b96",
+    "name": "Martwy ciąg rumuński",
+    "muscleGroups": [
+      "HAMSTRINGS",
+      "GLUTES",
+      "LOWER_BACK"
+    ],
+    "description": "Tylna część nóg i dolne plecy",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "176e3f81-7a13-4c05-a2df-b8af7c7b8a09",
+    "name": "Martwy ciąg rumuński",
+    "muscleGroups": [
+      "HAMSTRINGS",
+      "GLUTES",
+      "LOWER_BACK"
+    ],
+    "description": "Tylna część nóg i dolne plecy",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "702502dc-ba55-4d09-9071-c2cc08cfe480",
+    "name": "Martwy ciąg sumo",
+    "muscleGroups": [
+      "BACK",
+      "GLUTES",
+      "QUADS",
+      "ADDUCTORS"
+    ],
+    "description": "Wariant z szerszym rozstawieniem nóg",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "e5f19fe1-aef4-4de8-821c-cd034dc5ad72",
+    "name": "Martwy ciąg sumo",
+    "muscleGroups": [
+      "BACK",
+      "GLUTES",
+      "QUADS",
+      "ADDUCTORS"
+    ],
+    "description": "Wariant z szerszym rozstawieniem nóg",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "38d12ad4-647a-4b0a-94d7-c1fd088b5773",
+    "name": "Martwy ciąg sumo",
+    "muscleGroups": [
+      "BACK",
+      "GLUTES",
+      "QUADS",
+      "ADDUCTORS"
+    ],
+    "description": "Wariant z szerszym rozstawieniem nóg",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "e80759d9-8251-49cc-a4d2-81247c3891a1",
+    "name": "Martwy ciąg sumo",
+    "muscleGroups": [
+      "BACK",
+      "GLUTES",
+      "QUADS",
+      "ADDUCTORS"
+    ],
+    "description": "Wariant z szerszym rozstawieniem nóg",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "55cf96ba-cc58-4b21-b97c-af56299759f2",
+    "name": "Nordic curls",
+    "muscleGroups": [
+      "HAMSTRINGS"
+    ],
+    "description": "Zaawansowane ćwiczenie na tylną część uda",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "d60c924b-bb69-4105-b1fa-322f58ce076d",
+    "name": "Nordic curls",
+    "muscleGroups": [
+      "HAMSTRINGS"
+    ],
+    "description": "Zaawansowane ćwiczenie na tylną część uda",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "2f30757c-39c6-485a-9925-0abf69340907",
+    "name": "Nordic curls",
+    "muscleGroups": [
+      "HAMSTRINGS"
+    ],
+    "description": "Zaawansowane ćwiczenie na tylną część uda",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "56f8eb4f-42af-4a1a-aabb-a5d045dc66ac",
+    "name": "Nordic curls",
+    "muscleGroups": [
+      "HAMSTRINGS"
+    ],
+    "description": "Zaawansowane ćwiczenie na tylną część uda",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "0ee67e3e-a5bd-46f2-b58c-edef3b74ffb5",
+    "name": "Nożyce",
+    "muscleGroups": [
+      "ABS",
+      "HIP_FLEXORS"
+    ],
+    "description": "Dynamiczne ćwiczenie na dolny brzuch",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "aa3c0a7c-efc2-4f7d-9278-fd134d212976",
+    "name": "Nożyce",
+    "muscleGroups": [
+      "ABS",
+      "HIP_FLEXORS"
+    ],
+    "description": "Dynamiczne ćwiczenie na dolny brzuch",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "1bcaad0d-f775-48e2-9d8d-3296fe516bcf",
+    "name": "Nożyce",
+    "muscleGroups": [
+      "ABS",
+      "HIP_FLEXORS"
+    ],
+    "description": "Dynamiczne ćwiczenie na dolny brzuch",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "e1c43289-78c8-43dd-9dd1-5b49f4688956",
+    "name": "Nożyce",
+    "muscleGroups": [
+      "ABS",
+      "HIP_FLEXORS"
+    ],
+    "description": "Dynamiczne ćwiczenie na dolny brzuch",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "aa9cb050-cdcf-42ac-9383-d5b3d610cc5c",
+    "name": "Odwodzenie linki wyciągu jednorącz na tył barku",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "ćwiczenie od trenera pawła",
+    "creatorUserId": "1",
+    "createdAt": "2026-04-24T08:27:12.984Z",
+    "updatedAt": "2026-04-24T08:27:12.984Z"
+  },
+  {
+    "id": "66dacfbc-e510-43ad-8011-d94c5c0c54ed",
+    "name": "Odwodzenie linki wyciągu jednorącz na tył barku",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Izolacja tylnej części barku - jednorącz na wyciągu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "79f687ce-1c0c-4707-95ef-746990687e49",
+    "name": "Odwodzenie linki wyciągu jednorącz na tył barku",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Izolacja tylnej części barku - jednorącz na wyciągu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "049816a6-51f2-423e-b108-cc920c3c1202",
+    "name": "Odwodzenie linki wyciągu jednorącz na tył barku",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Izolacja tylnej części barku - jednorącz na wyciągu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "9fb2e68e-c73a-44d5-8cfc-03db1ff3fca0",
+    "name": "Odwodzenie nogi na maszynie",
+    "muscleGroups": [
+      "GLUTES",
+      "ADDUCTORS"
+    ],
+    "description": "Boczna część pośladków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "8491ba9f-3f6c-4d39-89b4-64980eb3a4ff",
+    "name": "Odwodzenie nogi na maszynie",
+    "muscleGroups": [
+      "GLUTES",
+      "ADDUCTORS"
+    ],
+    "description": "Boczna część pośladków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "e07d2253-c590-47f1-821b-03e1c17f05fd",
+    "name": "Odwodzenie nogi na maszynie",
+    "muscleGroups": [
+      "GLUTES",
+      "ADDUCTORS"
+    ],
+    "description": "Boczna część pośladków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "e6ade511-ceff-4759-a9db-4a7efd57f098",
+    "name": "Odwodzenie nogi na maszynie",
+    "muscleGroups": [
+      "GLUTES",
+      "ADDUCTORS"
+    ],
+    "description": "Boczna część pośladków",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "35c47d5b-8298-4476-bec6-82934b6fcc3b",
+    "name": "Odwrotne zwijanie nadgarstków",
+    "muscleGroups": [
+      "FOREARMS"
+    ],
+    "description": "Górna część przedramion",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "1465f79e-ebaf-4ad7-b1ed-168b1a78db1c",
+    "name": "Odwrotne zwijanie nadgarstków",
+    "muscleGroups": [
+      "FOREARMS"
+    ],
+    "description": "Górna część przedramion",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "25b14c78-defd-4c48-9047-2a4862d768db",
+    "name": "Odwrotne zwijanie nadgarstków",
+    "muscleGroups": [
+      "FOREARMS"
+    ],
+    "description": "Górna część przedramion",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "3a295c8c-9fd2-4609-b597-880cc6f50d1b",
+    "name": "Odwrotne zwijanie nadgarstków",
+    "muscleGroups": [
+      "FOREARMS"
+    ],
+    "description": "Górna część przedramion",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "9554fbdc-558f-458e-a9c7-995df73e011f",
+    "name": "Peck deck (motylek)",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Izolacja klatki na maszynie",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "7e336800-c98b-419d-9891-bd236cecd6ae",
+    "name": "Plank",
+    "muscleGroups": [
+      "ABS",
+      "OBLIQUES"
+    ],
+    "description": "Podstawowe ćwiczenie izometryczne",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "5ef76382-29ca-4a3f-baaa-9f5b2d907081",
+    "name": "Plank",
+    "muscleGroups": [
+      "ABS",
+      "OBLIQUES"
+    ],
+    "description": "Podstawowe ćwiczenie izometryczne",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c2d8fffc-5ab5-4e81-bca1-0ed7e14c038e",
+    "name": "Plank",
+    "muscleGroups": [
+      "ABS",
+      "OBLIQUES"
+    ],
+    "description": "Podstawowe ćwiczenie izometryczne",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "708ca767-dbcc-44bf-b798-10d760f0fdef",
+    "name": "Plank",
+    "muscleGroups": [
+      "ABS",
+      "OBLIQUES"
+    ],
+    "description": "Podstawowe ćwiczenie izometryczne",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "f9d5b422-2779-4b7d-a1c6-ddee89720450",
+    "name": "Plank boczny",
+    "muscleGroups": [
+      "OBLIQUES",
+      "ABS"
+    ],
+    "description": "Wzmacnia skośne brzucha",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "c103a57b-f682-46cb-a6a8-5124e66dd21b",
+    "name": "Plank boczny",
+    "muscleGroups": [
+      "OBLIQUES",
+      "ABS"
+    ],
+    "description": "Wzmacnia skośne brzucha",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "f03d0258-d5f8-48cb-b0e9-44c37a4a934d",
+    "name": "Plank boczny",
+    "muscleGroups": [
+      "OBLIQUES",
+      "ABS"
+    ],
+    "description": "Wzmacnia skośne brzucha",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "06ec7e10-8ac2-4291-b825-ec92589e4616",
+    "name": "Plank boczny",
+    "muscleGroups": [
+      "OBLIQUES",
+      "ABS"
+    ],
+    "description": "Wzmacnia skośne brzucha",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "e5eeea2a-e7bd-4ad3-a813-3f35df540f29",
+    "name": "Podciąganie na drążku nachwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Najlepsze na szerokość pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "12c50863-5295-4057-996b-f4b36bc1fdb2",
+    "name": "Podciąganie na drążku nachwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Najlepsze na szerokość pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c47d226a-a191-4fa0-ada9-b40a358a4552",
+    "name": "Podciąganie na drążku nachwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Najlepsze na szerokość pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "ddc1ba5b-8d0e-4dc2-9897-0f3eb0efcbd7",
+    "name": "Podciąganie na drążku nachwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Najlepsze na szerokość pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "eac87646-3759-42b3-b965-345425a3b67d",
+    "name": "Podciąganie na drążku podchwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Większy udział bicepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "4de9cc47-c572-4e87-a3f0-62b410bd74f4",
+    "name": "Podciąganie na drążku podchwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Większy udział bicepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "c857ae60-cd8a-4b53-929b-faa34a3c5fe8",
+    "name": "Podciąganie na drążku podchwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Większy udział bicepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "f20b387f-9dba-4f5f-9c49-629b9934b6c0",
+    "name": "Podciąganie na drążku podchwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Większy udział bicepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "b11f4a10-6954-429f-a64b-c6ffa97e755d",
+    "name": "Podciągnie na maszynie",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Podciąganie wspomagane na maszynie — ułatwiona wersja podciągania na drążku",
+    "creatorUserId": null,
+    "createdAt": "2026-06-20T10:39:56.121Z",
+    "updatedAt": "2026-06-20T10:39:56.121Z"
+  },
+  {
+    "id": "6d3685e9-1cda-4977-b068-a42a671606e1",
+    "name": "Pompki diamentowe",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS"
+    ],
+    "description": "Wariant pompek z naciskiem na triceps",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "ecccc579-030e-4029-a7dc-d3cc43382ce4",
+    "name": "Pompki diamentowe",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS"
+    ],
+    "description": "Wariant pompek z naciskiem na triceps",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "e046d9b2-2c27-4f72-bde3-72252aeb95d9",
+    "name": "Pompki diamentowe",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS"
+    ],
+    "description": "Wariant pompek z naciskiem na triceps",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "54cbb862-0f51-45a6-bef1-2cafc312fc69",
+    "name": "Pompki diamentowe",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS"
+    ],
+    "description": "Wariant pompek z naciskiem na triceps",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "6d58eada-d283-4d5c-ab62-43510ac7e5ee",
+    "name": "Pompki klasyczne",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS",
+      "SHOULDERS"
+    ],
+    "description": "Ćwiczenie z ciężarem własnego ciała",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c3ebad21-3213-4209-b2ea-b75a57d69f40",
+    "name": "Pompki klasyczne",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS",
+      "SHOULDERS"
+    ],
+    "description": "Ćwiczenie z ciężarem własnego ciała",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "d388b5d4-c19e-4a48-8485-fc35e30e2cd7",
+    "name": "Pompki klasyczne",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS",
+      "SHOULDERS"
+    ],
+    "description": "Ćwiczenie z ciężarem własnego ciała",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "0562faa0-8975-4f61-8a3b-ec67760b4670",
+    "name": "Pompki klasyczne",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS",
+      "SHOULDERS"
+    ],
+    "description": "Ćwiczenie z ciężarem własnego ciała",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "cbcfb23a-2037-429b-a3fb-80e6ac1a3820",
+    "name": "Prostowanie nóg na maszynie",
+    "muscleGroups": [
+      "QUADS"
+    ],
+    "description": "Izolacja czworogłowego",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "f3375107-9a99-4b00-ba05-d45e68008cb4",
+    "name": "Prostowanie nóg na maszynie",
+    "muscleGroups": [
+      "QUADS"
+    ],
+    "description": "Izolacja czworogłowego",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "9c4c59ab-b116-4f14-9e6b-6ed2eb8257ff",
+    "name": "Prostowanie nóg na maszynie",
+    "muscleGroups": [
+      "QUADS"
+    ],
+    "description": "Izolacja czworogłowego",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "da196f25-e080-4ca5-9061-f86612d3b901",
+    "name": "Prostowanie nóg na maszynie",
+    "muscleGroups": [
+      "QUADS"
+    ],
+    "description": "Izolacja czworogłowego",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "073ea6f5-868a-48ea-bb19-2695f3106094",
+    "name": "Prostowanie pleców (hyperextensions)",
+    "muscleGroups": [
+      "LOWER_BACK",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Wzmocnienie dolnej części pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "40e5d5ca-4539-408e-a160-4ff089d6a375",
+    "name": "Prostowanie ramienia na wyciągu jednorącz",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Jednostronne prostowanie ramienia na wyciągu górnym — izolacja tricepsa",
+    "creatorUserId": null,
+    "createdAt": "2026-05-15T06:00:28.161Z",
+    "updatedAt": "2026-05-15T06:00:28.161Z"
+  },
+  {
+    "id": "edc68b28-5726-4c4d-ac9a-7c39ed9d5681",
+    "name": "Prostowanie ramienia z hantlem w opadzie",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Jednostronne wzmocnienie",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "3679b260-4586-40f4-b416-bd1e27054cdf",
+    "name": "Prostowanie ramienia z hantlem w opadzie",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Jednostronne wzmocnienie",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "f4682583-61c5-4111-b5b9-719a4f108544",
+    "name": "Prostowanie ramienia z hantlem w opadzie",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Jednostronne wzmocnienie",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "82768788-3393-4541-9f23-5649fe7b2755",
+    "name": "Prostowanie ramienia z hantlem w opadzie",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Jednostronne wzmocnienie",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "43ffc0ff-2704-47dc-a8cf-23d6bbb14a63",
+    "name": "Prostowanie ramion chwyt odwrotny",
+    "muscleGroups": [
+      "TRICEPS",
+      "FOREARMS"
+    ],
+    "description": "Zmiana chwytu aktywuje inne włókna",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "60ba46d7-4224-450f-bd22-81dad8e5ce8e",
+    "name": "Prostowanie ramion chwyt odwrotny",
+    "muscleGroups": [
+      "TRICEPS",
+      "FOREARMS"
+    ],
+    "description": "Zmiana chwytu aktywuje inne włókna",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "f4f55fc2-b1bb-452b-ba04-af3d7a721107",
+    "name": "Prostowanie ramion chwyt odwrotny",
+    "muscleGroups": [
+      "TRICEPS",
+      "FOREARMS"
+    ],
+    "description": "Zmiana chwytu aktywuje inne włókna",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "c898156f-e091-4d5b-8414-c96203560184",
+    "name": "Prostowanie ramion chwyt odwrotny",
+    "muscleGroups": [
+      "TRICEPS",
+      "FOREARMS"
+    ],
+    "description": "Zmiana chwytu aktywuje inne włókna",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "b921a5ff-3dfc-4319-bed0-0d31c439cb94",
+    "name": "Prostowanie ramion na wyciągu",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Izolacja tricepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "6b460859-ae0c-41f5-bc4e-a883981aa5b7",
+    "name": "Prostowanie ramion na wyciągu",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Izolacja tricepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c43f24df-7777-4115-8677-fc1b3d9fb678",
+    "name": "Prostowanie ramion na wyciągu",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Izolacja tricepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "c112422a-619e-4f96-8ec1-2849eb6f49ed",
+    "name": "Prostowanie ramion na wyciągu",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Izolacja tricepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "429530b0-7485-4145-b520-285fbe5387a6",
+    "name": "Prostowanie ramion na wyciągu z liną",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Wariant z liną - większy zakres ruchu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "f493e4c9-186b-4e97-8c56-b178c91d6439",
+    "name": "Prostowanie ramion na wyciągu z liną",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Izolacja tricepsów na wyciągu z liną",
+    "creatorUserId": null,
+    "createdAt": "2026-05-15T06:44:12.578Z",
+    "updatedAt": "2026-05-15T06:44:12.578Z"
+  },
+  {
+    "id": "5689c251-7ba7-4452-a954-247461dc41d8",
+    "name": "Prostowanie ramion na wyciągu z liną",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Wariant z liną - większy zakres ruchu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "32939dd0-8af6-4d08-8497-68a2c4a54637",
+    "name": "Prostowanie ramion na wyciągu z liną",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Wariant z liną - większy zakres ruchu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "a05c1682-a617-4229-bac7-01cb068d6cca",
+    "name": "Przyciąganie siedziąc",
+    "muscleGroups": [
+      "BACK"
+    ],
+    "description": null,
+    "creatorUserId": "37468d2c-2957-49ac-a170-5be337ad0831",
+    "createdAt": "2026-04-13T17:54:34.335Z",
+    "updatedAt": "2026-04-13T17:54:34.335Z"
+  },
+  {
+    "id": "5fd93ed7-874a-4f6f-b71d-580ae83e61e5",
+    "name": "Przysiad sumo",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "ADDUCTORS"
+    ],
+    "description": "Przysiad z szerszym rozstawieniem nóg",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "07682e79-bea1-4aef-8277-effb014473d7",
+    "name": "Przysiad sumo",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "ADDUCTORS"
+    ],
+    "description": "Przysiad z szerszym rozstawieniem nóg",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c13487aa-a9e6-4f8c-98bb-d52bee6f3297",
+    "name": "Przysiad sumo",
+    "muscleGroups": [
+      "GLUTES"
+    ],
+    "description": null,
+    "creatorUserId": "1",
+    "createdAt": "2026-04-15T12:37:57.457Z",
+    "updatedAt": "2026-04-15T12:37:57.457Z"
+  },
+  {
+    "id": "246532f9-3cee-40b8-b3dc-4f691dd6c2c6",
+    "name": "Przysiad sumo",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "ADDUCTORS"
+    ],
+    "description": "Przysiad z szerszym rozstawieniem nóg",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "ab9dd59f-c75a-4028-9b75-7ee584025a19",
+    "name": "Przysiady bułgarskie",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES"
+    ],
+    "description": "Jednostronne przysiady z wyłożoną nogą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c293a67d-2e25-4132-afca-6f2927fb513d",
+    "name": "Przysiady bułgarskie",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES"
+    ],
+    "description": "Jednostronne przysiady z wyłożoną nogą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "598e1fd2-4c35-4a94-91b7-1d5331ced3e3",
+    "name": "Przysiady bułgarskie",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES"
+    ],
+    "description": "Jednostronne przysiady z wyłożoną nogą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "32941a02-31f3-44fa-a06f-26503ca4ed42",
+    "name": "Przysiady bułgarskie",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES"
+    ],
+    "description": "Jednostronne przysiady z wyłożoną nogą",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "9076d686-a0c6-4240-980d-c6d7f6567d30",
+    "name": "Przysiady ze sztangą na plecach",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Król ćwiczeń na nogi",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "f619c162-930c-4b36-bd69-02a9acc40c80",
+    "name": "Przysiady ze sztangą na plecach",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Król ćwiczeń na nogi",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "bacd88c9-552b-4976-b20c-6dfb85a60c5e",
+    "name": "Przysiady ze sztangą na plecach",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Król ćwiczeń na nogi",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "cc88b262-d0af-44e8-8e9b-6ae12ed0ac30",
+    "name": "Przysiady ze sztangą na plecach",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Król ćwiczeń na nogi",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "ea9c9194-b2bd-47e1-a277-e20fc82cc020",
+    "name": "Przywodzenie nóg na maszynie",
+    "muscleGroups": [
+      "ADDUCTORS"
+    ],
+    "description": "Wewnętrzna część uda",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "52d42535-87a2-4a0d-8695-ee1658feb02c",
+    "name": "Przywodzenie nóg na maszynie",
+    "muscleGroups": [
+      "ADDUCTORS"
+    ],
+    "description": "Wewnętrzna część uda",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "c406c129-8148-4d30-954d-553a9cb8c646",
+    "name": "Przywodzenie nóg na maszynie",
+    "muscleGroups": [
+      "ADDUCTORS"
+    ],
+    "description": "Wewnętrzna część uda",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "3ab50c4b-319a-4075-8909-1ddb24d69d4b",
+    "name": "Przywodzenie nóg na maszynie",
+    "muscleGroups": [
+      "ADDUCTORS"
+    ],
+    "description": "Wewnętrzna część uda",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "9d2ed8d1-ef66-4845-819b-efb7c6c682ae",
+    "name": "Pullover hantlem",
+    "muscleGroups": [
+      "CHEST",
+      "LATS"
+    ],
+    "description": "Rozciąganie klatki i grzbietu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "69cd16f1-3bc6-4aa4-a0cb-555328c0779f",
+    "name": "Pullover hantlem",
+    "muscleGroups": [
+      "CHEST",
+      "LATS"
+    ],
+    "description": "Rozciąganie klatki i grzbietu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "f88457e0-063c-4001-9352-9d59a5f572c9",
+    "name": "Pullover hantlem",
+    "muscleGroups": [
+      "CHEST",
+      "LATS"
+    ],
+    "description": "Rozciąganie klatki i grzbietu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "59f984b1-3c92-4db5-a5ae-d766751a482b",
+    "name": "Pullover hantlem",
+    "muscleGroups": [
+      "CHEST",
+      "LATS"
+    ],
+    "description": "Rozciąganie klatki i grzbietu",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "65e79a22-2fc1-4c7f-990a-bdf12dfdd965",
+    "name": "Rozpiętki hantlami na ławce płaskiej",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Rozciąganie i izolacja klatki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "0718d7a5-78c7-456d-9551-e861f197f3dc",
+    "name": "Rozpiętki hantlami na ławce płaskiej",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Rozciąganie i izolacja klatki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "342c1cb0-a894-4310-9325-5994a345b7f0",
+    "name": "Rozpiętki hantlami na ławce płaskiej",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Rozciąganie i izolacja klatki",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "50e4da6d-0c06-4964-8afd-071bcd8c48a5",
+    "name": "Rozpiętki hantlami na ławce płaskiej",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Rozciąganie i izolacja klatki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "ffd932aa-764c-46b3-96b2-c2bcb62d1786",
+    "name": "Rozpiętki hantlami na ławce skośnej",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Górna część klatki - rozpiętki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "25db3400-36da-4f29-a820-4fad14944a6d",
+    "name": "Rozpiętki hantlami na ławce skośnej",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Górna część klatki - rozpiętki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "c2fd3dc0-1ee2-4879-9370-e3da44decc97",
+    "name": "Rozpiętki hantlami na ławce skośnej",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Górna część klatki - rozpiętki",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "243388c4-2140-43e5-ba9a-560c6e5530a5",
+    "name": "Rozpiętki hantlami na ławce skośnej",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Górna część klatki - rozpiętki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "98b81153-d07f-4225-912a-3893dd4d9b60",
+    "name": "Rozpiętki na maszynie",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Izolacja klatki na maszynie",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c980bbdc-bc23-4e3c-ba66-3c92d9a54204",
+    "name": "Rozpiętki na maszynie",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Izolacja klatki na maszynie",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "0752f02b-b464-440d-aabc-8b029c113eb4",
+    "name": "Rozpiętki na maszynie",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": "Izolacja klatki na maszynie",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "b5a993e3-7055-4d88-b34e-e8fcfe744aee",
+    "name": "Rozpiętki na maszynie",
+    "muscleGroups": [
+      "CHEST"
+    ],
+    "description": null,
+    "creatorUserId": "1",
+    "createdAt": "2026-04-08T16:46:51.210Z",
+    "updatedAt": "2026-04-08T16:46:51.210Z"
+  },
+  {
+    "id": "2f923c0f-f555-4aee-a55d-5b8b396ee931",
+    "name": "Rozpiętki odwrotne na maszynie",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Tylna część barków na odwróconej maszynie do rozpietek (reverse pec deck)",
+    "creatorUserId": null,
+    "createdAt": "2026-06-20T10:41:10.049Z",
+    "updatedAt": "2026-06-20T10:41:10.049Z"
+  },
+  {
+    "id": "97ab33dd-2375-48dd-9a1b-25c16cab01ac",
+    "name": "Ściąganie drążka wyciągu górnego",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Alternatywa dla podciągania",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "11340b38-aa99-4e97-8236-5df0c40513e9",
+    "name": "Ściąganie drążka wyciągu górnego",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Alternatywa dla podciągania",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "73b85c04-f290-4cd8-8223-b9c3e5a63b01",
+    "name": "Ściąganie drążka wyciągu górnego",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Alternatywa dla podciągania",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "e647a4c3-19d0-49f5-8fa2-3254203cf6db",
+    "name": "Ściąganie drążka wyciągu górnego",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Alternatywa dla podciągania",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "9786eb30-e175-474e-accb-8bb874a1823e",
+    "name": "Ściąganie drążka wyciągu wąskim chwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Grubość dolnej części pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "c0d8634f-faae-47ad-9290-be55053ddeb4",
+    "name": "Ściąganie drążka wyciągu wąskim chwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Grubość dolnej części pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "7a8d9ce6-2c05-4f34-84a1-4a86b9579340",
+    "name": "Ściąganie drążka wyciągu wąskim chwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Grubość dolnej części pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "b08c7362-d858-4445-b269-3fecf2599f62",
+    "name": "Ściąganie drążka wyciągu wąskim chwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Grubość dolnej części pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "708dcd85-f14d-4ef3-8486-87bca5b21df0",
+    "name": "Ściaganie warkocza wyciagu górnego",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": null,
+    "creatorUserId": "37468d2c-2957-49ac-a170-5be337ad0831",
+    "createdAt": "2026-05-04T15:30:43.297Z",
+    "updatedAt": "2026-05-04T15:30:43.297Z"
+  },
+  {
+    "id": "9edf0866-c93b-43a3-a563-79b301617da7",
+    "name": "Spięcia brzucha na wyciągu",
+    "muscleGroups": [
+      "ABS"
+    ],
+    "description": "Ćwiczenie z obciążeniem",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "69e43331-a712-445e-ad23-d833d2807ee4",
+    "name": "Spięcia brzucha na wyciągu",
+    "muscleGroups": [
+      "ABS"
+    ],
+    "description": "Ćwiczenie z obciążeniem",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "455aae2a-2a4e-4844-bc69-58d7be6d8ed8",
+    "name": "Spięcia brzucha na wyciągu",
+    "muscleGroups": [
+      "ABS"
+    ],
+    "description": "Ćwiczenie z obciążeniem",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "4b93c59d-d7bf-46c4-bc67-0d90fa566a77",
+    "name": "Spięcia brzucha na wyciągu",
+    "muscleGroups": [
+      "ABS"
+    ],
+    "description": "Ćwiczenie z obciążeniem",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "48c6279a-7f09-4dbd-8be6-4d3c3070a614",
+    "name": "Step up",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES"
+    ],
+    "description": "Wejście na podwyższenie — jednostronne ćwiczenie na nogi i pośladki",
+    "creatorUserId": null,
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "63633c2f-a86e-42cf-b885-473ea86da495",
+    "name": "Step up",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES"
+    ],
+    "description": "Wejście na podwyższenie — jednostronne ćwiczenie na nogi i pośladki",
+    "creatorUserId": null,
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "5a15d408-fbd6-47e5-a450-831696ce0751",
+    "name": "Step up",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES"
+    ],
+    "description": "Wejście na podwyższenie — jednostronne ćwiczenie na nogi i pośladki",
+    "creatorUserId": null,
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "f7dd58c4-9351-41f0-8e2c-a507dee4ed7b",
+    "name": "test",
+    "muscleGroups": [
+      "BACK"
+    ],
+    "description": null,
+    "creatorUserId": "89372fa5-7a9b-48e4-ba0c-58af18d37f8d",
+    "createdAt": "2026-05-07T20:04:18.441Z",
+    "updatedAt": "2026-05-07T20:04:18.441Z"
+  },
+  {
+    "id": "cd8d4572-8a02-4ffd-a4b2-c97b6aff97cf",
+    "name": "Uginanie hantli młotkowe",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Neutralny chwyt - przedramiona",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "87a36966-5902-4fa7-a6fc-af1ed9b4a90f",
+    "name": "Uginanie hantli młotkowe",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Neutralny chwyt - przedramiona",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "d552d601-772e-4786-819f-b01843794f6c",
+    "name": "Uginanie hantli młotkowe",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Neutralny chwyt - przedramiona",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "653c6419-8254-460d-bb86-72f8cedf61ce",
+    "name": "Uginanie hantli młotkowe",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Neutralny chwyt - przedramiona",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "570152ba-92db-4ffb-9a13-b191f976b2da",
+    "name": "Uginanie hantli naprzemiennie",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Jednostronne uginanie z rotacją",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "49f30d6a-d374-4eb3-9b5e-15721afbbe63",
+    "name": "Uginanie hantli naprzemiennie",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Jednostronne uginanie z rotacją",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "8ee6653a-f690-49c3-a848-f44297e90258",
+    "name": "Uginanie hantli naprzemiennie",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Jednostronne uginanie z rotacją",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "d2e7bc80-d97c-433e-aa10-8aeeb4111c27",
+    "name": "Uginanie hantli naprzemiennie",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Jednostronne uginanie z rotacją",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "660f6f8e-9757-46a0-ace4-f867765ca3e5",
+    "name": "Uginanie hantli siedząc",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Uginanie hantli w pozycji siedzącej — większa stabilizacja",
+    "creatorUserId": null,
+    "createdAt": "2026-06-20T10:41:10.049Z",
+    "updatedAt": "2026-06-20T10:41:10.049Z"
+  },
+  {
+    "id": "f6285e6b-ca0e-4703-8d2b-a5f537e4c6cd",
+    "name": "Uginanie na ławce skośnej",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Większe rozciągnięcie bicepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "fcf8c182-2076-46fe-aa5f-5db37adf8772",
+    "name": "Uginanie na ławce skośnej",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Większe rozciągnięcie bicepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "60ec1ef6-e3a0-45d3-bf17-82035b7229e2",
+    "name": "Uginanie na ławce skośnej",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Większe rozciągnięcie bicepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "8648afdd-d3ac-4ab7-bc97-1cf30411a87f",
+    "name": "Uginanie na ławce skośnej",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Większe rozciągnięcie bicepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "0bd85565-9419-406e-9a70-a89cfb9467a2",
+    "name": "Uginanie na modlitewniku",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Izolacja bicepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "fcc5e526-2900-4bab-a2fa-17085c849401",
+    "name": "Uginanie na modlitewniku",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Izolacja bicepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "9bf5e6f9-6955-4f4b-8053-55ca43c5d80e",
+    "name": "Uginanie na modlitewniku",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Izolacja bicepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "eea15b92-a2f5-4928-ac3b-f4cf8dfd4d9e",
+    "name": "Uginanie na modlitewniku",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Izolacja bicepsów",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "94d4db12-c1e8-4f2d-9dba-3db21da70f9a",
+    "name": "Uginanie na wyciągu dolnym",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Stałe napięcie przez cały ruch",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "9c150c49-7a7e-461b-8b56-a97f8d92704f",
+    "name": "Uginanie na wyciągu dolnym",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Stałe napięcie przez cały ruch",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "832fbc1f-7eb4-4681-95b8-99208a64c881",
+    "name": "Uginanie na wyciągu dolnym",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Stałe napięcie przez cały ruch",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "d8cb6a24-b781-447a-a085-7c7fb0f470c2",
+    "name": "Uginanie na wyciągu dolnym",
+    "muscleGroups": [
+      "BICEPS"
+    ],
+    "description": "Stałe napięcie przez cały ruch",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "3e85536e-95bd-494f-9e94-4da0965dab23",
+    "name": "Uginanie nóg leżąc",
+    "muscleGroups": [
+      "HAMSTRINGS"
+    ],
+    "description": "Izolacja tylnej części uda",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "b4a54ec7-3f22-44e5-912c-6fbf7ee99889",
+    "name": "Uginanie nóg leżąc",
+    "muscleGroups": [
+      "HAMSTRINGS"
+    ],
+    "description": "Izolacja tylnej części uda",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "f9101b1e-2001-456e-8d17-f0d3c1364145",
+    "name": "Uginanie nóg leżąc",
+    "muscleGroups": [
+      "HAMSTRINGS"
+    ],
+    "description": "Izolacja tylnej części uda",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c59d2ef8-d1e5-4925-a4d3-103ca590f1dd",
+    "name": "Uginanie nóg leżąc",
+    "muscleGroups": [
+      "HAMSTRINGS"
+    ],
+    "description": "Izolacja tylnej części uda",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "0e0499d0-e65f-43a6-b674-d6145be76b6a",
+    "name": "Uginanie nóg siedząc",
+    "muscleGroups": [
+      "HAMSTRINGS"
+    ],
+    "description": "Wariant z większym rozciągnięciem",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "897833b3-069c-4b76-a97c-f5d32cd9866b",
+    "name": "Uginanie nóg siedząc",
+    "muscleGroups": [
+      "HAMSTRINGS"
+    ],
+    "description": "Wariant z większym rozciągnięciem",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "47c8d3e0-49ab-46cb-83a0-ceda982e9338",
+    "name": "Uginanie nóg siedząc",
+    "muscleGroups": [
+      "HAMSTRINGS"
+    ],
+    "description": "Wariant z większym rozciągnięciem",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "3358c76c-effb-425f-b1ac-2c87d346942c",
+    "name": "Uginanie nóg siedząc",
+    "muscleGroups": [
+      "HAMSTRINGS"
+    ],
+    "description": "Wariant z większym rozciągnięciem",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "e052f440-57a6-483e-88af-49784e4c0357",
+    "name": "Uginanie sztangi łamanej",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Bezpieczniejsze dla nadgarstków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "090c0d22-22f1-4495-8e18-e329fdaaa7fb",
+    "name": "Uginanie sztangi łamanej",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Bezpieczniejsze dla nadgarstków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "0ee0fb55-d620-4039-a536-23056127ac71",
+    "name": "Uginanie sztangi łamanej",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Bezpieczniejsze dla nadgarstków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "9cec6516-aba7-4486-9246-7ced5f68c360",
+    "name": "Uginanie sztangi łamanej",
+    "muscleGroups": [
+      "BICEPS",
+      "FOREARMS"
+    ],
+    "description": "Bezpieczniejsze dla nadgarstków",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "272a8268-abf2-473c-8e49-9321a47c2bb3",
+    "name": "Unoszenie hantli bokiem",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Izolacja środkowej części barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "0e68db30-a5b6-40a9-b794-5bf1c79420a2",
+    "name": "Unoszenie hantli bokiem",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Izolacja środkowej części barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "3f2c3228-9b9c-4a8f-a450-efd22e04a770",
+    "name": "Unoszenie hantli bokiem",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Izolacja środkowej części barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "de9db909-88b7-488b-a106-dfee325e05ef",
+    "name": "Unoszenie hantli bokiem",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Izolacja środkowej części barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "7ff4be52-67e8-48df-95e3-60ac4ad3de4d",
+    "name": "Unoszenie hantli w opadzie",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Tylna część barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "305a26df-ba5b-4c15-a6e7-b19de0671794",
+    "name": "Unoszenie hantli w opadzie",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Tylna część barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "8dc7fd9b-5d04-48b6-bc60-3ace1cbe9931",
+    "name": "Unoszenie hantli w opadzie",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Tylna część barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "3d05fb3c-17ce-4e21-b22b-90638cd61937",
+    "name": "Unoszenie hantli w opadzie",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Tylna część barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "dbc2ec4c-a9e2-4571-a656-5295ca7e87d1",
+    "name": "Unoszenie hantli w przód",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Przednia część barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "8174dad2-f23a-4d72-be3a-adea56a5eab1",
+    "name": "Unoszenie hantli w przód",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Przednia część barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "0c5e930d-8865-4139-8f0c-abe0991041e6",
+    "name": "Unoszenie hantli w przód",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Przednia część barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "249d954e-0d45-4e6f-ad71-c258a5a635cb",
+    "name": "Unoszenie hantli w przód",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Przednia część barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "98f2ea4d-20fa-4627-a891-26315a70df8c",
+    "name": "Unoszenie na linie bokiem",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Izolacja bocznej części barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "e5e50da4-4cbe-46ac-829c-d907da3aef82",
+    "name": "Unoszenie na linie bokiem",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Izolacja bocznej części barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "058ebeed-02d0-4845-8683-12d91d7da219",
+    "name": "Unoszenie na linie bokiem",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Izolacja bocznej części barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "00723607-10ea-4f26-a0a6-17ab71308ad4",
+    "name": "Unoszenie na linie bokiem",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": "Izolacja bocznej części barków",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "c6bcc3a9-b1d2-4284-996b-344fd15e5e00",
+    "name": "Unoszenie nóg w zwisie",
+    "muscleGroups": [
+      "ABS",
+      "HIP_FLEXORS"
+    ],
+    "description": "Zaawansowane ćwiczenie na brzuch",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "17882e80-2434-47e4-a5e6-b7b56d5c87c3",
+    "name": "Unoszenie nóg w zwisie",
+    "muscleGroups": [
+      "ABS",
+      "HIP_FLEXORS"
+    ],
+    "description": "Zaawansowane ćwiczenie na brzuch",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "9a427cb6-d355-4a80-a6f6-5b70c83f31e2",
+    "name": "Unoszenie nóg w zwisie",
+    "muscleGroups": [
+      "ABS",
+      "HIP_FLEXORS"
+    ],
+    "description": "Zaawansowane ćwiczenie na brzuch",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "91a10645-45e3-4284-a703-ffa52a0b8bb7",
+    "name": "Unoszenie nóg w zwisie",
+    "muscleGroups": [
+      "ABS",
+      "HIP_FLEXORS"
+    ],
+    "description": "Zaawansowane ćwiczenie na brzuch",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "1342e246-1a8c-4f10-a4f1-0e90feede883",
+    "name": "Wiosłowanie focze hantlami na ławce skośnej",
+    "muscleGroups": [
+      "BACK"
+    ],
+    "description": null,
+    "creatorUserId": "1",
+    "createdAt": "2026-04-08T15:45:20.695Z",
+    "updatedAt": "2026-04-08T15:45:20.695Z"
+  },
+  {
+    "id": "d5a0f85c-97c8-4548-b275-3fd2ac99634b",
+    "name": "Wiosłowanie focze hantlami na ławce skośnej",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "LATS"
+    ],
+    "description": "Seal row - leżąc na ławce skośnej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "3d02e100-c346-4988-baf8-65d5d4dbcb81",
+    "name": "Wiosłowanie focze hantlami na ławce skośnej",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "LATS"
+    ],
+    "description": "Seal row - leżąc na ławce skośnej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "4b7f6e4d-9cf8-4421-8dcd-8ccf8735ea2d",
+    "name": "Wiosłowanie focze hantlami na ławce skośnej",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "LATS"
+    ],
+    "description": "Seal row - leżąc na ławce skośnej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "2a25d7d2-da24-414a-be86-95923d06506f",
+    "name": "Wiosłowanie hantlem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "MIDDLE_BACK"
+    ],
+    "description": "Jednostronne wiosłowanie z podporą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "8c29dfe5-c2af-4ef7-bb74-594bde72abe6",
+    "name": "Wiosłowanie hantlem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "MIDDLE_BACK"
+    ],
+    "description": "Jednostronne wiosłowanie z podporą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "ea1f1bfc-2416-4590-9d93-e89120e07412",
+    "name": "Wiosłowanie hantlem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "MIDDLE_BACK"
+    ],
+    "description": "Jednostronne wiosłowanie z podporą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "2d55a1a4-6500-4b80-988f-fb104ae1bb82",
+    "name": "Wiosłowanie hantlem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "MIDDLE_BACK"
+    ],
+    "description": "Jednostronne wiosłowanie z podporą",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "c50d33ab-13ac-40af-a8d3-6b6c8f31109a",
+    "name": "Wiosłowanie na wyciągu dolnym",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "LATS"
+    ],
+    "description": "Kontrolowane wiosłowanie siedząc",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "50279828-93ac-4ec2-9f2c-9ee8f3ed1a3a",
+    "name": "Wiosłowanie na wyciągu dolnym",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "LATS"
+    ],
+    "description": "Kontrolowane wiosłowanie siedząc",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "9fa10faa-4e60-45c3-970f-bf1ad1d1cda2",
+    "name": "Wiosłowanie na wyciągu dolnym",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "LATS"
+    ],
+    "description": "Kontrolowane wiosłowanie siedząc",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "079b81d6-9dd1-45e6-8459-b32d18adc46e",
+    "name": "Wiosłowanie na wyciągu dolnym",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "LATS"
+    ],
+    "description": "Kontrolowane wiosłowanie siedząc",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "9d529a30-3264-488d-a1ea-e2fc80d06ebb",
+    "name": "Wiosłowanie sztangą podchwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Większy zakres ruchu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "da7b4b20-acd7-4ae7-88db-1fde7f5206d8",
+    "name": "Wiosłowanie sztangą podchwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Większy zakres ruchu",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "f539d8d8-f279-49d2-a8d4-77b5134c0c4a",
+    "name": "Wiosłowanie sztangą podchwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Większy zakres ruchu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "a5f6b7bb-7489-447c-92e8-7139134f6619",
+    "name": "Wiosłowanie sztangą podchwytem",
+    "muscleGroups": [
+      "BACK",
+      "LATS",
+      "BICEPS"
+    ],
+    "description": "Większy zakres ruchu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "2f5707f4-a447-440f-864c-5c4a7aa313d8",
+    "name": "Wiosłowanie sztangą w opadzie",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "LATS",
+      "TRAPS"
+    ],
+    "description": "Buduje grubość pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "764ae326-45c3-4ffc-a943-e3bd092b0b39",
+    "name": "Wiosłowanie sztangą w opadzie",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "LATS",
+      "TRAPS"
+    ],
+    "description": "Buduje grubość pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "8d46caa3-d916-4ce6-bedf-e3ab43f13109",
+    "name": "Wiosłowanie sztangą w opadzie",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "LATS",
+      "TRAPS"
+    ],
+    "description": "Buduje grubość pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c013fc24-8254-4513-8575-ed06ec1c68af",
+    "name": "Wiosłowanie sztangą w opadzie",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "LATS",
+      "TRAPS"
+    ],
+    "description": "Buduje grubość pleców",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "860ce308-cf41-4e5e-b513-29b3409d9c4d",
+    "name": "Wiosłowanie sztangi stojąc",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRAPS"
+    ],
+    "description": "Buduje masę barków i trapezów",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "31b5a614-e24e-40cb-8f86-b9f33aed0c54",
+    "name": "Wiosłowanie sztangi stojąc",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRAPS"
+    ],
+    "description": "Buduje masę barków i trapezów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "ce0c4464-b18d-4d1c-a566-181828f47a6d",
+    "name": "Wiosłowanie sztangi stojąc",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRAPS"
+    ],
+    "description": "Buduje masę barków i trapezów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "14901ea6-65b5-4849-a0e7-7c10ec6df5ad",
+    "name": "Wiosłowanie sztangi stojąc",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRAPS"
+    ],
+    "description": "Buduje masę barków i trapezów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "182b044e-075b-4da9-a247-a83316d920a2",
+    "name": "Wiosłowanie T-bar",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "TRAPS"
+    ],
+    "description": "Stabilne wiosłowanie na masę",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "4def539b-c567-45aa-a62c-eb1f4435a397",
+    "name": "Wiosłowanie T-bar",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "TRAPS"
+    ],
+    "description": "Stabilne wiosłowanie na masę",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "d3a7bf03-b8f7-460a-9f70-c60377b9b2f5",
+    "name": "Wiosłowanie T-bar",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "TRAPS"
+    ],
+    "description": "Stabilne wiosłowanie na masę",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "c98f7449-da91-4d73-9eea-adf87894f5c5",
+    "name": "Wiosłowanie T-bar",
+    "muscleGroups": [
+      "BACK",
+      "MIDDLE_BACK",
+      "TRAPS"
+    ],
+    "description": "Stabilne wiosłowanie na masę",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "60cfbf9c-c6ca-449d-95ec-c324c6a52805",
+    "name": "Wspięcia na palce siedząc",
+    "muscleGroups": [
+      "CALVES"
+    ],
+    "description": "Izolacja płaskiej części łydki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "406eca1c-5480-4c82-86b2-d65846f78e3d",
+    "name": "Wspięcia na palce siedząc",
+    "muscleGroups": [
+      "CALVES"
+    ],
+    "description": "Izolacja płaskiej części łydki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "f499c4da-6725-4c33-b490-b6573579b8cb",
+    "name": "Wspięcia na palce siedząc",
+    "muscleGroups": [
+      "CALVES"
+    ],
+    "description": "Izolacja płaskiej części łydki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "e01b4745-e0ae-4b95-896a-f419126d8379",
+    "name": "Wspięcia na palce siedząc",
+    "muscleGroups": [
+      "CALVES"
+    ],
+    "description": "Izolacja płaskiej części łydki",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "ca9b3483-4779-4c49-840f-03fd44f2b79b",
+    "name": "Wspięcia na palce stojąc",
+    "muscleGroups": [
+      "CALVES"
+    ],
+    "description": "Podstawowe ćwiczenie na łydki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "cd2bef09-7a97-4ea1-8b53-cecc7c05d88c",
+    "name": "Wspięcia na palce stojąc",
+    "muscleGroups": [
+      "CALVES"
+    ],
+    "description": "Podstawowe ćwiczenie na łydki",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "03a91c09-96e8-49a5-ba6d-99576a94c565",
+    "name": "Wspięcia na palce stojąc",
+    "muscleGroups": [
+      "CALVES"
+    ],
+    "description": "Podstawowe ćwiczenie na łydki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "3ade73cb-f84c-4d34-8483-6aab273581e7",
+    "name": "Wspięcia na palce stojąc",
+    "muscleGroups": [
+      "CALVES"
+    ],
+    "description": "Podstawowe ćwiczenie na łydki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "2166f841-7259-4e22-90ba-215ed4338964",
+    "name": "Wyciskanie Arnolda",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Wariant z rotacją hantli",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "3242afdf-f8b7-4197-a5a2-8db7551e49dd",
+    "name": "Wyciskanie Arnolda",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Wariant z rotacją hantli",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "3fa271b9-34c2-4dc4-a121-f9cfe43189bc",
+    "name": "Wyciskanie Arnolda",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Wariant z rotacją hantli",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "42305e30-4a20-4ab3-a669-4a0ae30c4c58",
+    "name": "Wyciskanie Arnolda",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Wariant z rotacją hantli",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "d047ec46-96c9-4dd3-b046-9558a007e642",
+    "name": "Wyciskanie francuskie hantlem",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Jednostronne lub oburęczne",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "3d1e5a8d-6651-4581-b2e7-9d0b97448adc",
+    "name": "Wyciskanie francuskie hantlem",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Jednostronne lub oburęczne",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "f2a2926f-1d6b-4146-9aeb-fdd2fa2318cc",
+    "name": "Wyciskanie francuskie hantlem",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Jednostronne lub oburęczne",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "ce66a6d4-f0af-417f-8e6e-59ddf20bd760",
+    "name": "Wyciskanie francuskie hantlem",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Jednostronne lub oburęczne",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "37e1cf06-f148-4d02-a10d-11b9be5bcbf1",
+    "name": "Wyciskanie francuskie sztangą",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Leżąc - rozciąga tricepsy",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "1b0f9055-39bf-4b73-ac59-d9e8dd0b603a",
+    "name": "Wyciskanie francuskie sztangą",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Leżąc - rozciąga tricepsy",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "d8f8c4a9-7b75-4ee2-989b-3cb6163df63a",
+    "name": "Wyciskanie francuskie sztangą",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Leżąc - rozciąga tricepsy",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "34146b76-505f-45ab-95c9-39759b537fae",
+    "name": "Wyciskanie francuskie sztangą",
+    "muscleGroups": [
+      "TRICEPS"
+    ],
+    "description": "Leżąc - rozciąga tricepsy",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "f806c2b5-fd1e-4b64-9577-2328505e4bb7",
+    "name": "Wyciskanie hantli na ławce płaskiej",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS",
+      "SHOULDERS"
+    ],
+    "description": "Większy zakres ruchu niż ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "2994f3c6-575c-4021-97b0-1dd4ccb45f01",
+    "name": "Wyciskanie hantli na ławce płaskiej",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS",
+      "SHOULDERS"
+    ],
+    "description": "Większy zakres ruchu niż ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "673dd2b3-c55a-4c27-9972-b1210ff41b68",
+    "name": "Wyciskanie hantli na ławce płaskiej",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS",
+      "SHOULDERS"
+    ],
+    "description": "Większy zakres ruchu niż ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "852dee96-88ee-44b0-a7b0-ac46797d3961",
+    "name": "Wyciskanie hantli na ławce płaskiej",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS",
+      "SHOULDERS"
+    ],
+    "description": "Większy zakres ruchu niż ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "3bbdc866-3df1-4c2b-b144-d21e42a45f7f",
+    "name": "Wyciskanie hantli na ławce skośnej",
+    "muscleGroups": [
+      "CHEST",
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Izolacja górnej części klatki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "cfb32570-a3a9-47bf-9572-5907f1194acb",
+    "name": "Wyciskanie hantli na ławce skośnej",
+    "muscleGroups": [
+      "CHEST",
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Izolacja górnej części klatki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "8bab07b5-b4ff-4571-a4c8-36710e24f69c",
+    "name": "Wyciskanie hantli na ławce skośnej",
+    "muscleGroups": [
+      "CHEST",
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Izolacja górnej części klatki",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "ba3a96af-8340-4244-8769-5b1dfe14344d",
+    "name": "Wyciskanie hantli na ławce skośnej",
+    "muscleGroups": [
+      "CHEST",
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Izolacja górnej części klatki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "0a3bcfa4-bddc-4e83-a48a-175a906be16a",
+    "name": "Wyciskanie hantli nad głowę",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Większy zakres ruchu",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "6c3ea538-7857-4f82-820f-6318dbdae053",
+    "name": "Wyciskanie hantli nad głowę",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Większy zakres ruchu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "34f4a125-d606-4366-85af-6fd7fd971573",
+    "name": "Wyciskanie hantli nad głowę",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Większy zakres ruchu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "6c139a2b-82dc-4ab7-8909-745dc78e5b9b",
+    "name": "Wyciskanie hantli nad głowę",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Większy zakres ruchu",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "2e264176-71c6-4016-bfb4-23f158d1f06f",
+    "name": "Wyciskanie na ławce skośnej głową w dół",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS"
+    ],
+    "description": "Dolna część klatki piersiowej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "2ff2ec86-cc36-49d8-a832-be8c5147211e",
+    "name": "Wyciskanie na ławce skośnej głową w dół",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS"
+    ],
+    "description": "Dolna część klatki piersiowej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "dbce2bca-de4d-4024-9767-2b22066c6037",
+    "name": "Wyciskanie na ławce skośnej głową w dół",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS"
+    ],
+    "description": "Dolna część klatki piersiowej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "88bd7054-5bd7-426a-b26e-fc5d4cd7c8bf",
+    "name": "Wyciskanie na ławce skośnej głową w dół",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS"
+    ],
+    "description": "Dolna część klatki piersiowej",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "1f186f2b-9bfa-44e5-9def-5d9dd6ae4606",
+    "name": "Wyciskanie na maszynie",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Bezpieczne wyciskanie na barki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "1f9f148e-9e87-445c-85aa-ce637a56b851",
+    "name": "Wyciskanie na maszynie",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Bezpieczne wyciskanie na barki",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "4ea8f399-c704-4526-88b7-aa057197fb1d",
+    "name": "Wyciskanie na maszynie",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS"
+    ],
+    "description": "Bezpieczna alternatywa dla początkujących",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "55bab0d3-c59d-4eed-86e3-8d9afff92aa1",
+    "name": "Wyciskanie na maszynie",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS"
+    ],
+    "description": "Bezpieczna alternatywa dla początkujących",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "a6947ace-5642-4c3a-8622-1d8fcab2c8f6",
+    "name": "Wyciskanie na maszynie",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS"
+    ],
+    "description": "Bezpieczna alternatywa dla początkujących",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "a6864276-09a9-4664-aa90-c748e6d360d0",
+    "name": "Wyciskanie na maszynie",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS"
+    ],
+    "description": "Bezpieczna alternatywa dla początkujących",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "0b31707d-f004-4584-84c7-f220d65bd1dc",
+    "name": "Wyciskanie na maszynie",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Bezpieczne wyciskanie na barki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "2d60f8d5-65bb-4f71-ac31-86d5c9772903",
+    "name": "Wyciskanie na maszynie",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Bezpieczne wyciskanie na barki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "cd4d7acb-16cc-484d-88d4-718c36c3fcbb",
+    "name": "Wyciskanie sztangi na ławce płaskiej",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS",
+      "SHOULDERS"
+    ],
+    "description": "Podstawowe ćwiczenie na masę klatki piersiowej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "597eb187-04fa-4041-8ef4-88e8d2517cc2",
+    "name": "Wyciskanie sztangi na ławce płaskiej",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS",
+      "SHOULDERS"
+    ],
+    "description": "Podstawowe ćwiczenie na masę klatki piersiowej",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "9ea4e740-339f-4613-bccd-539a3c1c4d78",
+    "name": "Wyciskanie sztangi na ławce płaskiej",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS",
+      "SHOULDERS"
+    ],
+    "description": "Podstawowe ćwiczenie na masę klatki piersiowej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "84855dad-261d-4852-abf6-6497dcebe039",
+    "name": "Wyciskanie sztangi na ławce płaskiej",
+    "muscleGroups": [
+      "CHEST",
+      "TRICEPS",
+      "SHOULDERS"
+    ],
+    "description": "Podstawowe ćwiczenie na masę klatki piersiowej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "20671afa-fc94-4cf5-bef8-7c1b2225eb38",
+    "name": "Wyciskanie sztangi na ławce skośnej",
+    "muscleGroups": [
+      "CHEST",
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Górna część klatki piersiowej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c76cba51-0100-4641-892a-c19372bfc418",
+    "name": "Wyciskanie sztangi na ławce skośnej",
+    "muscleGroups": [
+      "CHEST",
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Górna część klatki piersiowej",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "0b52f5df-23f9-4394-b483-988790471e0c",
+    "name": "Wyciskanie sztangi na ławce skośnej",
+    "muscleGroups": [
+      "CHEST",
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Górna część klatki piersiowej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "d3f40233-5b11-4a0b-9521-f5db6cad26ca",
+    "name": "Wyciskanie sztangi na ławce skośnej",
+    "muscleGroups": [
+      "CHEST",
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Górna część klatki piersiowej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "0b597425-1c9d-4219-ab73-78e7ddf22b19",
+    "name": "Wyciskanie sztangi nad głowę (OHP)",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Podstawowe ćwiczenie na barki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "da929607-f7c1-4433-b770-12a56c7b6cae",
+    "name": "Wyciskanie sztangi nad głowę (OHP)",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Podstawowe ćwiczenie na barki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "1c4d67b1-56c7-4953-88ec-ad537bf07a3b",
+    "name": "Wyciskanie sztangi nad głowę (OHP)",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Podstawowe ćwiczenie na barki",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "e960f78a-f42f-4df1-93c1-7531e1de9cac",
+    "name": "Wyciskanie sztangi nad głowę (OHP)",
+    "muscleGroups": [
+      "SHOULDERS",
+      "TRICEPS"
+    ],
+    "description": "Podstawowe ćwiczenie na barki",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "16e3a549-e814-434c-bd52-0fd2554a9186",
+    "name": "Wyciskanie wąskim chwytem",
+    "muscleGroups": [
+      "TRICEPS",
+      "CHEST"
+    ],
+    "description": "Podstawowe ćwiczenie na triceps",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "b3bc2ec8-5895-4539-8f53-187dca077cc2",
+    "name": "Wyciskanie wąskim chwytem",
+    "muscleGroups": [
+      "TRICEPS",
+      "CHEST"
+    ],
+    "description": "Podstawowe ćwiczenie na triceps",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "3f78dd48-3829-4f90-aedb-70519e050be7",
+    "name": "Wyciskanie wąskim chwytem",
+    "muscleGroups": [
+      "TRICEPS",
+      "CHEST"
+    ],
+    "description": "Podstawowe ćwiczenie na triceps",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "c93a4900-1630-4dcb-b280-d5991560b3d1",
+    "name": "Wyciskanie wąskim chwytem",
+    "muscleGroups": [
+      "TRICEPS",
+      "CHEST"
+    ],
+    "description": "Podstawowe ćwiczenie na triceps",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "ed333b21-756a-4a34-90b4-ffbca11715d9",
+    "name": "Wykroki z hantlami",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Łatwiejsze do wykonania niż ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "6873e9e2-4264-4e6a-876e-da58c10ee637",
+    "name": "Wykroki z hantlami",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Łatwiejsze do wykonania niż ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "c4e62a57-8d47-447c-a08d-7e6be6c5ae90",
+    "name": "Wykroki z hantlami",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Łatwiejsze do wykonania niż ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "5c29ff89-53bc-4215-aa50-4aa1dbefa0df",
+    "name": "Wykroki z hantlami",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Łatwiejsze do wykonania niż ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "d1ee226e-93b2-4f55-97d2-2b83f8033b4c",
+    "name": "Wykroki ze sztangą",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Jednostronne ćwiczenie funkcjonalne",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "c8313645-69b9-47ab-b478-02854eb2bb9c",
+    "name": "Wykroki ze sztangą",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Jednostronne ćwiczenie funkcjonalne",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "12e1edc9-e798-4b58-acf4-d137fd279c1d",
+    "name": "Wykroki ze sztangą",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Jednostronne ćwiczenie funkcjonalne",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "3ceb6a36-7f62-4a01-ba9c-556629c69cc1",
+    "name": "Wykroki ze sztangą",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Jednostronne ćwiczenie funkcjonalne",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "eb231b25-a053-45ea-af67-8e37377a67b8",
+    "name": "Wypychanie łydek na suwnicy",
+    "muscleGroups": [
+      "CALVES"
+    ],
+    "description": "Wspięcia na palce na suwnicy — izolacja łydek",
+    "creatorUserId": null,
+    "createdAt": "2026-06-20T10:39:56.121Z",
+    "updatedAt": "2026-06-20T10:39:56.121Z"
+  },
+  {
+    "id": "e96686e3-e19d-46f7-8f1c-1877cf13a6eb",
+    "name": "Wypychanie nóg na suwnicy",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Bezpieczna alternatywa dla przysiadów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "d2cba015-ad74-4e52-91ca-494dd44ffd05",
+    "name": "Wypychanie nóg na suwnicy",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Bezpieczna alternatywa dla przysiadów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "4f2a9236-3140-4889-b726-f11c0cf2a815",
+    "name": "Wypychanie nóg na suwnicy",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Bezpieczna alternatywa dla przysiadów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "972d4990-cea1-42b7-a127-ffe3185116b4",
+    "name": "Wypychanie nóg na suwnicy",
+    "muscleGroups": [
+      "QUADS",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Bezpieczna alternatywa dla przysiadów",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "e920ab90-23fb-4384-9cd0-bcf1f7d970ef",
+    "name": "Wznosy barków (shrugs) ze sztangą",
+    "muscleGroups": [
+      "TRAPS",
+      "NECK"
+    ],
+    "description": "Izolacja górnej części trapezów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "4d1eb45a-312d-459e-b2ea-e65649f5cc7a",
+    "name": "Wznosy barków (shrugs) ze sztangą",
+    "muscleGroups": [
+      "TRAPS",
+      "NECK"
+    ],
+    "description": "Izolacja górnej części trapezów",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "c0029d3b-4085-4ca0-b9ff-fe70afe62ab6",
+    "name": "Wznosy barków (shrugs) ze sztangą",
+    "muscleGroups": [
+      "TRAPS",
+      "NECK"
+    ],
+    "description": "Izolacja górnej części trapezów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "2d863695-a816-41be-9a78-543a4caf326b",
+    "name": "Wznosy barków (shrugs) ze sztangą",
+    "muscleGroups": [
+      "TRAPS",
+      "NECK"
+    ],
+    "description": "Izolacja górnej części trapezów",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "982e567e-9aa1-4416-9f33-ac026187a782",
+    "name": "Wznosy barków z hantlami",
+    "muscleGroups": [
+      "TRAPS"
+    ],
+    "description": "Większy zakres ruchu niż ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "1183aeac-1531-4d55-b07a-b856a48c7c35",
+    "name": "Wznosy barków z hantlami",
+    "muscleGroups": [
+      "TRAPS"
+    ],
+    "description": "Większy zakres ruchu niż ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "bcb21061-c5b4-412a-ab4f-bd4b1da93026",
+    "name": "Wznosy barków z hantlami",
+    "muscleGroups": [
+      "TRAPS"
+    ],
+    "description": "Większy zakres ruchu niż ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "049ae498-1210-46ce-a1c2-ae8df8b650c7",
+    "name": "Wznosy barków z hantlami",
+    "muscleGroups": [
+      "TRAPS"
+    ],
+    "description": "Większy zakres ruchu niż ze sztangą",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "dc354f0e-eac9-4af6-8f27-1ea8b3bf5288",
+    "name": "Wznosy bokiem hantlami",
+    "muscleGroups": [
+      "SHOULDERS"
+    ],
+    "description": null,
+    "creatorUserId": "896c1bd8-03d0-4de5-9f26-dc4121fdd0cd",
+    "createdAt": "2026-04-06T08:26:15.724Z",
+    "updatedAt": "2026-04-07T10:12:56.415Z"
+  },
+  {
+    "id": "614e2cd0-57dd-407f-806d-8469ec2a5e7e",
+    "name": "Wznosy tułowia na ławce rzymskiej",
+    "muscleGroups": [
+      "LOWER_BACK",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Wzmocnienie dolnej części pleców na ławce rzymskiej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "1b751755-f222-4fde-b337-ecbe464293e7",
+    "name": "Wznosy tułowia na ławce rzymskiej",
+    "muscleGroups": [
+      "LOWER_BACK",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Wzmocnienie dolnej części pleców na ławce rzymskiej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  },
+  {
+    "id": "9a545545-5ce4-4ee5-9262-3b0eea214a39",
+    "name": "Wznosy tułowia na ławce rzymskiej",
+    "muscleGroups": [
+      "LOWER_BACK",
+      "GLUTES",
+      "HAMSTRINGS"
+    ],
+    "description": "Wzmocnienie dolnej części pleców na ławce rzymskiej",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "4825b239-d12a-4d65-9d73-cc6c8fabc902",
+    "name": "Wznosy tułowia na ławce rzymskiej",
+    "muscleGroups": [
+      "GLUTES"
+    ],
+    "description": null,
+    "creatorUserId": "1",
+    "createdAt": "2026-04-13T17:43:21.565Z",
+    "updatedAt": "2026-04-13T17:43:21.565Z"
+  },
+  {
+    "id": "e14da2b1-84a1-434d-b48e-2b7aaf457671",
+    "name": "Zwijanie nadgarstków ze sztangą",
+    "muscleGroups": [
+      "FOREARMS"
+    ],
+    "description": "Wzmacnianie przedramion",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:41:23.745Z",
+    "updatedAt": "2026-06-20T10:41:23.745Z"
+  },
+  {
+    "id": "e1bb0080-95bd-4fcd-8548-4003a600fcc7",
+    "name": "Zwijanie nadgarstków ze sztangą",
+    "muscleGroups": [
+      "FOREARMS"
+    ],
+    "description": "Wzmacnianie przedramion",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:30.987Z",
+    "updatedAt": "2026-06-20T10:39:30.987Z"
+  },
+  {
+    "id": "0d2a5d0f-22a9-499f-a35c-8fc8c3a629d0",
+    "name": "Zwijanie nadgarstków ze sztangą",
+    "muscleGroups": [
+      "FOREARMS"
+    ],
+    "description": "Wzmacnianie przedramion",
+    "creatorUserId": "1",
+    "createdAt": "2026-01-08T23:10:31.675Z",
+    "updatedAt": "2026-01-08T23:10:31.675Z"
+  },
+  {
+    "id": "ccf5471e-916b-4748-a6a8-ff3b5fbe9dc8",
+    "name": "Zwijanie nadgarstków ze sztangą",
+    "muscleGroups": [
+      "FOREARMS"
+    ],
+    "description": "Wzmacnianie przedramion",
+    "creatorUserId": "1",
+    "createdAt": "2026-06-20T10:39:59.667Z",
+    "updatedAt": "2026-06-20T10:39:59.667Z"
+  }
+]

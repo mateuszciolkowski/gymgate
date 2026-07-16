@@ -46,6 +46,7 @@ export class PlanService {
     return this.runCreateWithUniqueGuard(() =>
       this.repository.create({
         name: data.name,
+        shortName: data.shortName,
         creatorUserId: userId,
         isPublic: data.isPublic,
         exerciseIds: data.exerciseIds,

@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { localStore } from "@/utils/localStore";
 import { authFetch, getAuthHeaders } from "@/utils/auth";
 import { API_BASE } from "@/config/api";
-import type { Workout, WorkoutItem, WorkoutSet } from "@/types";
+import type { WorkoutItem } from "@/types";
 import { WorkoutNotFoundError } from "./types";
 import type { DataStore } from "./useDataStore";
 
@@ -15,7 +15,7 @@ export function useWorkoutItemActions(store: DataStore) {
     workoutsRef,
     exercisesRef,
     idMappingRef,
-    setWorkouts,
+    applyWorkoutUpdate,
     getRealId,
     isOfflineError,
     queueSyncOperation,
@@ -23,6 +23,7 @@ export function useWorkoutItemActions(store: DataStore) {
     purgeLocalWorkout,
     invalidateProgressionCache,
     refreshStatsData,
+    refreshWorkout,
   } = store;
 
   const addExerciseToWorkout = useCallback(
@@ -57,19 +58,14 @@ export function useWorkoutItemActions(store: DataStore) {
         sets: [],
       };
 
-      // Compute the updated workout synchronously from the ref - the setState updater
-      // is asynchronous, so its result cannot be read immediately after the call.
-      const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
-      if (currentWorkout) {
-        const itemWithOrder = {
-          ...newItem,
-          orderInWorkout: currentWorkout.items.length + 1,
-        };
-        const updatedWorkout: Workout = {
-          ...currentWorkout,
-          items: [...currentWorkout.items, itemWithOrder as WorkoutItem],
-        };
-        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        items: [
+          ...w.items,
+          { ...newItem, orderInWorkout: w.items.length + 1 } as WorkoutItem,
+        ],
+      }));
+      if (updatedWorkout) {
         await localStore.put("workouts", updatedWorkout);
       }
 
@@ -96,7 +92,7 @@ export function useWorkoutItemActions(store: DataStore) {
           {
             method: "POST",
             headers: getAuthHeaders(),
-            body: JSON.stringify({ exerciseId }),
+            body: JSON.stringify({ exerciseId, clientId: tempItemId }),
           },
         );
         if (response.status === 404) {
@@ -109,25 +105,19 @@ export function useWorkoutItemActions(store: DataStore) {
 
         if (result.data) {
           idMappingRef.current.set(tempItemId, result.data.id);
+          await localStore.addIdMappings({ [tempItemId]: result.data.id });
 
-          let remappedWorkout: Workout | null = null;
-          setWorkouts((prev) =>
-            prev.map((w) => {
-              if (w.id !== workoutId) return w;
-              remappedWorkout = {
-                ...w,
-                items: w.items.map((item) => {
-                  if (item.id !== tempItemId) return item;
-                  return {
-                    ...item,
-                    id: result.data.id,
-                    previousNote: result.data.previousNote ?? null,
-                  };
-                }),
+          const remappedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+            ...w,
+            items: w.items.map((item) => {
+              if (item.id !== tempItemId) return item;
+              return {
+                ...item,
+                id: result.data.id,
+                previousNote: result.data.previousNote ?? null,
               };
-              return remappedWorkout;
             }),
-          );
+          }));
           if (remappedWorkout) {
             await localStore.put("workouts", remappedWorkout);
           }
@@ -153,23 +143,17 @@ export function useWorkoutItemActions(store: DataStore) {
           return;
         }
 
-        let rolledBackWorkout: Workout | null = null;
-        setWorkouts((prev) =>
-          prev.map((w) => {
-            if (w.id !== workoutId) return w;
-            rolledBackWorkout = {
-              ...w,
-              items: w.items.filter((i) => i.id !== tempItemId),
-            };
-            return rolledBackWorkout;
-          }),
-        );
+        const rolledBackWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+          ...w,
+          items: w.items.filter((i) => i.id !== tempItemId),
+        }));
         if (rolledBackWorkout) {
           await localStore.put("workouts", rolledBackWorkout);
         }
       }
     },
     [
+      applyWorkoutUpdate,
       exercisesRef,
       getRealId,
       idMappingRef,
@@ -178,7 +162,6 @@ export function useWorkoutItemActions(store: DataStore) {
       purgeLocalWorkout,
       queueSyncOperation,
       refreshStatsData,
-      setWorkouts,
       workoutsRef,
     ],
   );
@@ -193,13 +176,12 @@ export function useWorkoutItemActions(store: DataStore) {
       const originalItem: WorkoutItem | null =
         originalWorkout?.items.find((i) => i.id === itemId) ?? null;
 
-      // Optimistic update - compute synchronously from the ref
-      if (originalWorkout) {
-        const updatedWorkout: Workout = {
-          ...originalWorkout,
-          items: originalWorkout.items.filter((i) => i.id !== itemId),
-        };
-        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
+      // Optimistic update
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        items: w.items.filter((i) => i.id !== itemId),
+      }));
+      if (updatedWorkout) {
         await localStore.put("workouts", updatedWorkout);
       }
 
@@ -250,19 +232,12 @@ export function useWorkoutItemActions(store: DataStore) {
           }
 
           if (originalItem) {
-            let restoredWorkout: Workout | null = null;
-            setWorkouts((prev) =>
-              prev.map((w) => {
-                if (w.id !== workoutId) return w;
-                restoredWorkout = {
-                  ...w,
-                  items: [...w.items, originalItem!].sort(
-                    (a, b) => a.orderInWorkout - b.orderInWorkout,
-                  ),
-                };
-                return restoredWorkout!;
-              }),
-            );
+            const restoredWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+              ...w,
+              items: [...w.items, originalItem].sort(
+                (a, b) => a.orderInWorkout - b.orderInWorkout,
+              ),
+            }));
             if (restoredWorkout) {
               await localStore.put("workouts", restoredWorkout);
             }
@@ -286,6 +261,7 @@ export function useWorkoutItemActions(store: DataStore) {
       }
     },
     [
+      applyWorkoutUpdate,
       getRealId,
       invalidateProgressionCache,
       isOfflineError,
@@ -293,7 +269,6 @@ export function useWorkoutItemActions(store: DataStore) {
       queueSyncOperation,
       refreshStatsData,
       removePendingOperationsReferencingTempId,
-      setWorkouts,
       workoutsRef,
     ],
   );
@@ -304,20 +279,18 @@ export function useWorkoutItemActions(store: DataStore) {
       const originalWorkout = workoutsRef.current.find((w) => w.id === workoutId);
       const originalItem = originalWorkout?.items.find((i) => i.id === itemId);
 
-      // Optimistic update - compute synchronously from the ref
-      if (originalWorkout) {
-        const updatedWorkout: Workout = {
-          ...originalWorkout,
-          items: originalWorkout.items.map((item) => {
-            if (item.id !== itemId) return item;
-            return {
-              ...item,
-              notes: data.notes ?? null,
-              updatedAt: new Date().toISOString(),
-            };
-          }),
-        };
-        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        items: w.items.map((item) => {
+          if (item.id !== itemId) return item;
+          return {
+            ...item,
+            notes: data.notes ?? null,
+            updatedAt: new Date().toISOString(),
+          };
+        }),
+      }));
+      if (updatedWorkout) {
         await localStore.put("workouts", updatedWorkout);
       }
 
@@ -370,23 +343,16 @@ export function useWorkoutItemActions(store: DataStore) {
         }
 
         if (!originalItem) return;
-        let restoredWorkout: Workout | null = null;
-        setWorkouts((prev) =>
-          prev.map((w) => {
-            if (w.id !== workoutId) return w;
-            restoredWorkout = {
-              ...w,
-              items: w.items.map((item) => (item.id === itemId ? originalItem : item)),
-            };
-            return restoredWorkout;
-          }),
-        );
+        const restoredWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+          ...w,
+          items: w.items.map((item) => (item.id === itemId ? originalItem : item)),
+        }));
         if (restoredWorkout) {
           await localStore.put("workouts", restoredWorkout);
         }
       }
     },
-    [getRealId, isOfflineError, purgeLocalWorkout, queueSyncOperation, setWorkouts, workoutsRef],
+    [applyWorkoutUpdate, getRealId, isOfflineError, purgeLocalWorkout, queueSyncOperation, workoutsRef],
   );
 
   const addSet = useCallback(
@@ -405,31 +371,29 @@ export function useWorkoutItemActions(store: DataStore) {
       // Temporary ID
       const tempSetId = `temp_set_${Date.now()}`;
 
-      // Optimistic update - compute synchronously from the ref
-      const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
-      if (currentWorkout) {
-        const updatedWorkout: Workout = {
-          ...currentWorkout,
-          items: currentWorkout.items.map((item) => {
-            if (item.id !== itemId) return item;
-            return {
-              ...item,
-              sets: [
-                ...item.sets,
-                {
-                  id: tempSetId,
-                  itemId,
-                  setNumber: data.setNumber,
-                  weight: String(data.weight),
-                  repetitions: data.repetitions,
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
-                },
-              ],
-            };
-          }),
-        };
-        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
+      // Optimistic update
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        items: w.items.map((item) => {
+          if (item.id !== itemId) return item;
+          return {
+            ...item,
+            sets: [
+              ...item.sets,
+              {
+                id: tempSetId,
+                itemId,
+                setNumber: data.setNumber,
+                weight: String(data.weight),
+                repetitions: data.repetitions,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+            ],
+          };
+        }),
+      }));
+      if (updatedWorkout) {
         await localStore.put("workouts", updatedWorkout);
       }
 
@@ -460,13 +424,13 @@ export function useWorkoutItemActions(store: DataStore) {
           {
             method: "POST",
             headers: getAuthHeaders(),
-            body: JSON.stringify(data),
+            body: JSON.stringify({ ...data, clientId: tempSetId }),
           },
         );
         if (response.status === 404) {
-          await purgeLocalWorkout(realWorkoutId);
-          alert("Ten trening nie istnieje już na serwerze — został usunięty z urządzenia.");
-          throw new WorkoutNotFoundError(`Workout ${realWorkoutId} no longer exists`);
+          // The item/set no longer exists on the server — reconcile THIS workout (do not purge the whole one).
+          await refreshWorkout(realWorkoutId);
+          return;
         }
         if (!response.ok) {
           await queueSyncOperation({
@@ -482,6 +446,7 @@ export function useWorkoutItemActions(store: DataStore) {
         const result = await response.json();
         if (result.data) {
           idMappingRef.current.set(tempSetId, result.data.id);
+          await localStore.addIdMappings({ [tempSetId]: result.data.id });
         }
         if (shouldRefreshStats) {
           await refreshStatsData();
@@ -504,37 +469,30 @@ export function useWorkoutItemActions(store: DataStore) {
           return;
         }
 
-        let rolledBackWorkout: Workout | null = null;
-        setWorkouts((prev) =>
-          prev.map((w) => {
-            if (w.id !== workoutId) return w;
-            rolledBackWorkout = {
-              ...w,
-              items: w.items.map((item) => {
-                if (item.id !== itemId) return item;
-                return {
-                  ...item,
-                  sets: item.sets.filter((s) => s.id !== tempSetId),
-                };
-              }),
+        const rolledBackWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+          ...w,
+          items: w.items.map((item) => {
+            if (item.id !== itemId) return item;
+            return {
+              ...item,
+              sets: item.sets.filter((s) => s.id !== tempSetId),
             };
-            return rolledBackWorkout;
           }),
-        );
+        }));
         if (rolledBackWorkout) {
           await localStore.put("workouts", rolledBackWorkout);
         }
       }
     },
     [
+      applyWorkoutUpdate,
       getRealId,
       idMappingRef,
       invalidateProgressionCache,
       isOfflineError,
-      purgeLocalWorkout,
       queueSyncOperation,
       refreshStatsData,
-      setWorkouts,
+      refreshWorkout,
       workoutsRef,
     ],
   );
@@ -552,39 +510,36 @@ export function useWorkoutItemActions(store: DataStore) {
       const exerciseId = workoutsRef.current
         .find((workout) => workout.id === workoutId)
         ?.items.find((item) => item.sets.some((set) => set.id === setId))?.exerciseId;
-      let originalSet: WorkoutSet | null = null;
+      // Find the original for rollback (from the ref, synchronously)
+      const foundOriginalSet = workoutsRef.current
+        .flatMap((w) => w.items)
+        .flatMap((item) => item.sets)
+        .find((s) => s.id === setId);
+      const originalSet = foundOriginalSet ? { ...foundOriginalSet } : null;
 
-      // Optimistic update - compute synchronously from the ref
-      const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
-      if (currentWorkout) {
-        // Find the original before modifying (for rollback)
-        currentWorkout.items.forEach((item) => {
-          const set = item.sets.find((s) => s.id === setId);
-          if (set && !originalSet) originalSet = { ...set };
-        });
-
-        const updatedWorkout: Workout = {
-          ...currentWorkout,
-          items: currentWorkout.items.map((item) => ({
-            ...item,
-            sets: item.sets.map((s) =>
-              s.id === setId
-                ? {
-                    ...s,
-                    weight:
-                      data.weight !== undefined
-                        ? String(data.weight)
-                        : s.weight,
-                    repetitions:
-                      data.repetitions !== undefined
-                        ? data.repetitions
-                        : s.repetitions,
-                  }
-                : s,
-            ),
-          })),
-        };
-        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
+      // Optimistic update
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        items: w.items.map((item) => ({
+          ...item,
+          sets: item.sets.map((s) =>
+            s.id === setId
+              ? {
+                  ...s,
+                  weight:
+                    data.weight !== undefined
+                      ? String(data.weight)
+                      : s.weight,
+                  repetitions:
+                    data.repetitions !== undefined
+                      ? data.repetitions
+                      : s.repetitions,
+                }
+              : s,
+          ),
+        })),
+      }));
+      if (updatedWorkout) {
         await localStore.put("workouts", updatedWorkout);
       }
 
@@ -610,9 +565,9 @@ export function useWorkoutItemActions(store: DataStore) {
           body: JSON.stringify(data),
         });
         if (response.status === 404) {
-          await purgeLocalWorkout(realWorkoutId);
-          alert("Ten trening nie istnieje już na serwerze — został usunięty z urządzenia.");
-          throw new WorkoutNotFoundError(`Workout ${realWorkoutId} no longer exists`);
+          // The set no longer exists on the server — reconcile THIS workout (do not purge the whole one).
+          await refreshWorkout(realWorkoutId);
+          return;
         }
         if (!response.ok) {
           await queueSyncOperation({
@@ -647,20 +602,13 @@ export function useWorkoutItemActions(store: DataStore) {
         }
 
         if (originalSet) {
-          let restoredWorkout: Workout | null = null;
-          setWorkouts((prev) =>
-            prev.map((w) => {
-              if (w.id !== workoutId) return w;
-              restoredWorkout = {
-                ...w,
-                items: w.items.map((item) => ({
-                  ...item,
-                  sets: item.sets.map((s) => (s.id === setId ? originalSet! : s)),
-                })),
-              };
-              return restoredWorkout!;
-            }),
-          );
+          const restoredWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+            ...w,
+            items: w.items.map((item) => ({
+              ...item,
+              sets: item.sets.map((s) => (s.id === setId ? originalSet : s)),
+            })),
+          }));
           if (restoredWorkout) {
             await localStore.put("workouts", restoredWorkout);
           }
@@ -668,13 +616,13 @@ export function useWorkoutItemActions(store: DataStore) {
       }
     },
     [
+      applyWorkoutUpdate,
       getRealId,
       invalidateProgressionCache,
       isOfflineError,
-      purgeLocalWorkout,
       queueSyncOperation,
       refreshStatsData,
-      setWorkouts,
+      refreshWorkout,
       workoutsRef,
     ],
   );
@@ -688,28 +636,25 @@ export function useWorkoutItemActions(store: DataStore) {
       const exerciseId = workoutsRef.current
         .find((workout) => workout.id === workoutId)
         ?.items.find((item) => item.id === itemId)?.exerciseId;
-      let originalSet: WorkoutSet | null = null;
+      // Find the original for rollback (from the ref, synchronously)
+      const foundOriginalSet = workoutsRef.current
+        .flatMap((w) => w.items)
+        .flatMap((item) => item.sets)
+        .find((s) => s.id === setId);
+      const originalSet = foundOriginalSet ? { ...foundOriginalSet } : null;
 
-      // Optimistic update - compute synchronously from the ref
-      const currentWorkout = workoutsRef.current.find((w) => w.id === workoutId);
-      if (currentWorkout) {
-        // Find the original before modifying (for rollback)
-        currentWorkout.items.forEach((item) => {
-          const set = item.sets.find((s) => s.id === setId);
-          if (set && !originalSet) originalSet = { ...set };
-        });
-
-        const updatedWorkout: Workout = {
-          ...currentWorkout,
-          items: currentWorkout.items.map((item) => {
-            if (item.id !== itemId) return item;
-            return {
-              ...item,
-              sets: item.sets.filter((s) => s.id !== setId),
-            };
-          }),
-        };
-        setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updatedWorkout : w)));
+      // Optimistic update
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        items: w.items.map((item) => {
+          if (item.id !== itemId) return item;
+          return {
+            ...item,
+            sets: item.sets.filter((s) => s.id !== setId),
+          };
+        }),
+      }));
+      if (updatedWorkout) {
         await localStore.put("workouts", updatedWorkout);
       }
 
@@ -737,9 +682,9 @@ export function useWorkoutItemActions(store: DataStore) {
           method: "DELETE",
         });
         if (response.status === 404) {
-          await purgeLocalWorkout(realWorkoutId);
-          alert("Ten trening nie istnieje już na serwerze — został usunięty z urządzenia.");
-          throw new WorkoutNotFoundError(`Workout ${realWorkoutId} no longer exists`);
+          // The set no longer exists on the server — reconcile THIS workout (do not purge the whole one).
+          await refreshWorkout(realWorkoutId);
+          return;
         }
         if (!response.ok) {
           await queueSyncOperation({
@@ -768,25 +713,18 @@ export function useWorkoutItemActions(store: DataStore) {
         }
 
         if (originalSet) {
-          let restoredWorkout: Workout | null = null;
-          setWorkouts((prev) =>
-            prev.map((w) => {
-              if (w.id !== workoutId) return w;
-              restoredWorkout = {
-                ...w,
-                items: w.items.map((item) => {
-                  if (item.id !== itemId) return item;
-                  return {
-                    ...item,
-                    sets: [...item.sets, originalSet!].sort(
-                      (a, b) => a.setNumber - b.setNumber,
-                    ),
-                  };
-                }),
+          const restoredWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+            ...w,
+            items: w.items.map((item) => {
+              if (item.id !== itemId) return item;
+              return {
+                ...item,
+                sets: [...item.sets, originalSet].sort(
+                  (a, b) => a.setNumber - b.setNumber,
+                ),
               };
-              return restoredWorkout!;
             }),
-          );
+          }));
           if (restoredWorkout) {
             await localStore.put("workouts", restoredWorkout);
           }
@@ -798,14 +736,14 @@ export function useWorkoutItemActions(store: DataStore) {
       }
     },
     [
+      applyWorkoutUpdate,
       getRealId,
       invalidateProgressionCache,
       isOfflineError,
-      purgeLocalWorkout,
       queueSyncOperation,
       refreshStatsData,
+      refreshWorkout,
       removePendingOperationsReferencingTempId,
-      setWorkouts,
       workoutsRef,
     ],
   );

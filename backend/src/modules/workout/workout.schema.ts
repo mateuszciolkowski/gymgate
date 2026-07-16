@@ -7,6 +7,9 @@ const createWorkoutBody = z.object({
   location: z.string().optional(),
   workoutNotes: z.string().optional(),
   workoutPlanId: z.string().uuid().optional(),
+  // ID wygenerowany po stronie klienta (offline-sync) — używany do deduplikacji
+  // przy retry po timeout/utracie odpowiedzi.
+  clientId: z.string().max(64).optional(),
 });
 
 export const createWorkoutSchema = z.object({
@@ -31,6 +34,9 @@ const addExerciseToWorkoutBody = z.object({
   exerciseId: z.string().uuid(),
   orderInWorkout: z.number().int().positive().optional(),
   notes: z.string().optional(),
+  // ID wygenerowany po stronie klienta (offline-sync) — używany do deduplikacji
+  // przy retry po timeout/utracie odpowiedzi.
+  clientId: z.string().max(64).optional(),
 });
 
 export const addExerciseToWorkoutSchema = z.object({
@@ -56,6 +62,9 @@ const createWorkoutSetBody = z.object({
   weight: z.number().positive(),
   repetitions: z.number().int().positive(),
   setNumber: z.number().int().positive().optional(),
+  // ID wygenerowany po stronie klienta (offline-sync) — używany do deduplikacji
+  // przy retry po timeout/utracie odpowiedzi.
+  clientId: z.string().max(64).optional(),
 });
 
 export const createWorkoutSetSchema = z.object({

@@ -29,6 +29,94 @@ export const createWorkout = (data: Prisma.WorkoutCreateInput) => {
   });
 };
 
+const workoutInclude = {
+  items: {
+    include: {
+      exercise: {
+        include: {
+          photos: true,
+        },
+      },
+      sets: {
+        orderBy: { setNumber: "asc" as const },
+      },
+    },
+    orderBy: { orderInWorkout: "asc" as const },
+  },
+} satisfies Prisma.WorkoutInclude;
+
+/**
+ * Tworzy trening w sposób odporny na wyścig (rapid double/triple-tap, równoległe
+ * żądania offline-sync). Blokuje wiersz użytkownika (SELECT ... FOR UPDATE), więc
+ * równoległe żądania tego samego usera są serializowane: pierwszy tworzy DRAFT i
+ * ustawia activeWorkoutId, kolejne widzą już aktywny trening i go zwracają zamiast
+ * tworzyć duplikat.
+ *
+ * Jeśli `data.clientId` jest ustawiony, dedupe po (userId, clientId) ma pierwszeństwo
+ * przed logiką aktywnego treningu — retry offline-sync po timeout/utracie odpowiedzi
+ * zawsze zwróci ten sam trening, niezależnie od tego, czy jest on nadal aktywny.
+ * Sprawdzenie odbywa się w tej samej transakcji co lock wiersza usera, więc jest
+ * odporne na wyścig równoległych retry.
+ *
+ * @returns workout oraz flagę `reused` (true => zwrócono istniejący rekord)
+ */
+export const createWorkoutWithActiveGuard = async (
+  userId: string,
+  data: Prisma.WorkoutCreateInput,
+): Promise<{ workout: WorkoutWithItems; reused: boolean }> => {
+  return prisma.$transaction(async (tx) => {
+    // Lock wiersza użytkownika — serializuje równoległe tworzenie treningu.
+    await tx.$queryRaw`SELECT id FROM "users" WHERE id = ${userId} FOR UPDATE`;
+
+    if (data.clientId) {
+      const existingByClientId = await tx.workout.findUnique({
+        where: { userId_clientId: { userId, clientId: data.clientId } },
+        include: workoutInclude,
+      });
+      if (existingByClientId) {
+        return { workout: existingByClientId, reused: true };
+      }
+    }
+
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: { activeWorkoutId: true },
+    });
+
+    if (user?.activeWorkoutId) {
+      const active = await tx.workout.findUnique({
+        where: { id: user.activeWorkoutId },
+        include: workoutInclude,
+      });
+      // Reużyj tylko jeśli aktywny trening nadal istnieje i jest w trakcie (DRAFT).
+      if (active && active.status === "DRAFT") {
+        return { workout: active, reused: true };
+      }
+    }
+
+    const workout = await tx.workout.create({
+      data,
+      include: workoutInclude,
+    });
+
+    await tx.user.update({
+      where: { id: userId },
+      data: { activeWorkoutId: workout.id },
+    });
+
+    return { workout, reused: false };
+  });
+};
+
+type WorkoutWithItems = Prisma.WorkoutGetPayload<{ include: typeof workoutInclude }>;
+
+export const findWorkoutByClientId = (userId: string, clientId: string) => {
+  return prisma.workout.findUnique({
+    where: { userId_clientId: { userId, clientId } },
+    include: workoutInclude,
+  });
+};
+
 export const findWorkoutById = (id: string) => {
   return prisma.workout.findUnique({
     where: { id },
@@ -134,14 +222,36 @@ export const addExerciseToWorkout = (
   });
 };
 
+// Jeśli `clientId` jest ustawiony, dedupe po (workoutId, clientId) ma pierwszeństwo —
+// retry offline-sync po timeout/utracie odpowiedzi zwraca ten sam item zamiast
+// tworzyć duplikat. Wyścig równoległych retry (dwie transakcje jednocześnie widzą
+// "brak rekordu") kończy się P2002 na unikalnym kluczu — obsługiwane w service.
 export const addExerciseToWorkoutWithPendingNote = (
   workoutId: string,
   userId: string,
   exerciseId: string,
   orderInWorkout: number,
   notes?: string,
+  clientId?: string,
 ) => {
   return prisma.$transaction(async (tx) => {
+    if (clientId) {
+      const existingByClientId = await tx.workoutItem.findUnique({
+        where: { workoutId_clientId: { workoutId, clientId } },
+        include: {
+          exercise: {
+            include: {
+              photos: true,
+            },
+          },
+          sets: true,
+        },
+      });
+      if (existingByClientId) {
+        return existingByClientId;
+      }
+    }
+
     const pendingNote = await tx.exercisePendingNote.findUnique({
       where: {
         userId_exerciseId: {
@@ -161,6 +271,7 @@ export const addExerciseToWorkoutWithPendingNote = (
         orderInWorkout,
         notes: notes ?? null,
         previousNote: pendingNote?.note ?? null,
+        clientId: clientId ?? null,
       },
       include: {
         exercise: {
@@ -184,6 +295,18 @@ export const addExerciseToWorkoutWithPendingNote = (
     }
 
     return createdItem;
+  });
+};
+
+export const findWorkoutItemByClientId = (workoutId: string, clientId: string) => {
+  return prisma.workoutItem.findUnique({
+    where: { workoutId_clientId: { workoutId, clientId } },
+    include: {
+      exercise: true,
+      sets: {
+        orderBy: { setNumber: "asc" },
+      },
+    },
   });
 };
 
@@ -229,11 +352,15 @@ export const getMaxOrderInWorkout = async (
   return result._max.orderInWorkout || 0;
 };
 
+// Jeśli `clientId` jest ustawiony i wystąpi wyścig równoległych retry offline-sync,
+// create() rzuci P2002 na unikalnym kluczu (itemId, clientId) — obsługiwane w service
+// przez odczyt istniejącego rekordu (findWorkoutSetByClientId).
 export const addSetToWorkoutItem = (
   itemId: string,
   weight: number,
   repetitions: number,
-  setNumber: number
+  setNumber: number,
+  clientId?: string,
 ) => {
   return prisma.workoutSet.create({
     data: {
@@ -241,7 +368,14 @@ export const addSetToWorkoutItem = (
       weight,
       repetitions,
       setNumber,
+      clientId: clientId ?? null,
     },
+  });
+};
+
+export const findWorkoutSetByClientId = (itemId: string, clientId: string) => {
+  return prisma.workoutSet.findUnique({
+    where: { itemId_clientId: { itemId, clientId } },
   });
 };
 
@@ -555,9 +689,28 @@ export const getActiveWorkout = (userId: string) => {
   });
 };
 
+// Lekkie sprawdzenie statusu treningu — bez ciągnięcia items/sets/photos.
+// Używane na często wołanym endpoincie /workouts/active.
+export const findWorkoutStatus = (id: string) => {
+  return prisma.workout.findUnique({
+    where: { id },
+    select: { status: true },
+  });
+};
+
 export const clearActiveWorkout = (userId: string) => {
   return prisma.user.update({
     where: { id: userId },
+    data: { activeWorkoutId: null },
+  });
+};
+
+// Czyści wskaźnik aktywnego treningu TYLKO jeśli nadal wskazuje na podany
+// (nieaktualny) id. Zapobiega wyścigowi: równoległy createWorkout mógł właśnie
+// ustawić nowy aktywny trening, którego nie wolno nam wyzerować.
+export const clearActiveWorkoutIfMatches = (userId: string, workoutId: string) => {
+  return prisma.user.updateMany({
+    where: { id: userId, activeWorkoutId: workoutId },
     data: { activeWorkoutId: null },
   });
 };
