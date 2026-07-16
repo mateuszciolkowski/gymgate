@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { Prisma } from "@prisma/client";
 import * as workoutService from "./workout.service.js";
 import * as workoutRepo from "./workout.repository.js";
 
@@ -36,6 +37,9 @@ vi.mock("./workout.repository.js", () => ({
   setSkippedPlanExerciseIds: vi.fn(),
   findWorkoutStatus: vi.fn(),
   clearActiveWorkoutIfMatches: vi.fn(),
+  findWorkoutByClientId: vi.fn(),
+  findWorkoutItemByClientId: vi.fn(),
+  findWorkoutSetByClientId: vi.fn(),
 }));
 
 describe("workout.service", () => {
@@ -80,6 +84,54 @@ describe("workout.service", () => {
     );
     expect(workoutRepo.createWorkout).not.toHaveBeenCalled();
     expect(result).toEqual({ id: "w-new", userId: "u1", status: "DRAFT" });
+  });
+
+  it("createWorkout: dedupes by clientId — returns existing workout without hitting the active-workout guard twice", async () => {
+    vi.mocked(workoutRepo.createWorkoutWithActiveGuard).mockResolvedValue({
+      workout: { id: "w1", userId: "u1", status: "DRAFT", clientId: "temp_workout_1" } as any,
+      reused: true,
+    });
+
+    const result = await workoutService.createWorkout("u1", {
+      clientId: "temp_workout_1",
+    });
+
+    expect(workoutRepo.createWorkoutWithActiveGuard).toHaveBeenCalledWith(
+      "u1",
+      expect.objectContaining({ clientId: "temp_workout_1" }),
+    );
+    expect(result).toEqual({
+      id: "w1",
+      userId: "u1",
+      status: "DRAFT",
+      clientId: "temp_workout_1",
+    });
+  });
+
+  it("createWorkout: on P2002 race for clientId, returns the record the concurrent retry created", async () => {
+    const prismaError = Object.assign(
+      new Error("Unique constraint failed"),
+      { code: "P2002", name: "PrismaClientKnownRequestError" },
+    );
+    Object.setPrototypeOf(prismaError, Prisma.PrismaClientKnownRequestError.prototype);
+
+    vi.mocked(workoutRepo.createWorkoutWithActiveGuard).mockRejectedValue(prismaError);
+    vi.mocked(workoutRepo.findWorkoutByClientId).mockResolvedValue({
+      id: "w-existing",
+      userId: "u1",
+      clientId: "temp_workout_1",
+    } as any);
+
+    const result = await workoutService.createWorkout("u1", {
+      clientId: "temp_workout_1",
+    });
+
+    expect(workoutRepo.findWorkoutByClientId).toHaveBeenCalledWith("u1", "temp_workout_1");
+    expect(result).toEqual({
+      id: "w-existing",
+      userId: "u1",
+      clientId: "temp_workout_1",
+    });
   });
 
   it("getWorkoutById: throws when workout belongs to another user", async () => {
@@ -275,9 +327,69 @@ describe("workout.service", () => {
       "e1",
       3,
       undefined,
+      undefined,
     );
     expect(workoutRepo.addSetToWorkoutItem).not.toHaveBeenCalled();
     expect(result).toEqual({ id: "item-1", workoutId: "w1" });
+  });
+
+  it("addExerciseToWorkout: passes clientId to the repository and returns the created item", async () => {
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+    } as any);
+    vi.mocked(workoutRepo.getMaxOrderInWorkout).mockResolvedValue(0);
+    vi.mocked(workoutRepo.addExerciseToWorkoutWithPendingNote).mockResolvedValue({
+      id: "item-1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+    } as any);
+
+    await workoutService.addExerciseToWorkout("w1", "u1", {
+      exerciseId: "e1",
+      clientId: "temp_item_1",
+    });
+
+    expect(workoutRepo.addExerciseToWorkoutWithPendingNote).toHaveBeenCalledWith(
+      "w1",
+      "u1",
+      "e1",
+      1,
+      undefined,
+      "temp_item_1",
+    );
+  });
+
+  it("addExerciseToWorkout: on P2002 race for clientId, returns the item the concurrent retry created", async () => {
+    const prismaError = Object.assign(
+      new Error("Unique constraint failed"),
+      { code: "P2002", name: "PrismaClientKnownRequestError" },
+    );
+    Object.setPrototypeOf(prismaError, Prisma.PrismaClientKnownRequestError.prototype);
+
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+    } as any);
+    vi.mocked(workoutRepo.getMaxOrderInWorkout).mockResolvedValue(0);
+    vi.mocked(workoutRepo.addExerciseToWorkoutWithPendingNote).mockRejectedValue(prismaError);
+    vi.mocked(workoutRepo.findWorkoutItemByClientId).mockResolvedValue({
+      id: "item-existing",
+      workoutId: "w1",
+    } as any);
+
+    const result = await workoutService.addExerciseToWorkout("w1", "u1", {
+      exerciseId: "e1",
+      clientId: "temp_item_1",
+    });
+
+    expect(workoutRepo.findWorkoutItemByClientId).toHaveBeenCalledWith("w1", "temp_item_1");
+    expect(result).toEqual({ id: "item-existing", workoutId: "w1" });
+    // Retry musi zwrócić istniejący rekord bez tworzenia drugiego (findWorkoutItemById
+    // by wywołało kolejny fetch — sprawdzamy, że nie jest to droga sukcesu).
+    expect(workoutRepo.findWorkoutItemById).not.toHaveBeenCalled();
   });
 
   it("updateWorkoutItem: recalculates stats after note change in completed workout", async () => {
@@ -416,6 +528,7 @@ describe("workout.service", () => {
       60,
       8,
       5,
+      undefined,
     );
     expect(result).toEqual({ id: "set-5", setNumber: 5 });
   });
@@ -463,6 +576,62 @@ describe("workout.service", () => {
       totalWorkouts: 1,
       lastNote: null,
     });
+  });
+
+  it("addSetToWorkoutItem: dedupes by clientId — returns existing set without creating a new one", async () => {
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutSetByClientId).mockResolvedValue({
+      id: "set-existing",
+      itemId: "item-1",
+    } as any);
+
+    const result = await workoutService.addSetToWorkoutItem("item-1", "u1", {
+      weight: 60,
+      repetitions: 8,
+      clientId: "temp_set_1",
+    });
+
+    expect(workoutRepo.findWorkoutSetByClientId).toHaveBeenCalledWith("item-1", "temp_set_1");
+    expect(workoutRepo.addSetToWorkoutItem).not.toHaveBeenCalled();
+    expect(workoutRepo.getMaxSetNumber).not.toHaveBeenCalled();
+    expect(result).toEqual({ id: "set-existing", itemId: "item-1" });
+  });
+
+  it("addSetToWorkoutItem: on P2002 race for clientId, returns the set the concurrent retry created", async () => {
+    const prismaError = Object.assign(
+      new Error("Unique constraint failed"),
+      { code: "P2002", name: "PrismaClientKnownRequestError" },
+    );
+    Object.setPrototypeOf(prismaError, Prisma.PrismaClientKnownRequestError.prototype);
+
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
+      id: "item-1",
+      workoutId: "w1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValue({
+      id: "w1",
+      userId: "u1",
+    } as any);
+    vi.mocked(workoutRepo.findWorkoutSetByClientId)
+      .mockResolvedValueOnce(null) // pierwszy pre-check: brak rekordu
+      .mockResolvedValueOnce({ id: "set-existing", itemId: "item-1" } as any); // po P2002
+    vi.mocked(workoutRepo.getMaxSetNumber).mockResolvedValue(0);
+    vi.mocked(workoutRepo.addSetToWorkoutItem).mockRejectedValue(prismaError);
+
+    const result = await workoutService.addSetToWorkoutItem("item-1", "u1", {
+      weight: 60,
+      repetitions: 8,
+      clientId: "temp_set_1",
+    });
+
+    expect(result).toEqual({ id: "set-existing", itemId: "item-1" });
   });
 
   it("updateWorkoutSet: recalculates stats for completed workouts", async () => {

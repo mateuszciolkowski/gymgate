@@ -1141,7 +1141,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           {
             method: "POST",
             headers: getAuthHeaders(),
-            body: JSON.stringify({ exerciseId }),
+            body: JSON.stringify({ exerciseId, clientId: tempItemId }),
           },
         );
         if (response.status === 404) {
@@ -1459,7 +1459,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           {
             method: "POST",
             headers: getAuthHeaders(),
-            body: JSON.stringify(data),
+            body: JSON.stringify({ ...data, clientId: tempSetId }),
           },
         );
         if (response.status === 404) {

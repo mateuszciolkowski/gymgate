@@ -19,6 +19,12 @@ import {
 
 type StatsProgressMetric = "maxSetWeight" | "volume";
 
+// P2002 = naruszenie unikalnego klucza (Prisma). Używane do wykrycia wyścigu
+// równoległych retry offline-sync na (scope, clientId) — po złapaniu wyjątku
+// odczytujemy istniejący rekord zamiast propagować błąd do klienta.
+const isUniqueConstraintViolation = (error: unknown): boolean =>
+  error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+
 export const createWorkout = async (userId: string, data: CreateWorkoutDto) => {
   if (data.workoutPlanId) {
     // Throws NotFoundError gdy plan nie istnieje lub nie jest widoczny dla usera.
@@ -36,16 +42,27 @@ export const createWorkout = async (userId: string, data: CreateWorkoutDto) => {
     ...(data.workoutPlanId && {
       plan: { connect: { id: data.workoutPlanId } },
     }),
+    ...(data.clientId && { clientId: data.clientId }),
   };
 
-  // Odporne na wyścig: lock wiersza usera serializuje równoległe żądania, więc
-  // potrójne tapnięcie / równoległy sync nie tworzy zduplikowanych treningów.
-  const { workout } = await workoutRepo.createWorkoutWithActiveGuard(
-    userId,
-    workoutData,
-  );
+  try {
+    // Odporne na wyścig: lock wiersza usera serializuje równoległe żądania, więc
+    // potrójne tapnięcie / równoległy sync nie tworzy zduplikowanych treningów.
+    // Dedupe po clientId (jeśli podany) ma pierwszeństwo nad logiką aktywnego
+    // treningu — patrz komentarz w createWorkoutWithActiveGuard.
+    const { workout } = await workoutRepo.createWorkoutWithActiveGuard(
+      userId,
+      workoutData,
+    );
 
-  return workout;
+    return workout;
+  } catch (error) {
+    if (data.clientId && isUniqueConstraintViolation(error)) {
+      const existing = await workoutRepo.findWorkoutByClientId(userId, data.clientId);
+      if (existing) return existing;
+    }
+    throw error;
+  }
 };
 
 export const getWorkoutById = async (id: string, userId: string) => {
@@ -149,13 +166,26 @@ export const addExerciseToWorkout = async (
     orderInWorkout = maxOrder + 1;
   }
 
-  const item = await workoutRepo.addExerciseToWorkoutWithPendingNote(
-    workoutId,
-    userId,
-    data.exerciseId,
-    orderInWorkout,
-    data.notes
-  );
+  let item;
+  try {
+    item = await workoutRepo.addExerciseToWorkoutWithPendingNote(
+      workoutId,
+      userId,
+      data.exerciseId,
+      orderInWorkout,
+      data.notes,
+      data.clientId,
+    );
+  } catch (error) {
+    if (data.clientId && isUniqueConstraintViolation(error)) {
+      const existing = await workoutRepo.findWorkoutItemByClientId(
+        workoutId,
+        data.clientId,
+      );
+      if (existing) return existing;
+    }
+    throw error;
+  }
 
   if (workout.status === "COMPLETED") {
     await rebuildExerciseStatsFromCompletedWorkouts(userId, data.exerciseId);
@@ -230,15 +260,30 @@ export const addSetToWorkoutItem = async (
     throw new Error("Brak uprawnień");
   }
 
+  if (data.clientId) {
+    const existing = await workoutRepo.findWorkoutSetByClientId(itemId, data.clientId);
+    if (existing) return existing;
+  }
+
   const maxSetNumber = await workoutRepo.getMaxSetNumber(itemId);
   const setNumber = maxSetNumber + 1;
 
-  const createdSet = await workoutRepo.addSetToWorkoutItem(
-    itemId,
-    data.weight,
-    data.repetitions,
-    setNumber
-  );
+  let createdSet;
+  try {
+    createdSet = await workoutRepo.addSetToWorkoutItem(
+      itemId,
+      data.weight,
+      data.repetitions,
+      setNumber,
+      data.clientId,
+    );
+  } catch (error) {
+    if (data.clientId && isUniqueConstraintViolation(error)) {
+      const existing = await workoutRepo.findWorkoutSetByClientId(itemId, data.clientId);
+      if (existing) return existing;
+    }
+    throw error;
+  }
 
   if (workout.status === "COMPLETED") {
     await rebuildExerciseStatsFromCompletedWorkouts(userId, item.exerciseId);

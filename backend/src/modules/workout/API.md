@@ -17,7 +17,8 @@ Base URL: `/api/workouts`
   "gymName": "Gold's Gym", // optional
   "location": "Warszawa", // optional
   "workoutNotes": "Dobra forma dzisiaj", // optional
-  "workoutPlanId": "uuid" // optional, UUID widocznego planu (mine/builtin/community public)
+  "workoutPlanId": "uuid", // optional, UUID widocznego planu (mine/builtin/community public)
+  "clientId": "temp_workout_1700000000000" // optional, max 64 chars — see "Idempotency (clientId)" below
 }
 ```
 
@@ -155,7 +156,8 @@ Each stats entry may include `lastNote: null` if no note was saved on the latest
 {
   "exerciseId": "uuid",
   "orderInWorkout": 1, // optional, auto-increments
-  "notes": "Optional notes" // optional
+  "notes": "Optional notes", // optional
+  "clientId": "temp_item_1700000000000" // optional, max 64 chars — see "Idempotency (clientId)" below
 }
 ```
 
@@ -214,7 +216,8 @@ Each stats entry may include `lastNote: null` if no note was saved on the latest
 {
   "weight": 80.5,
   "repetitions": 10,
-  "setNumber": 2 // optional, auto-increments
+  "setNumber": 2, // optional, auto-increments
+  "clientId": "temp_set_1700000000000" // optional, max 64 chars — see "Idempotency (clientId)" below
 }
 ```
 
@@ -444,6 +447,20 @@ All values are calculated only from workouts with status `COMPLETED`.
    - System automatically updates stats and records
 7. **Delete workout (optional path):** `DELETE /api/workouts/:id`
    - System also removes nested workout items and sets.
+
+## Idempotency (clientId)
+
+Three "create" endpoints accept an optional `clientId` (string, max 64 chars) so that a retry after a timeout / lost response does not create a duplicate record:
+
+- `POST /api/workouts` — dedupe scope: `(userId, clientId)`
+- `POST /api/workouts/:workoutId/exercises` — dedupe scope: `(workoutId, clientId)`
+- `POST /api/workouts/items/:itemId/sets` — dedupe scope: `(itemId, clientId)`
+
+**Behavior:** if a record with the same `clientId` in the same scope already exists, the endpoint returns that existing record (same status code and shape as a normal create) instead of creating a new one. If two retries race concurrently, the database unique constraint on `(scope, clientId)` rejects the second insert and the server re-reads and returns the record the first one created — the caller never sees a duplicate or an error caused by the race.
+
+`clientId` is optional. Omitting it (e.g. calls that don't originate from the offline-sync queue) falls back to the previous create-always behavior — for workout creation this is still protected by the separate active-workout guard (a DRAFT workout is reused per user regardless of `clientId`).
+
+The frontend offline-sync queue (`syncManager.ts`) generates the id used here from the same temporary id (`temp_workout_*` / `temp_item_*` / `temp_set_*`) it already uses locally for optimistic UI updates, so no extra id needs to be tracked client-side.
 
 ## Error Responses
 

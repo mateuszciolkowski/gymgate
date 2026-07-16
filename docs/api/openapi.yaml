@@ -413,6 +413,14 @@ paths:
                 gymName: { type: string }
                 location: { type: string }
                 workoutNotes: { type: string }
+                workoutPlanId: { type: string, format: uuid }
+                clientId:
+                  type: string
+                  maxLength: 64
+                  description: >-
+                    Opcjonalny ID wygenerowany po stronie klienta (offline-sync).
+                    Dedupe po (userId, clientId) — retry po timeout/utracie
+                    odpowiedzi zwraca istniejący trening zamiast tworzyć duplikat.
       responses:
         "201":
           description: Utworzony trening
@@ -521,6 +529,13 @@ paths:
                 exerciseId: { type: string, format: uuid }
                 orderInWorkout: { type: integer }
                 notes: { type: string }
+                clientId:
+                  type: string
+                  maxLength: 64
+                  description: >-
+                    Opcjonalny ID wygenerowany po stronie klienta (offline-sync).
+                    Dedupe po (workoutId, clientId) — retry po timeout/utracie
+                    odpowiedzi zwraca istniejący item zamiast tworzyć duplikat.
       responses:
         "201":
           description: WorkoutItem z pierwszą serią
@@ -585,6 +600,13 @@ paths:
                 weight: { type: number, minimum: 0 }
                 repetitions: { type: integer, minimum: 1 }
                 setNumber: { type: integer }
+                clientId:
+                  type: string
+                  maxLength: 64
+                  description: >-
+                    Opcjonalny ID wygenerowany po stronie klienta (offline-sync).
+                    Dedupe po (itemId, clientId) — retry po timeout/utracie
+                    odpowiedzi zwraca istniejącą serię zamiast tworzyć duplikat.
       responses:
         "201":
           description: Dodana seria
