@@ -236,6 +236,39 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  // Nowy stan liczymy synchronicznie z refa, NIE wewnątrz updatera setState —
+  // React nie gwarantuje synchronicznego wykonania updatera, więc wartość
+  // przechwycona w jego środku bywała null i optymistyczna zmiana nie trafiała
+  // do IndexedDB (utrata serii/ćwiczeń). Ref aktualizujemy od razu, żeby
+  // kolejne wywołanie w tym samym ticku widziało już zmieniony obiekt.
+  const applyWorkoutUpdate = useCallback(
+    (workoutId: string, update: (workout: Workout) => Workout): Workout | null => {
+      const current = workoutsRef.current.find((w) => w.id === workoutId);
+      if (!current) return null;
+      const updated = update(current);
+      workoutsRef.current = workoutsRef.current.map((w) =>
+        w.id === workoutId ? updated : w,
+      );
+      setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? updated : w)));
+      return updated;
+    },
+    [],
+  );
+
+  const applyExerciseUpdate = useCallback(
+    (exerciseId: string, update: (exercise: Exercise) => Exercise): Exercise | null => {
+      const current = exercisesRef.current.find((e) => e.id === exerciseId);
+      if (!current) return null;
+      const updated = update(current);
+      exercisesRef.current = exercisesRef.current.map((e) =>
+        e.id === exerciseId ? updated : e,
+      );
+      setExercises((prev) => prev.map((e) => (e.id === exerciseId ? updated : e)));
+      return updated;
+    },
+    [],
+  );
+
   const queueSyncOperation = useCallback(
     async (operation: {
       type: "create" | "update" | "delete";
@@ -771,18 +804,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         if (!isOfflineError(error)) throw error;
 
-        let updatedWorkout: Workout | null = null;
-        setWorkouts((prev) =>
-          prev.map((w) => {
-            if (w.id !== id) return w;
-            updatedWorkout = {
-              ...w,
-              ...data,
-              updatedAt: new Date().toISOString(),
-            } as Workout;
-            return updatedWorkout;
-          }),
-        );
+        const updatedWorkout = applyWorkoutUpdate(id, (w) => ({
+          ...w,
+          ...data,
+          updatedAt: new Date().toISOString(),
+        } as Workout));
 
         if (updatedWorkout) {
           await localStore.put("workouts", updatedWorkout);
@@ -803,7 +829,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         });
       }
     },
-    [isOfflineError, purgeLocalWorkout, queueSyncOperation],
+    [applyWorkoutUpdate, isOfflineError, purgeLocalWorkout, queueSyncOperation],
   );
 
   const deleteWorkout = useCallback(async (id: string) => {
@@ -862,14 +888,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setWorkouts((prev) => prev.filter((w) => w.id !== id));
     await localStore.delete("workouts", id);
 
-    let removedActiveWorkout = false;
-    setActiveWorkoutId((current) => {
-      if (current !== id) return current;
-      removedActiveWorkout = true;
-      return null;
-    });
-
-    if (removedActiveWorkout) {
+    setActiveWorkoutId((current) => (current === id ? null : current));
+    const storedActiveWorkoutId = await localStore.getActiveWorkoutId();
+    if (storedActiveWorkoutId === id || storedActiveWorkoutId === realWorkoutId) {
       await localStore.setActiveWorkoutId(null);
     }
 
@@ -978,18 +999,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         if (!isOfflineError(error)) throw error;
 
-        let updatedExercise: Exercise | null = null;
-        setExercises((prev) =>
-          prev.map((e) => {
-            if (e.id !== id) return e;
-            updatedExercise = {
-              ...e,
-              ...data,
-              updatedAt: new Date().toISOString(),
-            } as Exercise;
-            return updatedExercise;
-          }),
-        );
+        const updatedExercise = applyExerciseUpdate(id, (e) => ({
+          ...e,
+          ...data,
+          updatedAt: new Date().toISOString(),
+        } as Exercise));
         if (updatedExercise) {
           await localStore.put("exercises", updatedExercise);
         }
@@ -1003,7 +1017,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         });
       }
     },
-    [isOfflineError, queueSyncOperation],
+    [applyExerciseUpdate, isOfflineError, queueSyncOperation],
   );
 
   const deleteExercise = useCallback(async (id: string) => {
@@ -1093,18 +1107,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         sets: [],
       };
 
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) =>
-        prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          const itemWithOrder = {
-            ...newItem,
-            orderInWorkout: w.items.length + 1,
-          };
-          updatedWorkout = { ...w, items: [...w.items, itemWithOrder as WorkoutItem] };
-          return updatedWorkout;
-        }),
-      );
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        items: [
+          ...w.items,
+          { ...newItem, orderInWorkout: w.items.length + 1 } as WorkoutItem,
+        ],
+      }));
       if (updatedWorkout) {
         await localStore.put("workouts", updatedWorkout);
       }
@@ -1147,24 +1156,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           idMappingRef.current.set(tempItemId, result.data.id);
           await localStore.addIdMappings({ [tempItemId]: result.data.id });
 
-          let remappedWorkout: Workout | null = null;
-          setWorkouts((prev) =>
-            prev.map((w) => {
-              if (w.id !== workoutId) return w;
-              remappedWorkout = {
-                ...w,
-                items: w.items.map((item) => {
-                  if (item.id !== tempItemId) return item;
-                  return {
-                    ...item,
-                    id: result.data.id,
-                    previousNote: result.data.previousNote ?? null,
-                  };
-                }),
+          const remappedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+            ...w,
+            items: w.items.map((item) => {
+              if (item.id !== tempItemId) return item;
+              return {
+                ...item,
+                id: result.data.id,
+                previousNote: result.data.previousNote ?? null,
               };
-              return remappedWorkout;
             }),
-          );
+          }));
           if (remappedWorkout) {
             await localStore.put("workouts", remappedWorkout);
           }
@@ -1190,23 +1192,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        let rolledBackWorkout: Workout | null = null;
-        setWorkouts((prev) =>
-          prev.map((w) => {
-            if (w.id !== workoutId) return w;
-            rolledBackWorkout = {
-              ...w,
-              items: w.items.filter((i) => i.id !== tempItemId),
-            };
-            return rolledBackWorkout;
-          }),
-        );
+        const rolledBackWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+          ...w,
+          items: w.items.filter((i) => i.id !== tempItemId),
+        }));
         if (rolledBackWorkout) {
           await localStore.put("workouts", rolledBackWorkout);
         }
       }
     },
-    [invalidateProgressionCache, isOfflineError, purgeLocalWorkout, queueSyncOperation, refreshStatsData],
+    [applyWorkoutUpdate, invalidateProgressionCache, isOfflineError, purgeLocalWorkout, queueSyncOperation, refreshStatsData],
   );
 
   const removeExerciseFromWorkout = useCallback(
@@ -1215,24 +1210,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const originalWorkout = workoutsRef.current.find((workout) => workout.id === workoutId);
       const removedItem = originalWorkout?.items.find((item) => item.id === itemId);
       const shouldRefreshStats = originalWorkout?.status === "COMPLETED";
-      // Zapisz oryginalny item do rollbacku
-      let originalItem: WorkoutItem | null = null;
+      // Zapisz oryginalny item do rollbacku (synchronicznie z refa)
+      const originalItem: WorkoutItem | null =
+        originalWorkout?.items.find((i) => i.id === itemId) ?? null;
 
       // Optymistyczna aktualizacja
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) => {
-        // Znajdź oryginalny item przed usunięciem
-        const workout = prev.find((w) => w.id === workoutId);
-        if (workout) {
-          originalItem = workout.items.find((i) => i.id === itemId) ?? null;
-        }
-
-        return prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          updatedWorkout = { ...w, items: w.items.filter((i) => i.id !== itemId) };
-          return updatedWorkout;
-        });
-      });
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        items: w.items.filter((i) => i.id !== itemId),
+      }));
       if (updatedWorkout) {
         await localStore.put("workouts", updatedWorkout);
       }
@@ -1284,19 +1270,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           }
 
           if (originalItem) {
-            let restoredWorkout: Workout | null = null;
-            setWorkouts((prev) =>
-              prev.map((w) => {
-                if (w.id !== workoutId) return w;
-                restoredWorkout = {
-                  ...w,
-                  items: [...w.items, originalItem!].sort(
-                    (a, b) => a.orderInWorkout - b.orderInWorkout,
-                  ),
-                };
-                return restoredWorkout!;
-              }),
-            );
+            const restoredWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+              ...w,
+              items: [...w.items, originalItem].sort(
+                (a, b) => a.orderInWorkout - b.orderInWorkout,
+              ),
+            }));
             if (restoredWorkout) {
               await localStore.put("workouts", restoredWorkout);
             }
@@ -1335,24 +1314,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const originalWorkout = workoutsRef.current.find((w) => w.id === workoutId);
       const originalItem = originalWorkout?.items.find((i) => i.id === itemId);
 
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) =>
-        prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          updatedWorkout = {
-            ...w,
-            items: w.items.map((item) => {
-              if (item.id !== itemId) return item;
-              return {
-                ...item,
-                notes: data.notes ?? null,
-                updatedAt: new Date().toISOString(),
-              };
-            }),
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        items: w.items.map((item) => {
+          if (item.id !== itemId) return item;
+          return {
+            ...item,
+            notes: data.notes ?? null,
+            updatedAt: new Date().toISOString(),
           };
-          return updatedWorkout;
         }),
-      );
+      }));
       if (updatedWorkout) {
         await localStore.put("workouts", updatedWorkout);
       }
@@ -1406,23 +1378,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (!originalItem) return;
-        let restoredWorkout: Workout | null = null;
-        setWorkouts((prev) =>
-          prev.map((w) => {
-            if (w.id !== workoutId) return w;
-            restoredWorkout = {
-              ...w,
-              items: w.items.map((item) => (item.id === itemId ? originalItem : item)),
-            };
-            return restoredWorkout;
-          }),
-        );
+        const restoredWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+          ...w,
+          items: w.items.map((item) => (item.id === itemId ? originalItem : item)),
+        }));
         if (restoredWorkout) {
           await localStore.put("workouts", restoredWorkout);
         }
       }
     },
-    [isOfflineError, purgeLocalWorkout, queueSyncOperation],
+    [applyWorkoutUpdate, isOfflineError, purgeLocalWorkout, queueSyncOperation],
   );
 
   const addSet = useCallback(
@@ -1442,34 +1407,27 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const tempSetId = `temp_set_${Date.now()}`;
 
       // Optymistyczna aktualizacja
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) =>
-        prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          updatedWorkout = {
-            ...w,
-            items: w.items.map((item) => {
-              if (item.id !== itemId) return item;
-              return {
-                ...item,
-                sets: [
-                  ...item.sets,
-                  {
-                    id: tempSetId,
-                    itemId,
-                    setNumber: data.setNumber,
-                    weight: String(data.weight),
-                    repetitions: data.repetitions,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                  },
-                ],
-              };
-            }),
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        items: w.items.map((item) => {
+          if (item.id !== itemId) return item;
+          return {
+            ...item,
+            sets: [
+              ...item.sets,
+              {
+                id: tempSetId,
+                itemId,
+                setNumber: data.setNumber,
+                weight: String(data.weight),
+                repetitions: data.repetitions,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+            ],
           };
-          return updatedWorkout;
         }),
-      );
+      }));
       if (updatedWorkout) {
         await localStore.put("workouts", updatedWorkout);
       }
@@ -1546,29 +1504,22 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        let rolledBackWorkout: Workout | null = null;
-        setWorkouts((prev) =>
-          prev.map((w) => {
-            if (w.id !== workoutId) return w;
-            rolledBackWorkout = {
-              ...w,
-              items: w.items.map((item) => {
-                if (item.id !== itemId) return item;
-                return {
-                  ...item,
-                  sets: item.sets.filter((s) => s.id !== tempSetId),
-                };
-              }),
+        const rolledBackWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+          ...w,
+          items: w.items.map((item) => {
+            if (item.id !== itemId) return item;
+            return {
+              ...item,
+              sets: item.sets.filter((s) => s.id !== tempSetId),
             };
-            return rolledBackWorkout;
           }),
-        );
+        }));
         if (rolledBackWorkout) {
           await localStore.put("workouts", rolledBackWorkout);
         }
       }
     },
-    [invalidateProgressionCache, isOfflineError, queueSyncOperation, refreshStatsData, refreshWorkout],
+    [applyWorkoutUpdate, invalidateProgressionCache, isOfflineError, queueSyncOperation, refreshStatsData, refreshWorkout],
   );
 
   const updateSet = useCallback(
@@ -1584,45 +1535,37 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const exerciseId = workoutsRef.current
         .find((workout) => workout.id === workoutId)
         ?.items.find((item) => item.sets.some((set) => set.id === setId))?.exerciseId;
-      let originalSet: WorkoutSet | null = null;
+      // Znajdź oryginał do rollbacku (synchronicznie z refa)
+      const foundOriginalSet = workoutsRef.current
+        .flatMap((w) => w.items)
+        .flatMap((item) => item.sets)
+        .find((s) => s.id === setId);
+      const originalSet: WorkoutSet | null = foundOriginalSet
+        ? { ...foundOriginalSet }
+        : null;
 
-      // Optymistyczna aktualizacja - znajdź original w callback
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) => {
-        // Znajdź oryginał przed modyfikacją
-        prev.forEach((w) => {
-          w.items.forEach((item) => {
-            const set = item.sets.find((s) => s.id === setId);
-            if (set && !originalSet) originalSet = { ...set };
-          });
-        });
-
-        return prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          updatedWorkout = {
-            ...w,
-            items: w.items.map((item) => ({
-              ...item,
-              sets: item.sets.map((s) =>
-                s.id === setId
-                  ? {
-                      ...s,
-                      weight:
-                        data.weight !== undefined
-                          ? String(data.weight)
-                          : s.weight,
-                      repetitions:
-                        data.repetitions !== undefined
-                          ? data.repetitions
-                          : s.repetitions,
-                    }
-                  : s,
-              ),
-            })),
-          };
-          return updatedWorkout;
-        });
-      });
+      // Optymistyczna aktualizacja
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        items: w.items.map((item) => ({
+          ...item,
+          sets: item.sets.map((s) =>
+            s.id === setId
+              ? {
+                  ...s,
+                  weight:
+                    data.weight !== undefined
+                      ? String(data.weight)
+                      : s.weight,
+                  repetitions:
+                    data.repetitions !== undefined
+                      ? data.repetitions
+                      : s.repetitions,
+                }
+              : s,
+          ),
+        })),
+      }));
       if (updatedWorkout) {
         await localStore.put("workouts", updatedWorkout);
       }
@@ -1686,27 +1629,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (originalSet) {
-          let restoredWorkout: Workout | null = null;
-          setWorkouts((prev) =>
-            prev.map((w) => {
-              if (w.id !== workoutId) return w;
-              restoredWorkout = {
-                ...w,
-                items: w.items.map((item) => ({
-                  ...item,
-                  sets: item.sets.map((s) => (s.id === setId ? originalSet! : s)),
-                })),
-              };
-              return restoredWorkout!;
-            }),
-          );
+          const restoredWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+            ...w,
+            items: w.items.map((item) => ({
+              ...item,
+              sets: item.sets.map((s) => (s.id === setId ? originalSet : s)),
+            })),
+          }));
           if (restoredWorkout) {
             await localStore.put("workouts", restoredWorkout);
           }
         }
       }
     },
-    [invalidateProgressionCache, isOfflineError, queueSyncOperation, refreshStatsData, refreshWorkout],
+    [applyWorkoutUpdate, invalidateProgressionCache, isOfflineError, queueSyncOperation, refreshStatsData, refreshWorkout],
   );
 
   const deleteSet = useCallback(
@@ -1718,34 +1654,26 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const exerciseId = workoutsRef.current
         .find((workout) => workout.id === workoutId)
         ?.items.find((item) => item.id === itemId)?.exerciseId;
-      let originalSet: WorkoutSet | null = null;
+      // Znajdź oryginał do rollbacku (synchronicznie z refa)
+      const foundOriginalSet = workoutsRef.current
+        .flatMap((w) => w.items)
+        .flatMap((item) => item.sets)
+        .find((s) => s.id === setId);
+      const originalSet: WorkoutSet | null = foundOriginalSet
+        ? { ...foundOriginalSet }
+        : null;
 
-      // Optymistyczna aktualizacja - znajdź original w callback
-      let updatedWorkout: Workout | null = null;
-      setWorkouts((prev) => {
-        // Znajdź oryginał przed modyfikacją
-        prev.forEach((w) => {
-          w.items.forEach((item) => {
-            const set = item.sets.find((s) => s.id === setId);
-            if (set && !originalSet) originalSet = { ...set };
-          });
-        });
-
-        return prev.map((w) => {
-          if (w.id !== workoutId) return w;
-          updatedWorkout = {
-            ...w,
-            items: w.items.map((item) => {
-              if (item.id !== itemId) return item;
-              return {
-                ...item,
-                sets: item.sets.filter((s) => s.id !== setId),
-              };
-            }),
+      // Optymistyczna aktualizacja
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        items: w.items.map((item) => {
+          if (item.id !== itemId) return item;
+          return {
+            ...item,
+            sets: item.sets.filter((s) => s.id !== setId),
           };
-          return updatedWorkout;
-        });
-      });
+        }),
+      }));
       if (updatedWorkout) {
         await localStore.put("workouts", updatedWorkout);
       }
@@ -1805,25 +1733,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (originalSet) {
-          let restoredWorkout: Workout | null = null;
-          setWorkouts((prev) =>
-            prev.map((w) => {
-              if (w.id !== workoutId) return w;
-              restoredWorkout = {
-                ...w,
-                items: w.items.map((item) => {
-                  if (item.id !== itemId) return item;
-                  return {
-                    ...item,
-                    sets: [...item.sets, originalSet!].sort(
-                      (a, b) => a.setNumber - b.setNumber,
-                    ),
-                  };
-                }),
+          const restoredWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+            ...w,
+            items: w.items.map((item) => {
+              if (item.id !== itemId) return item;
+              return {
+                ...item,
+                sets: [...item.sets, originalSet].sort(
+                  (a, b) => a.setNumber - b.setNumber,
+                ),
               };
-              return restoredWorkout!;
             }),
-          );
+          }));
           if (restoredWorkout) {
             await localStore.put("workouts", restoredWorkout);
           }
@@ -1999,23 +1920,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const skipPlanExercise = useCallback(async (workoutId: string, exerciseId: string) => {
     const realWorkoutId = getRealId(workoutId);
 
-    let previousWorkout: Workout | null = null;
-    let updatedWorkout: Workout | null = null;
-    setWorkouts((prev) =>
-      prev.map((w) => {
-        if (w.id !== workoutId) return w;
-        const alreadySkipped = (w.skippedPlanExerciseIds ?? []).includes(exerciseId);
-        if (alreadySkipped) return w;
-        previousWorkout = w;
-        updatedWorkout = {
-          ...w,
-          skippedPlanExerciseIds: [...(w.skippedPlanExerciseIds ?? []), exerciseId],
-        };
-        return updatedWorkout;
-      }),
+    const previousWorkout =
+      workoutsRef.current.find((w) => w.id === workoutId) ?? null;
+    const alreadySkipped = (previousWorkout?.skippedPlanExerciseIds ?? []).includes(
+      exerciseId,
     );
-    if (updatedWorkout) {
-      await localStore.put("workouts", updatedWorkout);
+
+    if (previousWorkout && !alreadySkipped) {
+      const updatedWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+        ...w,
+        skippedPlanExerciseIds: [...(w.skippedPlanExerciseIds ?? []), exerciseId],
+      }));
+      if (updatedWorkout) {
+        await localStore.put("workouts", updatedWorkout);
+      }
     }
 
     if (!realWorkoutId.startsWith("temp_") && navigator.onLine) {
@@ -2026,13 +1944,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({ exerciseId }),
         });
       } catch {
-        if (previousWorkout) {
-          setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? previousWorkout! : w)));
+        if (previousWorkout && !alreadySkipped) {
+          applyWorkoutUpdate(workoutId, () => previousWorkout);
           await localStore.put("workouts", previousWorkout);
         }
       }
     }
-  }, []);
+  }, [applyWorkoutUpdate]);
 
   const completeWorkout = useCallback(
     async (id: string, durationSeconds?: number) => {
