@@ -73,7 +73,7 @@ const planDefinitions: { name: string; shortName: string; exerciseNames: string[
     shortName: "FBW Trening A",
     exerciseNames: [
       "Przysiady bułgarskie",
-      "Hip thrust ze sztangą",
+      "Glute bridge",
       "Podciągnie na maszynie",
       "Wznosy tułowia na ławce rzymskiej",
       "Prostowanie ramion na wyciągu z liną",
