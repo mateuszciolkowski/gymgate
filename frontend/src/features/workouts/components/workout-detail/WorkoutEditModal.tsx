@@ -22,6 +22,8 @@ interface WorkoutEditModalProps {
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
+  minWidth: 0,
+  boxSizing: "border-box",
   padding: "11px 14px",
   borderRadius: 12,
   fontSize: 14,
@@ -148,8 +150,8 @@ export const WorkoutEditModal = memo(function WorkoutEditModal({
           />
         </FormField>
 
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Siłownia" optional className="mb-0">
+        <div className="grid grid-cols-2 gap-3 min-w-0">
+          <FormField label="Siłownia" optional className="mb-0 min-w-0">
             <input
               type="text"
               value={gymName}
@@ -159,7 +161,7 @@ export const WorkoutEditModal = memo(function WorkoutEditModal({
             />
           </FormField>
 
-          <FormField label="Data treningu" className="mb-0">
+          <FormField label="Data treningu" className="mb-0 min-w-0">
             <input
               type="date"
               value={workoutDate}
@@ -176,8 +178,8 @@ export const WorkoutEditModal = memo(function WorkoutEditModal({
             <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--gg-text-muted)" }}>
               Czas trwania sesji
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
+            <div className="grid grid-cols-2 gap-3 min-w-0">
+              <div className="min-w-0">
                 <label className="block text-[10px] font-medium mb-1" style={{ color: "var(--gg-text-muted)" }}>Rozpoczęcie</label>
                 <input
                   type="time"
@@ -186,7 +188,7 @@ export const WorkoutEditModal = memo(function WorkoutEditModal({
                   style={inputStyle}
                 />
               </div>
-              <div>
+              <div className="min-w-0">
                 <label className="block text-[10px] font-medium mb-1" style={{ color: "var(--gg-text-muted)" }}>Zakończenie</label>
                 <input
                   type="time"

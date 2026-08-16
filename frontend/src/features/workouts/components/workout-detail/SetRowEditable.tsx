@@ -4,12 +4,11 @@ import type { WorkoutSet } from "@/types";
 interface SetRowEditableProps {
   set: WorkoutSet;
   itemId: string;
-  previousSet?: { weight: string; repetitions: number };
   onSave: (setId: string, data: { weight?: number; repetitions?: number }) => void;
   onDelete: (itemId: string, setId: string) => void;
 }
 
-export function SetRowEditable({ set, itemId, previousSet, onSave, onDelete }: SetRowEditableProps) {
+export function SetRowEditable({ set, itemId, onSave, onDelete }: SetRowEditableProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [weight, setWeight] = useState(set.weight);
   const [reps, setReps] = useState(set.repetitions.toString());
@@ -177,29 +176,18 @@ export function SetRowEditable({ set, itemId, previousSet, onSave, onDelete }: S
         #{set.setNumber}
       </span>
 
-      {/* Previous performance column */}
-      <div className="w-24 sm:w-28 shrink-0 text-[12px] num-tabular" style={{ color: "var(--gg-text-muted)" }}>
-        {previousSet ? (
-          <span>
-            <strong className="font-semibold text-[var(--gg-text-sub)]">{previousSet.weight}</strong> kg × {previousSet.repetitions}
-          </span>
-        ) : (
-          <span className="opacity-40">—</span>
-        )}
-      </div>
-
-      {/* Current performance column */}
+      {/* Set details */}
       <div
         onClick={() => setIsEditing(true)}
-        className="flex-1 flex items-center gap-1 text-[14px] sm:text-[15px] num-tabular cursor-pointer"
+        className="flex-1 min-w-0 flex items-center justify-center gap-1.5 cursor-pointer num-tabular"
         style={{ color: "var(--gg-text)" }}
         title="Kliknij, aby edytować"
       >
-        <span className="font-extrabold">{set.weight}</span>
-        <span className="text-[11px] font-medium" style={{ color: "var(--gg-text-muted)" }}>kg</span>
-        <span className="text-[11px] px-0.5 font-semibold" style={{ color: "var(--gg-text-muted)" }}>×</span>
-        <span className="font-extrabold">{set.repetitions}</span>
-        <span className="text-[11px] font-medium" style={{ color: "var(--gg-text-muted)" }}>powt.</span>
+        <span className="font-barlow font-extrabold text-[18px]">{set.weight}</span>
+        <span className="text-[12px] font-medium" style={{ color: "var(--gg-text-muted)" }}>kg</span>
+        <span className="text-[14px] px-0.5 font-bold opacity-40">×</span>
+        <span className="font-barlow font-extrabold text-[18px]">{set.repetitions}</span>
+        <span className="text-[12px] font-medium" style={{ color: "var(--gg-text-muted)" }}>powt.</span>
       </div>
 
       {/* Action controls */}

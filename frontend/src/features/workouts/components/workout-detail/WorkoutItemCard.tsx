@@ -161,7 +161,7 @@ export const WorkoutItemCard = memo(
               <button
                 onClick={(e) => { e.stopPropagation(); onDeleteExercise(item.id); }}
                 className="w-8 h-8 rounded-lg border-none cursor-pointer flex items-center justify-center transition-colors"
-                style={{ background: "var(--gg-surface2)", color: "var(--gg-text-muted)" }}
+                style={{ background: "var(--gg-surface2)", color: "var(--gg-text-muted)", minHeight: 32 }}
                 title="Usuń ćwiczenie"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -190,44 +190,23 @@ export const WorkoutItemCard = memo(
 
         {isExpanded && (
           <div className="px-4 pb-4 pt-1 border-t" style={{ borderColor: "var(--gg-border)" }}>
-            {/* Stats bar */}
+            {/* Summary lines */}
             {stats && (
-              <div
-                className="mb-3 mt-2 rounded-xl p-2.5"
-                style={{ background: "var(--gg-surface2)", border: "1px solid var(--gg-border)" }}
-              >
-                <div className="flex gap-4 justify-around text-[12px] num-tabular">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: "var(--gg-text-muted)" }}>
-                      Ostatnio (ogółem)
-                    </span>
-                    <strong style={{ color: "var(--gg-text)" }}>
-                      {lastSetsSummary ?? `${stats.lastWeight} kg × ${stats.lastReps}`}
-                    </strong>
-                  </div>
-                  <div className="border-r" style={{ borderColor: "var(--gg-border)" }} />
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: "var(--gg-text-muted)" }}>
-                      Rekord max
-                    </span>
-                    <strong style={{ color: "var(--gg-a2)" }}>
-                      {stats.maxWeight} kg × {stats.maxWeightReps}
-                    </strong>
-                  </div>
+              <div className="mb-3 mt-2 px-1 text-[11px] num-tabular" style={{ color: "var(--gg-text-muted)" }}>
+                <div className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>Ostatnio:</span>
+                  <strong className="font-semibold" style={{ color: "var(--gg-text-sub)" }}>
+                    {lastSetsSummary ?? `${stats.lastWeight} kg × ${stats.lastReps}`}
+                  </strong>
+                </div>
+                <div className="flex flex-wrap items-baseline gap-x-1.5 mt-0.5">
+                  <span>Rekord:</span>
+                  <strong className="font-semibold" style={{ color: "var(--gg-a2)" }}>
+                    {stats.maxWeight} kg × {stats.maxWeightReps}
+                  </strong>
                 </div>
               </div>
             )}
-
-            {/* Table Column Headers */}
-            <div
-              className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider mb-1"
-              style={{ color: "var(--gg-text-muted)" }}
-            >
-              <span className="w-6 text-center shrink-0">Seria</span>
-              <span className="w-24 sm:w-28 shrink-0">Poprzednio</span>
-              <span className="flex-1">Dzisiaj (kg × powt.)</span>
-              <span className="w-14 sm:w-16 text-right shrink-0">Akcje</span>
-            </div>
 
             {/* Sets list */}
             {item.sets.length === 0 && !draftSet ? (
@@ -237,13 +216,11 @@ export const WorkoutItemCard = memo(
             ) : (
               <div className="flex flex-col gap-2 mb-3">
                 {item.sets.map((set) => {
-                  const matchingPrev = previousSets?.find((ps) => ps.setNumber === set.setNumber);
                   return canEdit ? (
                     <SetRowEditable
                       key={set.id}
                       set={set}
                       itemId={item.id}
-                      previousSet={matchingPrev}
                       onSave={onUpdateSet}
                       onDelete={onDeleteSet}
                     />
@@ -256,18 +233,13 @@ export const WorkoutItemCard = memo(
                       <span className="text-[12px] font-mono font-bold w-6 text-center shrink-0" style={{ color: "var(--gg-text-muted)" }}>
                         #{set.setNumber}
                       </span>
-                      <div className="w-24 sm:w-28 shrink-0 text-[12px] num-tabular" style={{ color: "var(--gg-text-muted)" }}>
-                        {matchingPrev ? (
-                          <span>
-                            <strong className="font-semibold text-[var(--gg-text-sub)]">{matchingPrev.weight}</strong> kg × {matchingPrev.repetitions}
-                          </span>
-                        ) : (
-                          <span className="opacity-40">—</span>
-                        )}
+                      <div className="flex-1 min-w-0 flex items-center justify-center gap-1.5 num-tabular" style={{ color: "var(--gg-text)" }}>
+                        <span className="font-barlow font-extrabold text-[18px]">{set.weight}</span>
+                        <span className="text-[12px] font-medium" style={{ color: "var(--gg-text-muted)" }}>kg</span>
+                        <span className="text-[14px] px-0.5 font-bold opacity-40">×</span>
+                        <span className="font-barlow font-extrabold text-[18px]">{set.repetitions}</span>
+                        <span className="text-[12px] font-medium" style={{ color: "var(--gg-text-muted)" }}>powt.</span>
                       </div>
-                      <span className="flex-1 text-[14px] num-tabular" style={{ color: "var(--gg-text)" }}>
-                        <strong className="font-bold">{set.weight}</strong> <span style={{ color: "var(--gg-text-muted)" }}>kg ×</span> <strong className="font-bold">{set.repetitions}</strong> <span style={{ color: "var(--gg-text-muted)" }}>powt.</span>
-                      </span>
                     </div>
                   );
                 })}
