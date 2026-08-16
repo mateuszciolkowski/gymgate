@@ -8,7 +8,7 @@ interface MenuScreenProps {
   setTheme: (t: Theme) => void;
 }
 
-const THEMES: { id: Theme; label: string; desc: string; bg: string; accent: string; dot1: string; dot2: string }[] = [
+const THEMES: { id: Theme; label: string; desc: string; bg: string; accent: string; dot1: string; dot2: string; isDark: boolean }[] = [
   {
     id: "dark",
     label: "Ciemny",
@@ -17,15 +17,7 @@ const THEMES: { id: Theme; label: string; desc: string; bg: string; accent: stri
     accent: "#111918",
     dot1: "#059669",
     dot2: "#34D399",
-  },
-  {
-    id: "light",
-    label: "Jasny",
-    desc: "Emerald Light",
-    bg: "#F2F7F4",
-    accent: "#FFFFFF",
-    dot1: "#059669",
-    dot2: "#34D399",
+    isDark: true,
   },
   {
     id: "steel",
@@ -35,6 +27,7 @@ const THEMES: { id: Theme; label: string; desc: string; bg: string; accent: stri
     accent: "#0C1220",
     dot1: "#3B82F6",
     dot2: "#93C5FD",
+    isDark: true,
   },
   {
     id: "graphite",
@@ -44,6 +37,7 @@ const THEMES: { id: Theme; label: string; desc: string; bg: string; accent: stri
     accent: "#1A1A1F",
     dot1: "#6B7280",
     dot2: "#CBD5E1",
+    isDark: true,
   },
   {
     id: "violet",
@@ -53,19 +47,168 @@ const THEMES: { id: Theme; label: string; desc: string; bg: string; accent: stri
     accent: "#160F22",
     dot1: "#A855F7",
     dot2: "#F0ABFC",
+    isDark: true,
+  },
+  {
+    id: "ember",
+    label: "Bursztynowy",
+    desc: "Ember Dark",
+    bg: "#100B07",
+    accent: "#1C140C",
+    dot1: "#F59E0B",
+    dot2: "#FBBF24",
+    isDark: true,
+  },
+  {
+    id: "crimson",
+    label: "Karmazynowy",
+    desc: "Crimson Dark",
+    bg: "#110808",
+    accent: "#1E1010",
+    dot1: "#EF4444",
+    dot2: "#F87171",
+    isDark: true,
+  },
+  {
+    id: "light",
+    label: "Jasny",
+    desc: "Emerald Light",
+    bg: "#EBEFEC",
+    accent: "#F5F8F6",
+    dot1: "#059669",
+    dot2: "#34D399",
+    isDark: false,
   },
   {
     id: "blossom",
     label: "Różany",
     desc: "Blossom Light",
-    bg: "#FDF8FF",
-    accent: "#F5EEFF",
+    bg: "#EFE8F2",
+    accent: "#F8F4FA",
     dot1: "#9333EA",
     dot2: "#EC4899",
+    isDark: false,
+  },
+  {
+    id: "sky",
+    label: "Niebieski",
+    desc: "Sky Light",
+    bg: "#E6EDF4",
+    accent: "#F2F6FA",
+    dot1: "#2563EB",
+    dot2: "#93C5FD",
+    isDark: false,
+  },
+  {
+    id: "sand",
+    label: "Piaskowy",
+    desc: "Sand Light",
+    bg: "#F1E9D9",
+    accent: "#F9F4EA",
+    dot1: "#D97706",
+    dot2: "#F59E0B",
+    isDark: false,
+  },
+  {
+    id: "sage",
+    label: "Szałwiowy",
+    desc: "Sage Light",
+    bg: "#E6EDE4",
+    accent: "#F1F6EF",
+    dot1: "#16A34A",
+    dot2: "#4ADE80",
+    isDark: false,
+  },
+  {
+    id: "slate",
+    label: "Grafitowy jasny",
+    desc: "Slate Light",
+    bg: "#E4E7EB",
+    accent: "#EFF1F4",
+    dot1: "#475569",
+    dot2: "#64748B",
+    isDark: false,
   },
 ];
 
+const DARK_THEMES = THEMES.filter((t) => t.isDark);
+const LIGHT_THEMES = THEMES.filter((t) => !t.isDark);
+
+function ThemeButtonList({
+  themes,
+  theme,
+  onPick,
+}: {
+  themes: typeof THEMES;
+  theme: Theme;
+  onPick: (t: Theme) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      {themes.map((t) => {
+        const isActive = theme === t.id;
+        return (
+          <button
+            key={t.id}
+            onClick={() => onPick(t.id)}
+            className="flex items-center gap-3.5 w-full text-left rounded-2xl transition-all border-none cursor-pointer"
+            style={{
+              padding: "12px 14px",
+              background: isActive ? "var(--gg-surface2)" : "transparent",
+              border: isActive ? "1.5px solid var(--gg-a1)" : "1px solid var(--gg-border)",
+            }}
+          >
+            {/* Palette preview */}
+            <div
+              className="w-12 h-10 rounded-xl relative overflow-hidden flex-shrink-0"
+              style={{ background: t.bg, border: "1px solid rgba(255,255,255,0.1)" }}
+            >
+              <div
+                className="w-full h-full"
+                style={{ background: t.accent, margin: "4px 4px 0 4px", borderRadius: "4px 4px 0 0" }}
+              />
+              <div className="absolute bottom-1.5 left-1.5 flex gap-1">
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.dot1 }} />
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.dot2 }} />
+              </div>
+            </div>
+
+            <div className="flex-1 text-left">
+              <div className="text-[14px] font-bold" style={{ color: "var(--gg-text)" }}>
+                {t.label}
+              </div>
+              <div className="text-[11px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+                {t.desc}
+              </div>
+            </div>
+
+            {isActive && (
+              <div
+                className="flex items-center justify-center flex-shrink-0 rounded-full"
+                style={{ width: 22, height: 22, background: "var(--gg-a1)" }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function ThemePicker({ theme, setTheme, onClose }: { theme: Theme; setTheme: (t: Theme) => void; onClose: () => void }) {
+  const [tab, setTab] = useState<"dark" | "light">(
+    THEMES.find((t) => t.id === theme)?.isDark === false ? "light" : "dark",
+  );
+
+  const handlePick = (id: Theme) => {
+    setTheme(id);
+    onClose();
+  };
+
   return (
     <div
       className="absolute inset-0 z-50 flex items-end"
@@ -82,6 +225,8 @@ function ThemePicker({ theme, setTheme, onClose }: { theme: Theme; setTheme: (t:
           boxShadow: "0 -8px 40px rgba(0,0,0,0.5)",
           padding: "24px 20px",
           paddingBottom: "max(28px, env(safe-area-inset-bottom, 28px))",
+          maxHeight: "80vh",
+          overflowY: "auto",
         }}
       >
         {/* Handle */}
@@ -95,61 +240,33 @@ function ThemePicker({ theme, setTheme, onClose }: { theme: Theme; setTheme: (t:
         >
           Wybierz motyw kolorystyczny
         </h3>
-        <div className="flex flex-col gap-2.5">
-          {THEMES.map((t) => {
-            const isActive = theme === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => {
-                  setTheme(t.id);
-                  onClose();
-                }}
-                className="flex items-center gap-3.5 w-full text-left rounded-2xl transition-all border-none cursor-pointer"
-                style={{
-                  padding: "12px 14px",
-                  background: isActive ? "var(--gg-surface2)" : "transparent",
-                  border: isActive ? "1.5px solid var(--gg-a1)" : "1px solid var(--gg-border)",
-                }}
-              >
-                {/* Palette preview */}
-                <div
-                  className="w-12 h-10 rounded-xl relative overflow-hidden flex-shrink-0"
-                  style={{ background: t.bg, border: "1px solid rgba(255,255,255,0.1)" }}
-                >
-                  <div
-                    className="w-full h-full"
-                    style={{ background: t.accent, margin: "4px 4px 0 4px", borderRadius: "4px 4px 0 0" }}
-                  />
-                  <div className="absolute bottom-1.5 left-1.5 flex gap-1">
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.dot1 }} />
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.dot2 }} />
-                  </div>
-                </div>
 
-                <div className="flex-1 text-left">
-                  <div className="text-[14px] font-bold" style={{ color: "var(--gg-text)" }}>
-                    {t.label}
-                  </div>
-                  <div className="text-[11px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
-                    {t.desc}
-                  </div>
-                </div>
-
-                {isActive && (
-                  <div
-                    className="flex items-center justify-center flex-shrink-0 rounded-full"
-                    style={{ width: 22, height: 22, background: "var(--gg-a1)" }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  </div>
-                )}
-              </button>
-            );
-          })}
+        {/* Dark / Light tabs */}
+        <div
+          className="grid grid-cols-2 gap-1 mb-4 p-1 rounded-2xl"
+          style={{ background: "var(--gg-surface2)" }}
+        >
+          {(["dark", "light"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className="py-2 rounded-xl text-[13px] font-bold cursor-pointer border-none transition-all"
+              style={{
+                background: tab === t ? "var(--gg-surface)" : "transparent",
+                color: tab === t ? "var(--gg-text)" : "var(--gg-text-muted)",
+                boxShadow: tab === t ? "var(--gg-shadow)" : "none",
+              }}
+            >
+              {t === "dark" ? "Ciemne" : "Jasne"}
+            </button>
+          ))}
         </div>
+
+        <ThemeButtonList
+          themes={tab === "dark" ? DARK_THEMES : LIGHT_THEMES}
+          theme={theme}
+          onPick={handlePick}
+        />
       </div>
     </div>
   );

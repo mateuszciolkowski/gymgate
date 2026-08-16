@@ -38,11 +38,11 @@
 }
 
 /* ─── LIGHT THEME ────────────────────────────────────────── */
-html:not(.dark):not(.violet):not(.blossom):not(.steel):not(.graphite) {
-  --gg-bg:           #F6F8F7;
-  --gg-surface:      #FFFFFF;
-  --gg-surface2:     #EDF2EF;
-  --gg-surface3:     #E1EAE5;
+html.light {
+  --gg-bg:           #EBEFEC;
+  --gg-surface:      #F5F8F6;
+  --gg-surface2:     #E7ECE9;
+  --gg-surface3:     #DBE4DF;
   --gg-border:       rgba(0, 0, 0, 0.08);
   --gg-border-med:   rgba(0, 0, 0, 0.13);
   --gg-border-strong:rgba(0, 0, 0, 0.20);
@@ -57,7 +57,7 @@ html:not(.dark):not(.violet):not(.blossom):not(.steel):not(.graphite) {
   --gg-tag-text:     #047857;
   --gg-record-bg:    rgba(5, 150, 105, 0.06);
   --gg-record-text:  #047857;
-  --gg-nav-bg:       rgba(255, 255, 255, 0.90);
+  --gg-nav-bg:       rgba(245, 248, 246, 0.90);
   --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
   --gg-shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08);
   --gg-active-border: #D97706;
@@ -151,10 +151,10 @@ html.violet {
 
 /* ─── BLOSSOM THEME ──────────────────────────────────────── */
 html.blossom {
-  --gg-bg:           #FAF7FB;
-  --gg-surface:      #FFFFFF;
-  --gg-surface2:     #F3EDF6;
-  --gg-surface3:     #E8DCED;
+  --gg-bg:           #EFE8F2;
+  --gg-surface:      #F8F4FA;
+  --gg-surface2:     #EDE5F0;
+  --gg-surface3:     #E2D4E8;
   --gg-border:       rgba(0, 0, 0, 0.08);
   --gg-border-med:   rgba(0, 0, 0, 0.13);
   --gg-border-strong:rgba(0, 0, 0, 0.20);
@@ -169,7 +169,177 @@ html.blossom {
   --gg-tag-text:     #7E22CE;
   --gg-record-bg:    rgba(147, 51, 234, 0.06);
   --gg-record-text:  #7E22CE;
-  --gg-nav-bg:       rgba(250, 247, 251, 0.90);
+  --gg-nav-bg:       rgba(248, 244, 250, 0.90);
+  --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --gg-shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --gg-active-border: #D97706;
+  --gg-active-glow:  rgba(217, 119, 6, 0.12);
+  --gg-active-bg:    rgba(217, 119, 6, 0.07);
+}
+
+/* ─── EMBER THEME (dark, amber) ─────────────────────────── */
+html.ember {
+  --gg-bg:           #120D08;
+  --gg-surface:      #1C140C;
+  --gg-surface2:     #241B10;
+  --gg-surface3:     #2F2415;
+  --gg-border:       rgba(255, 255, 255, 0.08);
+  --gg-border-med:   rgba(255, 255, 255, 0.14);
+  --gg-border-strong:rgba(255, 255, 255, 0.22);
+  --gg-text:         #FDF6EC;
+  --gg-text-sub:     #D9B98C;
+  --gg-text-muted:   #8A7154;
+  --gg-a1:           #F59E0B;
+  --gg-a2:           #FBBF24;
+  --gg-btn-bg:       #D97706;
+  --gg-btn-hover:    #B45309;
+  --gg-tag-bg:       rgba(245, 158, 11, 0.12);
+  --gg-tag-text:     #FBBF24;
+  --gg-record-bg:    rgba(245, 158, 11, 0.08);
+  --gg-record-text:  #FBBF24;
+  --gg-nav-bg:       rgba(18, 13, 8, 0.88);
+  --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --gg-shadow-elevated: 0 4px 20px rgba(0, 0, 0, 0.55);
+  --gg-active-border: #10B981;
+  --gg-active-glow:  rgba(16, 185, 129, 0.15);
+  --gg-active-bg:    rgba(16, 185, 129, 0.08);
+  --gg-error:        #EF4444;
+}
+
+/* ─── CRIMSON THEME (dark, red) ──────────────────────────── */
+html.crimson {
+  --gg-bg:           #140909;
+  --gg-surface:      #1E1010;
+  --gg-surface2:     #281515;
+  --gg-surface3:     #331B1B;
+  --gg-border:       rgba(255, 255, 255, 0.08);
+  --gg-border-med:   rgba(255, 255, 255, 0.14);
+  --gg-border-strong:rgba(255, 255, 255, 0.22);
+  --gg-text:         #FDF1F1;
+  --gg-text-sub:     #E19999;
+  --gg-text-muted:   #8A5B5B;
+  --gg-a1:           #EF4444;
+  --gg-a2:           #F87171;
+  --gg-btn-bg:       #DC2626;
+  --gg-btn-hover:    #B91C1C;
+  --gg-tag-bg:       rgba(239, 68, 68, 0.12);
+  --gg-tag-text:     #F87171;
+  --gg-record-bg:    rgba(239, 68, 68, 0.08);
+  --gg-record-text:  #F87171;
+  --gg-nav-bg:       rgba(20, 9, 9, 0.88);
+  --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --gg-shadow-elevated: 0 4px 20px rgba(0, 0, 0, 0.55);
+  --gg-active-border: #F59E0B;
+  --gg-active-glow:  rgba(245, 158, 11, 0.15);
+  --gg-active-bg:    rgba(245, 158, 11, 0.08);
+  --gg-error:        #EF4444;
+}
+
+/* ─── SKY THEME (light, blue) ────────────────────────────── */
+html.sky {
+  --gg-bg:           #E6EDF4;
+  --gg-surface:      #F2F6FA;
+  --gg-surface2:     #E3EBF3;
+  --gg-surface3:     #D4E1EE;
+  --gg-border:       rgba(0, 0, 0, 0.08);
+  --gg-border-med:   rgba(0, 0, 0, 0.13);
+  --gg-border-strong:rgba(0, 0, 0, 0.20);
+  --gg-text:         #0E1B2A;
+  --gg-text-sub:     #3D5A78;
+  --gg-text-muted:   #7C96AD;
+  --gg-a1:           #2563EB;
+  --gg-a2:           #3B82F6;
+  --gg-btn-bg:       #2563EB;
+  --gg-btn-hover:    #1D4ED8;
+  --gg-tag-bg:       rgba(37, 99, 235, 0.10);
+  --gg-tag-text:     #1D4ED8;
+  --gg-record-bg:    rgba(37, 99, 235, 0.06);
+  --gg-record-text:  #1D4ED8;
+  --gg-nav-bg:       rgba(242, 246, 250, 0.90);
+  --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --gg-shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --gg-active-border: #D97706;
+  --gg-active-glow:  rgba(217, 119, 6, 0.12);
+  --gg-active-bg:    rgba(217, 119, 6, 0.07);
+}
+
+/* ─── SAND THEME (light, amber) ──────────────────────────── */
+html.sand {
+  --gg-bg:           #F1E9D9;
+  --gg-surface:      #F9F4EA;
+  --gg-surface2:     #EFE5CF;
+  --gg-surface3:     #E4D5B4;
+  --gg-border:       rgba(0, 0, 0, 0.08);
+  --gg-border-med:   rgba(0, 0, 0, 0.13);
+  --gg-border-strong:rgba(0, 0, 0, 0.20);
+  --gg-text:         #211A0F;
+  --gg-text-sub:     #8A6D3F;
+  --gg-text-muted:   #B0987A;
+  --gg-a1:           #D97706;
+  --gg-a2:           #F59E0B;
+  --gg-btn-bg:       #D97706;
+  --gg-btn-hover:    #B45309;
+  --gg-tag-bg:       rgba(217, 119, 6, 0.10);
+  --gg-tag-text:     #B45309;
+  --gg-record-bg:    rgba(217, 119, 6, 0.06);
+  --gg-record-text:  #B45309;
+  --gg-nav-bg:       rgba(249, 244, 234, 0.90);
+  --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --gg-shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --gg-active-border: #059669;
+  --gg-active-glow:  rgba(5, 150, 105, 0.12);
+  --gg-active-bg:    rgba(5, 150, 105, 0.07);
+}
+
+/* ─── SAGE THEME (light, muted green) ────────────────────── */
+html.sage {
+  --gg-bg:           #E6EDE4;
+  --gg-surface:      #F1F6EF;
+  --gg-surface2:     #E1EADD;
+  --gg-surface3:     #D0DFCA;
+  --gg-border:       rgba(0, 0, 0, 0.08);
+  --gg-border-med:   rgba(0, 0, 0, 0.13);
+  --gg-border-strong:rgba(0, 0, 0, 0.20);
+  --gg-text:         #16241A;
+  --gg-text-sub:     #4B6B4E;
+  --gg-text-muted:   #85A088;
+  --gg-a1:           #16A34A;
+  --gg-a2:           #4ADE80;
+  --gg-btn-bg:       #16A34A;
+  --gg-btn-hover:    #15803D;
+  --gg-tag-bg:       rgba(22, 163, 74, 0.10);
+  --gg-tag-text:     #15803D;
+  --gg-record-bg:    rgba(22, 163, 74, 0.06);
+  --gg-record-text:  #15803D;
+  --gg-nav-bg:       rgba(241, 246, 239, 0.90);
+  --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --gg-shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --gg-active-border: #D97706;
+  --gg-active-glow:  rgba(217, 119, 6, 0.12);
+  --gg-active-bg:    rgba(217, 119, 6, 0.07);
+}
+
+/* ─── SLATE THEME (light, neutral gray) ──────────────────── */
+html.slate {
+  --gg-bg:           #E4E7EB;
+  --gg-surface:      #EFF1F4;
+  --gg-surface2:     #E1E4E9;
+  --gg-surface3:     #D0D5DD;
+  --gg-border:       rgba(0, 0, 0, 0.08);
+  --gg-border-med:   rgba(0, 0, 0, 0.13);
+  --gg-border-strong:rgba(0, 0, 0, 0.20);
+  --gg-text:         #14171C;
+  --gg-text-sub:     #4B5566;
+  --gg-text-muted:   #8896A6;
+  --gg-a1:           #475569;
+  --gg-a2:           #64748B;
+  --gg-btn-bg:       #334155;
+  --gg-btn-hover:    #1E293B;
+  --gg-tag-bg:       rgba(71, 85, 105, 0.10);
+  --gg-tag-text:     #334155;
+  --gg-record-bg:    rgba(71, 85, 105, 0.06);
+  --gg-record-text:  #334155;
+  --gg-nav-bg:       rgba(239, 241, 244, 0.90);
   --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
   --gg-shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08);
   --gg-active-border: #D97706;

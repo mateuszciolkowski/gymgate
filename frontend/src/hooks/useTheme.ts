@@ -1,8 +1,35 @@
 import { useState, useEffect } from "react";
 
-export type Theme = "dark" | "light" | "violet" | "blossom" | "steel" | "graphite";
+export type Theme =
+  | "dark"
+  | "steel"
+  | "graphite"
+  | "violet"
+  | "ember"
+  | "crimson"
+  | "light"
+  | "blossom"
+  | "sky"
+  | "sand"
+  | "sage"
+  | "slate";
 
-const VALID_THEMES: Theme[] = ["dark", "light", "violet", "blossom", "steel", "graphite"];
+const VALID_THEMES: Theme[] = [
+  "dark",
+  "steel",
+  "graphite",
+  "violet",
+  "ember",
+  "crimson",
+  "light",
+  "blossom",
+  "sky",
+  "sand",
+  "sage",
+  "slate",
+];
+
+const DARK_THEMES = new Set<Theme>(["dark", "steel", "graphite", "violet", "ember", "crimson"]);
 
 interface UseThemeReturn {
   theme: Theme;
@@ -12,12 +39,8 @@ interface UseThemeReturn {
 
 function applyThemeClass(theme: Theme) {
   const html = document.documentElement;
-  html.classList.remove("dark", "violet", "blossom", "steel", "graphite");
-  if (theme === "dark") html.classList.add("dark");
-  if (theme === "violet") html.classList.add("violet");
-  if (theme === "blossom") html.classList.add("blossom");
-  if (theme === "steel") html.classList.add("steel");
-  if (theme === "graphite") html.classList.add("graphite");
+  html.classList.remove(...VALID_THEMES);
+  html.classList.add(theme);
 }
 
 export function useTheme(): UseThemeReturn {
@@ -37,6 +60,6 @@ export function useTheme(): UseThemeReturn {
   return {
     theme,
     setTheme: setThemeState,
-    isDark: theme === "dark",
+    isDark: DARK_THEMES.has(theme),
   };
 }
