@@ -32,6 +32,10 @@ const parseAllowedOrigins = (): string[] => {
  */
 export const createApp = (): Express => {
   const app = express();
+  // Behind a single reverse proxy hop (Traefik on Coolify / Railway's edge) —
+  // trust only the first X-Forwarded-For entry so express-rate-limit sees the
+  // real client IP instead of the proxy's, without trusting spoofable chains.
+  app.set("trust proxy", 1);
   const allowedOrigins = parseAllowedOrigins();
 
   app.use(
