@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { API_BASE } from "@/config/api";
+import { localStore } from "@/utils/localStore";
 
 interface User {
   id: string;
@@ -144,6 +145,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(USER_KEY);
     setToken(null);
     setUser(null);
+    void Promise.all([
+      localStore.clear("workouts"),
+      localStore.clear("stats"),
+      localStore.clear("activeWorkout"),
+      localStore.clear("pendingSync"),
+      localStore.clear("metadata"),
+    ]);
   };
 
   return (

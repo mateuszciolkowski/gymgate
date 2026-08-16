@@ -3,6 +3,7 @@ export interface Exercise {
   name: string;
   muscleGroups: string[];
   description?: string;
+  creatorUserId?: string | null;
   creator?: {
     id: string;
     firstName: string;

@@ -87,9 +87,17 @@ describe("workout.schema", () => {
       expect(res.success).toBe(true);
     });
 
-    it("odrzuca niedodatnią wagę", () => {
+    it("akceptuje weight = 0 (np. podciąganie z masą własnego ciała)", () => {
       const res = createWorkoutSetSchema.safeParse({
         body: { weight: 0, repetitions: 8 },
+        params: { itemId: UUID },
+      });
+      expect(res.success).toBe(true);
+    });
+
+    it("odrzuca ujemną wagę", () => {
+      const res = createWorkoutSetSchema.safeParse({
+        body: { weight: -5, repetitions: 8 },
         params: { itemId: UUID },
       });
       expect(res.success).toBe(false);

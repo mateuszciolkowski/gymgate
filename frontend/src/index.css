@@ -9,174 +9,172 @@
 
 /* ─── DESIGN TOKENS ─────────────────────────────────────── */
 :root {
-  /* Dark theme (primary) */
-  --gg-bg:           #090E0D;
-  --gg-surface:      #111918;
-  --gg-surface2:     #182420;
-  --gg-surface3:     #1F2E28;
-  --gg-border:       rgba(255,255,255,0.07);
-  --gg-border-med:   rgba(255,255,255,0.13);
-  --gg-text:         #EEF8F4;
-  --gg-text-sub:     #7BA898;
-  --gg-text-muted:   #3D6558;
-  --gg-a1:           #059669;
+  /* Dark Obsidian / Emerald (Primary) */
+  --gg-bg:           #090D0C;
+  --gg-surface:      #121816;
+  --gg-surface2:     #18221F;
+  --gg-surface3:     #21302B;
+  --gg-border:       rgba(255, 255, 255, 0.08);
+  --gg-border-med:   rgba(255, 255, 255, 0.14);
+  --gg-border-strong:rgba(255, 255, 255, 0.22);
+  --gg-text:         #F3F8F5;
+  --gg-text-sub:     #9BB8AD;
+  --gg-text-muted:   #597A6E;
+  --gg-a1:           #10B981;
   --gg-a2:           #34D399;
-  --gg-grad:         linear-gradient(135deg, #059669, #34D399);
-  --gg-grad-btn:     linear-gradient(135deg, #059669, #10B981);
-  --gg-grad-soft:    linear-gradient(135deg, rgba(5,150,105,0.15), rgba(52,211,153,0.08));
-  --gg-glow:         rgba(5,150,105,0.4);
-  --gg-glow-sm:      rgba(5,150,105,0.25);
-  --gg-tag-bg:       rgba(5,150,105,0.18);
+  --gg-btn-bg:       #10B981;
+  --gg-btn-hover:    #059669;
+  --gg-tag-bg:       rgba(16, 185, 129, 0.12);
   --gg-tag-text:     #34D399;
-  --gg-record-bg:    rgba(5,150,105,0.09);
-  --gg-nav-bg:       rgba(9,14,13,0.97);
-  --gg-shadow:       0 2px 16px rgba(0,0,0,0.45);
-  --gg-shadow-glow:  0 4px 32px rgba(5,150,105,0.28);
+  --gg-record-bg:    rgba(16, 185, 129, 0.08);
+  --gg-record-text:  #34D399;
+  --gg-nav-bg:       rgba(9, 13, 12, 0.88);
+  --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --gg-shadow-elevated: 0 4px 20px rgba(0, 0, 0, 0.55);
   --gg-active-border: #F59E0B;
-  --gg-active-glow:  rgba(245,158,11,0.3);
-  --gg-active-bg:    rgba(245,158,11,0.07);
+  --gg-active-glow:  rgba(245, 158, 11, 0.15);
+  --gg-active-bg:    rgba(245, 158, 11, 0.08);
   --gg-error:        #EF4444;
 }
 
 /* ─── LIGHT THEME ────────────────────────────────────────── */
 html:not(.dark):not(.violet):not(.blossom):not(.steel):not(.graphite) {
-  --gg-bg:           #F2F7F4;
+  --gg-bg:           #F6F8F7;
   --gg-surface:      #FFFFFF;
-  --gg-surface2:     #E8F0EC;
-  --gg-surface3:     #DAE8E1;
-  --gg-border:       rgba(0,0,0,0.07);
-  --gg-border-med:   rgba(0,0,0,0.11);
-  --gg-text:         #0D1F17;
-  --gg-text-sub:     #3D7A60;
-  --gg-text-muted:   #8AB5A0;
-  --gg-tag-bg:       rgba(5,150,105,0.10);
+  --gg-surface2:     #EDF2EF;
+  --gg-surface3:     #E1EAE5;
+  --gg-border:       rgba(0, 0, 0, 0.08);
+  --gg-border-med:   rgba(0, 0, 0, 0.13);
+  --gg-border-strong:rgba(0, 0, 0, 0.20);
+  --gg-text:         #0E1714;
+  --gg-text-sub:     #3F584E;
+  --gg-text-muted:   #789287;
+  --gg-a1:           #059669;
+  --gg-a2:           #10B981;
+  --gg-btn-bg:       #059669;
+  --gg-btn-hover:    #047857;
+  --gg-tag-bg:       rgba(5, 150, 105, 0.10);
   --gg-tag-text:     #047857;
-  --gg-record-bg:    rgba(5,150,105,0.06);
-  --gg-nav-bg:       rgba(255,255,255,0.97);
-  --gg-shadow:       0 2px 12px rgba(0,0,0,0.07);
-  --gg-shadow-glow:  0 4px 28px rgba(5,150,105,0.18);
-  --gg-active-bg:    rgba(245,158,11,0.06);
-  --gg-active-glow:  rgba(245,158,11,0.2);
+  --gg-record-bg:    rgba(5, 150, 105, 0.06);
+  --gg-record-text:  #047857;
+  --gg-nav-bg:       rgba(255, 255, 255, 0.90);
+  --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --gg-shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --gg-active-border: #D97706;
+  --gg-active-glow:  rgba(217, 119, 6, 0.12);
+  --gg-active-bg:    rgba(217, 119, 6, 0.07);
+}
+
+/* ─── GRAPHITE / MONO THEME ─────────────────────────────── */
+html.graphite {
+  --gg-bg:           #0B0C0E;
+  --gg-surface:      #131518;
+  --gg-surface2:     #1C1E23;
+  --gg-surface3:     #252930;
+  --gg-border:       rgba(255, 255, 255, 0.08);
+  --gg-border-med:   rgba(255, 255, 255, 0.14);
+  --gg-border-strong:rgba(255, 255, 255, 0.22);
+  --gg-text:         #F3F4F6;
+  --gg-text-sub:     #9CA3AF;
+  --gg-text-muted:   #6B7280;
+  --gg-a1:           #E2E8F0;
+  --gg-a2:           #F8FAFC;
+  --gg-btn-bg:       #334155;
+  --gg-btn-hover:    #475569;
+  --gg-tag-bg:       rgba(226, 232, 240, 0.10);
+  --gg-tag-text:     #E2E8F0;
+  --gg-record-bg:    rgba(226, 232, 240, 0.06);
+  --gg-record-text:  #E2E8F0;
+  --gg-nav-bg:       rgba(11, 12, 14, 0.88);
+  --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --gg-shadow-elevated: 0 4px 20px rgba(0, 0, 0, 0.55);
+  --gg-active-border: #F59E0B;
+  --gg-active-glow:  rgba(245, 158, 11, 0.15);
+  --gg-active-bg:    rgba(245, 158, 11, 0.08);
+}
+
+/* ─── STEEL / NAVY THEME ────────────────────────────────── */
+html.steel {
+  --gg-bg:           #080C14;
+  --gg-surface:      #101623;
+  --gg-surface2:     #172033;
+  --gg-surface3:     #1F2B44;
+  --gg-border:       rgba(255, 255, 255, 0.08);
+  --gg-border-med:   rgba(255, 255, 255, 0.14);
+  --gg-border-strong:rgba(255, 255, 255, 0.22);
+  --gg-text:         #F1F5F9;
+  --gg-text-sub:     #94A3B8;
+  --gg-text-muted:   #475569;
+  --gg-a1:           #3B82F6;
+  --gg-a2:           #60A5FA;
+  --gg-btn-bg:       #2563EB;
+  --gg-btn-hover:    #1D4ED8;
+  --gg-tag-bg:       rgba(59, 130, 246, 0.12);
+  --gg-tag-text:     #93C5FD;
+  --gg-record-bg:    rgba(59, 130, 246, 0.08);
+  --gg-record-text:  #93C5FD;
+  --gg-nav-bg:       rgba(8, 12, 20, 0.88);
+  --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --gg-shadow-elevated: 0 4px 20px rgba(0, 0, 0, 0.55);
+  --gg-active-border: #F59E0B;
+  --gg-active-glow:  rgba(245, 158, 11, 0.15);
+  --gg-active-bg:    rgba(245, 158, 11, 0.08);
 }
 
 /* ─── VIOLET THEME ───────────────────────────────────────── */
 html.violet {
-  --gg-bg:           #0C0812;
-  --gg-surface:      #160F22;
-  --gg-surface2:     #1E1530;
-  --gg-surface3:     #271C3E;
-  --gg-border:       rgba(192,132,252,0.10);
-  --gg-border-med:   rgba(192,132,252,0.20);
+  --gg-bg:           #0C0A14;
+  --gg-surface:      #151222;
+  --gg-surface2:     #1E1A30;
+  --gg-surface3:     #282340;
+  --gg-border:       rgba(255, 255, 255, 0.08);
+  --gg-border-med:   rgba(255, 255, 255, 0.14);
+  --gg-border-strong:rgba(255, 255, 255, 0.22);
   --gg-text:         #FAF5FF;
-  --gg-text-sub:     #C4A8E0;
-  --gg-text-muted:   #7C5EA6;
+  --gg-text-sub:     #C084FC;
+  --gg-text-muted:   #6B5B95;
   --gg-a1:           #A855F7;
-  --gg-a2:           #F0ABFC;
-  --gg-grad:         linear-gradient(135deg, #A855F7, #F0ABFC);
-  --gg-grad-btn:     linear-gradient(135deg, #9333EA, #EC4899);
-  --gg-grad-soft:    linear-gradient(135deg, rgba(168,85,247,0.15), rgba(236,72,153,0.08));
-  --gg-glow:         rgba(168,85,247,0.45);
-  --gg-glow-sm:      rgba(168,85,247,0.28);
-  --gg-tag-bg:       rgba(168,85,247,0.18);
-  --gg-tag-text:     #F0ABFC;
-  --gg-record-bg:    rgba(168,85,247,0.10);
-  --gg-nav-bg:       rgba(12,8,18,0.97);
-  --gg-shadow:       0 2px 16px rgba(0,0,0,0.50);
-  --gg-shadow-glow:  0 4px 32px rgba(168,85,247,0.30);
-  --gg-active-border: #F472B6;
-  --gg-active-glow:  rgba(244,114,182,0.35);
-  --gg-active-bg:    rgba(244,114,182,0.08);
-  --gg-error:        #EF4444;
+  --gg-a2:           #C084FC;
+  --gg-btn-bg:       #9333EA;
+  --gg-btn-hover:    #7E22CE;
+  --gg-tag-bg:       rgba(168, 85, 247, 0.12);
+  --gg-tag-text:     #D8B4FE;
+  --gg-record-bg:    rgba(168, 85, 247, 0.08);
+  --gg-record-text:  #D8B4FE;
+  --gg-nav-bg:       rgba(12, 10, 20, 0.88);
+  --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --gg-shadow-elevated: 0 4px 20px rgba(0, 0, 0, 0.55);
+  --gg-active-border: #F59E0B;
+  --gg-active-glow:  rgba(245, 158, 11, 0.15);
+  --gg-active-bg:    rgba(245, 158, 11, 0.08);
 }
 
-/* ─── BLOSSOM THEME (jasny dziewczęcy) ───────────────────── */
+/* ─── BLOSSOM THEME ──────────────────────────────────────── */
 html.blossom {
-  --gg-bg:           #FDF8FF;
+  --gg-bg:           #FAF7FB;
   --gg-surface:      #FFFFFF;
-  --gg-surface2:     #F5EEFF;
-  --gg-surface3:     #EDD9FF;
-  --gg-border:       rgba(147,51,234,0.10);
-  --gg-border-med:   rgba(147,51,234,0.20);
-  --gg-text:         #2D1B45;
-  --gg-text-sub:     #7C3AED;
-  --gg-text-muted:   #B07FDB;
+  --gg-surface2:     #F3EDF6;
+  --gg-surface3:     #E8DCED;
+  --gg-border:       rgba(0, 0, 0, 0.08);
+  --gg-border-med:   rgba(0, 0, 0, 0.13);
+  --gg-border-strong:rgba(0, 0, 0, 0.20);
+  --gg-text:         #1F1329;
+  --gg-text-sub:     #6D4785;
+  --gg-text-muted:   #9C7CAE;
   --gg-a1:           #9333EA;
-  --gg-a2:           #EC4899;
-  --gg-grad:         linear-gradient(135deg, #9333EA, #EC4899);
-  --gg-grad-btn:     linear-gradient(135deg, #9333EA, #EC4899);
-  --gg-grad-soft:    linear-gradient(135deg, rgba(147,51,234,0.10), rgba(236,72,153,0.06));
-  --gg-glow:         rgba(147,51,234,0.30);
-  --gg-glow-sm:      rgba(147,51,234,0.18);
-  --gg-tag-bg:       rgba(147,51,234,0.10);
-  --gg-tag-text:     #7C3AED;
-  --gg-record-bg:    rgba(147,51,234,0.06);
-  --gg-nav-bg:       rgba(253,248,255,0.97);
-  --gg-shadow:       0 2px 12px rgba(147,51,234,0.08);
-  --gg-shadow-glow:  0 4px 28px rgba(147,51,234,0.22);
-  --gg-active-border: #EC4899;
-  --gg-active-glow:  rgba(236,72,153,0.25);
-  --gg-active-bg:    rgba(236,72,153,0.07);
-  --gg-error:        #EF4444;
-}
-
-/* ─── STEEL THEME (ciemny niebieski) ────────────────────── */
-html.steel {
-  --gg-bg:           #06090F;
-  --gg-surface:      #0C1220;
-  --gg-surface2:     #12192E;
-  --gg-surface3:     #18243C;
-  --gg-border:       rgba(59,130,246,0.10);
-  --gg-border-med:   rgba(59,130,246,0.20);
-  --gg-text:         #EFF6FF;
-  --gg-text-sub:     #93C5FD;
-  --gg-text-muted:   #3A5580;
-  --gg-a1:           #3B82F6;
-  --gg-a2:           #93C5FD;
-  --gg-grad:         linear-gradient(135deg, #2563EB, #3B82F6);
-  --gg-grad-btn:     linear-gradient(135deg, #1D4ED8, #3B82F6);
-  --gg-grad-soft:    linear-gradient(135deg, rgba(59,130,246,0.15), rgba(147,197,253,0.08));
-  --gg-glow:         rgba(59,130,246,0.45);
-  --gg-glow-sm:      rgba(59,130,246,0.28);
-  --gg-tag-bg:       rgba(59,130,246,0.18);
-  --gg-tag-text:     #93C5FD;
-  --gg-record-bg:    rgba(59,130,246,0.10);
-  --gg-nav-bg:       rgba(6,9,15,0.97);
-  --gg-shadow:       0 2px 16px rgba(0,0,0,0.55);
-  --gg-shadow-glow:  0 4px 32px rgba(59,130,246,0.32);
-  --gg-active-border: #FBBF24;
-  --gg-active-glow:  rgba(251,191,36,0.35);
-  --gg-active-bg:    rgba(251,191,36,0.08);
-  --gg-error:        #EF4444;
-}
-
-/* ─── GRAPHITE THEME (ciemny szary) ─────────────────────── */
-html.graphite {
-  --gg-bg:           #0A0A0C;
-  --gg-surface:      #131316;
-  --gg-surface2:     #1A1A1F;
-  --gg-surface3:     #222228;
-  --gg-border:       rgba(255,255,255,0.07);
-  --gg-border-med:   rgba(255,255,255,0.13);
-  --gg-text:         #F1F5F9;
-  --gg-text-sub:     #94A3B8;
-  --gg-text-muted:   #4B5563;
-  --gg-a1:           #CBD5E1;
-  --gg-a2:           #F1F5F9;
-  --gg-grad:         linear-gradient(135deg, #6B7280, #CBD5E1);
-  --gg-grad-btn:     linear-gradient(135deg, #6B7280, #94A3B8);
-  --gg-grad-soft:    linear-gradient(135deg, rgba(203,213,225,0.12), rgba(241,245,249,0.06));
-  --gg-glow:         rgba(203,213,225,0.25);
-  --gg-glow-sm:      rgba(203,213,225,0.15);
-  --gg-tag-bg:       rgba(203,213,225,0.12);
-  --gg-tag-text:     #E2E8F0;
-  --gg-record-bg:    rgba(203,213,225,0.07);
-  --gg-nav-bg:       rgba(10,10,12,0.97);
-  --gg-shadow:       0 2px 16px rgba(0,0,0,0.55);
-  --gg-shadow-glow:  0 4px 32px rgba(203,213,225,0.18);
-  --gg-active-border: #FBBF24;
-  --gg-active-glow:  rgba(251,191,36,0.35);
-  --gg-active-bg:    rgba(251,191,36,0.08);
-  --gg-error:        #EF4444;
+  --gg-a2:           #A855F7;
+  --gg-btn-bg:       #9333EA;
+  --gg-btn-hover:    #7E22CE;
+  --gg-tag-bg:       rgba(147, 51, 234, 0.10);
+  --gg-tag-text:     #7E22CE;
+  --gg-record-bg:    rgba(147, 51, 234, 0.06);
+  --gg-record-text:  #7E22CE;
+  --gg-nav-bg:       rgba(250, 247, 251, 0.90);
+  --gg-shadow:       0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --gg-shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --gg-active-border: #D97706;
+  --gg-active-glow:  rgba(217, 119, 6, 0.12);
+  --gg-active-bg:    rgba(217, 119, 6, 0.07);
 }
 
 /* ─── SCROLLBAR HIDE ─────────────────────────────────────── */
@@ -196,7 +194,7 @@ html.graphite {
 
 html {
   background-color: var(--gg-bg);
-  transition: background-color 0.4s ease;
+  transition: background-color 0.25s ease;
 }
 
 body {
@@ -206,27 +204,34 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--gg-bg);
+  color: var(--gg-text);
   margin: 0;
   padding: 0;
 }
 
-/* ─── GRADIENT TEXT UTILITY ──────────────────────────────── */
-.grad-text {
-  background: var(--gg-grad);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Tabular numbers utility for weights, reps, timers */
+.num-tabular,
+[data-tabular="true"] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Subtle clean text highlight replacing tacky grad-text */
+.grad-text,
+.text-accent-highlight {
+  color: var(--gg-a2);
+  font-weight: 700;
 }
 
 /* ─── SCREEN SLIDE ANIMATION ─────────────────────────────── */
 .screen-enter {
-  animation: screenEnter 0.26s ease forwards;
+  animation: screenEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes screenEnter {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;

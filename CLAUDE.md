@@ -2,6 +2,14 @@
 
 Fullstack strength-training tracker. Backend: Node.js + Express + TypeScript + Prisma + PostgreSQL. Frontend: React 19 + Vite + TypeScript + Tailwind CSS + Context API (no external state library).
 
+## Database Safety & Pre-Destructive Backup Policy
+
+**Iron Law:** Before executing any migration (`prisma migrate dev/deploy`, `prisma db push`), database reset, dangerous SQL, destructive seed or bulk data modification, **ALWAYS** execute the automated SQL backup:
+```bash
+npm run --prefix backend backup:sql
+```
+Verify that the new timestamped `.sql` file is created in `backend/backups/` before proceeding with the operation. See `.agent/skills/pre-destructive-backup/SKILL.md`.
+
 ## Project layout
 
 ```

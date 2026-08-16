@@ -4,7 +4,7 @@
         docker-migrate docker-seed \
         local-up local-down local-setup local-migrate local-seed local-reset \
         dev test typecheck \
-        check \
+        check ci \
         clean
 
 LOCAL_DB_URL := postgresql://postgres:postgres@localhost:5433/gymgate_local
@@ -101,6 +101,14 @@ typecheck: ## TypeScript type-check without emitting
 check: ## Run full verification: type-check + all tests
 	npm run typecheck
 	npm test
+
+# ── CI (odzwierciedla .github/workflows/backend-ci.yml) ──────────────────────
+
+ci: ## npm ci + typecheck + test + build (mirrors CI pipeline)
+	npm ci
+	npm run typecheck
+	npm test
+	npm run build
 
 # ── Cleanup ───────────────────────────────────────────────────────────────────
 

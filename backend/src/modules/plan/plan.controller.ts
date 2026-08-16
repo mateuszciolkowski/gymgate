@@ -2,7 +2,7 @@ import type { Response } from "express";
 import { PlanService } from "./plan.service.js";
 import type { AuthRequest } from "../../common/middleware/auth.js";
 import type { PlanTab } from "./plan.schema.js";
-import { sendError } from "../../common/errors.js";
+import { sendError, ForbiddenError } from "../../common/errors.js";
 
 export class PlanController {
   private service: PlanService;
@@ -44,7 +44,11 @@ export class PlanController {
 
   async create(req: AuthRequest, res: Response) {
     try {
-      const plan = await this.service.createPlan(req.body, req.userId!);
+      if (req.body.isGlobal && !req.userIsAdmin) {
+        throw new ForbiddenError("Brak uprawnień do tworzenia globalnych planów treningowych");
+      }
+
+      const plan = await this.service.createPlan(req.body, req.userId!, req.userIsAdmin);
 
       res.status(201).json({ success: true, data: plan });
     } catch (error) {
@@ -55,7 +59,7 @@ export class PlanController {
   async update(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params as { id: string };
-      const plan = await this.service.updatePlan(id, req.body, req.userId!);
+      const plan = await this.service.updatePlan(id, req.body, req.userId!, req.userIsAdmin);
 
       res.json({ success: true, data: plan });
     } catch (error) {
@@ -66,7 +70,7 @@ export class PlanController {
   async delete(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params as { id: string };
-      await this.service.deletePlan(id, req.userId!);
+      await this.service.deletePlan(id, req.userId!, req.userIsAdmin);
 
       res.status(204).send();
     } catch (error) {

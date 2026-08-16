@@ -1,6 +1,7 @@
-import { memo, useState, useEffect } from 'react'
+import { memo, useState } from 'react'
 import type { Exercise } from "@/types"
 import { MUSCLE_GROUPS } from "@/constants"
+import { Button, FormField } from "@/components/ui"
 
 interface EditExerciseScreenProps {
   exercise: Exercise
@@ -21,16 +22,6 @@ const fieldStyle: React.CSSProperties = {
   boxShadow: "var(--gg-shadow)",
 }
 
-const labelStyle: React.CSSProperties = {
-  fontSize: 12,
-  fontWeight: 700,
-  color: "var(--gg-text-sub)",
-  letterSpacing: "0.06em",
-  textTransform: "uppercase",
-  display: "block",
-  marginBottom: 8,
-}
-
 export const EditExerciseScreen = memo(function EditExerciseScreen({
   exercise,
   onBack,
@@ -41,15 +32,6 @@ export const EditExerciseScreen = memo(function EditExerciseScreen({
   const [description, setDescription] = useState(exercise.description || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [hasChanges, setHasChanges] = useState(false)
-
-  useEffect(() => {
-    const changed =
-      name !== exercise.name ||
-      description !== (exercise.description || '') ||
-      JSON.stringify([...selectedGroups].sort()) !== JSON.stringify([...exercise.muscleGroups].sort())
-    setHasChanges(changed)
-  }, [name, description, selectedGroups, exercise])
 
   const addMuscleGroup = () => setSelectedGroups([...selectedGroups, ''])
   const removeMuscleGroup = (i: number) => setSelectedGroups(selectedGroups.filter((_, idx) => idx !== i))
@@ -90,6 +72,7 @@ export const EditExerciseScreen = memo(function EditExerciseScreen({
           onClick={onBack}
           className="flex items-center justify-center w-[38px] h-[38px] rounded-[12px] flex-shrink-0 cursor-pointer"
           style={{ background: "var(--gg-surface2)", border: "1px solid var(--gg-border)" }}
+          aria-label="Wróć"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6"/>
@@ -98,19 +81,18 @@ export const EditExerciseScreen = memo(function EditExerciseScreen({
         <div>
           <h2
             className="font-barlow font-black"
-            style={{ fontSize: 26, letterSpacing: "-0.02em", color: "var(--gg-text)" }}
+            style={{ fontSize: 26, letterSpacing: "-0.02em", color: "var(--gg-text)", margin: 0, lineHeight: 1 }}
           >
             Edytuj ćwiczenie
           </h2>
-          <p className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+          <p className="text-[12px] mt-0.5 m-0" style={{ color: "var(--gg-text-muted)" }}>
             {exercise.name}
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div>
-          <label style={labelStyle}>Nazwa ćwiczenia</label>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <FormField label="Nazwa ćwiczenia" className="mb-0">
           <input
             type="text"
             value={name}
@@ -118,10 +100,9 @@ export const EditExerciseScreen = memo(function EditExerciseScreen({
             disabled={isSubmitting}
             style={fieldStyle}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label style={labelStyle}>Grupy mięśniowe</label>
+        <FormField label="Grupy mięśniowe" className="mb-0">
           <div className="flex flex-col gap-2">
             {selectedGroups.map((group, i) => (
               <div key={i} className="flex gap-2">
@@ -170,15 +151,9 @@ export const EditExerciseScreen = memo(function EditExerciseScreen({
               + Dodaj grupę mięśniową
             </button>
           )}
-        </div>
+        </FormField>
 
-        <div>
-          <label style={labelStyle}>
-            Opis{" "}
-            <span style={{ color: "var(--gg-text-muted)", textTransform: "none", fontWeight: 400 }}>
-              (opcjonalny)
-            </span>
-          </label>
+        <FormField label="Opis" optional className="mb-0">
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
@@ -187,7 +162,7 @@ export const EditExerciseScreen = memo(function EditExerciseScreen({
             disabled={isSubmitting}
             style={{ ...fieldStyle, resize: "none" }}
           />
-        </div>
+        </FormField>
 
         {error && (
           <div
@@ -198,18 +173,18 @@ export const EditExerciseScreen = memo(function EditExerciseScreen({
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={isSubmitting || !hasChanges}
-          className="w-full font-bold text-[15px] text-white rounded-[15px] border-none cursor-pointer disabled:opacity-50"
-          style={{
-            padding: 15,
-            background: "var(--gg-grad-btn)",
-            boxShadow: "0 4px 24px var(--gg-glow)",
-          }}
-        >
-          {isSubmitting ? "Zapisywanie..." : "Zapisz zmiany"}
-        </button>
+        <div className="pt-2 pb-6">
+          <Button
+            type="submit"
+            size="lg"
+            variant="primary"
+            loading={isSubmitting}
+            loadingText="Zapisywanie..."
+            fullWidth
+          >
+            Zapisz zmiany
+          </Button>
+        </div>
       </form>
     </div>
   )

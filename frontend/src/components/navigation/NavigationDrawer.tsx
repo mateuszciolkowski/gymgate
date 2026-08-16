@@ -250,15 +250,14 @@ export const NavigationDrawer = memo(function NavigationDrawer({
         </button>
 
         {/* User profile */}
-        <div className="px-7 pt-16 pb-9">
+        <div className="px-6 pt-14 pb-6 border-b" style={{ borderColor: "var(--gg-border)" }}>
           <div
-            className="flex items-center justify-center rounded-full font-barlow font-extrabold text-white mb-4"
+            className="flex items-center justify-center rounded-2xl font-barlow font-bold text-white mb-3"
             style={{
-              width: 60,
-              height: 60,
-              fontSize: 22,
-              background: "var(--gg-grad-btn)",
-              boxShadow: "0 4px 20px var(--gg-glow)",
+              width: 48,
+              height: 48,
+              fontSize: 18,
+              background: "var(--gg-btn-bg)",
             }}
           >
             {initials}
@@ -266,12 +265,12 @@ export const NavigationDrawer = memo(function NavigationDrawer({
           {user && (
             <>
               <div
-                className="font-barlow font-extrabold"
-                style={{ fontSize: 21, color: "var(--gg-text)" }}
+                className="font-barlow font-extrabold truncate"
+                style={{ fontSize: 18, color: "var(--gg-text)" }}
               >
                 {user.firstName} {user.lastName}
               </div>
-              <div className="mt-0.5 text-[13px]" style={{ color: "var(--gg-text-muted)" }}>
+              <div className="mt-0.5 text-[12px] truncate" style={{ color: "var(--gg-text-muted)" }}>
                 {user.email}
               </div>
             </>
@@ -279,25 +278,25 @@ export const NavigationDrawer = memo(function NavigationDrawer({
         </div>
 
         {/* Navigation items */}
-        <nav className="flex flex-col px-3 gap-1">
+        <nav className="flex flex-col px-3 py-3 gap-1">
           {drawerItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => handleNavigate(item.id)}
-                className="flex items-center gap-4 w-full text-left rounded-[14px] border-none cursor-pointer transition-all duration-150"
+                className="flex items-center gap-3.5 w-full text-left rounded-xl border-none cursor-pointer transition-all duration-150"
                 style={{
-                  padding: "15px 18px",
-                  background: isActive ? "var(--gg-grad-soft)" : "transparent",
+                  padding: "12px 14px",
+                  background: isActive ? "var(--gg-surface2)" : "transparent",
                 }}
               >
-                <span style={{ color: isActive ? "var(--gg-a1)" : "var(--gg-text-muted)" }}>
+                <span style={{ color: isActive ? "var(--gg-a2)" : "var(--gg-text-muted)" }}>
                   {item.icon}
                 </span>
                 <span
                   className="font-barlow font-bold"
-                  style={{ fontSize: 17, color: isActive ? "var(--gg-a1)" : "var(--gg-text)" }}
+                  style={{ fontSize: 15, color: isActive ? "var(--gg-text)" : "var(--gg-text-sub)" }}
                 >
                   {item.label}
                 </span>

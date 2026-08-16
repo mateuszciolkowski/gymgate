@@ -11,17 +11,17 @@ interface TrainingsScreenProps {
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("pl-PL", {
     day: "numeric",
-    month: "long",
+    month: "short",
     year: "numeric",
   });
 }
 
 function formatDuration(seconds: number | null | undefined): string {
-  if (!seconds) return "–";
+  if (!seconds) return "";
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}min`;
-  return `${m}min`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m} min`;
 }
 
 const WorkoutCard = memo(function WorkoutCard({
@@ -33,52 +33,67 @@ const WorkoutCard = memo(function WorkoutCard({
 }) {
   const exercisesCount = workout.items.length;
   const setsCount = workout.items.reduce((s, i) => s + i.sets.length, 0);
+  const duration = formatDuration(workout.durationSeconds);
 
   return (
     <button
       onClick={onClick}
-      className="w-full text-left cursor-pointer transition-all duration-150 active:scale-[0.99]"
+      className="w-full text-left cursor-pointer transition-all duration-150 active:scale-[0.99] group rounded-2xl p-4 flex items-center justify-between"
       style={{
         background: "var(--gg-surface)",
-        border: "1.5px solid var(--gg-border)",
-        borderRadius: 18,
-        padding: "14px 16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
+        border: "1px solid var(--gg-border)",
         boxShadow: "var(--gg-shadow)",
       }}
     >
-      <div>
-        <div
-          className="font-barlow font-extrabold text-[15px] mb-0.5"
-          style={{ color: "var(--gg-text)" }}
-        >
-          {workout.workoutName || "Trening"}
+      <div className="flex-1 min-w-0 pr-3">
+        <div className="flex items-center gap-2 mb-1">
+          <span
+            className="font-barlow font-bold text-[15px] truncate tracking-tight"
+            style={{ color: "var(--gg-text)" }}
+          >
+            {workout.workoutName || "Trening"}
+          </span>
+          {duration && (
+            <span
+              className="text-[11px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap num-tabular"
+              style={{ background: "var(--gg-surface2)", color: "var(--gg-text-sub)" }}
+            >
+              {duration}
+            </span>
+          )}
         </div>
-        <div className="text-[12px]" style={{ color: "var(--gg-text-muted)" }}>
-          {formatDate(workout.workoutDate)}
+
+        <div className="flex items-center gap-2 text-[12px]" style={{ color: "var(--gg-text-muted)" }}>
+          <span>{formatDate(workout.workoutDate)}</span>
+          {workout.gymName && (
+            <>
+              <span>•</span>
+              <span className="truncate">{workout.gymName}</span>
+            </>
+          )}
         </div>
-        {workout.gymName && (
-          <div className="text-[11px] italic mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
-            {workout.gymName}
-          </div>
-        )}
-        {workout.durationSeconds != null && (
-          <div className="text-[11px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
-            {formatDuration(workout.durationSeconds)}
-          </div>
-        )}
       </div>
-      <div className="text-right flex-shrink-0 ml-3">
-        <div
-          className="font-barlow-condensed font-black text-[16px] leading-none grad-text"
-          style={{ letterSpacing: "0.01em" }}
-        >
-          {exercisesCount} ćwiczeń
+
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="text-right">
+          <div
+            className="font-barlow font-extrabold text-[15px] num-tabular"
+            style={{ color: "var(--gg-text)" }}
+          >
+            {exercisesCount} <span className="text-[11px] font-normal text-muted-foreground" style={{ color: "var(--gg-text-muted)" }}>ćw.</span>
+          </div>
+          <div className="text-[11px] font-medium num-tabular" style={{ color: "var(--gg-text-sub)" }}>
+            {setsCount} serii
+          </div>
         </div>
-        <div className="text-[11px] mt-1" style={{ color: "var(--gg-text-muted)" }}>
-          {setsCount} serii
+
+        <div
+          className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors group-hover:bg-[var(--gg-surface3)]"
+          style={{ background: "var(--gg-surface2)", color: "var(--gg-text-muted)" }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </div>
       </div>
     </button>
@@ -96,6 +111,7 @@ export const TrainingsScreen = memo(function TrainingsScreen({
     workoutName?: string;
     gymName?: string;
     workoutDate: string;
+    workoutPlanId?: string;
   }) => {
     try {
       const newWorkout = await createWorkout(data);
@@ -122,14 +138,14 @@ export const TrainingsScreen = memo(function TrainingsScreen({
 
   if (loading) {
     return (
-      <div className="px-5 pt-5 screen-enter">
-        <div className="flex items-center justify-center py-20">
+      <div className="px-5 pt-6 screen-enter">
+        <div className="flex items-center justify-center py-24">
           <div className="flex flex-col items-center gap-3">
             <div
-              className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin"
+              className="w-9 h-9 rounded-full border-2 border-t-transparent animate-spin"
               style={{ borderColor: "var(--gg-a1)", borderTopColor: "transparent" }}
             />
-            <p className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Ładowanie...</p>
+            <p className="text-[13px] font-medium" style={{ color: "var(--gg-text-muted)" }}>Ładowanie sesji...</p>
           </div>
         </div>
       </div>
@@ -137,167 +153,164 @@ export const TrainingsScreen = memo(function TrainingsScreen({
   }
 
   const totalWorkouts = statsOverview?.workoutsLastYear ?? completedWorkouts.length;
+  const totalSets = statsOverview?.totalSets;
 
   return (
-    <div className="px-5 pt-5 screen-enter">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-5">
-        <div>
-          <p
-            className="text-[11px] font-bold uppercase tracking-[0.12em] mb-1"
-            style={{ color: "var(--gg-text-muted)" }}
-          >
-            Twoja historia
-          </p>
-          <h1
-            className="font-barlow font-black leading-none"
-            style={{ fontSize: 36, letterSpacing: "-0.03em", color: "var(--gg-text)" }}
-          >
-            Treningi
-          </h1>
-        </div>
+    <div className="px-5 pt-6 pb-28 screen-enter max-w-2xl mx-auto">
+      {/* Top Header */}
+      <div className="mb-4">
+        <p
+          className="text-[11px] font-bold uppercase tracking-[0.12em] mb-0.5"
+          style={{ color: "var(--gg-text-muted)" }}
+        >
+          Dziennik treningowy
+        </p>
+        <h1
+          className="font-barlow font-extrabold text-[30px] tracking-tight leading-none"
+          style={{ color: "var(--gg-text)" }}
+        >
+          Treningi
+        </h1>
       </div>
 
-      {/* Streak / stats hero card */}
+      {/* Modern Compact Activity Bar */}
       <div
-        className="relative overflow-hidden mb-5 rounded-[22px]"
+        className="rounded-2xl p-3.5 mb-5 flex items-center justify-between"
         style={{
-          background: "var(--gg-grad)",
-          padding: "18px 20px",
-          boxShadow: "0 8px 36px var(--gg-glow)",
+          background: "var(--gg-surface)",
+          border: "1px solid var(--gg-border)",
+          boxShadow: "var(--gg-shadow)",
         }}
       >
-        <div
-          className="absolute rounded-full"
-          style={{ right: -24, top: -24, width: 120, height: 120, background: "rgba(255,255,255,0.07)" }}
-        />
-        <div
-          className="absolute rounded-full"
-          style={{ right: 16, bottom: -28, width: 72, height: 72, background: "rgba(255,255,255,0.05)" }}
-        />
-        <div className="relative">
-          <div
-            className="text-[11px] font-bold uppercase tracking-[0.10em] mb-1"
-            style={{ color: "rgba(255,255,255,0.65)" }}
-          >
-            Treningi w tym roku
+        <div className="flex items-center gap-4 text-[13px] num-tabular">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: "var(--gg-text-muted)" }}>
+              Ten rok
+            </span>
+            <strong className="font-extrabold text-[16px]" style={{ color: "var(--gg-text)" }}>
+              {totalWorkouts}
+            </strong>{" "}
+            <span className="text-[11px]" style={{ color: "var(--gg-text-muted)" }}>treningów</span>
           </div>
-          <div
-            className="font-barlow-condensed font-black leading-none mb-1"
-            style={{ fontSize: 46, color: "#fff", letterSpacing: "-0.02em" }}
-          >
-            {totalWorkouts} 🔥
-          </div>
-          <div className="text-[12px] font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>
-            {completedWorkouts.length} zakończonych
-            {statsOverview?.totalSets ? ` · ${statsOverview.totalSets} serii` : ""}
+
+          <div className="border-l h-7" style={{ borderColor: "var(--gg-border)" }} />
+
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: "var(--gg-text-muted)" }}>
+              Wykonano
+            </span>
+            <strong className="font-extrabold text-[16px]" style={{ color: "var(--gg-a2)" }}>
+              {totalSets ?? "–"}
+            </strong>{" "}
+            <span className="text-[11px]" style={{ color: "var(--gg-text-muted)" }}>serii</span>
           </div>
         </div>
+
+        <span
+          className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider"
+          style={{ background: "var(--gg-tag-bg)", color: "var(--gg-tag-text)" }}
+        >
+          Aktywność
+        </span>
       </div>
 
-      {/* Draft workouts */}
+      {/* Active draft workouts */}
       {draftWorkouts.length > 0 && (
-        <div className="mb-5">
-          <div className="text-[13px] font-bold mb-2.5" style={{ color: "var(--gg-text)" }}>
-            Treningi w trakcie
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2.5">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--gg-text-sub)" }}>
+              Trening w toku
+            </span>
           </div>
+
           <div className="flex flex-col gap-2.5">
             {draftWorkouts.map((workout) => (
               <button
                 key={workout.id}
                 onClick={() => onSelectWorkout(workout.id)}
-                className="w-full text-left cursor-pointer transition-all duration-150 active:scale-[0.99]"
+                className="w-full text-left cursor-pointer transition-all duration-150 active:scale-[0.99] rounded-2xl p-4 flex items-center justify-between"
                 style={{
                   background: "var(--gg-active-bg)",
                   border: "1.5px solid var(--gg-active-border)",
-                  borderRadius: 18,
-                  padding: "16px 18px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  boxShadow: "0 0 0 1px rgba(245,158,11,0.13), 0 4px 24px var(--gg-active-glow)",
+                  boxShadow: "0 2px 12px var(--gg-active-glow)",
                 }}
               >
-                <div>
+                <div className="flex-1 min-w-0 pr-3">
                   <div
-                    className="font-barlow font-extrabold text-[16px] mb-0.5"
+                    className="font-barlow font-bold text-[16px] truncate mb-1"
                     style={{ color: "var(--gg-text)" }}
                   >
-                    {workout.workoutName || "Trening bez nazwy"}
+                    {workout.workoutName || "Aktywny trening"}
                   </div>
-                  <div className="text-[12px]" style={{ color: "var(--gg-text-muted)" }}>
-                    {formatDate(workout.workoutDate)}
-                    {workout.gymName ? ` · ${workout.gymName}` : ""}
-                  </div>
-                  <div className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+                  <div className="text-[12px] font-medium num-tabular" style={{ color: "var(--gg-text-sub)" }}>
                     {workout.items.length} ćwiczeń ·{" "}
-                    {workout.items.reduce((s, i) => s + i.sets.length, 0)} serii
+                    {workout.items.reduce((s, i) => s + i.sets.length, 0)} zalogowanych serii
                   </div>
                 </div>
-                <span
-                  className="text-[12px] font-bold text-white flex-shrink-0 ml-3"
+
+                <div
+                  className="px-3 py-1.5 rounded-xl font-bold text-[12px] flex items-center gap-1.5 shrink-0 shadow-sm"
                   style={{
                     background: "var(--gg-active-border)",
-                    borderRadius: 20,
-                    padding: "5px 13px",
+                    color: "#000",
                   }}
                 >
-                  W trakcie
-                </span>
+                  <span>Wróć</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </div>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* History */}
+      {/* Completed workouts history */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[13px] font-bold" style={{ color: "var(--gg-text)" }}>
-            Historia treningów
-          </span>
-          <div className="flex gap-1.5">
-            {(["Nowe", "Stare"] as const).map((label, i) => {
-              const isActive = (i === 0 && dateSort === "desc") || (i === 1 && dateSort === "asc");
-              return (
-                <button
-                  key={label}
-                  onClick={() => setDateSort(i === 0 ? "desc" : "asc")}
-                  className="text-[12px] font-semibold cursor-pointer transition-all duration-200 border-none"
-                  style={{
-                    padding: "5px 13px",
-                    borderRadius: 20,
-                    background: isActive ? "var(--gg-grad-btn)" : "var(--gg-surface2)",
-                    color: isActive ? "#fff" : "var(--gg-text-muted)",
-                    boxShadow: isActive ? "0 2px 10px var(--gg-glow-sm)" : "none",
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--gg-text-muted)" }}>
+              Historia sesji
+            </span>
+            <span
+              className="text-[11px] font-bold px-2 py-0.5 rounded-md num-tabular"
+              style={{ background: "var(--gg-surface2)", color: "var(--gg-text-sub)" }}
+            >
+              {completedWorkouts.length}
+            </span>
           </div>
+
+          {completedWorkouts.length > 1 && (
+            <button
+              onClick={() => setDateSort((prev) => (prev === "desc" ? "asc" : "desc"))}
+              className="flex items-center gap-1 text-[11px] font-semibold border-none bg-transparent cursor-pointer px-2 py-1 rounded-lg transition-colors"
+              style={{ color: "var(--gg-text-sub)" }}
+            >
+              <span>{dateSort === "desc" ? "Od najnowszych" : "Od najstarszych"}</span>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points={dateSort === "desc" ? "6 9 12 15 18 9" : "18 15 12 9 6 9"}/>
+              </svg>
+            </button>
+          )}
         </div>
 
-        {completedWorkouts.length === 0 && draftWorkouts.length === 0 ? (
-          <EmptyState
-            title="Brak zapisanych treningów"
-            description="Kliknij FAB aby dodać pierwszy trening"
-            icon={
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="6" y1="5" x2="18" y2="5"/>
-                <line x1="6" y1="19" x2="18" y2="19"/>
-                <line x1="4" y1="8" x2="4" y2="16"/>
-                <line x1="20" y1="8" x2="20" y2="16"/>
-                <line x1="2" y1="10" x2="2" y2="14"/>
-                <line x1="22" y1="10" x2="22" y2="14"/>
-              </svg>
-            }
-          />
-        ) : completedWorkouts.length === 0 ? (
-          <p className="text-center py-8 text-[13px]" style={{ color: "var(--gg-text-muted)" }}>
-            Brak zakończonych treningów
-          </p>
+        {completedWorkouts.length === 0 ? (
+          <div
+            className="rounded-2xl p-8 text-center"
+            style={{ background: "var(--gg-surface)", border: "1px dashed var(--gg-border-med)" }}
+          >
+            <EmptyState
+              title="Brak ukończonych treningów"
+              description="Rozpocznij swój pierwszy trening, klikając przycisk powyżej."
+              icon={
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--gg-text-muted)" }}>
+                  <path d="M6 5v14M18 5v14M2 9h4M18 9h4M2 15h4M18 15h4M6 12h12"/>
+                </svg>
+              }
+            />
+          </div>
         ) : (
           <div className="flex flex-col gap-2.5">
             {completedWorkouts.map((workout) => (
@@ -311,6 +324,7 @@ export const TrainingsScreen = memo(function TrainingsScreen({
         )}
       </div>
 
+      {/* New Workout Modal */}
       {isFormModalOpen && (
         <WorkoutFormModal
           onClose={() => setIsFormModalOpen(false)}

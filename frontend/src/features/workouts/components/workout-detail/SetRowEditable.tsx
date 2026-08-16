@@ -4,11 +4,12 @@ import type { WorkoutSet } from "@/types";
 interface SetRowEditableProps {
   set: WorkoutSet;
   itemId: string;
+  previousSet?: { weight: string; repetitions: number };
   onSave: (setId: string, data: { weight?: number; repetitions?: number }) => void;
   onDelete: (itemId: string, setId: string) => void;
 }
 
-export function SetRowEditable({ set, itemId, onSave, onDelete }: SetRowEditableProps) {
+export function SetRowEditable({ set, itemId, previousSet, onSave, onDelete }: SetRowEditableProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [weight, setWeight] = useState(set.weight);
   const [reps, setReps] = useState(set.repetitions.toString());
@@ -22,10 +23,10 @@ export function SetRowEditable({ set, itemId, onSave, onDelete }: SetRowEditable
   }, [set.weight, set.repetitions, isEditing]);
 
   const handleAccept = () => {
-    const nextWeight = Number(weight);
+    const nextWeight = weight === "" ? 0 : Number(weight);
     const nextReps = Number(reps);
     if (isNaN(nextWeight) || isNaN(nextReps) || nextWeight < 0 || nextReps < 1) {
-      setEditError("Podaj prawidłowe wartości (kg ≥ 0, powt. ≥ 1)");
+      setEditError("Wpisz poprawny ciężar (≥0) i powtórzenia (≥1)");
       return;
     }
     setEditError(null);
@@ -43,103 +44,189 @@ export function SetRowEditable({ set, itemId, onSave, onDelete }: SetRowEditable
     setIsEditing(false);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAccept();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      handleCancel();
+    }
+  };
+
   const handleDelete = () => {
     if (confirm("Czy na pewno chcesz usunąć tę serię?")) {
       onDelete(itemId, set.id);
     }
   };
 
-  const rowBg = { padding: "10px 10px", background: "var(--gg-surface2)" };
-  const inputStyle = { padding: "8px 6px", background: "var(--gg-surface3)", border: "1.5px solid var(--gg-border)", color: "var(--gg-text)", outline: "none" };
-
   if (isEditing) {
     return (
-      <div className="flex flex-col gap-1 w-full rounded-[10px]" style={rowBg}>
+      <div
+        className="flex flex-col gap-1.5 w-full rounded-xl p-2.5 transition-all"
+        style={{
+          background: "var(--gg-surface2)",
+          border: "1.5px solid var(--gg-a1)",
+        }}
+      >
         <div className="flex items-center gap-2 w-full">
-          <span className="text-[12px] font-bold w-6 flex-shrink-0 text-center" style={{ color: "var(--gg-text-muted)" }}>
+          <span
+            className="w-6 text-center font-bold text-[13px] font-mono shrink-0 pt-4"
+            style={{ color: "var(--gg-a2)" }}
+          >
             #{set.setNumber}
           </span>
-          <div className="flex items-center gap-1 flex-1 min-w-0">
+
+          {/* Weight column */}
+          <div className="flex-1 min-w-0 flex flex-col">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-center mb-1" style={{ color: "var(--gg-text-muted)" }}>
+              Ciężar (kg)
+            </label>
             <input
               type="number"
               value={weight}
               onChange={(e) => { setWeight(e.target.value); setEditError(null); }}
+              onKeyDown={handleKeyDown}
               step="0.5"
               min="0"
               autoFocus
-              className="flex-1 min-w-0 rounded-[8px] text-[14px] font-bold text-center"
-              style={inputStyle}
+              placeholder="0"
+              className="w-full px-2 py-2 rounded-xl font-barlow font-extrabold text-[18px] outline-none text-center num-tabular"
+              style={{
+                background: "var(--gg-surface)",
+                border: "1px solid var(--gg-border-med)",
+                color: "var(--gg-text)",
+              }}
             />
-            <span className="text-[10px] font-semibold flex-shrink-0" style={{ color: "var(--gg-text-muted)" }}>kg</span>
           </div>
-          <div className="flex items-center gap-1 flex-1 min-w-0">
+
+          <span className="font-bold text-[14px] shrink-0 opacity-40 pt-4" style={{ color: "var(--gg-text)" }}>
+            ×
+          </span>
+
+          {/* Reps column */}
+          <div className="flex-1 min-w-0 flex flex-col">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-center mb-1" style={{ color: "var(--gg-text-muted)" }}>
+              Powtórzenia
+            </label>
             <input
               type="number"
               value={reps}
               onChange={(e) => { setReps(e.target.value); setEditError(null); }}
+              onKeyDown={handleKeyDown}
               min="1"
-              className="flex-1 min-w-0 rounded-[8px] text-[14px] font-bold text-center"
-              style={inputStyle}
+              placeholder="1"
+              className="w-full px-2 py-2 rounded-xl font-barlow font-extrabold text-[18px] outline-none text-center num-tabular"
+              style={{
+                background: "var(--gg-surface)",
+                border: "1px solid var(--gg-border-med)",
+                color: "var(--gg-text)",
+              }}
             />
-            <span className="text-[10px] font-semibold flex-shrink-0" style={{ color: "var(--gg-text-muted)" }}>powt.</span>
           </div>
-          <button
-            onClick={handleAccept}
-            className="w-9 h-9 rounded-[9px] border-none cursor-pointer flex items-center justify-center flex-shrink-0"
-            style={{ background: "var(--gg-a1)" }}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12l5 5 9-9"/>
-            </svg>
-          </button>
-          <button
-            onClick={handleCancel}
-            className="w-9 h-9 rounded-[9px] border-none cursor-pointer flex items-center justify-center flex-shrink-0"
-            style={{ background: "var(--gg-surface3)" }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1 shrink-0 pt-4">
+            <button
+              type="button"
+              onClick={handleAccept}
+              className="w-9 h-9 rounded-xl border-none cursor-pointer flex items-center justify-center text-white transition-transform active:scale-95 shadow-sm"
+              style={{ background: "var(--gg-btn-bg)" }}
+              aria-label="Zapisz serię"
+              title="Zapisz serię"
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12l5 5 9-9"/>
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="w-8 h-8 rounded-xl border-none cursor-pointer flex items-center justify-center transition-colors"
+              style={{ background: "var(--gg-surface3)", color: "var(--gg-text-muted)" }}
+              aria-label="Anuluj edycję serii"
+              title="Anuluj"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
         </div>
+
         {editError && (
-          <p className="text-[11px] text-center" style={{ color: "var(--gg-danger, #ef4444)" }}>{editError}</p>
+          <p className="text-[11px] text-center font-semibold" style={{ color: "var(--gg-error)" }}>
+            {editError}
+          </p>
         )}
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 w-full rounded-[10px]" style={rowBg}>
-      <span className="text-[12px] font-bold w-6 flex-shrink-0 text-center" style={{ color: "var(--gg-text-muted)" }}>
+    <div
+      className="flex items-center gap-2 w-full rounded-xl px-3 py-2.5 transition-colors group"
+      style={{ background: "var(--gg-surface2)", border: "1px solid var(--gg-border)" }}
+    >
+      <span
+        className="text-[12px] font-bold w-6 shrink-0 text-center font-mono"
+        style={{ color: "var(--gg-text-muted)" }}
+      >
         #{set.setNumber}
       </span>
-      <span className="flex-1 text-[13px]" style={{ color: "var(--gg-text)" }}>
-        <strong>{set.weight}</strong> <span style={{ color: "var(--gg-text-muted)" }}>kg ×</span> <strong>{set.repetitions}</strong> <span style={{ color: "var(--gg-text-muted)" }}>powt.</span>
-      </span>
-      <button
+
+      {/* Previous performance column */}
+      <div className="w-24 sm:w-28 shrink-0 text-[12px] num-tabular" style={{ color: "var(--gg-text-muted)" }}>
+        {previousSet ? (
+          <span>
+            <strong className="font-semibold text-[var(--gg-text-sub)]">{previousSet.weight}</strong> kg × {previousSet.repetitions}
+          </span>
+        ) : (
+          <span className="opacity-40">—</span>
+        )}
+      </div>
+
+      {/* Current performance column */}
+      <div
         onClick={() => setIsEditing(true)}
-        className="w-9 h-9 rounded-[9px] border-none cursor-pointer flex items-center justify-center flex-shrink-0"
-        style={{ background: "var(--gg-surface3)" }}
-        title="Edytuj"
+        className="flex-1 flex items-center gap-1 text-[14px] sm:text-[15px] num-tabular cursor-pointer"
+        style={{ color: "var(--gg-text)" }}
+        title="Kliknij, aby edytować"
       >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
-      </button>
-      <button
-        onClick={handleDelete}
-        className="w-9 h-9 rounded-[9px] border-none cursor-pointer flex items-center justify-center flex-shrink-0"
-        style={{ background: "var(--gg-surface3)" }}
-        title="Usuń"
-      >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/>
-        </svg>
-      </button>
+        <span className="font-extrabold">{set.weight}</span>
+        <span className="text-[11px] font-medium" style={{ color: "var(--gg-text-muted)" }}>kg</span>
+        <span className="text-[11px] px-0.5 font-semibold" style={{ color: "var(--gg-text-muted)" }}>×</span>
+        <span className="font-extrabold">{set.repetitions}</span>
+        <span className="text-[11px] font-medium" style={{ color: "var(--gg-text-muted)" }}>powt.</span>
+      </div>
+
+      {/* Action controls */}
+      <div className="flex items-center gap-1 shrink-0">
+        <button
+          onClick={() => setIsEditing(true)}
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-none cursor-pointer flex items-center justify-center transition-colors"
+          style={{ background: "var(--gg-surface3)", color: "var(--gg-text-sub)" }}
+          title="Edytuj serię"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </button>
+        <button
+          onClick={handleDelete}
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-none cursor-pointer flex items-center justify-center transition-colors"
+          style={{ background: "var(--gg-surface3)", color: "var(--gg-text-muted)" }}
+          title="Usuń serię"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }

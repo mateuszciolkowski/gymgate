@@ -56,35 +56,36 @@ export const StatsExerciseDetailScreen = memo(function StatsExerciseDetailScreen
   }, [exerciseId, getExerciseProgression]);
 
   const statCards = [
-    { label: "Maks. ciężar", value: `${exerciseStat?.maxWeight ?? "0"} kg` },
+    { label: "Maks. ciężar", value: `${exerciseStat?.maxWeight ?? "0"} kg`, highlight: true },
     { label: "Powt. przy PR", value: String(exerciseStat?.maxWeightReps ?? 0) },
-    { label: "Treningi", value: String(exerciseStat?.totalWorkouts ?? 0) },
+    { label: "Sesje", value: String(exerciseStat?.totalWorkouts ?? 0) },
     { label: "Ostatnio", value: `${exerciseStat?.lastWeight ?? "0"} kg × ${exerciseStat?.lastReps ?? 0}` },
   ];
 
   return (
-    <div className="px-5 pt-5 screen-enter">
+    <div className="px-5 pt-6 pb-28 screen-enter max-w-2xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-5">
         <button
           onClick={onBack}
-          className="flex items-center justify-center w-[38px] h-[38px] rounded-[12px] flex-shrink-0 cursor-pointer"
-          style={{ background: "var(--gg-surface2)", border: "1px solid var(--gg-border)" }}
+          className="flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0 cursor-pointer border-none transition-colors"
+          style={{ background: "var(--gg-surface2)", color: "var(--gg-text)" }}
+          title="Wróć"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6"/>
           </svg>
         </button>
-        <div>
-          <h2
-            className="font-barlow font-black"
-            style={{ fontSize: 22, letterSpacing: "-0.02em", color: "var(--gg-text)", lineHeight: 1.2 }}
-          >
-            {exerciseStat?.exercise?.name ?? "Szczegóły statystyk"}
-          </h2>
-          <p className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
-            Maxy i historia wyników
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "var(--gg-text-muted)" }}>
+            Historia ćwiczenia
           </p>
+          <h2
+            className="font-barlow font-bold text-[20px] truncate leading-tight"
+            style={{ color: "var(--gg-text)" }}
+          >
+            {exerciseStat?.exercise?.name ?? "Szczegóły ćwiczenia"}
+          </h2>
         </div>
       </div>
 
@@ -93,18 +94,20 @@ export const StatsExerciseDetailScreen = memo(function StatsExerciseDetailScreen
         {statCards.map((card, i) => (
           <div
             key={i}
-            className="rounded-[18px]"
+            className="rounded-2xl p-3.5 transition-all"
             style={{
-              padding: "14px 16px",
               background: "var(--gg-surface)",
-              border: "1.5px solid var(--gg-border)",
+              border: "1px solid var(--gg-border)",
               boxShadow: "var(--gg-shadow)",
             }}
           >
-            <p className="text-[11px] font-semibold mb-1.5" style={{ color: "var(--gg-text-muted)" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "var(--gg-text-muted)" }}>
               {card.label}
             </p>
-            <p className="font-barlow-condensed font-black text-[20px]" style={{ color: "var(--gg-text)" }}>
+            <p
+              className="font-barlow font-black text-[20px] leading-tight num-tabular"
+              style={{ color: card.highlight ? "var(--gg-a2)" : "var(--gg-text)" }}
+            >
               {card.value}
             </p>
           </div>
@@ -116,41 +119,40 @@ export const StatsExerciseDetailScreen = memo(function StatsExerciseDetailScreen
         <StatsProgressChart
           points={progression?.points ?? []}
           label="Ciężar podnoszony w czasie"
-          height={200}
+          height={180}
           ySuffix=" kg"
         />
       </div>
 
       {/* History table */}
       <div
-        className="rounded-[20px] mb-6"
+        className="rounded-2xl mb-6 overflow-hidden"
         style={{
           background: "var(--gg-surface)",
-          border: "1.5px solid var(--gg-border)",
+          border: "1px solid var(--gg-border)",
           boxShadow: "var(--gg-shadow)",
-          overflow: "hidden",
         }}
       >
         <div
-          className="flex items-center justify-between px-4 py-3"
-          style={{ borderBottom: "1px solid var(--gg-border)" }}
+          className="flex items-center justify-between px-4 py-3 border-b"
+          style={{ borderColor: "var(--gg-border)" }}
         >
-          <p className="text-[13px] font-bold" style={{ color: "var(--gg-text)" }}>
-            Ostatnie wyniki
+          <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--gg-text-muted)" }}>
+            Ostatnie sesje
           </p>
-          <div className="flex rounded-[10px] overflow-hidden" style={{ border: "1px solid var(--gg-border)" }}>
+          <div className="flex rounded-lg overflow-hidden p-0.5" style={{ background: "var(--gg-surface2)" }}>
             {(["desc", "asc"] as const).map((dir) => (
               <button
                 key={dir}
                 type="button"
                 onClick={() => setDateSort(dir)}
-                className="px-3 py-1 text-[11px] font-semibold border-none cursor-pointer transition-all"
+                className="px-2.5 py-1 text-[11px] font-bold border-none cursor-pointer rounded-md transition-all"
                 style={{
                   background: dateSort === dir ? "var(--gg-a1)" : "transparent",
                   color: dateSort === dir ? "#fff" : "var(--gg-text-muted)",
                 }}
               >
-                {dir === "desc" ? "Data ↓" : "Data ↑"}
+                {dir === "desc" ? "Najnowsze" : "Najstarsze"}
               </button>
             ))}
           </div>
@@ -164,15 +166,15 @@ export const StatsExerciseDetailScreen = memo(function StatsExerciseDetailScreen
           sortedRecentPoints.map((point, i) => (
             <div
               key={point.workoutId}
-              className="flex items-center justify-between px-4 py-3"
+              className="flex items-center justify-between px-4 py-3 text-[13px] num-tabular"
               style={{
                 borderTop: i === 0 ? "none" : "1px solid var(--gg-border)",
               }}
             >
-              <span className="text-[12px]" style={{ color: "var(--gg-text-sub)" }}>
-                {new Date(point.workoutDate).toLocaleDateString("pl-PL")}
+              <span className="text-[12px] font-medium" style={{ color: "var(--gg-text-muted)" }}>
+                {new Date(point.workoutDate).toLocaleDateString("pl-PL", { day: "numeric", month: "short", year: "numeric" })}
               </span>
-              <span className="text-[13px] font-semibold" style={{ color: "var(--gg-text)" }}>
+              <span className="font-bold" style={{ color: "var(--gg-text)" }}>
                 {setHistoryByWorkoutId.get(point.workoutId) ??
                   `${point.maxSetWeight} kg × ${point.repetitionsAtMaxSet}`}
               </span>

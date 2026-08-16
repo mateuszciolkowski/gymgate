@@ -12,7 +12,7 @@ export function usePlanActions(store: DataStore) {
   const { plansRef, setPlans, fetchAllFromServer } = store;
 
   const createPlan = useCallback(
-    async (data: { name: string; shortName?: string | null; exerciseIds: string[]; isPublic: boolean }): Promise<WorkoutPlan> => {
+    async (data: { name: string; shortName?: string | null; exerciseIds: string[]; isPublic: boolean; isGlobal?: boolean }): Promise<WorkoutPlan> => {
       if (!navigator.onLine) throw new Error(OFFLINE_MESSAGE);
 
       const response = await authFetch(`${API_BASE}/api/plans`, {
@@ -38,7 +38,7 @@ export function usePlanActions(store: DataStore) {
   );
 
   const updatePlan = useCallback(
-    async (id: string, data: { name?: string; shortName?: string | null; exerciseIds?: string[]; isPublic?: boolean }) => {
+    async (id: string, data: { name?: string; shortName?: string | null; exerciseIds?: string[]; isPublic?: boolean; isGlobal?: boolean }) => {
       if (!navigator.onLine) throw new Error(OFFLINE_MESSAGE);
 
       const response = await authFetch(`${API_BASE}/api/plans/${id}`, {

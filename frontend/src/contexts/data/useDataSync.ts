@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo } from "react";
-import { localStore } from "@/utils/localStore";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { localStore, type SyncOperation } from "@/utils/localStore";
 import { syncManager } from "@/utils/syncManager";
 import type { Workout, ExerciseStats, StatsOverview, WorkoutPlan } from "@/types";
 import type { Exercise } from "@/types";
@@ -30,6 +30,8 @@ export function useDataSync(store: DataStore) {
     fetchAllFromServer,
   } = store;
 
+  const currentUserIdRef = useRef<string | null>(null);
+
   // Listen for online/offline changes
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -44,14 +46,40 @@ export function useDataSync(store: DataStore) {
     };
   }, [setIsOnline]);
 
-  // Load local data on startup
+  // Load local data on startup or when user changes
   useEffect(() => {
-    if (!user || initialLoadDone.current) return;
+    if (!user) {
+      currentUserIdRef.current = null;
+      initialLoadDone.current = false;
+      return;
+    }
+
+    const isDifferentUser = currentUserIdRef.current !== user.id;
+    if (!isDifferentUser && initialLoadDone.current) return;
+
+    currentUserIdRef.current = user.id;
 
     const loadLocalData = async () => {
       setIsLoading(true);
 
       try {
+        if (isDifferentUser && initialLoadDone.current) {
+          // Clear previous user's data
+          await Promise.all([
+            localStore.clear("workouts"),
+            localStore.clear("stats"),
+            localStore.clear("activeWorkout"),
+            localStore.clear("pendingSync"),
+            localStore.clear("metadata"),
+          ]);
+          idMappingRef.current.clear();
+          progressionCacheRef.current.clear();
+          setWorkouts([]);
+          setStats([]);
+          setStatsOverview(null);
+          setActiveWorkoutId(null);
+        }
+
         // Load from IndexedDB
         const [
           localWorkouts,
@@ -88,17 +116,10 @@ export function useDataSync(store: DataStore) {
 
         initialLoadDone.current = true;
 
-        // If data is stale (> 5 min) or empty, fetch fresh data
-        const isStale = Date.now() - syncTime > 5 * 60 * 1000;
-        const isEmpty =
-          localWorkouts.length === 0 && localExercises.length === 0;
-
-        if (isStale || isEmpty) {
-          await fetchAllFromServer();
-        }
+        // Fetch fresh authoritative data from the server
+        await fetchAllFromServer();
       } catch (error) {
-        console.error("[DataProvider] Failed to load local data:", error);
-        // Fall back to the server
+        console.error("[DataProvider] Failed to load data:", error);
         await fetchAllFromServer();
       } finally {
         setIsLoading(false);
@@ -109,7 +130,9 @@ export function useDataSync(store: DataStore) {
   }, [
     user,
     fetchAllFromServer,
+    idMappingRef,
     initialLoadDone,
+    progressionCacheRef,
     setActiveWorkoutId,
     setExercises,
     setIsLoading,
@@ -126,75 +149,59 @@ export function useDataSync(store: DataStore) {
 
     // Listen for sync completion
     const unsubscribe = syncManager.onSync(async () => {
-      // Skip if local data has not been loaded yet (Fix C: no race condition)
       if (!initialLoadDone.current) return;
 
-      // After syncing, refresh data from the local store
-      const [
-        localWorkouts,
-        localExercises,
-        localStats,
-        localStatsOverview,
-        localActiveId,
-        localPlans,
-      ] =
-        await Promise.all([
+      try {
+        const [
+          serverWorkouts,
+          serverExercises,
+          serverStats,
+          serverStatsOverview,
+          serverActiveId,
+          syncTime,
+          serverPlans,
+          storedIdMappings,
+        ] = await Promise.all([
           localStore.getAll<Workout>("workouts"),
           localStore.getAll<Exercise>("exercises"),
           localStore.getAll<ExerciseStats>("stats"),
           localStore.getMetadata<StatsOverview | null>("statsOverview"),
           localStore.getActiveWorkoutId(),
+          localStore.getLastSync(),
           localStore.getAll<WorkoutPlan>("plans"),
+          localStore.getIdMappings(),
         ]);
 
-      // Update only if the data changed (compare JSON)
-      setWorkouts((prev) => {
-        const newJson = JSON.stringify(localWorkouts);
-        const prevJson = JSON.stringify(prev);
-        return newJson !== prevJson ? localWorkouts : prev;
-      });
-
-      setExercises((prev) => {
-        const newJson = JSON.stringify(localExercises);
-        const prevJson = JSON.stringify(prev);
-        return newJson !== prevJson ? localExercises : prev;
-      });
-
-      setStats((prev) => {
-        const newJson = JSON.stringify(localStats);
-        const prevJson = JSON.stringify(prev);
-        return newJson !== prevJson ? localStats : prev;
-      });
-
-      setStatsOverview((prev) => {
-        const newJson = JSON.stringify(localStatsOverview ?? null);
-        const prevJson = JSON.stringify(prev ?? null);
-        return newJson !== prevJson ? (localStatsOverview ?? null) : prev;
-      });
-
-      setActiveWorkoutId((prev) =>
-        prev !== localActiveId ? localActiveId : prev,
-      );
-
-      setPlans((prev) => {
-        const newJson = JSON.stringify(localPlans);
-        const prevJson = JSON.stringify(prev);
-        return newJson !== prevJson ? localPlans : prev;
-      });
-
-      await invalidateProgressionCache();
-      // We do not call setLastSync - it would cause an unnecessary re-render
-    });
-
-    // Listen for permanently failed operations (Fix B)
-    const unsubscribeFailure = syncManager.onSyncFailure((ops) => {
-      setFailedSyncOperations((prev) => [...prev, ...ops]);
-    });
-    const unsubscribeWorkoutNotFound = syncManager.onWorkoutNotFound(
-      (workoutId) => {
-        purgeLocalWorkout(workoutId).catch((error) => {
-          console.error("[DataProvider] Failed to purge orphaned workout:", error);
+        Object.entries(storedIdMappings).forEach(([tempId, realId]) => {
+          idMappingRef.current.set(tempId, realId);
         });
+
+        setWorkouts(serverWorkouts);
+        setExercises(serverExercises);
+        setStats(serverStats);
+        setStatsOverview(serverStatsOverview ?? null);
+        setActiveWorkoutId(serverActiveId);
+        setLastSync(syncTime);
+        setPlans(serverPlans);
+
+        invalidateProgressionCache();
+      } catch (error) {
+        console.error("[DataProvider] Failed to reload data after sync:", error);
+      }
+    });
+
+    const unsubscribeFailure = syncManager.onSyncFailure(
+      (failedOps: SyncOperation[]) => {
+        setFailedSyncOperations(failedOps);
+      },
+    );
+
+    const unsubscribeWorkoutNotFound = syncManager.onWorkoutNotFound(
+      async (workoutId: string) => {
+        console.warn(
+          `[DataProvider] Workout ${workoutId} not found on server, purging local state...`,
+        );
+        await purgeLocalWorkout(workoutId);
       },
     );
 
@@ -208,6 +215,7 @@ export function useDataSync(store: DataStore) {
     };
   }, [
     user,
+    idMappingRef,
     initialLoadDone,
     invalidateProgressionCache,
     purgeLocalWorkout,

@@ -18,6 +18,7 @@ export const createPlanSchema = z.object({
         "Exercise IDs must be unique",
       ),
     isPublic: z.boolean().default(false),
+    isGlobal: z.boolean().optional(),
   }),
 });
 
@@ -35,6 +36,7 @@ export const updatePlanSchema = z.object({
       .refine((ids) => new Set(ids).size === ids.length, "Exercise IDs must be unique")
       .optional(),
     isPublic: z.boolean().optional(),
+    isGlobal: z.boolean().optional(),
   }),
 });
 

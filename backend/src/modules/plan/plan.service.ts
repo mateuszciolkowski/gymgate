@@ -39,33 +39,51 @@ export class PlanService {
     return plan;
   }
 
-  async createPlan(data: CreatePlanDto, userId: string) {
-    await this.assertExercisesExistAndPublic(data.exerciseIds, data.isPublic);
-    await this.assertNameAvailable(userId, data.name);
+  async createPlan(data: CreatePlanDto & { isGlobal?: boolean }, userId: string, isAdmin = false) {
+    if (data.isGlobal && !isAdmin) {
+      throw new ForbiddenError("Only admins can create global plans");
+    }
+
+    const creatorUserId = data.isGlobal && isAdmin ? null : userId;
+    const isPublic = data.isGlobal ? true : data.isPublic;
+
+    await this.assertExercisesExistAndPublic(data.exerciseIds, isPublic);
+    await this.assertNameAvailable(creatorUserId, data.name);
 
     return this.runCreateWithUniqueGuard(() =>
       this.repository.create({
         name: data.name,
         shortName: data.shortName,
-        creatorUserId: userId,
-        isPublic: data.isPublic,
+        creatorUserId,
+        isPublic,
         exerciseIds: data.exerciseIds,
       }),
     );
   }
 
-  async updatePlan(id: string, data: UpdatePlanDto, userId: string) {
+  async updatePlan(id: string, data: UpdatePlanDto & { isGlobal?: boolean }, userId: string, isAdmin = false) {
     const plan = await this.repository.findById(id);
 
     if (!plan) {
       throw new NotFoundError("Plan not found");
     }
 
-    if (plan.creatorUserId !== userId) {
-      throw new ForbiddenError("You can only edit your own plans");
+    const isGlobal = plan.creatorUserId === null;
+
+    if (!isAdmin || !isGlobal) {
+      if (plan.creatorUserId !== userId) {
+        throw new ForbiddenError("You can only edit your own plans");
+      }
     }
 
-    const nextIsPublic = data.isPublic ?? plan.isPublic;
+    const nextCreatorUserId =
+      data.isGlobal !== undefined
+        ? data.isGlobal && isAdmin
+          ? null
+          : userId
+        : plan.creatorUserId;
+
+    const nextIsPublic = data.isGlobal ? true : (data.isPublic ?? plan.isPublic);
 
     if (data.exerciseIds) {
       await this.assertExercisesExistAndPublic(data.exerciseIds, nextIsPublic);
@@ -74,21 +92,37 @@ export class PlanService {
     }
 
     if (data.name && data.name !== plan.name) {
-      await this.assertNameAvailable(userId, data.name);
+      await this.assertNameAvailable(nextCreatorUserId, data.name);
     }
 
-    return this.runCreateWithUniqueGuard(() => this.repository.update(id, data, userId));
+    const updateData: Parameters<PlanRepository["update"]>[1] = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.shortName !== undefined) updateData.shortName = data.shortName;
+    if (data.exerciseIds !== undefined) updateData.exerciseIds = data.exerciseIds;
+    if (data.isPublic !== undefined) updateData.isPublic = data.isPublic;
+    if (data.isGlobal !== undefined) {
+      updateData.creatorUserId = data.isGlobal && isAdmin ? null : userId;
+      updateData.isPublic = true;
+    }
+
+    return this.runCreateWithUniqueGuard(() =>
+      this.repository.update(id, updateData, userId),
+    );
   }
 
-  async deletePlan(id: string, userId: string) {
+  async deletePlan(id: string, userId: string, isAdmin = false) {
     const plan = await this.repository.findById(id);
 
     if (!plan) {
       throw new NotFoundError("Plan not found");
     }
 
-    if (plan.creatorUserId !== userId) {
-      throw new ForbiddenError("You can only delete your own plans");
+    const isGlobal = plan.creatorUserId === null;
+
+    if (!isAdmin || !isGlobal) {
+      if (plan.creatorUserId !== userId) {
+        throw new ForbiddenError("You can only delete your own plans");
+      }
     }
 
     await this.repository.delete(id);
@@ -149,10 +183,14 @@ export class PlanService {
     }
   }
 
-  private async assertNameAvailable(userId: string, name: string) {
-    const existing = await this.repository.findByCreatorAndName(userId, name);
+  private async assertNameAvailable(creatorUserId: string | null, name: string) {
+    const existing = await this.repository.findByCreatorAndName(creatorUserId, name);
     if (existing) {
-      throw new ConflictError("Plan with this name already exists");
+      throw new ConflictError(
+        creatorUserId
+          ? "Plan with this name already exists"
+          : "Global plan with this name already exists",
+      );
     }
   }
 
