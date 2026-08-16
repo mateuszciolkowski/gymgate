@@ -12,22 +12,22 @@ interface StatsProgressChartProps {
 export const StatsProgressChart = memo(function StatsProgressChart({
   points,
   label,
-  height = 220,
+  height = 200,
   ySuffix = "",
   latestFormatter,
 }: StatsProgressChartProps) {
   if (points.length === 0) {
     return (
       <div
-        className="rounded-[20px] flex items-center justify-center"
+        className="rounded-2xl flex items-center justify-center p-8 text-center"
         style={{
           height: 120,
           background: "var(--gg-surface)",
-          border: "1.5px solid var(--gg-border)",
+          border: "1px solid var(--gg-border)",
         }}
       >
         <p className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>
-          Wykres pojawi się po zakończonych treningach
+          Wykres pojawi się po zrealizowaniu sesji treningowych
         </p>
       </div>
     );
@@ -38,8 +38,8 @@ export const StatsProgressChart = memo(function StatsProgressChart({
   const max = Math.max(...values);
   const range = Math.max(max - min, 1);
   const yAxisValues = [...new Set(values.map((v) => Number(v.toFixed(1))))].sort((a, b) => a - b);
-  const firstDate = new Date(points[0]!.workoutDate).toLocaleDateString("pl-PL");
-  const lastDate = new Date(points[points.length - 1]!.workoutDate).toLocaleDateString("pl-PL");
+  const firstDate = new Date(points[0]!.workoutDate).toLocaleDateString("pl-PL", { day: "numeric", month: "short" });
+  const lastDate = new Date(points[points.length - 1]!.workoutDate).toLocaleDateString("pl-PL", { day: "numeric", month: "short" });
   const chartLeft = 18;
   const chartRight = 96;
   const chartTop = 8;
@@ -60,22 +60,22 @@ export const StatsProgressChart = memo(function StatsProgressChart({
 
   return (
     <div
-      className="rounded-[20px]"
+      className="rounded-2xl p-4 transition-all"
       style={{
-        padding: "16px",
         background: "var(--gg-surface)",
-        border: "1.5px solid var(--gg-border)",
+        border: "1px solid var(--gg-border)",
         boxShadow: "var(--gg-shadow)",
       }}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[12px] font-semibold" style={{ color: "var(--gg-text-muted)" }}>
+        <span className="text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--gg-text-muted)" }}>
           {label}
         </span>
-        <span className="font-barlow-condensed font-bold text-[18px]" style={{ color: "var(--gg-a1)" }}>
+        <span className="font-barlow font-extrabold text-[17px] num-tabular" style={{ color: "var(--gg-a2)" }}>
           {latestFormatter ? latestFormatter(latestValue) : `${latestValue.toFixed(1)}${ySuffix}`}
         </span>
       </div>
+
       <svg viewBox="0 0 100 60" role="img" aria-label={label} style={{ width: "100%", height }}>
         {yAxisValues.map((axisValue) => (
           <line
@@ -108,17 +108,18 @@ export const StatsProgressChart = memo(function StatsProgressChart({
             y={plotY(axisValue) + 1.5}
             fontSize="3.6"
             fill="var(--gg-text-muted)"
+            fontFamily="monospace"
           >
             {`${axisValue.toFixed(1)}${ySuffix}`}
           </text>
         ))}
-        <text x={chartLeft} y="54" fontSize="4" fill="var(--gg-text-muted)">{firstDate}</text>
-        <text x={chartRight - 20} y="54" fontSize="4" fill="var(--gg-text-muted)">{lastDate}</text>
+        <text x={chartLeft} y="54" fontSize="3.8" fill="var(--gg-text-muted)">{firstDate}</text>
+        <text x={chartRight - 16} y="54" fontSize="3.8" fill="var(--gg-text-muted)">{lastDate}</text>
         <polyline
           points={polyline}
           fill="none"
-          stroke="#059669"
-          strokeWidth="1.2"
+          stroke="var(--gg-a1)"
+          strokeWidth="1.4"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -127,8 +128,8 @@ export const StatsProgressChart = memo(function StatsProgressChart({
             key={point.workoutId}
             cx={plotX(index)}
             cy={plotY(point.value)}
-            r="1.3"
-            fill="#34D399"
+            r="1.4"
+            fill="var(--gg-a2)"
           />
         ))}
       </svg>

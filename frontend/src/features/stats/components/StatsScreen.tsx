@@ -46,20 +46,22 @@ export const StatsScreen = memo(function StatsScreen({
 
   const statCards = [
     {
-      label: "Treningi / miesiąc",
+      label: "Miesiąc",
       value: overview?.workoutsLastMonth ?? 0,
+      sublabel: "treningów",
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2s-5 6-5 11a5 5 0 0010 0C17 8 12 2 12 2z"/>
         </svg>
       ),
       highlight: true,
     },
     {
-      label: "Treningi / rok",
+      label: "Ten rok",
       value: overview?.workoutsLastYear ?? 0,
+      sublabel: "treningów",
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="13" width="4" height="7" rx="1"/>
           <rect x="10" y="8" width="4" height="12" rx="1"/>
           <rect x="17" y="4" width="4" height="16" rx="1"/>
@@ -67,31 +69,23 @@ export const StatsScreen = memo(function StatsScreen({
       ),
     },
     {
-      label: "Łączna serii",
+      label: "Łącznie",
       value: overview?.totalSets ?? 0,
+      sublabel: "wykonanych serii",
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="5" width="18" height="2" rx="1"/>
           <rect x="3" y="11" width="18" height="2" rx="1"/>
           <rect x="3" y="17" width="11" height="2" rx="1"/>
         </svg>
       ),
     },
-    {
-      label: "Objętość (kg)",
-      value: (overview?.totalVolume ?? 0).toLocaleString("pl-PL"),
-      icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M6 9H4a2 2 0 000 4h2M18 9h2a2 2 0 010 4h-2M6 9V4h12v5M6 9a6 6 0 0012 0M12 15v4M9 19h6"/>
-        </svg>
-      ),
-    },
   ];
 
   return (
-    <div className="px-5 pt-5 screen-enter">
+    <div className="px-5 pt-6 pb-28 screen-enter max-w-2xl mx-auto">
       {/* Header */}
-      <div className="mb-5">
+      <div className="mb-6">
         <p
           className="text-[11px] font-bold uppercase tracking-[0.12em] mb-1"
           style={{ color: "var(--gg-text-muted)" }}
@@ -99,92 +93,84 @@ export const StatsScreen = memo(function StatsScreen({
           Twoje postępy
         </p>
         <h1
-          className="font-barlow font-black leading-none"
-          style={{ fontSize: 36, letterSpacing: "-0.03em", color: "var(--gg-text)" }}
+          className="font-barlow font-extrabold text-[32px] tracking-tight leading-none"
+          style={{ color: "var(--gg-text)" }}
         >
           Statystyki
         </h1>
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-2.5 mb-4">
+      <div className="grid grid-cols-3 gap-2.5 mb-6">
         {statCards.map((card, i) => (
           <div
             key={i}
-            className="rounded-[20px]"
+            className="rounded-2xl p-3.5 transition-all"
             style={{
-              padding: "16px 14px",
-              background: card.highlight ? "var(--gg-grad-btn)" : "var(--gg-surface)",
-              border: card.highlight ? "none" : "1.5px solid var(--gg-border)",
-              boxShadow: card.highlight ? "0 6px 28px var(--gg-glow)" : "var(--gg-shadow)",
+              background: "var(--gg-surface)",
+              border: "1px solid var(--gg-border)",
+              boxShadow: "var(--gg-shadow)",
             }}
           >
-            <div className="flex justify-between items-start mb-3">
+            <div className="flex justify-between items-center mb-1.5">
               <span
-                className="text-[11px] font-semibold leading-tight"
-                style={{ color: card.highlight ? "rgba(255,255,255,0.72)" : "var(--gg-text-muted)" }}
+                className="text-[10px] font-bold uppercase tracking-wider truncate pr-1"
+                style={{ color: "var(--gg-text-muted)" }}
               >
                 {card.label}
               </span>
               <div
-                className="flex items-center justify-center rounded-[9px] flex-shrink-0"
+                className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
                 style={{
-                  width: 28,
-                  height: 28,
-                  background: card.highlight ? "rgba(255,255,255,0.2)" : "var(--gg-surface2)",
-                  color: card.highlight ? "#fff" : "var(--gg-a1)",
+                  background: card.highlight ? "var(--gg-tag-bg)" : "var(--gg-surface2)",
+                  color: card.highlight ? "var(--gg-a2)" : "var(--gg-text-sub)",
                 }}
               >
                 {card.icon}
               </div>
             </div>
             <div
-              className="font-barlow-condensed font-black"
+              className="font-barlow font-black text-[24px] leading-tight num-tabular tracking-tight truncate"
               style={{
-                fontSize: 30,
-                letterSpacing: "-0.02em",
-                color: card.highlight ? "#fff" : "var(--gg-text)",
+                color: card.highlight ? "var(--gg-a2)" : "var(--gg-text)",
               }}
             >
               {card.value}
+            </div>
+            <div className="text-[10px] font-medium mt-0.5 truncate" style={{ color: "var(--gg-text-muted)" }}>
+              {card.sublabel}
             </div>
           </div>
         ))}
       </div>
 
       {/* Records / Current toggle */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-[13px] font-bold" style={{ color: "var(--gg-text)" }}>
-          {showCurrent ? "Aktualne ciężary" : "Rekordy osobiste"}
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-[13px] font-bold tracking-tight" style={{ color: "var(--gg-text)" }}>
+          {showCurrent ? "Aktualne obciążenia" : "Rekordy osobiste (PR)"}
         </div>
         <div
-          className="flex rounded-[12px] p-0.5"
-          style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)" }}
+          className="flex p-0.5 rounded-xl"
+          style={{ background: "var(--gg-surface2)", border: "1px solid var(--gg-border)" }}
         >
           <button
             onClick={() => setShowCurrent(false)}
-            className="text-[11px] font-bold rounded-[10px] transition-all duration-200"
+            className="text-[11px] font-bold px-3 py-1 rounded-lg border-none cursor-pointer transition-all"
             style={{
-              padding: "5px 11px",
-              background: !showCurrent ? "var(--gg-grad-btn)" : "transparent",
-              color: !showCurrent ? "#fff" : "var(--gg-text-muted)",
-              border: "none",
-              cursor: "pointer",
-              boxShadow: !showCurrent ? "0 2px 8px var(--gg-glow-sm)" : "none",
+              background: !showCurrent ? "var(--gg-surface)" : "transparent",
+              color: !showCurrent ? "var(--gg-text)" : "var(--gg-text-muted)",
+              boxShadow: !showCurrent ? "0 1px 4px rgba(0,0,0,0.3)" : "none",
             }}
           >
             Rekordy
           </button>
           <button
             onClick={() => setShowCurrent(true)}
-            className="text-[11px] font-bold rounded-[10px] transition-all duration-200"
+            className="text-[11px] font-bold px-3 py-1 rounded-lg border-none cursor-pointer transition-all"
             style={{
-              padding: "5px 11px",
-              background: showCurrent ? "var(--gg-grad-btn)" : "transparent",
-              color: showCurrent ? "#fff" : "var(--gg-text-muted)",
-              border: "none",
-              cursor: "pointer",
-              boxShadow: showCurrent ? "0 2px 8px var(--gg-glow-sm)" : "none",
+              background: showCurrent ? "var(--gg-surface)" : "transparent",
+              color: showCurrent ? "var(--gg-text)" : "var(--gg-text-muted)",
+              boxShadow: showCurrent ? "0 1px 4px rgba(0,0,0,0.3)" : "none",
             }}
           >
             Aktualne
@@ -193,13 +179,13 @@ export const StatsScreen = memo(function StatsScreen({
       </div>
 
       {/* List */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
         {sortedStats.length === 0 ? (
           <div
-            className="rounded-[16px] text-[13px] text-center py-6"
+            className="rounded-2xl text-[13px] text-center py-10 px-4"
             style={{
               background: "var(--gg-surface)",
-              border: "1.5px solid var(--gg-border)",
+              border: "1px dashed var(--gg-border)",
               color: "var(--gg-text-muted)",
             }}
           >
@@ -217,29 +203,35 @@ export const StatsScreen = memo(function StatsScreen({
               <button
                 key={entry.id}
                 onClick={() => onOpenExerciseDetails(entry.exerciseId)}
-                className="w-full text-left cursor-pointer flex items-center justify-between transition-all duration-150 rounded-[20px]"
+                className="w-full text-left cursor-pointer flex items-center justify-between transition-all duration-150 rounded-2xl p-4 group"
                 style={{
-                  padding: "12px 16px",
                   background: "var(--gg-surface)",
-                  border: "1.5px solid var(--gg-border)",
+                  border: "1px solid var(--gg-border)",
                   boxShadow: "var(--gg-shadow)",
-                  opacity: hasData ? 1 : 0.45,
+                  opacity: hasData ? 1 : 0.5,
                 }}
               >
                 <span
-                  className="text-[13px] font-semibold flex-1 leading-snug"
+                  className="text-[14px] font-semibold flex-1 truncate pr-3"
                   style={{ color: "var(--gg-text)" }}
                 >
                   {entry.exercise?.name ?? "Ćwiczenie"}
                 </span>
-                <div className="flex items-center gap-2.5 flex-shrink-0 ml-3">
+                <div className="flex items-center gap-3 shrink-0">
                   <span
-                    className={`font-barlow-condensed font-black text-[18px] ${!showCurrent ? "grad-text" : ""}`}
-                    style={{ color: showCurrent ? "var(--gg-text)" : undefined }}
+                    className="font-mono font-bold text-[15px] num-tabular"
+                    style={{ color: !showCurrent ? "var(--gg-a2)" : "var(--gg-text)" }}
                   >
                     {displayWeight} kg
                   </span>
-                  <span className="text-[11px] font-bold" style={{ color: "var(--gg-a2)" }}>→</span>
+                  <div
+                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors group-hover:bg-[var(--gg-surface3)]"
+                    style={{ background: "var(--gg-surface2)", color: "var(--gg-text-muted)" }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </div>
                 </div>
               </button>
             );

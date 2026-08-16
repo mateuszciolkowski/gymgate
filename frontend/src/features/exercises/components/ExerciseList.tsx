@@ -68,33 +68,18 @@ export function ExerciseList({
     return list;
   }, [exercises, excludeExerciseIds, searchQuery, showOnlyMyExercises, user, showOnlyPerformed, allStats, sortOrder, mode]);
 
-  const filterBtnStyle = (active: boolean): React.CSSProperties => ({
-    padding: "5px 13px",
-    borderRadius: 20,
-    fontSize: 12,
-    fontWeight: 600,
-    background: active ? "var(--gg-grad-btn)" : "var(--gg-surface2)",
-    color: active ? "#fff" : "var(--gg-text-muted)",
-    border: "none",
-    cursor: "pointer",
-    boxShadow: active ? "0 2px 10px var(--gg-glow-sm)" : "none",
-    transition: "all 0.2s",
-  });
-
   return (
     <div className="flex flex-col">
       {/* Search */}
       <div className="px-5 pt-4 pb-3" style={{ borderBottom: "1px solid var(--gg-border)" }}>
         <div
-          className="flex items-center gap-2.5 rounded-[14px]"
+          className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5"
           style={{
-            padding: "11px 14px",
-            background: "var(--gg-surface)",
-            border: "1.5px solid var(--gg-border)",
-            boxShadow: "var(--gg-shadow)",
+            background: "var(--gg-surface2)",
+            border: "1px solid var(--gg-border)",
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--gg-text-muted)" }}>
             <circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>
           </svg>
           <input
@@ -108,7 +93,7 @@ export function ExerciseList({
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="border-none bg-transparent cursor-pointer"
+              className="border-none bg-transparent cursor-pointer text-[12px]"
               style={{ color: "var(--gg-text-muted)" }}
             >
               ✕
@@ -118,44 +103,56 @@ export function ExerciseList({
       </div>
 
       {/* Sort + filter pills */}
-      <div className="px-5 py-3 flex gap-1.5 flex-wrap" style={{ borderBottom: "1px solid var(--gg-border)" }}>
+      <div className="px-5 py-2.5 flex gap-2 flex-wrap" style={{ borderBottom: "1px solid var(--gg-border)" }}>
         <button
           onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-          style={filterBtnStyle(true)}
+          className="px-3 py-1 rounded-lg text-[11px] font-bold border-none cursor-pointer transition-all"
+          style={{
+            background: "var(--gg-surface2)",
+            color: "var(--gg-text)",
+            border: "1px solid var(--gg-border)",
+          }}
         >
-          {sortOrder === "asc" ? "A→Z" : "Z→A"}
+          {sortOrder === "asc" ? "A → Z" : "Z → A"}
         </button>
         <button
           onClick={() => setShowOnlyPerformed(!showOnlyPerformed)}
-          style={filterBtnStyle(showOnlyPerformed)}
+          className="px-3 py-1 rounded-lg text-[11px] font-bold border-none cursor-pointer transition-all"
+          style={{
+            background: showOnlyPerformed ? "var(--gg-surface)" : "var(--gg-surface2)",
+            color: showOnlyPerformed ? "var(--gg-a2)" : "var(--gg-text-muted)",
+            border: showOnlyPerformed ? "1px solid var(--gg-a1)" : "1px solid var(--gg-border)",
+          }}
         >
           Wykonywane
         </button>
         <button
           onClick={() => setShowOnlyMyExercises(!showOnlyMyExercises)}
-          style={filterBtnStyle(showOnlyMyExercises)}
+          className="px-3 py-1 rounded-lg text-[11px] font-bold border-none cursor-pointer transition-all"
+          style={{
+            background: showOnlyMyExercises ? "var(--gg-surface)" : "var(--gg-surface2)",
+            color: showOnlyMyExercises ? "var(--gg-a2)" : "var(--gg-text-muted)",
+            border: showOnlyMyExercises ? "1px solid var(--gg-a1)" : "1px solid var(--gg-border)",
+          }}
         >
-          Moje
+          Moje własne
         </button>
       </div>
 
       {/* Muscle group chips */}
-      <div className="px-5 py-3 overflow-x-auto scrollbar-hide" style={{ borderBottom: "1px solid var(--gg-border)" }}>
-        <div className="flex gap-1.5 min-w-min pb-0.5">
+      <div className="px-5 py-2.5 overflow-x-auto scrollbar-hide" style={{ borderBottom: "1px solid var(--gg-border)" }}>
+        <div className="flex gap-1.5 min-w-min">
           {MUSCLE_GROUPS.map((group) => {
             const isActive = selectedMuscleGroup === group.value;
             return (
               <button
                 key={group.value}
                 onClick={() => setSelectedMuscleGroup(isActive ? undefined : group.value)}
-                className="text-[12px] font-semibold whitespace-nowrap flex-shrink-0 cursor-pointer"
+                className="text-[11px] font-semibold whitespace-nowrap flex-shrink-0 cursor-pointer px-3 py-1 rounded-full transition-all"
                 style={{
-                  padding: "5px 14px",
-                  borderRadius: 20,
-                  border: `1.5px solid ${isActive ? "var(--gg-text)" : "var(--gg-border)"}`,
-                  background: isActive ? "var(--gg-text)" : "transparent",
-                  color: isActive ? "var(--gg-bg)" : "var(--gg-text-sub)",
-                  transition: "all 0.2s",
+                  border: `1px solid ${isActive ? "var(--gg-a1)" : "var(--gg-border)"}`,
+                  background: isActive ? "var(--gg-surface2)" : "transparent",
+                  color: isActive ? "var(--gg-a2)" : "var(--gg-text-sub)",
                 }}
               >
                 {group.label}
@@ -166,17 +163,17 @@ export function ExerciseList({
       </div>
 
       {/* List */}
-      <div className="px-5 py-4 pb-6 flex flex-col gap-2.5">
+      <div className="px-5 py-4 pb-28 flex flex-col gap-2.5 max-w-2xl mx-auto w-full">
         {loading ? (
-          <div className="flex flex-col items-center gap-2 py-10">
+          <div className="flex flex-col items-center gap-2 py-12">
             <div
               className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
               style={{ borderColor: "var(--gg-a1)", borderTopColor: "transparent" }}
             />
-            <p className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Ładowanie...</p>
+            <p className="text-[13px] font-medium" style={{ color: "var(--gg-text-muted)" }}>Ładowanie ćwiczeń...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-10 text-[13px]" style={{ color: "var(--gg-text-muted)" }}>
+          <div className="text-center py-12 text-[13px]" style={{ color: "var(--gg-text-muted)" }}>
             {mode === "select" && excludeExerciseIds.length > 0
               ? "Wszystkie ćwiczenia zostały już dodane"
               : "Nie znaleziono ćwiczeń"}
@@ -212,33 +209,31 @@ interface ExerciseItemProps {
 
 function ExerciseItem({ exercise, mode, stats, onSelect, onEdit, onDelete, performedHighlight }: ExerciseItemProps) {
   const { user } = useAuth();
-  const creatorId = exercise.creator?.id;
-  const isGlobal = creatorId == null || creatorId === "1";
-  const canEdit = user && ((creatorId != null && creatorId === user.id) || (user.isAdmin && isGlobal));
+  const creatorId = exercise.creator?.id ?? exercise.creatorUserId;
+  const canEdit = !!user && (user.isAdmin || (creatorId != null && creatorId === user.id));
   const isPerformed = performedHighlight && !!stats;
 
   return (
     <div
       onClick={mode === "select" ? () => onSelect?.(exercise.id) : undefined}
-      className="rounded-[20px] transition-all duration-150"
+      className="rounded-2xl transition-all duration-150 p-4"
       style={{
-        padding: "14px 16px",
         background: "var(--gg-surface)",
-        border: isPerformed ? "1.5px solid var(--gg-a1)" : "1.5px solid var(--gg-border)",
-        boxShadow: isPerformed ? "var(--gg-shadow-glow)" : "var(--gg-shadow)",
+        border: isPerformed ? "1px solid var(--gg-a1)" : "1px solid var(--gg-border)",
+        boxShadow: "var(--gg-shadow)",
         cursor: mode === "select" ? "pointer" : "default",
       }}
     >
       <div className="flex justify-between items-start mb-2">
         <h3
-          className="font-barlow font-bold text-[14px] flex-1 leading-snug"
+          className="font-barlow font-bold text-[15px] flex-1 leading-snug"
           style={{ color: "var(--gg-text)" }}
         >
           {creatorId != null && creatorId !== "1" && (
             <svg
               width="13" height="13" viewBox="0 0 24 24" fill="none"
-              stroke="var(--gg-a1)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-              style={{ display: "inline", marginRight: 5, marginBottom: 1, verticalAlign: "middle", flexShrink: 0 }}
+              stroke="var(--gg-a2)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+              style={{ display: "inline", marginRight: 6, marginBottom: 2, verticalAlign: "middle" }}
             >
               <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
@@ -246,37 +241,37 @@ function ExerciseItem({ exercise, mode, stats, onSelect, onEdit, onDelete, perfo
           )}
           {exercise.name}
         </h3>
-        <div className="flex gap-1.5 flex-shrink-0 ml-2">
+        <div className="flex gap-1.5 shrink-0 ml-2">
           {mode === "select" ? (
             <div
-              className="flex items-center justify-center w-[30px] h-[30px] rounded-[9px]"
-              style={{ background: "var(--gg-record-bg)", border: "1px solid var(--gg-border-med)" }}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
+              style={{ background: "var(--gg-btn-bg)" }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gg-a1)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="4" x2="12" y2="20"/>
-                <line x1="4" y1="12" x2="20" y2="12"/>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
             </div>
           ) : canEdit && (
             <>
               <button
                 onClick={() => onEdit?.(exercise)}
-                className="flex items-center justify-center w-[30px] h-[30px] rounded-[8px] border-none cursor-pointer"
-                style={{ background: "var(--gg-surface2)" }}
+                className="w-8 h-8 rounded-lg border-none cursor-pointer flex items-center justify-center transition-colors"
+                style={{ background: "var(--gg-surface2)", color: "var(--gg-text-sub)" }}
                 title="Edytuj"
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="1.5">
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z"/>
                 </svg>
               </button>
               <button
                 onClick={() => onDelete?.(exercise.id, exercise.name)}
-                className="flex items-center justify-center w-[30px] h-[30px] rounded-[8px] border-none cursor-pointer"
-                style={{ background: "var(--gg-surface2)" }}
+                className="w-8 h-8 rounded-lg border-none cursor-pointer flex items-center justify-center transition-colors"
+                style={{ background: "var(--gg-surface2)", color: "var(--gg-text-muted)" }}
                 title="Usuń"
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="3 6 5 6 21 6"/>
                   <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>
                 </svg>
@@ -286,15 +281,15 @@ function ExerciseItem({ exercise, mode, stats, onSelect, onEdit, onDelete, perfo
         </div>
       </div>
 
-      {/* Tags */}
-      <div className="flex gap-1.5 flex-wrap mb-1.5">
+      {/* Muscle tags */}
+      <div className="flex gap-1.5 flex-wrap mb-2">
         {exercise.muscleGroups.map((mg) => {
           const group = MUSCLE_GROUPS.find((g) => g.value === mg);
           return (
             <span
               key={mg}
-              className="text-[10px] font-bold tracking-[0.06em]"
-              style={{ color: "var(--gg-tag-text)", background: "var(--gg-tag-bg)", padding: "3px 10px", borderRadius: 20 }}
+              className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md"
+              style={{ color: "var(--gg-tag-text)", background: "var(--gg-tag-bg)" }}
             >
               {group?.label || mg}
             </span>
@@ -303,22 +298,22 @@ function ExerciseItem({ exercise, mode, stats, onSelect, onEdit, onDelete, perfo
       </div>
 
       {exercise.description && (
-        <p className="text-[12px] mb-1.5 line-clamp-2" style={{ color: "var(--gg-text-muted)" }}>
+        <p className="text-[12px] mb-2 line-clamp-2 leading-relaxed" style={{ color: "var(--gg-text-muted)" }}>
           {exercise.description}
         </p>
       )}
 
       {stats && (
         <div
-          className="flex gap-3 rounded-[12px] mt-2"
-          style={{ padding: "9px 12px", background: "var(--gg-record-bg)" }}
+          className="flex items-center gap-3 rounded-xl px-3 py-2 mt-2 num-tabular text-[12px]"
+          style={{ background: "var(--gg-surface2)", border: "1px solid var(--gg-border)" }}
         >
-          <span className="text-[11px]" style={{ color: "var(--gg-text-sub)" }}>
+          <span style={{ color: "var(--gg-text-muted)" }}>
             Ostatnio: <strong style={{ color: "var(--gg-text)" }}>{stats.lastWeight} kg × {stats.lastReps}</strong>
           </span>
-          <div style={{ width: 1, background: "var(--gg-border)" }} />
-          <span className="text-[11px]" style={{ color: "var(--gg-text-sub)" }}>
-            Rekord: <strong className="grad-text">{stats.maxWeight} kg × {stats.maxWeightReps}</strong>
+          <div className="w-[1px] h-3" style={{ background: "var(--gg-border)" }} />
+          <span style={{ color: "var(--gg-text-muted)" }}>
+            Rekord: <strong style={{ color: "var(--gg-a2)" }}>{stats.maxWeight} kg × {stats.maxWeightReps}</strong>
           </span>
         </div>
       )}

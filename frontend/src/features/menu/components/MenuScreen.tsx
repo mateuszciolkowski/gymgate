@@ -30,7 +30,7 @@ const THEMES: { id: Theme; label: string; desc: string; bg: string; accent: stri
   {
     id: "steel",
     label: "Stalowy",
-    desc: "Steel Blue ⚡",
+    desc: "Steel Blue",
     bg: "#06090F",
     accent: "#0C1220",
     dot1: "#3B82F6",
@@ -39,7 +39,7 @@ const THEMES: { id: Theme; label: string; desc: string; bg: string; accent: stri
   {
     id: "graphite",
     label: "Grafitowy",
-    desc: "Graphite Dark 🔩",
+    desc: "Graphite Dark",
     bg: "#0A0A0C",
     accent: "#1A1A1F",
     dot1: "#6B7280",
@@ -48,7 +48,7 @@ const THEMES: { id: Theme; label: string; desc: string; bg: string; accent: stri
   {
     id: "violet",
     label: "Fioletowy",
-    desc: "Violet Glow ✨",
+    desc: "Violet Dark",
     bg: "#0C0812",
     accent: "#160F22",
     dot1: "#A855F7",
@@ -56,8 +56,8 @@ const THEMES: { id: Theme; label: string; desc: string; bg: string; accent: stri
   },
   {
     id: "blossom",
-    label: "Różowy",
-    desc: "Blossom Light ✿",
+    label: "Różany",
+    desc: "Blossom Light",
     bg: "#FDF8FF",
     accent: "#F5EEFF",
     dot1: "#9333EA",
@@ -73,63 +73,65 @@ function ThemePicker({ theme, setTheme, onClose }: { theme: Theme; setTheme: (t:
       style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
     >
       <div
-        className="w-full"
+        className="w-full max-w-2xl mx-auto"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "var(--gg-surface)",
           borderRadius: "28px 28px 0 0",
-          border: "1.5px solid var(--gg-border-med)",
+          border: "1px solid var(--gg-border-med)",
           boxShadow: "0 -8px 40px rgba(0,0,0,0.5)",
-          padding: "28px 20px",
+          padding: "24px 20px",
           paddingBottom: "max(28px, env(safe-area-inset-bottom, 28px))",
         }}
       >
         {/* Handle */}
         <div
-          className="mx-auto mb-6"
+          className="mx-auto mb-5"
           style={{ width: 40, height: 4, borderRadius: 2, background: "var(--gg-surface3)" }}
         />
         <h3
-          className="font-barlow font-black mb-5"
-          style={{ fontSize: 22, color: "var(--gg-text)" }}
+          className="font-barlow font-extrabold mb-4"
+          style={{ fontSize: 20, color: "var(--gg-text)" }}
         >
-          Wybierz motyw
+          Wybierz motyw kolorystyczny
         </h3>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
           {THEMES.map((t) => {
             const isActive = theme === t.id;
             return (
               <button
                 key={t.id}
-                onClick={() => { setTheme(t.id); onClose(); }}
-                className="flex items-center gap-4 w-full rounded-[18px] border-none cursor-pointer transition-all duration-200"
+                onClick={() => {
+                  setTheme(t.id);
+                  onClose();
+                }}
+                className="flex items-center gap-3.5 w-full text-left rounded-2xl transition-all border-none cursor-pointer"
                 style={{
-                  padding: "14px 16px",
-                  background: isActive ? "var(--gg-grad-soft)" : "var(--gg-surface2)",
-                  border: `1.5px solid ${isActive ? "var(--gg-a1)" : "var(--gg-border)"}`,
-                  boxShadow: isActive ? "0 0 0 1px var(--gg-a1), var(--gg-shadow-glow)" : "none",
+                  padding: "12px 14px",
+                  background: isActive ? "var(--gg-surface2)" : "transparent",
+                  border: isActive ? "1.5px solid var(--gg-a1)" : "1px solid var(--gg-border)",
                 }}
               >
-                {/* Color preview */}
+                {/* Palette preview */}
                 <div
-                  className="flex-shrink-0 rounded-[12px] overflow-hidden relative"
-                  style={{ width: 46, height: 46, background: t.bg, border: "1.5px solid rgba(255,255,255,0.12)" }}
+                  className="w-12 h-10 rounded-xl relative overflow-hidden flex-shrink-0"
+                  style={{ background: t.bg, border: "1px solid rgba(255,255,255,0.1)" }}
                 >
                   <div
-                    className="absolute inset-0 rounded-[10px]"
-                    style={{ background: t.accent, margin: "6px 6px 0 6px", borderRadius: "6px 6px 0 0" }}
+                    className="w-full h-full"
+                    style={{ background: t.accent, margin: "4px 4px 0 4px", borderRadius: "4px 4px 0 0" }}
                   />
-                  <div className="absolute bottom-2 left-2 flex gap-1">
-                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: t.dot1 }} />
-                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: t.dot2 }} />
+                  <div className="absolute bottom-1.5 left-1.5 flex gap-1">
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.dot1 }} />
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.dot2 }} />
                   </div>
                 </div>
 
                 <div className="flex-1 text-left">
-                  <div className="text-[15px] font-bold" style={{ color: "var(--gg-text)" }}>
+                  <div className="text-[14px] font-bold" style={{ color: "var(--gg-text)" }}>
                     {t.label}
                   </div>
-                  <div className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+                  <div className="text-[11px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
                     {t.desc}
                   </div>
                 </div>
@@ -137,7 +139,7 @@ function ThemePicker({ theme, setTheme, onClose }: { theme: Theme; setTheme: (t:
                 {isActive && (
                   <div
                     className="flex items-center justify-center flex-shrink-0 rounded-full"
-                    style={{ width: 24, height: 24, background: "var(--gg-a1)" }}
+                    style={{ width: 22, height: 22, background: "var(--gg-a1)" }}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12"/>
@@ -164,48 +166,14 @@ export const MenuScreen = memo(function MenuScreen({ theme, setTheme }: MenuScre
     {
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
-        </svg>
-      ),
-      label: "Profil",
-      desc: "Zarządzaj swoim profilem",
-      onClick: undefined as (() => void) | undefined,
-    },
-    {
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-        </svg>
-      ),
-      label: "Ustawienia",
-      desc: "Preferencje aplikacji",
-      onClick: undefined as (() => void) | undefined,
-    },
-    {
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="4"/>
           <circle cx="12" cy="12" r="9"/>
           <circle cx="12" cy="12" r="1" fill="currentColor"/>
         </svg>
       ),
-      label: "Motywy",
+      label: "Motyw kolorystyczny",
       desc: `Aktualny: ${currentThemeLabel}`,
       onClick: () => setShowThemePicker(true),
-    },
-    {
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-      ),
-      label: "Eksportuj dane",
-      desc: "Pobierz dane treningowe",
-      onClick: undefined as (() => void) | undefined,
     },
     {
       icon: (
@@ -215,17 +183,17 @@ export const MenuScreen = memo(function MenuScreen({ theme, setTheme }: MenuScre
           <path d="M3.51 9a9 9 0 0114.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0020.49 15"/>
         </svg>
       ),
-      label: "Resetuj lokalny cache",
-      desc: "Wyczyść dane offline i pobierz od nowa",
+      label: "Odśwież pamięć podręczną (Cache)",
+      desc: "Wyczyść dane offline i pobierz najnowsze z serwera",
       onClick: async () => {
         const confirmed = confirm(
-          "Wyczyścić wszystkie dane zapisane lokalnie i pobrać od nowa z serwera? Niezsynchronizowane zmiany mogą zostać utracone.",
+          "Pobrać świeże dane z serwera i zaktualizować lokalną bazę?",
         );
         if (!confirmed) return;
 
         try {
           await resetLocalCache();
-          alert("Cache wyczyszczony, dane pobrane z serwera.");
+          alert("Pomyślnie zsynchronizowano dane z serwerem.");
         } catch {
           alert("Nie udało się zresetować lokalnego cache.");
         }
@@ -238,49 +206,48 @@ export const MenuScreen = memo(function MenuScreen({ theme, setTheme }: MenuScre
     : "?";
 
   return (
-    <div className="px-5 pt-5 screen-enter">
+    <div className="px-5 pt-6 pb-28 screen-enter max-w-2xl mx-auto">
       {/* Header */}
       <div className="mb-5">
         <p
-          className="text-[11px] font-bold uppercase tracking-[0.12em] mb-1"
+          className="text-[11px] font-bold uppercase tracking-[0.12em] mb-0.5"
           style={{ color: "var(--gg-text-muted)" }}
         >
           Ustawienia
         </p>
         <h1
-          className="font-barlow font-black leading-none"
-          style={{ fontSize: 36, letterSpacing: "-0.03em", color: "var(--gg-text)" }}
+          className="font-barlow font-extrabold text-[30px] tracking-tight leading-none"
+          style={{ color: "var(--gg-text)" }}
         >
-          Menu
+          Profil i opcje
         </h1>
       </div>
 
-      {/* Profile hero card */}
+      {/* Profile card */}
       {user && (
         <div
-          className="flex items-center gap-4 rounded-[22px] mb-5"
+          className="flex items-center gap-3.5 rounded-2xl p-4 mb-5"
           style={{
-            padding: 18,
-            background: "var(--gg-grad-soft)",
-            border: "1.5px solid var(--gg-border-med)",
+            background: "var(--gg-surface)",
+            border: "1px solid var(--gg-border)",
+            boxShadow: "var(--gg-shadow)",
           }}
         >
           <div
-            className="flex items-center justify-center rounded-full font-barlow font-extrabold text-[18px] text-white flex-shrink-0"
+            className="flex items-center justify-center rounded-xl font-barlow font-extrabold text-[18px] text-white flex-shrink-0"
             style={{
-              width: 52,
-              height: 52,
-              background: "var(--gg-grad-btn)",
-              boxShadow: "0 4px 16px var(--gg-glow)",
+              width: 48,
+              height: 48,
+              background: "var(--gg-btn-bg)",
             }}
           >
             {initials}
           </div>
-          <div>
-            <div className="font-barlow font-extrabold text-[17px]" style={{ color: "var(--gg-text)" }}>
+          <div className="flex-1 min-w-0">
+            <div className="font-barlow font-bold text-[17px] truncate" style={{ color: "var(--gg-text)" }}>
               {user.firstName} {user.lastName}
             </div>
-            <div className="text-[12px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+            <div className="text-[12px] truncate" style={{ color: "var(--gg-text-muted)" }}>
               {user.email}
             </div>
           </div>
@@ -288,59 +255,55 @@ export const MenuScreen = memo(function MenuScreen({ theme, setTheme }: MenuScre
       )}
 
       {/* Menu items */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
         {items.map((item, i) => (
           <button
             key={i}
             onClick={item.onClick}
-            className="flex items-center gap-3 w-full text-left rounded-[16px] transition-all duration-150"
+            className="flex items-center gap-3.5 w-full text-left rounded-2xl transition-all duration-150 active:scale-[0.99] border-none cursor-pointer"
             style={{
               padding: "14px 16px",
               background: "var(--gg-surface)",
-              border: "1.5px solid var(--gg-border)",
+              border: "1px solid var(--gg-border)",
               boxShadow: "var(--gg-shadow)",
-              opacity: item.onClick ? 1 : 0.6,
-              cursor: item.onClick ? "pointer" : "default",
             }}
           >
             <div
-              className="flex items-center justify-center flex-shrink-0 rounded-[12px]"
+              className="flex items-center justify-center flex-shrink-0 rounded-xl"
               style={{ width: 38, height: 38, background: "var(--gg-surface2)", color: "var(--gg-text-sub)" }}
             >
               {item.icon}
             </div>
-            <div className="flex-1">
-              <div className="text-[14px] font-bold" style={{ color: "var(--gg-text)" }}>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-bold truncate" style={{ color: "var(--gg-text)" }}>
                 {item.label}
               </div>
-              <div className="text-[11px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+              <div className="text-[11px] mt-0.5 truncate" style={{ color: "var(--gg-text-muted)" }}>
                 {item.desc}
               </div>
             </div>
-            {item.onClick && (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18l6-6-6-6"/>
-              </svg>
-            )}
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
           </button>
         ))}
 
         {/* Logout */}
         <button
           onClick={logout}
-          className="flex items-center gap-3 w-full text-left cursor-pointer rounded-[16px] mt-2 transition-all duration-150"
+          className="flex items-center gap-3.5 w-full text-left cursor-pointer rounded-2xl mt-2 transition-all duration-150 active:scale-[0.99] border-none"
           style={{
             padding: "14px 16px",
             background: "var(--gg-surface)",
-            border: "1.5px solid var(--gg-border)",
+            border: "1px solid var(--gg-border)",
             boxShadow: "var(--gg-shadow)",
           }}
         >
           <div
-            className="flex items-center justify-center flex-shrink-0 rounded-[12px]"
-            style={{ width: 38, height: 38, background: "rgba(239,68,68,0.12)" }}
+            className="flex items-center justify-center flex-shrink-0 rounded-xl"
+            style={{ width: 38, height: 38, background: "rgba(239,68,68,0.12)", color: "var(--gg-error)" }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gg-error)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
               <polyline points="16 17 21 12 16 7"/>
               <line x1="21" y1="12" x2="9" y2="12"/>
@@ -355,7 +318,7 @@ export const MenuScreen = memo(function MenuScreen({ theme, setTheme }: MenuScre
       </div>
 
       <div className="mt-8 text-center text-[12px]" style={{ color: "var(--gg-text-muted)" }}>
-        GymGate v1.0.0
+        GymGate v1.0.0 · Offline-First Training App
       </div>
 
       {showThemePicker && (

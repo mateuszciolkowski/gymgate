@@ -1,4 +1,4 @@
-import { memo, useState, useCallback } from "react";
+import { useState, useCallback, memo } from "react";
 import {
   DndContext,
   closestCenter,
@@ -9,17 +9,19 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import {
+  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-  arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useData } from "@/contexts/data";
+import { useAuth } from "@/contexts/AuthContext";
 import type { WorkoutPlan } from "@/types";
 import { ExerciseSelectionModal } from "@/features/exercises";
 import { MUSCLE_GROUPS } from "@/constants/muscleGroups";
+import { Switch, Button, FormField } from "@/components/ui";
 
 interface PlanExerciseItem {
   exerciseId: string;
@@ -27,91 +29,83 @@ interface PlanExerciseItem {
   muscleGroups: string[];
 }
 
+function muscleLabel(value: string): string {
+  return MUSCLE_GROUPS.find((g) => g.value === value)?.label ?? value;
+}
+
 interface SortableExerciseRowProps {
   item: PlanExerciseItem;
   onRemove: () => void;
 }
 
-function muscleLabel(value: string): string {
-  return MUSCLE_GROUPS.find((g) => g.value === value)?.label ?? value;
-}
-
-const SortableExerciseRow = memo(function SortableExerciseRow({ item, onRemove }: SortableExerciseRowProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: item.exerciseId,
-  });
+function SortableExerciseRow({ item, onRemove }: SortableExerciseRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: item.exerciseId });
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.4 : 1,
+    background: "var(--gg-surface2)",
+    border: "1px solid var(--gg-border)",
+    borderRadius: 14,
+    padding: "12px 14px",
+    marginBottom: 8,
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={{
-        ...style,
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        padding: "12px 14px",
-        borderRadius: 14,
-        background: "var(--gg-surface2)",
-        border: "1.5px solid var(--gg-border)",
-        marginBottom: 8,
-      }}
-    >
+    <div ref={setNodeRef} style={style}>
       {/* Drag handle */}
-      <span
+      <button
         {...attributes}
         {...listeners}
-        style={{ color: "var(--gg-text-muted)", cursor: "grab", touchAction: "none", flexShrink: 0 }}
-        aria-label="Przeciągnij"
+        className="flex items-center justify-center border-none bg-transparent cursor-grab p-0 flex-shrink-0"
+        style={{ color: "var(--gg-text-muted)" }}
+        aria-label="Przeciągnij aby zmienić kolejność"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="9" cy="5" r="1" fill="currentColor"/>
-          <circle cx="15" cy="5" r="1" fill="currentColor"/>
           <circle cx="9" cy="12" r="1" fill="currentColor"/>
-          <circle cx="15" cy="12" r="1" fill="currentColor"/>
           <circle cx="9" cy="19" r="1" fill="currentColor"/>
+          <circle cx="15" cy="5" r="1" fill="currentColor"/>
+          <circle cx="15" cy="12" r="1" fill="currentColor"/>
           <circle cx="15" cy="19" r="1" fill="currentColor"/>
         </svg>
-      </span>
+      </button>
 
       {/* Exercise info */}
       <div className="flex-1 min-w-0">
-        <p className="text-[14px] font-medium truncate" style={{ color: "var(--gg-text)" }}>
+        <p
+          className="font-barlow font-bold text-[15px] truncate m-0 leading-tight"
+          style={{ color: "var(--gg-text)" }}
+        >
           {item.name}
         </p>
         {item.muscleGroups.length > 0 && (
-          <p className="text-[11px] mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
-            {muscleLabel(item.muscleGroups[0])}
+          <p className="text-[11px] m-0 mt-0.5" style={{ color: "var(--gg-text-muted)" }}>
+            {item.muscleGroups.map(muscleLabel).join(", ")}
           </p>
         )}
       </div>
 
-      {/* Remove */}
+      {/* Remove button */}
       <button
         onClick={onRemove}
-        className="flex items-center justify-center rounded-[10px] border-none cursor-pointer flex-shrink-0"
-        style={{
-          width: 32,
-          height: 32,
-          background: "var(--gg-surface)",
-          border: "1px solid var(--gg-border)",
-          color: "var(--gg-error)",
-        }}
-        aria-label="Usuń ćwiczenie"
+        className="flex items-center justify-center border-none bg-transparent cursor-pointer p-1 flex-shrink-0 rounded-lg"
+        style={{ color: "var(--gg-text-muted)" }}
+        aria-label="Usuń ćwiczenie z planu"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"/>
           <line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
       </button>
     </div>
   );
-});
+}
 
 interface PlanFormScreenProps {
   editingPlan?: WorkoutPlan | null;
@@ -127,6 +121,8 @@ export const PlanFormScreen = memo(function PlanFormScreen({
   onCreateNewExercise,
 }: PlanFormScreenProps) {
   const { createPlan, updatePlan, exercises } = useData();
+  const { user } = useAuth();
+  const isAdmin = !!user?.isAdmin;
   const isEditing = !!editingPlan;
 
   const buildInitialItems = (): PlanExerciseItem[] => {
@@ -144,6 +140,7 @@ export const PlanFormScreen = memo(function PlanFormScreen({
   const [name, setName] = useState(editingPlan?.name ?? "");
   const [shortName, setShortName] = useState(editingPlan?.shortName ?? "");
   const [isPublic, setIsPublic] = useState(editingPlan?.isPublic ?? false);
+  const [isGlobal, setIsGlobal] = useState(editingPlan ? editingPlan.creatorUserId === null : false);
   const [items, setItems] = useState<PlanExerciseItem[]>(buildInitialItems);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -178,9 +175,11 @@ export const PlanFormScreen = memo(function PlanFormScreen({
     setItems((prev) => prev.filter((i) => i.exerciseId !== exerciseId));
   }, []);
 
-  const hasPrivateExercise = isPublic && items.some((item) => {
+  const hasPrivateExercise = (isPublic || isGlobal) && items.some((item) => {
     const ex = exercises.find((e) => e.id === item.exerciseId);
-    return ex?.creator !== null && ex?.creator !== undefined;
+    if (!ex) return false;
+    const creatorId = ex.creator?.id ?? ex.creatorUserId;
+    return creatorId !== null && creatorId !== undefined && creatorId !== "1";
   });
 
   const validate = (): string | null => {
@@ -188,7 +187,7 @@ export const PlanFormScreen = memo(function PlanFormScreen({
     if (name.trim().length > 100) return "Nazwa planu może mieć maksymalnie 100 znaków";
     if (items.length === 0) return "Dodaj co najmniej 1 ćwiczenie";
     if (items.length > 50) return "Plan może zawierać maksymalnie 50 ćwiczeń";
-    if (hasPrivateExercise) return "Nie możesz upublicznić planu zawierającego własne ćwiczenia";
+    if (hasPrivateExercise) return "Plan publiczny lub globalny nie może zawierać prywatnych ćwiczeń";
     return null;
   };
 
@@ -207,7 +206,8 @@ export const PlanFormScreen = memo(function PlanFormScreen({
         name: name.trim(),
         shortName: shortName.trim() || null,
         exerciseIds: items.map((i) => i.exerciseId),
-        isPublic,
+        isPublic: isGlobal ? true : isPublic,
+        isGlobal: isAdmin ? isGlobal : undefined,
       };
 
       if (isEditing && editingPlan) {
@@ -233,7 +233,7 @@ export const PlanFormScreen = memo(function PlanFormScreen({
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={onBack}
-          className="flex items-center justify-center w-[38px] h-[38px] rounded-[12px] flex-shrink-0"
+          className="flex items-center justify-center w-[38px] h-[38px] rounded-[12px] flex-shrink-0 cursor-pointer"
           style={{ background: "var(--gg-surface2)", border: "1px solid var(--gg-border)" }}
           aria-label="Wróć"
         >
@@ -242,10 +242,10 @@ export const PlanFormScreen = memo(function PlanFormScreen({
           </svg>
         </button>
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: "var(--gg-text-muted)" }}>
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] m-0" style={{ color: "var(--gg-text-muted)" }}>
             {isEditing ? "Edycja" : "Nowy plan"}
           </p>
-          <h1 className="font-barlow font-black leading-none" style={{ fontSize: 28, letterSpacing: "-0.02em", color: "var(--gg-text)" }}>
+          <h1 className="font-barlow font-black leading-none m-0 mt-0.5" style={{ fontSize: 28, letterSpacing: "-0.02em", color: "var(--gg-text)" }}>
             {isEditing ? "Edytuj plan" : "Tworzenie planu"}
           </h1>
         </div>
@@ -269,13 +269,7 @@ export const PlanFormScreen = memo(function PlanFormScreen({
       )}
 
       {/* Name field */}
-      <div className="mb-4">
-        <label
-          className="block text-[12px] font-bold uppercase tracking-[0.06em] mb-2"
-          style={{ color: "var(--gg-text-sub)" }}
-        >
-          Nazwa planu
-        </label>
+      <FormField label="Nazwa planu">
         <input
           type="text"
           value={name}
@@ -295,19 +289,14 @@ export const PlanFormScreen = memo(function PlanFormScreen({
             boxSizing: "border-box",
           }}
         />
-      </div>
+      </FormField>
 
       {/* Short name field */}
-      <div className="mb-4">
-        <label
-          className="block text-[12px] font-bold uppercase tracking-[0.06em] mb-2"
-          style={{ color: "var(--gg-text-sub)" }}
-        >
-          Nazwa skrócona{" "}
-          <span style={{ color: "var(--gg-text-muted)", textTransform: "none", fontWeight: 400 }}>
-            (opcjonalnie)
-          </span>
-        </label>
+      <FormField
+        label="Nazwa skrócona"
+        optional
+        hint="Wpisywana automatycznie jako nazwa treningu przy wyborze planu"
+      >
         <input
           type="text"
           value={shortName}
@@ -327,44 +316,32 @@ export const PlanFormScreen = memo(function PlanFormScreen({
             boxSizing: "border-box",
           }}
         />
-        <p className="text-[11px] mt-1.5" style={{ color: "var(--gg-text-muted)" }}>
-          Wpisywana automatycznie jako nazwa treningu przy wyborze planu
-        </p>
-      </div>
+      </FormField>
 
-      {/* isPublic toggle */}
-      <div
-        className="flex items-center justify-between mb-5 px-4 py-3 rounded-[14px]"
-        style={{ background: "var(--gg-surface2)", border: "1.5px solid var(--gg-border)" }}
-      >
-        <div>
-          <p className="text-[14px] font-medium" style={{ color: "var(--gg-text)" }}>Publiczny plan</p>
-          <p className="text-[12px]" style={{ color: "var(--gg-text-muted)" }}>Widoczny dla innych użytkowników</p>
-        </div>
-        <button
-          role="switch"
-          aria-checked={isPublic}
-          onClick={() => setIsPublic((v) => !v)}
-          className="relative flex-shrink-0 rounded-full border-none cursor-pointer transition-all duration-200"
-          style={{
-            width: 48,
-            height: 28,
-            background: isPublic ? "var(--gg-a1)" : "var(--gg-surface3)",
-            padding: 2,
-          }}
-        >
-          <span
-            className="block rounded-full transition-all duration-200"
-            style={{
-              width: 24,
-              height: 24,
-              background: "white",
-              transform: isPublic ? "translateX(20px)" : "translateX(0)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
-            }}
-          />
-        </button>
-      </div>
+      {/* Admin isGlobal toggle */}
+      {isAdmin && (
+        <Switch
+          checked={isGlobal}
+          onChange={setIsGlobal}
+          variant="admin"
+          badge="ADMIN"
+          label="Globalny plan treningowy"
+          description="Widoczny dla wszystkich użytkowników w zakładce „Built-in”"
+          className="mb-4"
+        />
+      )}
+
+      {/* isPublic toggle (only when not global) */}
+      {!isGlobal && (
+        <Switch
+          checked={isPublic}
+          onChange={setIsPublic}
+          variant="accent"
+          label="Publiczny plan"
+          description="Widoczny dla innych użytkowników"
+          className="mb-5"
+        />
+      )}
 
       {/* Exercise list */}
       <div className="mb-2">
@@ -421,19 +398,16 @@ export const PlanFormScreen = memo(function PlanFormScreen({
 
       {/* Save button */}
       <div className="pt-4 pb-6">
-        <button
+        <Button
           onClick={handleSave}
-          disabled={saving}
-          className="w-full font-bold text-[15px] text-white rounded-[16px] border-none cursor-pointer"
-          style={{
-            padding: 15,
-            background: saving ? "var(--gg-surface3)" : "var(--gg-grad-btn)",
-            boxShadow: saving ? "none" : "0 4px 22px var(--gg-glow)",
-            opacity: saving ? 0.7 : 1,
-          }}
+          loading={saving}
+          loadingText="Zapisywanie..."
+          size="lg"
+          variant="primary"
+          fullWidth
         >
-          {saving ? "Zapisywanie…" : isEditing ? "Zapisz zmiany" : "Zapisz plan"}
-        </button>
+          {isEditing ? "Zapisz zmiany" : "Zapisz plan"}
+        </Button>
       </div>
 
       </div>

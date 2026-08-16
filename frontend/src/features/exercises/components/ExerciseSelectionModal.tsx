@@ -95,9 +95,8 @@ export function ExerciseSelectionModal({
               onClick={handleCreate}
               className="w-full flex items-center justify-center gap-2 font-bold text-[14px] text-white rounded-[15px] border-none cursor-pointer"
               style={{
-                padding: "14px",
-                background: "var(--gg-grad-btn)",
-                boxShadow: "0 4px 20px var(--gg-glow)",
+                padding: "13px",
+                background: "var(--gg-btn-bg)",
               }}
             >
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

@@ -25,12 +25,13 @@ function getPlanMuscles(plan: WorkoutPlan): string[] {
 interface PlanCardProps {
   plan: WorkoutPlan;
   isOwner: boolean;
+  canEdit: boolean;
   onEdit?: () => void;
   onDuplicate: () => void;
   onFavoriteToggle: () => void;
 }
 
-const PlanCard = memo(function PlanCard({ plan, isOwner, onEdit, onDuplicate, onFavoriteToggle }: PlanCardProps) {
+const PlanCard = memo(function PlanCard({ plan, isOwner, canEdit, onEdit, onDuplicate, onFavoriteToggle }: PlanCardProps) {
   const muscles = getPlanMuscles(plan);
   const [duplicating, setDuplicating] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -151,7 +152,7 @@ const PlanCard = memo(function PlanCard({ plan, isOwner, onEdit, onDuplicate, on
       )}
 
       <div className="flex gap-2 mt-2">
-        {isOwner && onEdit && (
+        {canEdit && onEdit && (
           <button
             onClick={onEdit}
             className="flex-1 text-[13px] font-bold rounded-[11px] border-none cursor-pointer"
@@ -199,7 +200,7 @@ const PlanCard = memo(function PlanCard({ plan, isOwner, onEdit, onDuplicate, on
           {plan.isFavorite ? "★" : "☆"}
         </button>
 
-        {isOwner && (
+        {canEdit && (
           <button
             onClick={handleDelete}
             className="flex items-center justify-center rounded-[11px] border-none cursor-pointer"
@@ -396,32 +397,37 @@ export const PlansScreen = memo(function PlansScreen({ onCreatePlan, onEditPlan 
         </div>
       ) : (
         <div>
-          {visiblePlans.map((plan) => (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              isOwner={plan.creatorUserId === userId}
-              onEdit={plan.creatorUserId === userId ? () => onEditPlan(plan) : undefined}
-              onDuplicate={async () => {
-                try {
-                  await duplicatePlan(plan.id);
-                } catch {
-                  alert("Nie udało się zduplikować planu");
-                }
-              }}
-              onFavoriteToggle={async () => {
-                try {
-                  if (plan.isFavorite) {
-                    await unfavoritePlan(plan.id);
-                  } else {
-                    await favoritePlan(plan.id);
+          {visiblePlans.map((plan) => {
+            const isOwner = plan.creatorUserId === userId;
+            const canEdit = isOwner || (!!user?.isAdmin && plan.creatorUserId === null);
+            return (
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                isOwner={isOwner}
+                canEdit={canEdit}
+                onEdit={canEdit ? () => onEditPlan(plan) : undefined}
+                onDuplicate={async () => {
+                  try {
+                    await duplicatePlan(plan.id);
+                  } catch {
+                    alert("Nie udało się zduplikować planu");
                   }
-                } catch {
-                  alert("Nie udało się zmienić ulubionego");
-                }
-              }}
-            />
-          ))}
+                }}
+                onFavoriteToggle={async () => {
+                  try {
+                    if (plan.isFavorite) {
+                      await unfavoritePlan(plan.id);
+                    } else {
+                      await favoritePlan(plan.id);
+                    }
+                  } catch {
+                    alert("Nie udało się zmienić ulubionego");
+                  }
+                }}
+              />
+            );
+          })}
         </div>
       )}
 

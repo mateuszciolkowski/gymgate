@@ -29,8 +29,6 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
 
   const selectedPlanName = visiblePlans.find((p) => p.id === workoutPlanId)?.name;
 
-  // Auto-fill workoutName from plan.shortName when plan is selected,
-  // but only if the field is empty or contains the previous plan's shortName
   const handlePlanSelect = (planId: string) => {
     const prevPlan = visiblePlans.find((p) => p.id === workoutPlanId);
     setWorkoutPlanId(planId);
@@ -60,9 +58,6 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
-    // Parsuj YYYY-MM-DD w czasie LOKALNYM. `new Date("YYYY-MM-DD")` parsuje jako
-    // północ UTC, co po setHours/setMinutes (lokalne) potrafi przesunąć datę o
-    // dzień w strefach z ujemnym offsetem.
     const [year, month, day] = workoutDate.split("-").map(Number);
     const dateObj = new Date(year, month - 1, day);
     dateObj.setHours(new Date().getHours());
@@ -75,7 +70,6 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
         workoutPlanId: workoutPlanId || undefined,
       });
     } catch {
-      // Tworzenie nieudane — odblokuj przycisk, by user mógł spróbować ponownie.
       setIsSubmitting(false);
     }
   };
@@ -86,235 +80,183 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
     year: "numeric",
   });
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%",
-    padding: "13px 14px",
-    borderRadius: 14,
-    fontSize: 14,
-    color: "var(--gg-text)",
-    background: "var(--gg-surface2)",
-    border: "1.5px solid var(--gg-border)",
-    outline: "none",
-    fontFamily: "'DM Sans', sans-serif",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "var(--gg-text-sub)",
-    letterSpacing: "0.06em",
-    textTransform: "uppercase",
-    display: "block",
-    marginBottom: 8,
-  };
-
   return (
     <div
-      className="absolute inset-0 z-50 flex items-end"
-      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        className="w-full"
+        className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-6 pb-8 sm:p-6"
         style={{
           background: "var(--gg-surface)",
-          borderRadius: "28px 28px 0 0",
-          padding: "28px 24px 48px",
-          border: "1.5px solid var(--gg-border-med)",
-          boxShadow: "0 -8px 40px rgba(0,0,0,0.6)",
+          border: "1px solid var(--gg-border-med)",
+          boxShadow: "var(--gg-shadow-elevated)",
         }}
       >
-        {/* Handle */}
+        {/* Handle for mobile */}
         <div
-          className="mx-auto mb-6"
-          style={{ width: 40, height: 4, borderRadius: 2, background: "var(--gg-surface3)" }}
+          className="mx-auto mb-5 sm:hidden"
+          style={{ width: 36, height: 4, borderRadius: 2, background: "var(--gg-surface3)" }}
         />
 
-        <h2
-          className="font-barlow font-black mb-1"
-          style={{ fontSize: 26, letterSpacing: "-0.02em", color: "var(--gg-text)" }}
-        >
-          Nowy trening
-        </h2>
-        <p className="text-[13px] mb-6" style={{ color: "var(--gg-text-muted)" }}>
-          Wypełnij dane i zacznij trenować
-        </p>
+        <div className="mb-5">
+          <h2
+            className="font-barlow font-extrabold text-[22px] tracking-tight mb-1"
+            style={{ color: "var(--gg-text)" }}
+          >
+            Nowy trening
+          </h2>
+          <p className="text-[13px] font-medium" style={{ color: "var(--gg-text-muted)" }}>
+            Wypełnij szczegóły i przejdź do sesji
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label style={labelStyle}>
-              Nazwa treningu{" "}
-              <span style={{ color: "var(--gg-text-muted)", textTransform: "none", fontWeight: 400 }}>
-                (opcjonalnie)
-              </span>
+            <label className="block text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--gg-text-sub)" }}>
+              Nazwa treningu <span className="text-[10px] font-normal normal-case opacity-60">(opcjonalnie)</span>
             </label>
             <input
               type="text"
               value={workoutName}
               onChange={(e) => setWorkoutName(e.target.value)}
-              placeholder="np. Trening nóg"
-              style={inputStyle}
+              placeholder="np. Klatka + Triceps"
+              className="w-full px-3.5 py-3 rounded-xl text-[14px] outline-none transition-all"
+              style={{
+                background: "var(--gg-surface2)",
+                border: "1px solid var(--gg-border)",
+                color: "var(--gg-text)",
+              }}
             />
           </div>
 
           <div>
-            <label style={labelStyle}>
-              Siłownia{" "}
-              <span style={{ color: "var(--gg-text-muted)", textTransform: "none", fontWeight: 400 }}>
-                (opcjonalnie)
-              </span>
+            <label className="block text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--gg-text-sub)" }}>
+              Siłownia / Lokalizacja <span className="text-[10px] font-normal normal-case opacity-60">(opcjonalnie)</span>
             </label>
             <input
               type="text"
               value={gymName}
               onChange={(e) => setGymName(e.target.value)}
-              placeholder="np. McFit, Just Gym"
-              style={inputStyle}
+              placeholder="np. CityFit, Zdrofit"
+              className="w-full px-3.5 py-3 rounded-xl text-[14px] outline-none transition-all"
+              style={{
+                background: "var(--gg-surface2)",
+                border: "1px solid var(--gg-border)",
+                color: "var(--gg-text)",
+              }}
             />
           </div>
 
           <div>
-            <label style={labelStyle}>Data treningu</label>
+            <label className="block text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--gg-text-sub)" }}>
+              Data treningu
+            </label>
             <input
               type="date"
               value={workoutDate}
               onChange={(e) => setWorkoutDate(e.target.value)}
               max={today}
-              style={{ ...inputStyle, display: "none" }}
+              className="hidden"
               id="workout-date-input"
             />
-            <div
-              onClick={() => document.getElementById("workout-date-input")?.click()}
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById("workout-date-input") as HTMLInputElement | null;
+                if (el) {
+                  if (typeof el.showPicker === "function") el.showPicker();
+                  else el.click();
+                }
+              }}
+              className="w-full px-3.5 py-3 rounded-xl text-[14px] flex justify-between items-center cursor-pointer transition-all"
               style={{
-                padding: "13px 14px",
-                borderRadius: 14,
                 background: "var(--gg-surface2)",
-                border: "1.5px solid var(--gg-border)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                cursor: "pointer",
+                border: "1px solid var(--gg-border)",
+                color: "var(--gg-text)",
               }}
             >
-              <span style={{ fontSize: 14, color: "var(--gg-text)" }}>{formattedDate}</span>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gg-text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <span>{formattedDate}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--gg-text-muted)" }}>
                 <rect x="3" y="4" width="18" height="18" rx="2"/>
                 <line x1="16" y1="2" x2="16" y2="6"/>
                 <line x1="8" y1="2" x2="8" y2="6"/>
                 <line x1="3" y1="10" x2="21" y2="10"/>
               </svg>
-            </div>
+            </button>
           </div>
 
           {visiblePlans.length > 0 && (
             <div ref={planPickerRef}>
-              <label style={labelStyle}>
-                Plan treningowy{" "}
-                <span style={{ color: "var(--gg-text-muted)", textTransform: "none", fontWeight: 400 }}>
-                  (opcjonalnie)
-                </span>
+              <label className="block text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--gg-text-sub)" }}>
+                Plan treningowy <span className="text-[10px] font-normal normal-case opacity-60">(opcjonalnie)</span>
               </label>
 
-              {/* Trigger */}
               <button
                 type="button"
                 onClick={() => setPlanPickerOpen((v) => !v)}
+                className="w-full px-3.5 py-3 rounded-xl text-[14px] flex justify-between items-center cursor-pointer transition-all"
                 style={{
-                  ...inputStyle,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  border: planPickerOpen ? "1.5px solid var(--gg-a1)" : "1.5px solid var(--gg-border)",
+                  background: "var(--gg-surface2)",
+                  border: planPickerOpen ? "1px solid var(--gg-a1)" : "1px solid var(--gg-border)",
+                  color: selectedPlanName ? "var(--gg-text)" : "var(--gg-text-muted)",
                 }}
               >
-                <span style={{ color: selectedPlanName ? "var(--gg-text)" : "var(--gg-text-muted)" }}>
-                  {selectedPlanName ?? "Zacznij bez planu"}
-                </span>
+                <span className="truncate">{selectedPlanName ?? "Zacznij bez planu"}</span>
                 <svg
                   width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="var(--gg-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                  style={{ flexShrink: 0, transform: planPickerOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  style={{
+                    color: "var(--gg-text-muted)",
+                    transform: planPickerOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.15s ease",
+                  }}
                 >
                   <polyline points="6 9 12 15 18 9"/>
                 </svg>
               </button>
 
-              {/* Options */}
               {planPickerOpen && (
                 <div
+                  className="mt-1.5 rounded-xl overflow-hidden max-h-52 overflow-y-auto"
                   style={{
-                    marginTop: 6,
-                    borderRadius: 14,
                     background: "var(--gg-surface2)",
-                    border: "1.5px solid var(--gg-border)",
-                    overflow: "hidden",
-                    maxHeight: 220,
-                    overflowY: "auto",
+                    border: "1px solid var(--gg-border-med)",
+                    boxShadow: "var(--gg-shadow)",
                   }}
                 >
-                  {/* None option */}
                   <button
                     type="button"
                     onClick={() => { setWorkoutPlanId(""); setPlanPickerOpen(false); }}
+                    className="w-full px-3.5 py-2.5 text-left flex items-center justify-between text-[13px] border-b cursor-pointer transition-colors hover:bg-[var(--gg-surface3)]"
                     style={{
-                      width: "100%",
-                      padding: "13px 14px",
-                      background: workoutPlanId === "" ? "var(--gg-grad-soft)" : "transparent",
-                      border: "none",
-                      borderBottom: "1px solid var(--gg-border)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      cursor: "pointer",
-                      textAlign: "left",
+                      borderColor: "var(--gg-border)",
+                      color: workoutPlanId === "" ? "var(--gg-a2)" : "var(--gg-text-muted)",
                     }}
                   >
-                    <span style={{ fontSize: 14, color: "var(--gg-text-muted)", fontFamily: "'DM Sans', sans-serif" }}>
-                      Zacznij bez planu
-                    </span>
+                    <span>Zacznij bez planu</span>
                     {workoutPlanId === "" && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gg-a1)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M5 12l5 5 9-9"/>
                       </svg>
                     )}
                   </button>
 
-                  {visiblePlans.map((plan, index) => (
+                  {visiblePlans.map((plan) => (
                     <button
                       key={plan.id}
                       type="button"
                       onClick={() => handlePlanSelect(plan.id)}
+                      className="w-full px-3.5 py-2.5 text-left flex items-center justify-between text-[13px] cursor-pointer transition-colors hover:bg-[var(--gg-surface3)]"
                       style={{
-                        width: "100%",
-                        padding: "13px 14px",
-                        background: workoutPlanId === plan.id ? "var(--gg-grad-soft)" : "transparent",
-                        border: "none",
-                        borderBottom: index < visiblePlans.length - 1 ? "1px solid var(--gg-border)" : "none",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        cursor: "pointer",
-                        textAlign: "left",
-                        gap: 8,
+                        color: workoutPlanId === plan.id ? "var(--gg-a2)" : "var(--gg-text)",
                       }}
                     >
-                      <span style={{ fontSize: 14, color: "var(--gg-text)", fontFamily: "'DM Sans', sans-serif", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>
-                        {plan.isFavorite && (
-                          <span style={{ color: "var(--gg-a1)", fontSize: 13, flexShrink: 0 }}>★</span>
-                        )}
-                        {plan.name}
+                      <span className="truncate pr-2">{plan.name}</span>
+                      <span className="text-[11px] font-mono shrink-0" style={{ color: "var(--gg-text-muted)" }}>
+                        {plan.items.length} ćw.
                       </span>
-                      {workoutPlanId === plan.id ? (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gg-a1)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                          <path d="M5 12l5 5 9-9"/>
-                        </svg>
-                      ) : (
-                        <span style={{ fontSize: 11, color: "var(--gg-text-muted)", flexShrink: 0, fontFamily: "'DM Sans', sans-serif" }}>
-                          {plan.items.length} ćw.
-                        </span>
-                      )}
                     </button>
                   ))}
                 </div>
@@ -322,19 +264,16 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
             </div>
           )}
 
-          <div className="grid gap-3 pt-2" style={{ gridTemplateColumns: "1fr 1.6fr" }}>
+          <div className="grid grid-cols-2 gap-3 pt-3">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="font-dm-sans font-bold text-[15px] rounded-[15px] cursor-pointer"
+              className="py-3 px-4 rounded-xl text-[14px] font-bold cursor-pointer transition-all active:scale-[0.98]"
               style={{
-                padding: 15,
                 background: "var(--gg-surface2)",
-                border: "1.5px solid var(--gg-border)",
+                border: "1px solid var(--gg-border)",
                 color: "var(--gg-text-sub)",
-                opacity: isSubmitting ? 0.5 : 1,
-                cursor: isSubmitting ? "not-allowed" : "pointer",
               }}
             >
               Anuluj
@@ -342,16 +281,13 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="font-dm-sans font-bold text-[15px] rounded-[15px] text-white border-none"
+              className="py-3 px-4 rounded-xl text-[14px] font-bold cursor-pointer transition-all active:scale-[0.98] text-white"
               style={{
-                padding: 15,
-                background: "var(--gg-grad-btn)",
-                boxShadow: "0 4px 20px var(--gg-glow)",
-                opacity: isSubmitting ? 0.7 : 1,
-                cursor: isSubmitting ? "not-allowed" : "pointer",
+                background: "var(--gg-btn-bg)",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
               }}
             >
-              {isSubmitting ? "Tworzenie…" : "Rozpocznij →"}
+              {isSubmitting ? "Tworzenie…" : "Rozpocznij"}
             </button>
           </div>
         </form>
