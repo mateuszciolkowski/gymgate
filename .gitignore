@@ -5,3 +5,6 @@ DS_Store
 # Local database backups (zawierają wrażliwe dane userów — nie commitować)
 backups/
 backend/backups/
+
+# IDE settings
+.vscode/
