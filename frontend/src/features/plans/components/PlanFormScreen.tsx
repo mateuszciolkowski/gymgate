@@ -63,7 +63,7 @@ function SortableExerciseRow({ item, onRemove }: SortableExerciseRowProps) {
         {...attributes}
         {...listeners}
         className="flex items-center justify-center border-none bg-transparent cursor-grab p-0 flex-shrink-0"
-        style={{ color: "var(--gg-text-muted)" }}
+        style={{ color: "var(--gg-text-muted)", touchAction: "none" }}
         aria-label="Przeciągnij aby zmienić kolejność"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
