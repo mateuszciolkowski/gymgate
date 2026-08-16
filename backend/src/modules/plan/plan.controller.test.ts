@@ -64,10 +64,19 @@ describe("PlanController", () => {
     serviceMethods.createPlan.mockResolvedValue({ id: "p1" });
     const res = createMockRes();
 
-    await controller.create(makeReq({ body: { name: "Plan" }, userId: "u1" }), res);
+    await controller.create(makeReq({ body: { name: "Plan" }, userId: "u1", userIsAdmin: true }), res);
 
-    expect(serviceMethods.createPlan).toHaveBeenCalledWith({ name: "Plan" }, "u1");
+    expect(serviceMethods.createPlan).toHaveBeenCalledWith({ name: "Plan" }, "u1", true);
     expect(res.statusCode).toBe(201);
+  });
+
+  it("create: ForbiddenError gdy isGlobal=true i brak admina", async () => {
+    const res = createMockRes();
+
+    await controller.create(makeReq({ body: { name: "Global Plan", isGlobal: true }, userId: "u1", userIsAdmin: false }), res);
+
+    expect(res.statusCode).toBe(403);
+    expect(serviceMethods.createPlan).not.toHaveBeenCalled();
   });
 
   it("create: ConflictError -> 409", async () => {
@@ -98,7 +107,7 @@ describe("PlanController", () => {
 
     await controller.delete(makeReq({ params: { id: "p1" }, userId: "u1" }), res);
 
-    expect(serviceMethods.deletePlan).toHaveBeenCalledWith("p1", "u1");
+    expect(serviceMethods.deletePlan).toHaveBeenCalledWith("p1", "u1", undefined);
     expect(res.statusCode).toBe(204);
   });
 

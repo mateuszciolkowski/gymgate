@@ -70,7 +70,7 @@ export class PlanRepository {
   async create(data: {
     name: string;
     shortName?: string | null | undefined;
-    creatorUserId: string;
+    creatorUserId: string | null;
     isPublic: boolean;
     exerciseIds: string[];
   }) {
@@ -97,6 +97,7 @@ export class PlanRepository {
     data: {
       name?: string | undefined;
       shortName?: string | null | undefined;
+      creatorUserId?: string | null | undefined;
       isPublic?: boolean | undefined;
       exerciseIds?: string[] | undefined;
     },
@@ -119,6 +120,7 @@ export class PlanRepository {
         data: {
           ...(data.name !== undefined && { name: data.name }),
           ...(data.shortName !== undefined && { shortName: data.shortName }),
+          ...(data.creatorUserId !== undefined && { creatorUserId: data.creatorUserId }),
           ...(data.isPublic !== undefined && { isPublic: data.isPublic }),
         },
         include: { ...itemsInclude, ...favoritedByInclude(userId) },
@@ -139,7 +141,7 @@ export class PlanRepository {
     });
   }
 
-  async findByCreatorAndName(creatorUserId: string, name: string) {
+  async findByCreatorAndName(creatorUserId: string | null, name: string) {
     return prisma.workoutPlan.findFirst({
       where: { creatorUserId, name },
     });

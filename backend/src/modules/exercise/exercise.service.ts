@@ -33,12 +33,9 @@ export class ExerciseService {
 
   async updateExercise(id: string, data: UpdateExerciseDto, userId: string, isAdmin = false) {
     const exercise = await this.getExerciseById(id);
-    const isGlobal = exercise.creatorUserId === null || exercise.creatorUserId === "1";
 
-    if (!isAdmin || !isGlobal) {
-      if (exercise.creatorUserId !== userId) {
-        throw new ForbiddenError("Unauthorized: You can only edit your own exercises");
-      }
+    if (!isAdmin && exercise.creatorUserId !== userId) {
+      throw new ForbiddenError("Unauthorized: You can only edit your own exercises");
     }
 
     return this.repository.update(id, data);
@@ -46,12 +43,9 @@ export class ExerciseService {
 
   async deleteExercise(id: string, userId: string, isAdmin = false) {
     const exercise = await this.getExerciseById(id);
-    const isGlobal = exercise.creatorUserId === null || exercise.creatorUserId === "1";
 
-    if (!isAdmin || !isGlobal) {
-      if (exercise.creatorUserId !== userId) {
-        throw new ForbiddenError("Unauthorized: You can only delete your own exercises");
-      }
+    if (!isAdmin && exercise.creatorUserId !== userId) {
+      throw new ForbiddenError("Unauthorized: You can only delete your own exercises");
     }
 
     return this.repository.delete(id);

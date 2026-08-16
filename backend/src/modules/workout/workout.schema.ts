@@ -59,7 +59,7 @@ export const updateWorkoutItemSchema = z.object({
 });
 
 const createWorkoutSetBody = z.object({
-  weight: z.number().positive(),
+  weight: z.number().nonnegative(),
   repetitions: z.number().int().positive(),
   setNumber: z.number().int().positive().optional(),
   // ID wygenerowany po stronie klienta (offline-sync) — używany do deduplikacji
