@@ -463,10 +463,14 @@ export function WorkoutDetailScreen({
                 </button>
                 <button
                   onClick={() => handleSkipPlanExercise(nextFromPlan.exerciseId)}
-                  className="flex items-center gap-1 px-3.5 border-none cursor-pointer shrink-0 text-[12px] font-bold transition-colors"
+                  className="flex items-center gap-1.5 px-3.5 border-none cursor-pointer shrink-0 text-[12px] font-bold transition-colors"
                   style={{ background: "var(--gg-surface2)", borderLeft: "1px solid var(--gg-border)", color: "var(--gg-text-muted)" }}
                 >
-                  Pomiń ⏭
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="5 4 15 12 5 20 5 4" />
+                    <line x1="19" y1="5" x2="19" y2="19" />
+                  </svg>
+                  <span>Pomiń</span>
                 </button>
               </div>
             )}
