@@ -47,7 +47,7 @@ export function Modal({
       }}
     >
       <div
-        className={`w-full ${maxWidthClass} rounded-3xl p-5 sm:p-6 shadow-2xl transition-all animate-scaleUp`}
+        className={`w-full ${maxWidthClass} rounded-3xl p-5 sm:p-6 shadow-2xl transition-all animate-scaleUp overflow-hidden`}
         style={{
           background: "var(--gg-surface)",
           border: "1px solid var(--gg-border)",

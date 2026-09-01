@@ -35,6 +35,10 @@
   --gg-active-glow:  rgba(245, 158, 11, 0.15);
   --gg-active-bg:    rgba(245, 158, 11, 0.08);
   --gg-error:        #EF4444;
+
+  /* Derived from per-theme --gg-btn-bg/--gg-btn-hover: don't redefine in theme blocks */
+  --gg-grad-btn: linear-gradient(135deg, var(--gg-btn-bg), var(--gg-btn-hover));
+  --gg-glow: color-mix(in srgb, var(--gg-btn-bg) 35%, transparent);
 }
 
 /* ─── LIGHT THEME ────────────────────────────────────────── */

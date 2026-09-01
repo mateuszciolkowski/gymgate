@@ -23,6 +23,7 @@ interface WorkoutEditModalProps {
 const inputStyle: React.CSSProperties = {
   width: "100%",
   minWidth: 0,
+  maxWidth: "100%",
   boxSizing: "border-box",
   padding: "11px 14px",
   borderRadius: 12,
@@ -150,7 +151,7 @@ export const WorkoutEditModal = memo(function WorkoutEditModal({
           />
         </FormField>
 
-        <div className="grid grid-cols-2 gap-3 min-w-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
           <FormField label="Siłownia" optional className="mb-0 min-w-0">
             <input
               type="text"
@@ -178,7 +179,7 @@ export const WorkoutEditModal = memo(function WorkoutEditModal({
             <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--gg-text-muted)" }}>
               Czas trwania sesji
             </label>
-            <div className="grid grid-cols-2 gap-3 min-w-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
               <div className="min-w-0">
                 <label className="block text-[10px] font-medium mb-1" style={{ color: "var(--gg-text-muted)" }}>Rozpoczęcie</label>
                 <input
