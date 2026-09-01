@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { localStore } from "@/utils/localStore";
 import type { SyncOperation } from "@/utils/localStore";
-import { syncManager } from "@/utils/syncManager";
+import { syncManager, hasPendingWorkoutMutationsNow } from "@/utils/syncManager";
 import { authFetch } from "@/utils/auth";
 import { API_BASE } from "@/config/api";
 import { useAuth } from "../AuthContext";
@@ -241,6 +241,9 @@ export function useDataStore() {
   const refreshWorkout = useCallback(
     async (id: string) => {
       try {
+        // Ten sam epoch-guard co w fetchAllFromServer/fetchFreshData: snapshot
+        // licznika lokalnych zapisów treningów sprzed requestu.
+        const workoutEpochBefore = localStore.getWorkoutWriteEpoch();
         const response = await authFetch(`${API_BASE}/api/workouts/${id}`);
         if (response.status === 404) {
           await purgeLocalWorkout(id);
@@ -248,6 +251,16 @@ export function useDataStore() {
         }
         if (response.ok) {
           const result = await response.json();
+          // Jeśli w trakcie requestu użytkownik zmienił coś lokalnie albo
+          // w kolejce czeka niezsynchronizowana zmiana tego treningu, dane
+          // z serwera są starsze — nadpisanie skasowałoby serie/ćwiczenia
+          // czekające na wysłanie.
+          if (
+            localStore.getWorkoutWriteEpoch() !== workoutEpochBefore ||
+            (await hasPendingWorkoutMutationsNow(id))
+          ) {
+            return;
+          }
           setWorkouts((prev) => prev.map((w) => (w.id === id ? result.data : w)));
           await localStore.put("workouts", result.data);
         }
@@ -353,10 +366,11 @@ export function useDataStore() {
   const fetchAllFromServer = useCallback(async () => {
     if (!isOnline) return;
 
-    const pendingOps = await localStore.getPendingSyncOperations();
-    const hasPendingWorkoutMutations = pendingOps.some(
-      (op) => op.entity === "workout" || op.entity === "workoutItem" || op.entity === "set",
-    );
+    const hasPendingWorkoutMutations = await hasPendingWorkoutMutationsNow();
+    // Snapshot lokalnych zmian treningów sprzed wysłania GET-ów — po ich
+    // powrocie sprawdzamy ponownie, żeby wolna odpowiedź serwera nie cofnęła
+    // zmiany zrobionej w międzyczasie (np. zakończenia treningu offline).
+    const workoutEpochBefore = localStore.getWorkoutWriteEpoch();
 
     try {
       const [workoutsRes, exercisesRes, activeRes, statsRes, overviewRes, plansMineRes, plansBuiltinRes, plansCommunityRes] =
@@ -377,7 +391,11 @@ export function useDataStore() {
 
       const persistenceJobs: Array<Promise<void>> = [];
 
-      if (workoutsRes?.ok) {
+      const workoutDataIsStale =
+        localStore.getWorkoutWriteEpoch() !== workoutEpochBefore ||
+        (await hasPendingWorkoutMutationsNow());
+
+      if (workoutsRes?.ok && !workoutDataIsStale) {
         const data = await workoutsRes.json();
         const newWorkouts = data.data || [];
         setWorkouts(newWorkouts);
@@ -401,7 +419,7 @@ export function useDataStore() {
         );
       }
 
-      if (activeRes?.ok) {
+      if (activeRes?.ok && !workoutDataIsStale) {
         const data = await activeRes.json();
         const id = data.data?.activeWorkoutId || null;
         setActiveWorkoutId(id);

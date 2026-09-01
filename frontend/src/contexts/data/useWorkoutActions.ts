@@ -164,6 +164,19 @@ export function useWorkoutActions(store: DataStore) {
       } catch (error) {
         if (!isOfflineError(error)) throw error;
 
+        // Kolejkujemy PRZED optymistycznym zapisem lokalnym: gdyby kolejność
+        // była odwrotna, w oknie między zapisem a zakolejkowaniem trwające
+        // odświeżanie z serwera mogłoby uznać dane serwera za aktualne
+        // i cofnąć zmianę (np. zakończony trening wracał do DRAFT).
+        await queueSyncOperation({
+          type: "update",
+          entity: "workout",
+          workoutId: realWorkoutId,
+          endpoint: "/api/workouts/" + realWorkoutId,
+          method: "PATCH",
+          data,
+        });
+
         const updatedWorkout = applyWorkoutUpdate(id, (w) => ({
           ...w,
           ...data,
@@ -178,15 +191,6 @@ export function useWorkoutActions(store: DataStore) {
           setActiveWorkoutId((current) => (current === id ? null : current));
           await localStore.setActiveWorkoutId(null);
         }
-
-        await queueSyncOperation({
-          type: "update",
-          entity: "workout",
-          workoutId: realWorkoutId,
-          endpoint: "/api/workouts/" + realWorkoutId,
-          method: "PATCH",
-          data,
-        });
       }
     },
     [applyWorkoutUpdate, getRealId, isOfflineError, purgeLocalWorkout, queueSyncOperation, setActiveWorkoutId, setWorkouts],
@@ -318,9 +322,21 @@ export function useWorkoutActions(store: DataStore) {
             body: JSON.stringify({ exerciseId }),
           });
         } catch {
+          // Cofamy WYŁĄCZNIE to, co dodała ta operacja (jedno exerciseId).
+          // Przywrócenie całego snapshotu `previousWorkout` skasowałoby
+          // zmiany zrobione w międzyczasie (np. równolegle pominięte inne
+          // ćwiczenie albo dodaną serię) — starszy rollback nigdy nie może
+          // nadpisać nowszych danych użytkownika.
           if (previousWorkout && !alreadySkipped) {
-            applyWorkoutUpdate(workoutId, () => previousWorkout);
-            await localStore.put("workouts", previousWorkout);
+            const rolledBackWorkout = applyWorkoutUpdate(workoutId, (w) => ({
+              ...w,
+              skippedPlanExerciseIds: (w.skippedPlanExerciseIds ?? []).filter(
+                (skippedId) => skippedId !== exerciseId,
+              ),
+            }));
+            if (rolledBackWorkout) {
+              await localStore.put("workouts", rolledBackWorkout);
+            }
           }
         }
       }

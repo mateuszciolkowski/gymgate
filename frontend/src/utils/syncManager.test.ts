@@ -15,6 +15,7 @@ vi.mock("./localStore", () => {
     setMetadata: vi.fn(),
     clear: vi.fn(),
     putMany: vi.fn(),
+    getWorkoutWriteEpoch: vi.fn(() => 0),
   };
   return { localStore, default: localStore };
 });
@@ -73,6 +74,7 @@ describe("syncManager", () => {
     // Reset internal state between tests (singleton).
     (syncManager as unknown as { isOnline: boolean }).isOnline = true;
     (syncManager as unknown as { isSyncing: boolean }).isSyncing = false;
+    (syncManager as unknown as { lastFailureSignature: string }).lastFailureSignature = "";
     // Sensible defaults — overridden per test.
     mockedStore.getPendingSyncOperations.mockResolvedValue([]);
     mockedStore.getIdMappings.mockResolvedValue({});
@@ -85,6 +87,7 @@ describe("syncManager", () => {
     mockedStore.setMetadata.mockResolvedValue(undefined);
     mockedStore.clear.mockResolvedValue(undefined);
     mockedStore.putMany.mockResolvedValue(undefined);
+    mockedStore.getWorkoutWriteEpoch.mockReturnValue(0);
     // Default response for fetchFreshData GETs.
     mockedFetch.mockResolvedValue(makeRes(200, { data: null }));
   });
@@ -184,7 +187,10 @@ describe("syncManager", () => {
     );
     expect(sentToSets).toBe(false);
     expect(mockedStore.removePendingSync).not.toHaveBeenCalled();
-    expect(mockedStore.updatePendingSync).not.toHaveBeenCalled();
+    // Licznik prób nietknięty; rośnie tylko licznik cykli czekania na mapowanie.
+    expect(mockedStore.updatePendingSync).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "op-1", retries: 0, unresolvedCycles: 1 }),
+    );
   });
 
   it("workout 404 purges the workout (notifies workoutNotFound listener) and reports failure", async () => {
@@ -265,7 +271,7 @@ describe("syncManager", () => {
     expect(mockedStore.removePendingSync).not.toHaveBeenCalled();
   });
 
-  it("server error at MAX_RETRIES drops the op and reports permanent failure", async () => {
+  it("server error at MAX_RETRIES marks the op permanently failed but KEEPS it in the queue", async () => {
     const onFailure = vi.fn();
     const off = syncManager.onSyncFailure(onFailure);
 
@@ -274,9 +280,114 @@ describe("syncManager", () => {
 
     await syncManager.syncNow();
 
-    expect(mockedStore.removePendingSync).toHaveBeenCalledWith("op-1");
-    expect(onFailure).toHaveBeenCalled();
+    // Dane NIE mogą zniknąć z IndexedDB.
+    expect(mockedStore.removePendingSync).not.toHaveBeenCalled();
+    expect(mockedStore.updatePendingSync).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "op-1", permanentlyFailed: true }),
+    );
+    expect(onFailure).toHaveBeenCalledWith([
+      expect.objectContaining({ id: "op-1", permanentlyFailed: true }),
+    ]);
     off();
+  });
+
+  it("permanently failed op is skipped by the automatic loop but still reported", async () => {
+    const onFailure = vi.fn();
+    const off = syncManager.onSyncFailure(onFailure);
+
+    mockedStore.getPendingSyncOperations.mockResolvedValue([
+      baseOp({ retries: 3, permanentlyFailed: true }),
+    ]);
+
+    await syncManager.syncNow();
+
+    // Nie wysyłamy jej automatycznie...
+    const sentSetPost = mockedFetch.mock.calls.some(
+      ([, init]) => (init as RequestInit | undefined)?.method === "POST",
+    );
+    expect(sentSetPost).toBe(false);
+    // ...i nadal jej nie kasujemy.
+    expect(mockedStore.removePendingSync).not.toHaveBeenCalled();
+    expect(onFailure).toHaveBeenCalledWith([
+      expect.objectContaining({ id: "op-1" }),
+    ]);
+    off();
+  });
+
+  it("manual retry (syncNow with retryFailed) clears the flag and re-sends the op", async () => {
+    const failedOp = baseOp({ retries: 3, permanentlyFailed: true });
+    mockedStore.getPendingSyncOperations.mockResolvedValue([failedOp]);
+    // 1. resurrect zapisuje op bez flagi, 2. POST się udaje
+    mockedStore.updatePendingSync.mockImplementation(async (op: SyncOperation) => {
+      mockedStore.getPendingSyncOperations.mockResolvedValue([op]);
+    });
+    mockedFetch.mockResolvedValueOnce(makeRes(201, { data: { id: "set-real" } }));
+
+    await syncManager.syncNow({ retryFailed: true });
+
+    expect(mockedStore.updatePendingSync).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "op-1", permanentlyFailed: false, retries: 0 }),
+    );
+    // Operacja poszła na serwer i dopiero po sukcesie zniknęła z kolejki.
+    expect(mockedStore.removePendingSync).toHaveBeenCalledWith("op-1");
+  });
+
+  it("op stuck on an unresolved temp id is marked failed after MAX_UNRESOLVED_SYNC_CYCLES and stops blocking fresh workout data", async () => {
+    // Ostatni cykl czekania — mapowania nadal brak.
+    mockedStore.getPendingSyncOperations.mockResolvedValue([
+      baseOp({
+        endpoint: "/api/workouts/items/temp_item_orphan/sets",
+        unresolvedCycles: 2,
+      }),
+    ]);
+
+    await syncManager.syncNow();
+
+    expect(mockedStore.updatePendingSync).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "op-1", permanentlyFailed: true }),
+    );
+    expect(mockedStore.removePendingSync).not.toHaveBeenCalled();
+  });
+
+  it("a permanently failed workout op no longer blocks fetching fresh workouts", async () => {
+    mockedStore.getPendingSyncOperations.mockResolvedValue([
+      baseOp({
+        entity: "set",
+        endpoint: "/api/workouts/items/temp_item_orphan/sets",
+        permanentlyFailed: true,
+      }),
+    ]);
+    mockedFetch.mockResolvedValue(makeRes(200, { data: [{ id: "w1" }] }));
+
+    await syncManager.syncNow();
+
+    // Guard nie blokuje już odświeżania — aplikacja nie utyka na stanie lokalnym.
+    expect(mockedStore.clear).toHaveBeenCalledWith("workouts");
+    expect(mockedStore.putMany).toHaveBeenCalledWith("workouts", [{ id: "w1" }]);
+  });
+
+  it("does NOT overwrite workouts when a local workout change lands while the GETs are in flight", async () => {
+    // Kolejka pusta na starcie → fetchFreshData wysyła GET-y.
+    mockedStore.getPendingSyncOperations.mockResolvedValue([]);
+    // Użytkownik kończy trening w trakcie trwania GET-ów → licznik lokalnych
+    // zapisów rośnie zanim odpowiedź serwera (jeszcze ze statusem DRAFT) wróci.
+    mockedStore.getWorkoutWriteEpoch
+      .mockReturnValueOnce(0)
+      .mockReturnValue(1);
+    mockedFetch.mockResolvedValue(
+      makeRes(200, { data: [{ id: "w1", status: "DRAFT" }] }),
+    );
+
+    await syncManager.syncNow();
+
+    expect(mockedStore.clear).not.toHaveBeenCalledWith("workouts");
+    expect(mockedStore.putMany).not.toHaveBeenCalledWith(
+      "workouts",
+      expect.anything(),
+    );
+    expect(mockedStore.setActiveWorkoutId).not.toHaveBeenCalled();
+    // Pozostałe dane (ćwiczenia, statystyki) wolno odświeżyć normalnie.
+    expect(mockedStore.clear).toHaveBeenCalledWith("exercises");
   });
 
   it("does nothing while offline", async () => {

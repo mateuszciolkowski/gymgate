@@ -9,6 +9,13 @@ import { API_BASE } from "@/config/api";
 
 const SYNC_INTERVAL = 2 * 60 * 1000; // 2 minutes
 const MAX_RETRIES = 3;
+// Ile cykli synchronizacji operacja może czekać na rozwiązanie temp-ID rodzica.
+// Ta sama wartość co MAX_RETRIES — przy synchronizacji co 2 min to ~6 minut
+// czekania. Jeśli po tym czasie mapowania nadal nie ma (np. operacja-rodzic
+// trwale się nie udała), dziecko nigdy się nie rozwiąże. Zamiast blokować
+// kolejkę (a przez nią pobieranie świeżych danych) w nieskończoność, oznaczamy
+// je jako trwale nieudane — dane zostają w IndexedDB i trafiają do banera.
+const MAX_UNRESOLVED_SYNC_CYCLES = 3;
 
 type SyncCallback = () => void;
 type SyncFailureCallback = (operations: SyncOperation[]) => void;
@@ -116,6 +123,39 @@ const omitInternalSyncFields = (
     ),
   );
 
+/**
+ * Czy w kolejce czeka jakakolwiek niezsynchronizowana zmiana dotycząca
+ * treningu (sam trening, ćwiczenie w treningu lub seria). Jeśli tak, danych
+ * treningowych z serwera NIE wolno zapisywać lokalnie — są starsze niż stan
+ * lokalny i nadpisałyby zmiany użytkownika.
+ *
+ * Operacje trwale nieudane (`permanentlyFailed`) są pomijane: nie zostaną już
+ * wysłane automatycznie, więc blokowałyby odświeżanie danych na zawsze.
+ *
+ * `workoutId` zawęża sprawdzenie do jednego treningu (używane przy
+ * odświeżaniu pojedynczego treningu).
+ */
+export const hasPendingWorkoutMutationsNow = async (
+  workoutId?: string,
+): Promise<boolean> => {
+  const operations = await localStore.getPendingSyncOperations();
+  return operations.some((operation) => {
+    if (operation.permanentlyFailed) return false;
+    if (
+      operation.entity !== "set" &&
+      operation.entity !== "workoutItem" &&
+      operation.entity !== "workout"
+    ) {
+      return false;
+    }
+    if (!workoutId) return true;
+    return (
+      operation.workoutId === workoutId ||
+      operation.endpoint.includes(workoutId)
+    );
+  });
+};
+
 class SyncManager {
   private syncInterval: number | null = null;
   private isSyncing = false;
@@ -123,6 +163,7 @@ class SyncManager {
   private failureListeners: Set<SyncFailureCallback> = new Set();
   private workoutNotFoundListeners: Set<WorkoutNotFoundCallback> = new Set();
   private isOnline = navigator.onLine;
+  private lastFailureSignature = "";
 
   constructor() {
     // Listen for online/offline state changes
@@ -192,8 +233,11 @@ class SyncManager {
 
   /**
    * Run synchronization now.
+   *
+   * `retryFailed` (ręczne "Ponów" z banera) zdejmuje flagę trwałej porażki
+   * z operacji w kolejce i zeruje licznik prób — bez czekania na kolejny limit.
    */
-  async syncNow(): Promise<void> {
+  async syncNow(options: { retryFailed?: boolean } = {}): Promise<void> {
     if (this.isSyncing || !this.isOnline) {
       return;
     }
@@ -201,6 +245,10 @@ class SyncManager {
     this.isSyncing = true;
 
     try {
+      if (options.retryFailed) {
+        await this.resurrectFailedOperations();
+      }
+
       // 1. Send pending operations
       await this.processPendingOperations();
 
@@ -222,6 +270,58 @@ class SyncManager {
   }
 
   /**
+   * Zdejmuje flagę trwałej porażki ze wszystkich operacji w kolejce, żeby
+   * ręczne "Ponów" spróbowało ich jeszcze raz od zera.
+   */
+  private async resurrectFailedOperations(): Promise<void> {
+    const operations = await localStore.getPendingSyncOperations();
+    await Promise.all(
+      operations
+        .filter((op) => op.permanentlyFailed)
+        .map((op) =>
+          localStore.updatePendingSync({
+            ...op,
+            permanentlyFailed: false,
+            retries: 0,
+            unresolvedCycles: 0,
+          }),
+        ),
+    );
+  }
+
+  /**
+   * Oznacza operację jako trwale nieudaną. Operacja ZOSTAJE w IndexedDB —
+   * nie kasujemy danych użytkownika; jest tylko pomijana w automatycznym
+   * retry i widoczna w banerze, skąd można ją ponowić ręcznie.
+   */
+  private async markPermanentlyFailed(
+    op: SyncOperation,
+    reason: string,
+  ): Promise<SyncOperation> {
+    const failed: SyncOperation = { ...op, permanentlyFailed: true };
+    await localStore.updatePendingSync(failed);
+    console.warn(
+      `[SyncManager] Operation ${op.id} permanently failed (${reason}) — kept in queue for manual retry`,
+    );
+    return failed;
+  }
+
+  /**
+   * Powiadamia o zbiorze nieudanych operacji tylko wtedy, gdy zmienił się
+   * względem poprzedniego przebiegu — dzięki temu odrzucenie banera
+   * (`dismissSyncFailures`) nie wraca po każdym cyklu synchronizacji.
+   */
+  private emitFailures(failures: SyncOperation[]): void {
+    const signature = failures
+      .map((op) => op.id)
+      .sort()
+      .join(",");
+    if (signature === this.lastFailureSignature) return;
+    this.lastFailureSignature = signature;
+    this.failureListeners.forEach((cb) => cb(failures));
+  }
+
+  /**
    * Process pending offline operations.
    */
   private async processPendingOperations(): Promise<void> {
@@ -229,7 +329,10 @@ class SyncManager {
     const tempIdMap: TempIdMap = new Map();
     const permanentlyFailed: SyncOperation[] = [];
 
-    if (operations.length === 0) return;
+    if (operations.length === 0) {
+      this.emitFailures([]);
+      return;
+    }
 
     // Zasiej mapę trwałymi mapowaniami temp->real z poprzednich przebiegów/sesji.
     // Bez tego operacja-dziecko (np. zapis serii) przetworzona w innym przebiegu
@@ -247,6 +350,13 @@ class SyncManager {
     operations.sort((a, b) => a.timestamp - b.timestamp);
 
     for (const op of operations) {
+      // Trwale nieudana — nie ponawiamy automatycznie, ale nadal raportujemy
+      // ją do banera (i trzymamy w IndexedDB) aż do ręcznego "Ponów".
+      if (op.permanentlyFailed) {
+        permanentlyFailed.push(op);
+        continue;
+      }
+
       try {
         const resolvedEndpoint = replaceTempIdsInString(op.endpoint, tempIdMap);
         const resolvedData = replaceTempIdsDeep(op.data, tempIdMap);
@@ -262,6 +372,17 @@ class SyncManager {
           hasUnresolvedTempIds(resolvedEndpoint) ||
           hasUnresolvedTempIds(dataForUnresolvedCheck)
         ) {
+          // Czekamy na mapowanie temp->real od operacji-rodzica, ale nie
+          // w nieskończoność — inaczej taka operacja trzymałaby guard
+          // `hasPendingWorkoutMutationsNow` i blokowała odświeżanie danych.
+          const unresolvedCycles = (op.unresolvedCycles ?? 0) + 1;
+          if (unresolvedCycles >= MAX_UNRESOLVED_SYNC_CYCLES) {
+            permanentlyFailed.push(
+              await this.markPermanentlyFailed(op, "unresolved temp id"),
+            );
+          } else {
+            await localStore.updatePendingSync({ ...op, unresolvedCycles });
+          }
           continue;
         }
 
@@ -334,10 +455,11 @@ class SyncManager {
             retries: op.retries + 1,
           });
         } else {
-          await localStore.removePendingSync(op.id);
-          permanentlyFailed.push(op);
-          console.warn(
-            `[SyncManager] Operation ${op.id} failed after ${MAX_RETRIES} retries`,
+          permanentlyFailed.push(
+            await this.markPermanentlyFailed(
+              op,
+              `server error after ${MAX_RETRIES} retries`,
+            ),
           );
         }
       } catch (error) {
@@ -351,16 +473,15 @@ class SyncManager {
           if (op.retries < MAX_RETRIES) {
             await localStore.updatePendingSync({ ...op, retries: op.retries + 1 });
           } else {
-            await localStore.removePendingSync(op.id);
-            permanentlyFailed.push(op);
+            permanentlyFailed.push(
+              await this.markPermanentlyFailed(op, "unexpected error"),
+            );
           }
         }
       }
     }
 
-    if (permanentlyFailed.length > 0) {
-      this.failureListeners.forEach((cb) => cb(permanentlyFailed));
-    }
+    this.emitFailures(permanentlyFailed);
   }
 
   private async captureTempIdMappings(
@@ -425,12 +546,11 @@ class SyncManager {
    */
   private async fetchFreshData(): Promise<void> {
     try {
-      const pendingOperations = await localStore.getPendingSyncOperations();
-      const hasPendingWorkoutMutations = pendingOperations.some((operation) =>
-        operation.entity === "set" ||
-        operation.entity === "workoutItem" ||
-        operation.entity === "workout",
-      );
+      const hasPendingWorkoutMutations = await hasPendingWorkoutMutationsNow();
+      // Snapshot lokalnych zmian treningów SPRZED wysłania GET-ów — po ich
+      // powrocie sprawdzamy ponownie (patrz niżej), bo przy słabym łączu
+      // użytkownik może zdążyć np. zakończyć trening w trakcie zapytania.
+      const workoutEpochBefore = localStore.getWorkoutWriteEpoch();
 
       // Fetch all data in parallel
       const [workoutsRes, exercisesRes, activeRes, statsRes, overviewRes] =
@@ -446,8 +566,16 @@ class SyncManager {
           authFetch(`${API_BASE}/api/workouts/stats/overview`).catch(() => null),
         ]);
 
+      // Dane treningów z serwera są przestarzałe, jeśli w trakcie zapytania
+      // pojawiła się lokalna zmiana treningu albo nowa operacja w kolejce.
+      // Nadpisanie ich w takiej sytuacji cofnęłoby zmianę użytkownika
+      // (np. zakończony trening wracałby do DRAFT).
+      const workoutDataIsStale =
+        localStore.getWorkoutWriteEpoch() !== workoutEpochBefore ||
+        (await hasPendingWorkoutMutationsNow());
+
       // Persist workouts
-      if (workoutsRes?.ok) {
+      if (workoutsRes?.ok && !workoutDataIsStale) {
         const data = await workoutsRes.json();
         if (data.data) {
           await localStore.clear("workouts");
@@ -465,7 +593,7 @@ class SyncManager {
       }
 
       // Persist the active workout
-      if (activeRes?.ok) {
+      if (activeRes?.ok && !workoutDataIsStale) {
         const data = await activeRes.json();
         await localStore.setActiveWorkoutId(data.data?.activeWorkoutId || null);
       }

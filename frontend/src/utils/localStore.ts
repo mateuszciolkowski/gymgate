@@ -27,9 +27,26 @@ export interface SyncOperation {
   failureReason?: "not_found";
   timestamp: number;
   retries: number;
+  /**
+   * Operacja wyczerpała limit prób (albo od zbyt wielu cykli czeka na
+   * nierozwiązane temp-ID). NIE jest kasowana z IndexedDB — pomijamy ją tylko
+   * w automatycznym retry, pokazujemy w banerze i użytkownik może ponowić
+   * ręcznie. Dane treningu nie giną nawet po restarcie aplikacji.
+   */
+  permanentlyFailed?: boolean;
+  /** Ile cykli synchronizacji operacja przeczekała z nierozwiązanym temp-ID. */
+  unresolvedCycles?: number;
 }
 
 let db: IDBDatabase | null = null;
+
+// Licznik lokalnych (optymistycznych) zapisów pojedynczego treningu.
+// Odświeżanie z serwera robi snapshot przed wysłaniem GET-ów i porównuje po
+// ich powrocie — jeśli w międzyczasie użytkownik coś zmienił lokalnie (np.
+// zakończył trening przy słabym łączu), stara odpowiedź serwera NIE nadpisuje
+// tej zmiany. Bulkowe zapisy (putMany/clear) pochodzą właśnie z odświeżania,
+// więc licznika nie ruszają.
+let workoutWriteEpoch = 0;
 
 const openDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
@@ -117,10 +134,18 @@ export const localStore = {
     });
   },
 
+  /** Numer wersji lokalnych zmian treningów — patrz `workoutWriteEpoch`. */
+  getWorkoutWriteEpoch(): number {
+    return workoutWriteEpoch;
+  },
+
   async put<T extends { id?: string }>(
     storeName: keyof StoreConfig,
     data: T,
   ): Promise<void> {
+    if (storeName === "workouts" || storeName === "activeWorkout") {
+      workoutWriteEpoch++;
+    }
     const database = await openDB();
     return new Promise((resolve, reject) => {
       const transaction = database.transaction(storeName, "readwrite");
@@ -150,6 +175,9 @@ export const localStore = {
   },
 
   async delete(storeName: keyof StoreConfig, key: string): Promise<void> {
+    if (storeName === "workouts" || storeName === "activeWorkout") {
+      workoutWriteEpoch++;
+    }
     const database = await openDB();
     return new Promise((resolve, reject) => {
       const transaction = database.transaction(storeName, "readwrite");

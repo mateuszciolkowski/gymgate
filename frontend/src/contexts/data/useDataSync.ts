@@ -228,8 +228,10 @@ export function useDataSync(store: DataStore) {
     setWorkouts,
   ]);
 
+  // Zawsze wywoływane przez użytkownika (przycisk "Ponów" w banerze), więc
+  // ponawiamy też operacje oznaczone jako trwale nieudane.
   const syncNow = useCallback(async () => {
-    await syncManager.syncNow();
+    await syncManager.syncNow({ retryFailed: true });
   }, []);
 
   const resetLocalCache = useCallback(async () => {
@@ -266,6 +268,8 @@ export function useDataSync(store: DataStore) {
     setWorkouts,
   ]);
 
+  // Chowa tylko baner. Operacje ZOSTAJĄ w kolejce w IndexedDB (przeżyją
+  // restart aplikacji i mogą zostać ponowione), żeby dane treningu nie zginęły.
   const dismissSyncFailures = useCallback(() => {
     setFailedSyncOperations([]);
   }, [setFailedSyncOperations]);

@@ -5,7 +5,11 @@ import React from "react";
 import { renderHook, waitFor, act } from "@testing-library/react";
 
 // --- Mock collaborators -----------------------------------------------------
-vi.mock("../utils/syncManager", () => {
+vi.mock("../utils/syncManager", async () => {
+  // Prawdziwa implementacja helpera (czyta kolejkę z fake-indexeddb) — testy
+  // sprawdzają realne zachowanie guardu chroniącego przed nadpisaniem
+  // lokalnych zmian treningu danymi z serwera.
+  const { localStore } = await import("../utils/localStore");
   const syncManager = {
     start: vi.fn(),
     stop: vi.fn(),
@@ -16,7 +20,25 @@ vi.mock("../utils/syncManager", () => {
     syncNow: vi.fn(async () => {}),
     getIsOnline: vi.fn(() => true),
   };
-  return { syncManager, default: syncManager };
+  return {
+    syncManager,
+    default: syncManager,
+    hasPendingWorkoutMutationsNow: async (workoutId?: string) => {
+      const ops = await localStore.getPendingSyncOperations();
+      return ops.some((op) => {
+        if (op.permanentlyFailed) return false;
+        if (
+          op.entity !== "workout" &&
+          op.entity !== "workoutItem" &&
+          op.entity !== "set"
+        ) {
+          return false;
+        }
+        if (!workoutId) return true;
+        return op.workoutId === workoutId || op.endpoint.includes(workoutId);
+      });
+    },
+  };
 });
 
 vi.mock("../utils/auth", () => ({
@@ -302,6 +324,138 @@ describe("DataContext.addSet 404 handling (data-loss fix)", () => {
     );
     const sentBody = JSON.parse((setPostCall?.[1] as RequestInit).body as string);
     expect(sentBody.clientId).toMatch(/^temp_set_/);
+  });
+});
+
+describe("DataContext.refreshWorkout epoch guard", () => {
+  const exercise = {
+    id: "e1",
+    name: "Squat",
+    muscleGroups: [],
+    description: undefined,
+    photos: [],
+    creator: { id: "u1", firstName: "T", lastName: "U", email: "t@e.com" },
+  };
+  const workout = {
+    id: "w1",
+    userId: "u1",
+    status: "DRAFT",
+    workoutDate: new Date().toISOString(),
+    workoutName: "W",
+    gymName: null,
+    location: null,
+    workoutNotes: null,
+    workoutPlanId: null,
+    skippedPlanExerciseIds: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    items: [
+      {
+        id: "i1",
+        workoutId: "w1",
+        exerciseId: "e1",
+        orderInWorkout: 1,
+        notes: null,
+        previousNote: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        exercise: { id: "e1", name: "Squat", muscleGroups: [], description: null, photos: [] },
+        sets: [],
+      },
+    ],
+  };
+
+  it("does NOT overwrite local sets when a local workout write lands while the reconcile GET is in flight", async () => {
+    mockedFetch.mockImplementation(async (url: unknown, opts: unknown) => {
+      const u = String(url);
+      const method = (opts as RequestInit | undefined)?.method ?? "GET";
+      // Seria trafia na 404 → addSet uruchamia refreshWorkout("w1").
+      if (method === "POST" && u.includes("/items/i1/sets")) return makeRes(404, {});
+      if (method === "GET" && u.endsWith("/api/workouts/w1")) {
+        // Użytkownik zapisuje coś lokalnie w trakcie trwania GET-a
+        // (rośnie workoutWriteEpoch) — odpowiedź serwera jest już nieaktualna.
+        await localStore.put("workouts", { ...workout, workoutName: "LOCAL-NEWER" });
+        return makeRes(200, { data: { ...workout, workoutName: "SERVER-STALE" } });
+      }
+      if (u.endsWith("/api/workouts/active")) {
+        return makeRes(200, { data: { activeWorkoutId: "w1" } });
+      }
+      if (u.endsWith("/api/workouts")) return makeRes(200, { data: [workout] });
+      if (u.includes("/api/exercises")) return makeRes(200, { data: [exercise] });
+      return makeRes(200, { data: [] });
+    });
+
+    const { result } = await renderData();
+    await waitFor(() => expect(result.current.workouts.length).toBe(1));
+
+    await act(async () => {
+      await result.current.addSet("w1", "i1", { weight: 50, repetitions: 8, setNumber: 1 });
+    });
+
+    const w = result.current.workouts.find((x) => x.id === "w1");
+    // Przestarzały payload serwera nie może nadpisać stanu lokalnego...
+    expect(w?.workoutName).not.toBe("SERVER-STALE");
+    // ...ani skasować optymistycznie dodanej serii.
+    expect(w?.items[0].sets.length).toBe(1);
+  });
+});
+
+describe("DataContext.skipPlanExercise rollback", () => {
+  const workout = {
+    id: "w1",
+    userId: "u1",
+    status: "DRAFT",
+    workoutDate: new Date().toISOString(),
+    workoutName: "W",
+    gymName: null,
+    location: null,
+    workoutNotes: null,
+    workoutPlanId: "p1",
+    skippedPlanExerciseIds: [] as string[],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    items: [],
+  };
+
+  it("rolls back only the failed skip, keeping a skip added meanwhile", async () => {
+    let rejectFirst: (e: unknown) => void = () => {};
+    const firstSkip = new Promise((_, reject) => {
+      rejectFirst = reject;
+    });
+
+    mockedFetch.mockImplementation((url: unknown, opts: unknown) => {
+      const u = String(url);
+      const init = opts as RequestInit | undefined;
+      if (u.endsWith("/skip-plan-exercise") && init?.method === "POST") {
+        const body = JSON.parse(init.body as string);
+        // Pierwsze pominięcie wisi i ostatecznie failuje...
+        if (body.exerciseId === "e1") return firstSkip;
+        // ...drugie w tym czasie kończy się sukcesem.
+        return Promise.resolve(makeRes(200, { data: {} }));
+      }
+      if (u.endsWith("/api/workouts/active")) {
+        return Promise.resolve(makeRes(200, { data: { activeWorkoutId: "w1" } }));
+      }
+      if (u.endsWith("/api/workouts")) {
+        return Promise.resolve(makeRes(200, { data: [workout] }));
+      }
+      return Promise.resolve(makeRes(200, { data: [] }));
+    });
+
+    const { result } = await renderData();
+    await waitFor(() => expect(result.current.workouts.length).toBe(1));
+
+    await act(async () => {
+      const p1 = result.current.skipPlanExercise("w1", "e1");
+      await result.current.skipPlanExercise("w1", "e2");
+      rejectFirst(new Error("server error"));
+      await p1;
+    });
+
+    const skipped = result.current.workouts.find((w) => w.id === "w1")
+      ?.skippedPlanExerciseIds;
+    // Nieudana operacja cofa tylko siebie — nowsza zmiana użytkownika zostaje.
+    expect(skipped).toEqual(["e2"]);
   });
 });
 

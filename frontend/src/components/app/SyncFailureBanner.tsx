@@ -22,9 +22,10 @@ interface SyncFailureBannerProps {
   operations: SyncOperation[];
   onRetry: () => void;
   onDismiss: () => void;
+  isOnline: boolean;
 }
 
-export function SyncFailureBanner({ operations, onRetry, onDismiss }: SyncFailureBannerProps) {
+export function SyncFailureBanner({ operations, onRetry, onDismiss, isOnline }: SyncFailureBannerProps) {
   const unique = [...new Set(operations.map(describeOperation))];
 
   return (
@@ -51,8 +52,14 @@ export function SyncFailureBanner({ operations, onRetry, onDismiss }: SyncFailur
         <div className="flex shrink-0 gap-3 mt-0.5">
           <button
             onClick={onRetry}
-            className="text-[11px] font-bold border-none bg-transparent cursor-pointer"
-            style={{ color: "var(--gg-active-border)" }}
+            disabled={!isOnline}
+            title={isOnline ? undefined : "Dostępne po powrocie online"}
+            className="text-[11px] font-bold border-none bg-transparent"
+            style={{
+              color: "var(--gg-active-border)",
+              opacity: isOnline ? 1 : 0.4,
+              cursor: isOnline ? "pointer" : "not-allowed",
+            }}
           >
             Ponów
           </button>

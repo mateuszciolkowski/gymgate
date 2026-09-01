@@ -27,6 +27,7 @@ import { StatsScreen, StatsExerciseDetailScreen } from "@/features/stats";
 import { PlansScreen, PlanFormScreen } from "@/features/plans";
 import { MenuScreen } from "@/features/menu";
 import { SyncFailureBanner } from "./SyncFailureBanner";
+import { ConnectionStatusBanner } from "./ConnectionStatusBanner";
 import { StaleWorkoutDialog } from "./StaleWorkoutDialog";
 
 interface AuthenticatedAppProps {
@@ -58,6 +59,7 @@ export function AuthenticatedApp({
     failedSyncOperations,
     dismissSyncFailures,
     syncNow,
+    isOnline,
   } = useData();
 
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
@@ -314,12 +316,18 @@ export function AuthenticatedApp({
   return (
     <MainLayout
       topBanner={
-        failedSyncOperations.length > 0 ? (
-          <SyncFailureBanner
-            operations={failedSyncOperations}
-            onRetry={syncNow}
-            onDismiss={dismissSyncFailures}
-          />
+        !isOnline || failedSyncOperations.length > 0 ? (
+          <>
+            {!isOnline && <ConnectionStatusBanner />}
+            {failedSyncOperations.length > 0 && (
+              <SyncFailureBanner
+                operations={failedSyncOperations}
+                onRetry={syncNow}
+                onDismiss={dismissSyncFailures}
+                isOnline={isOnline}
+              />
+            )}
+          </>
         ) : undefined
       }
       drawer={
