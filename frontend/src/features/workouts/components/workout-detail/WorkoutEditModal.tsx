@@ -33,6 +33,11 @@ const inputStyle: React.CSSProperties = {
   border: "1px solid var(--gg-border-med)",
   outline: "none",
   fontFamily: "inherit",
+  // iOS/Safari ignores `width` on date & time inputs unless the native
+  // appearance is disabled first — otherwise the control keeps its
+  // intrinsic size and overflows the container.
+  WebkitAppearance: "none",
+  appearance: "none",
 };
 
 function calculateDurationSeconds(start: string, end: string): number {
