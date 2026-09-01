@@ -549,6 +549,15 @@ export const getExerciseProgression = async (
           },
         },
       },
+      // workoutDate carries date only (no time) from the workout form, so same-day
+      // workouts tie; break ties by actual creation order to keep "last" deterministic.
+      {
+        item: {
+          workout: {
+            createdAt: "asc",
+          },
+        },
+      },
     ],
   });
 
@@ -593,11 +602,11 @@ export const getLastWorkoutNote = async (userId: string, exerciseId: string): Pr
         status: "COMPLETED",
       },
     },
-    orderBy: {
-      workout: {
-        workoutDate: "desc",
-      },
-    },
+    orderBy: [
+      { workout: { workoutDate: "desc" } },
+      // Same-day workouts tie on workoutDate (date-only); break by creation order.
+      { workout: { createdAt: "desc" } },
+    ],
     select: { notes: true },
   });
   return lastItem?.notes || null;

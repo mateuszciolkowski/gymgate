@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useData, useWorkoutData, WorkoutNotFoundError } from "@/contexts/data";
 import { computeWorkoutElapsed } from "@/utils/workoutTimer";
+import { computePreviousSets } from "@/utils/previousSets";
 import { ExerciseSelectionModal } from "@/features/exercises";
 import { WorkoutItemCard } from "./WorkoutItemCard";
 import { WorkoutEditModal } from "./WorkoutEditModal";
@@ -116,28 +117,10 @@ export function WorkoutDetailScreen({
     if (!loading && !workout) onBack();
   }, [loading, workout, onBack]);
 
-  const { latestSetsByExerciseId, previousSetsByExerciseId } = useMemo(() => {
-    const summaryMap = new Map<string, string>();
-    const setsMap = new Map<string, Array<{ setNumber: number; weight: string; repetitions: number }>>();
-    const sorted = [...workouts]
-      .filter((w) => w.status === "COMPLETED" && w.id !== workoutId)
-      .sort((a, b) => new Date(b.workoutDate).getTime() - new Date(a.workoutDate).getTime());
-
-    sorted.forEach((w) => {
-      w.items.forEach((item) => {
-        if (setsMap.has(item.exerciseId) || item.sets.length === 0) return;
-        const sortedSets = [...item.sets]
-          .sort((a, b) => a.setNumber - b.setNumber)
-          .map((set) => ({ setNumber: set.setNumber, weight: set.weight, repetitions: set.repetitions }));
-        setsMap.set(item.exerciseId, sortedSets);
-        summaryMap.set(
-          item.exerciseId,
-          sortedSets.map((set) => `${set.weight} kg × ${set.repetitions}`).join(", "),
-        );
-      });
-    });
-    return { latestSetsByExerciseId: summaryMap, previousSetsByExerciseId: setsMap };
-  }, [workouts, workoutId]);
+  const { latestSetsByExerciseId, previousSetsByExerciseId } = useMemo(
+    () => computePreviousSets(workouts, workoutId),
+    [workouts, workoutId],
+  );
 
   const orderedWorkoutItems = useMemo(
     () =>
