@@ -164,10 +164,10 @@ export function useWorkoutActions(store: DataStore) {
       } catch (error) {
         if (!isOfflineError(error)) throw error;
 
-        // Kolejkujemy PRZED optymistycznym zapisem lokalnym: gdyby kolejność
-        // była odwrotna, w oknie między zapisem a zakolejkowaniem trwające
-        // odświeżanie z serwera mogłoby uznać dane serwera za aktualne
-        // i cofnąć zmianę (np. zakończony trening wracał do DRAFT).
+        // Queue BEFORE the optimistic local write: if the order were
+        // reversed, an in-flight server refresh could see the server data
+        // as current in the window between the write and the queueing,
+        // and revert the change (e.g. a completed workout reverting to DRAFT).
         await queueSyncOperation({
           type: "update",
           entity: "workout",

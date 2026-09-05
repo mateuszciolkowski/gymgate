@@ -228,8 +228,8 @@ export function useDataSync(store: DataStore) {
     setWorkouts,
   ]);
 
-  // Zawsze wywoływane przez użytkownika (przycisk "Ponów" w banerze), więc
-  // ponawiamy też operacje oznaczone jako trwale nieudane.
+  // Always triggered by the user (the "Retry" button in the banner), so we
+  // also retry operations marked as permanently failed.
   const syncNow = useCallback(async () => {
     await syncManager.syncNow({ retryFailed: true });
   }, []);

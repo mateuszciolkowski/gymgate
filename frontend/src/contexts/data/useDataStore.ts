@@ -241,8 +241,8 @@ export function useDataStore() {
   const refreshWorkout = useCallback(
     async (id: string) => {
       try {
-        // Ten sam epoch-guard co w fetchAllFromServer/fetchFreshData: snapshot
-        // licznika lokalnych zapisów treningów sprzed requestu.
+        // Same epoch guard as in fetchAllFromServer/fetchFreshData: snapshot
+        // the local workout-write counter before the request.
         const workoutEpochBefore = localStore.getWorkoutWriteEpoch();
         const response = await authFetch(`${API_BASE}/api/workouts/${id}`);
         if (response.status === 404) {

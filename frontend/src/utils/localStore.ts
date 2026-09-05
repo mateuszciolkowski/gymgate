@@ -40,12 +40,12 @@ export interface SyncOperation {
 
 let db: IDBDatabase | null = null;
 
-// Licznik lokalnych (optymistycznych) zapisów pojedynczego treningu.
-// Odświeżanie z serwera robi snapshot przed wysłaniem GET-ów i porównuje po
-// ich powrocie — jeśli w międzyczasie użytkownik coś zmienił lokalnie (np.
-// zakończył trening przy słabym łączu), stara odpowiedź serwera NIE nadpisuje
-// tej zmiany. Bulkowe zapisy (putMany/clear) pochodzą właśnie z odświeżania,
-// więc licznika nie ruszają.
+// Counter of local (optimistic) writes to a single workout.
+// A server refresh takes a snapshot before firing off its GETs and compares
+// it after they return — if the user changed something locally in the
+// meantime (e.g. completed the workout on a flaky connection), the stale
+// server response does NOT overwrite that change. Bulk writes (putMany/clear)
+// come from refreshes themselves, so they don't bump the counter.
 let workoutWriteEpoch = 0;
 
 const openDB = (): Promise<IDBDatabase> => {

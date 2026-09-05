@@ -68,7 +68,7 @@ export const createApp = (): Express => {
 
   app.use(express.json());
 
-  // Serwuje pliki z backend/uploads (np. zdjęcia ćwiczeń) pod /uploads/...
+  // Serves files from backend/uploads (e.g. exercise photos) under /uploads/...
   const dirname = path.dirname(fileURLToPath(import.meta.url));
   app.use("/uploads", express.static(path.join(dirname, "..", "uploads")));
 

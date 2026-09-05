@@ -9,12 +9,12 @@ import { API_BASE } from "@/config/api";
 
 const SYNC_INTERVAL = 2 * 60 * 1000; // 2 minutes
 const MAX_RETRIES = 3;
-// Ile cykli synchronizacji operacja może czekać na rozwiązanie temp-ID rodzica.
-// Ta sama wartość co MAX_RETRIES — przy synchronizacji co 2 min to ~6 minut
-// czekania. Jeśli po tym czasie mapowania nadal nie ma (np. operacja-rodzic
-// trwale się nie udała), dziecko nigdy się nie rozwiąże. Zamiast blokować
-// kolejkę (a przez nią pobieranie świeżych danych) w nieskończoność, oznaczamy
-// je jako trwale nieudane — dane zostają w IndexedDB i trafiają do banera.
+// How many sync cycles an operation may wait for its parent temp-ID to resolve.
+// Same value as MAX_RETRIES — at a 2 min sync interval that's ~6 minutes of
+// waiting. If the mapping still doesn't exist after that (e.g. the parent
+// operation permanently failed), the child will never resolve. Instead of
+// blocking the queue (and with it, fetching fresh data) forever, we mark
+// it as permanently failed — the data stays in IndexedDB and surfaces in the banner.
 const MAX_UNRESOLVED_SYNC_CYCLES = 3;
 
 type SyncCallback = () => void;
@@ -124,16 +124,16 @@ const omitInternalSyncFields = (
   );
 
 /**
- * Czy w kolejce czeka jakakolwiek niezsynchronizowana zmiana dotycząca
- * treningu (sam trening, ćwiczenie w treningu lub seria). Jeśli tak, danych
- * treningowych z serwera NIE wolno zapisywać lokalnie — są starsze niż stan
- * lokalny i nadpisałyby zmiany użytkownika.
+ * Whether any unsynced workout-related change (the workout itself, a
+ * workout item, or a set) is still waiting in the queue. If so, server
+ * workout data must NOT be persisted locally — it's older than local state
+ * and would overwrite the user's changes.
  *
- * Operacje trwale nieudane (`permanentlyFailed`) są pomijane: nie zostaną już
- * wysłane automatycznie, więc blokowałyby odświeżanie danych na zawsze.
+ * Permanently failed operations (`permanentlyFailed`) are skipped: they'll
+ * never be sent automatically, so they would otherwise block data refresh forever.
  *
- * `workoutId` zawęża sprawdzenie do jednego treningu (używane przy
- * odświeżaniu pojedynczego treningu).
+ * `workoutId` narrows the check to a single workout (used when refreshing
+ * one specific workout).
  */
 export const hasPendingWorkoutMutationsNow = async (
   workoutId?: string,
