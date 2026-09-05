@@ -25,6 +25,7 @@ export function WorkoutDetailScreen({
 }: WorkoutDetailScreenProps) {
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
   const [isWorkoutEditModalOpen, setIsWorkoutEditModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [isWorkoutNotesModalOpen, setIsWorkoutNotesModalOpen] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
@@ -330,17 +331,43 @@ export function WorkoutDetailScreen({
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            {/* Direct button to open edit modal */}
+            {isCompleted && (
+              <button
+                onClick={() => setIsWorkoutEditModalOpen(true)}
+                className="w-9 h-9 rounded-xl border-none cursor-pointer flex items-center justify-center transition-colors"
+                style={{ background: "var(--gg-surface2)", color: "var(--gg-text-sub)" }}
+                title="Edytuj szczegóły treningu"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </button>
+            )}
+
+            {/* Edit button: draft workouts already allow editing sets directly, so it opens
+                the metadata modal; completed workouts toggle an edit mode for exercises/sets. */}
             <button
-              onClick={() => setIsWorkoutEditModalOpen(true)}
+              onClick={() => (isCompleted ? setIsEditMode((v) => !v) : setIsWorkoutEditModalOpen(true))}
               className="w-9 h-9 rounded-xl border-none cursor-pointer flex items-center justify-center transition-colors"
-              style={{ background: "var(--gg-surface2)", color: "var(--gg-text-sub)" }}
-              title="Edytuj szczegóły treningu"
+              style={{
+                background: isEditMode ? "var(--gg-a1)" : "var(--gg-surface2)",
+                color: isEditMode ? "white" : "var(--gg-text-sub)",
+              }}
+              title={isCompleted ? (isEditMode ? "Zakończ edycję ćwiczeń" : "Edytuj ćwiczenia") : "Edytuj szczegóły treningu"}
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z"/>
-              </svg>
+              {isCompleted && isEditMode ? (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z"/>
+                </svg>
+              )}
             </button>
 
             <button
@@ -543,6 +570,24 @@ export function WorkoutDetailScreen({
           </div>
         )}
 
+        {isCompleted && isEditMode && (
+          <button
+            onClick={() => setIsExerciseModalOpen(true)}
+            className="w-full mb-4 py-3 px-3 rounded-xl font-bold text-[13px] sm:text-[14px] flex items-center justify-center gap-1.5 cursor-pointer transition-transform active:scale-[0.98]"
+            style={{
+              background: "var(--gg-surface)",
+              border: "1px solid var(--gg-border-med)",
+              color: "var(--gg-text)",
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="20"/>
+              <line x1="4" y1="12" x2="20" y2="12"/>
+            </svg>
+            <span>Dodaj ćwiczenie</span>
+          </button>
+        )}
+
         {/* Exercise list */}
         <div className="flex flex-col gap-3 pb-24">
           {workout.items.length === 0 ? (
@@ -566,6 +611,7 @@ export function WorkoutDetailScreen({
                 item={item}
                 exerciseNumber={index + 1}
                 isCompleted={isCompleted}
+                isEditMode={isCompleted && isEditMode}
                 isExpanded={expandedItemId === item.id}
                 stats={allStats.find((s) => s.exerciseId === item.exerciseId)}
                 lastSetsSummary={latestSetsByExerciseId.get(item.exerciseId)}

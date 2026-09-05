@@ -3,6 +3,7 @@ import type { ExerciseStats, WorkoutItem } from "@/types";
 import { MUSCLE_GROUPS } from "@/constants";
 import { SetRowEditable } from "./SetRowEditable";
 import { DraftSetRow } from "./DraftSetRow";
+import { ExercisePhotoButton } from "@/features/exercises/components/ExercisePhotoButton";
 
 interface PreviousSetData {
   setNumber: number;
@@ -157,6 +158,7 @@ export const WorkoutItemCard = memo(
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            <ExercisePhotoButton photos={item.exercise.photos} exerciseName={item.exercise.name} />
             {canEdit && (
               <button
                 onClick={(e) => { e.stopPropagation(); onDeleteExercise(item.id); }}

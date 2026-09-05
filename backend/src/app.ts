@@ -1,3 +1,5 @@
+import path from "path";
+import { fileURLToPath } from "url";
 import express, {
   type Express,
   type Request,
@@ -65,6 +67,10 @@ export const createApp = (): Express => {
   });
 
   app.use(express.json());
+
+  // Serwuje pliki z backend/uploads (np. zdjęcia ćwiczeń) pod /uploads/...
+  const dirname = path.dirname(fileURLToPath(import.meta.url));
+  app.use("/uploads", express.static(path.join(dirname, "..", "uploads")));
 
   // Health checks
   app.get("/", (_req: Request, res: Response) => {

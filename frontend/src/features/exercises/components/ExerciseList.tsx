@@ -5,6 +5,7 @@ import type { ExerciseStats } from "@/types";
 import { MUSCLE_GROUPS } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { fuzzyMatch } from "@/utils/fuzzyMatch";
+import { ExercisePhotoButton } from "./ExercisePhotoButton";
 
 interface ExerciseListProps {
   mode: "select" | "manage";
@@ -25,6 +26,7 @@ export function ExerciseList({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [showOnlyPerformed, setShowOnlyPerformed] = useState(false);
   const [showOnlyMyExercises, setShowOnlyMyExercises] = useState(false);
+  const [showOnlyWithPhoto, setShowOnlyWithPhoto] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { exercises: allExercises, stats: allStats, isLoading: loading } = useData();
@@ -64,9 +66,13 @@ export function ExerciseList({
       list = list.filter((ex) => performedIds.has(ex.id));
     }
 
+    if (showOnlyWithPhoto) {
+      list = list.filter((ex) => !!ex.photos && ex.photos.length > 0);
+    }
+
     list.sort((a, b) => sortOrder === "asc" ? a.name.localeCompare(b.name, "pl") : b.name.localeCompare(a.name, "pl"));
     return list;
-  }, [exercises, excludeExerciseIds, searchQuery, showOnlyMyExercises, user, showOnlyPerformed, allStats, sortOrder, mode]);
+  }, [exercises, excludeExerciseIds, searchQuery, showOnlyMyExercises, user, showOnlyPerformed, showOnlyWithPhoto, allStats, sortOrder, mode]);
 
   return (
     <div className="flex flex-col">
@@ -125,6 +131,17 @@ export function ExerciseList({
           }}
         >
           Wykonywane
+        </button>
+        <button
+          onClick={() => setShowOnlyWithPhoto(!showOnlyWithPhoto)}
+          className="px-3 py-1 rounded-lg text-[11px] font-bold border-none cursor-pointer transition-all"
+          style={{
+            background: showOnlyWithPhoto ? "var(--gg-surface)" : "var(--gg-surface2)",
+            color: showOnlyWithPhoto ? "var(--gg-a2)" : "var(--gg-text-muted)",
+            border: showOnlyWithPhoto ? "1px solid var(--gg-a1)" : "1px solid var(--gg-border)",
+          }}
+        >
+          Ze zdjęciem
         </button>
         <button
           onClick={() => setShowOnlyMyExercises(!showOnlyMyExercises)}
@@ -242,6 +259,7 @@ function ExerciseItem({ exercise, mode, stats, onSelect, onEdit, onDelete, perfo
           {exercise.name}
         </h3>
         <div className="flex gap-1.5 shrink-0 ml-2">
+          <ExercisePhotoButton photos={exercise.photos} exerciseName={exercise.name} />
           {mode === "select" ? (
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
@@ -257,7 +275,7 @@ function ExerciseItem({ exercise, mode, stats, onSelect, onEdit, onDelete, perfo
               <button
                 onClick={() => onEdit?.(exercise)}
                 className="w-8 h-8 rounded-lg border-none cursor-pointer flex items-center justify-center transition-colors"
-                style={{ background: "var(--gg-surface2)", color: "var(--gg-text-sub)" }}
+                style={{ background: "var(--gg-surface2)", color: "var(--gg-text-sub)", minHeight: 32 }}
                 title="Edytuj"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -268,7 +286,7 @@ function ExerciseItem({ exercise, mode, stats, onSelect, onEdit, onDelete, perfo
               <button
                 onClick={() => onDelete?.(exercise.id, exercise.name)}
                 className="w-8 h-8 rounded-lg border-none cursor-pointer flex items-center justify-center transition-colors"
-                style={{ background: "var(--gg-surface2)", color: "var(--gg-text-muted)" }}
+                style={{ background: "var(--gg-surface2)", color: "var(--gg-text-muted)", minHeight: 32 }}
                 title="Usuń"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

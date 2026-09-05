@@ -147,15 +147,7 @@ export const findWorkoutsByUser = (
       userId,
       ...(filters?.status && { status: filters.status }),
     },
-    include: {
-      items: {
-        include: {
-          exercise: true,
-          sets: true,
-        },
-        orderBy: { orderInWorkout: "asc" },
-      },
-    },
+    include: workoutInclude,
     orderBy: { workoutDate: "desc" },
     ...(filters?.limit && { take: filters.limit }),
     ...(filters?.offset !== undefined && { skip: filters.offset }),
