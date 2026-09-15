@@ -43,6 +43,7 @@ export function Modal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn"
       onClick={(e) => {
+        e.stopPropagation();
         if (e.target === e.currentTarget) onClose();
       }}
     >
@@ -73,7 +74,10 @@ export function Modal({
             {showCloseButton && (
               <button
                 type="button"
-                onClick={onClose}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
                 className="w-8 h-8 rounded-full border-none cursor-pointer flex items-center justify-center shrink-0 transition-colors"
                 style={{ background: "var(--gg-surface2)", color: "var(--gg-text-muted)" }}
                 aria-label="Zamknij"
