@@ -22,12 +22,7 @@ import type { WorkoutPlan } from "@/types";
 import { ExerciseSelectionModal } from "@/features/exercises";
 import { MUSCLE_GROUPS } from "@/constants/muscleGroups";
 import { Switch, Button, FormField } from "@/components/ui";
-
-interface PlanExerciseItem {
-  exerciseId: string;
-  name: string;
-  muscleGroups: string[];
-}
+import { MAX_PLAN_EXERCISES, draftFromPlan, type PlanDraft, type PlanExerciseItem } from "../planDraft";
 
 function muscleLabel(value: string): string {
   return MUSCLE_GROUPS.find((g) => g.value === value)?.label ?? value;
@@ -109,13 +104,17 @@ function SortableExerciseRow({ item, onRemove }: SortableExerciseRowProps) {
 
 interface PlanFormScreenProps {
   editingPlan?: WorkoutPlan | null;
+  /** Unsaved state to restore (e.g. after returning from "add exercise"); wins over editingPlan. */
+  initialDraft?: PlanDraft | null;
   onBack: () => void;
   onSaved: () => void;
-  onCreateNewExercise?: () => void;
+  /** Receives the current unsaved form state so the parent can restore it on return. */
+  onCreateNewExercise?: (draft: PlanDraft) => void;
 }
 
 export const PlanFormScreen = memo(function PlanFormScreen({
   editingPlan,
+  initialDraft,
   onBack,
   onSaved,
   onCreateNewExercise,
@@ -125,23 +124,12 @@ export const PlanFormScreen = memo(function PlanFormScreen({
   const isAdmin = !!user?.isAdmin;
   const isEditing = !!editingPlan;
 
-  const buildInitialItems = (): PlanExerciseItem[] => {
-    if (!editingPlan) return [];
-    return editingPlan.items
-      .slice()
-      .sort((a, b) => a.orderInPlan - b.orderInPlan)
-      .map((item) => ({
-        exerciseId: item.exerciseId,
-        name: item.exercise.name,
-        muscleGroups: item.exercise.muscleGroups,
-      }));
-  };
-
-  const [name, setName] = useState(editingPlan?.name ?? "");
-  const [shortName, setShortName] = useState(editingPlan?.shortName ?? "");
-  const [isPublic, setIsPublic] = useState(editingPlan?.isPublic ?? false);
-  const [isGlobal, setIsGlobal] = useState(editingPlan ? editingPlan.creatorUserId === null : false);
-  const [items, setItems] = useState<PlanExerciseItem[]>(buildInitialItems);
+  const [initial] = useState(() => initialDraft ?? draftFromPlan(editingPlan));
+  const [name, setName] = useState(initial.name);
+  const [shortName, setShortName] = useState(initial.shortName);
+  const [isPublic, setIsPublic] = useState(initial.isPublic);
+  const [isGlobal, setIsGlobal] = useState(initial.isGlobal);
+  const [items, setItems] = useState<PlanExerciseItem[]>(initial.items);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -186,7 +174,7 @@ export const PlanFormScreen = memo(function PlanFormScreen({
     if (name.trim().length < 3) return "Nazwa planu musi mieć co najmniej 3 znaki";
     if (name.trim().length > 100) return "Nazwa planu może mieć maksymalnie 100 znaków";
     if (items.length === 0) return "Dodaj co najmniej 1 ćwiczenie";
-    if (items.length > 50) return "Plan może zawierać maksymalnie 50 ćwiczeń";
+    if (items.length > MAX_PLAN_EXERCISES) return `Plan może zawierać maksymalnie ${MAX_PLAN_EXERCISES} ćwiczeń`;
     if (hasPrivateExercise) return "Plan publiczny lub globalny nie może zawierać prywatnych ćwiczeń";
     return null;
   };
@@ -351,7 +339,7 @@ export const PlanFormScreen = memo(function PlanFormScreen({
         >
           Ćwiczenia{" "}
           <span style={{ color: "var(--gg-text-muted)", textTransform: "none", fontWeight: 400 }}>
-            ({items.length}/50)
+            ({items.length}/{MAX_PLAN_EXERCISES})
           </span>
         </label>
 
@@ -376,7 +364,7 @@ export const PlanFormScreen = memo(function PlanFormScreen({
           </DndContext>
         )}
 
-        {items.length < 50 && (
+        {items.length < MAX_PLAN_EXERCISES && (
           <button
             onClick={() => setShowExerciseModal(true)}
             className="w-full flex items-center justify-center gap-2 text-[14px] font-medium rounded-[14px] border-none cursor-pointer"
@@ -417,7 +405,10 @@ export const PlanFormScreen = memo(function PlanFormScreen({
           onClose={() => setShowExerciseModal(false)}
           onSelectExercise={handleAddExercise}
           existingExerciseIds={existingIds}
-          onCreateNewExercise={onCreateNewExercise}
+          onCreateNewExercise={
+            onCreateNewExercise &&
+            (() => onCreateNewExercise({ name, shortName, isPublic, isGlobal, items }))
+          }
         />
       )}
     </>

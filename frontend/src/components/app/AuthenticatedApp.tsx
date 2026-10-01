@@ -24,7 +24,7 @@ import {
   EditExerciseScreen,
 } from "@/features/exercises";
 import { StatsScreen, StatsExerciseDetailScreen } from "@/features/stats";
-import { PlansScreen, PlanFormScreen } from "@/features/plans";
+import { PlansScreen, PlanFormScreen, appendExercise, type PlanDraft } from "@/features/plans";
 import { MenuScreen } from "@/features/menu";
 import { SyncFailureBanner } from "./SyncFailureBanner";
 import { ConnectionStatusBanner } from "./ConnectionStatusBanner";
@@ -67,6 +67,12 @@ export function AuthenticatedApp({
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(
     null,
   );
+  // Screen that opened "add-exercise" — decides where to return and whether to add to the workout.
+  const [addExerciseOrigin, setAddExerciseOrigin] = useState<
+    "workout-detail" | "plan-form" | "exercises"
+  >("exercises");
+  // Unsaved plan form state, kept here so it survives the trip to "add-exercise".
+  const [planDraft, setPlanDraft] = useState<PlanDraft | null>(null);
   const [pendingExerciseAdd, setPendingExerciseAdd] = useState<string | null>(
     null,
   );
@@ -181,6 +187,7 @@ export function AuthenticatedApp({
             setScreen("trainings");
           }}
           onCreateNewExercise={() => {
+            setAddExerciseOrigin("workout-detail");
             setScreen("add-exercise");
           }}
           pendingExerciseId={pendingExerciseAdd}
@@ -193,22 +200,16 @@ export function AuthenticatedApp({
       return (
         <AddExerciseScreen
           isAdmin={authUser?.isAdmin}
-          onBack={() => {
-            if (selectedWorkoutId) {
-              setScreen("workout-detail");
-            } else {
-              setScreen("exercises");
-            }
-          }}
+          onBack={() => setScreen(addExerciseOrigin)}
           onAddExercise={async (data) => {
             try {
               const newExercise = await createExercise(data);
-              if (selectedWorkoutId) {
+              if (addExerciseOrigin === "workout-detail") {
                 setPendingExerciseAdd(newExercise.id);
-                setScreen("workout-detail");
-              } else {
-                setScreen("exercises");
+              } else if (addExerciseOrigin === "plan-form") {
+                setPlanDraft((d) => d && appendExercise(d, newExercise));
               }
+              setScreen(addExerciseOrigin);
             } catch { /* DataContext handles rollback */ }
           }}
         />
@@ -250,17 +251,22 @@ export function AuthenticatedApp({
       return (
         <PlanFormScreen
           editingPlan={editingPlan}
+          initialDraft={planDraft}
           onBack={() => {
+            setPlanDraft(null);
             setEditingPlan(null);
             setScreen("plans");
             setActiveTab("plans");
           }}
           onSaved={() => {
+            setPlanDraft(null);
             setEditingPlan(null);
             setScreen("plans");
             setActiveTab("plans");
           }}
-          onCreateNewExercise={() => {
+          onCreateNewExercise={(draft) => {
+            setPlanDraft(draft);
+            setAddExerciseOrigin("plan-form");
             setScreen("add-exercise");
           }}
         />
@@ -274,8 +280,7 @@ export function AuthenticatedApp({
         return (
           <ExercisesScreen
             onAddExercise={() => {
-              // Clear selectedWorkoutId so the new exercise is not added to the workout
-              setSelectedWorkoutId(null);
+              setAddExerciseOrigin("exercises");
               setScreen("add-exercise");
             }}
             onEditExercise={(exercise) => {
@@ -297,10 +302,12 @@ export function AuthenticatedApp({
         return (
           <PlansScreen
             onCreatePlan={() => {
+              setPlanDraft(null);
               setEditingPlan(null);
               setScreen("plan-form");
             }}
             onEditPlan={(plan) => {
+              setPlanDraft(null);
               setEditingPlan(plan);
               setScreen("plan-form");
             }}
