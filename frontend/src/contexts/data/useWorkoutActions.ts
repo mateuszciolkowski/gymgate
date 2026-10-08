@@ -18,7 +18,6 @@ export function useWorkoutActions(store: DataStore) {
     mustQueue,
     applyWorkoutUpdate,
     queueSyncOperation,
-    removePendingOperationsReferencingTempId,
     purgeLocalWorkout,
     invalidateProgressionCache,
     refreshStatsData,
@@ -202,7 +201,6 @@ export function useWorkoutActions(store: DataStore) {
   const deleteWorkout = useCallback(
     async (id: string) => {
       const realWorkoutId = getRealId(id);
-      const workoutToDelete = workoutsRef.current.find((workout) => workout.id === id);
       let deletedOnServer = false;
 
       if (!realWorkoutId.startsWith("temp_")) {
@@ -233,24 +231,17 @@ export function useWorkoutActions(store: DataStore) {
         }
       }
 
-      if (id.startsWith("temp_")) {
-        const tempIdsToCleanup = new Set<string>([id]);
-        workoutToDelete?.items.forEach((item) => {
-          if (item.id.startsWith("temp_")) {
-            tempIdsToCleanup.add(item.id);
-          }
-          item.sets.forEach((set) => {
-            if (set.id.startsWith("temp_")) {
-              tempIdsToCleanup.add(set.id);
-            }
-          });
+      if (realWorkoutId.startsWith("temp_")) {
+        // Keep the pending create (the POST may already have reached the server
+        // with the response lost) and queue the delete behind it - cancelling
+        // it could leave a zombie workout on the server.
+        await queueSyncOperation({
+          type: "delete",
+          entity: "workout",
+          workoutId: realWorkoutId,
+          endpoint: "/api/workouts/" + realWorkoutId,
+          method: "DELETE",
         });
-
-        await Promise.all(
-          Array.from(tempIdsToCleanup).map((tempId) =>
-            removePendingOperationsReferencingTempId(tempId),
-          ),
-        );
       }
 
       setWorkouts((prev) => prev.filter((w) => w.id !== id));
@@ -274,10 +265,8 @@ export function useWorkoutActions(store: DataStore) {
       purgeLocalWorkout,
       queueSyncOperation,
       refreshStatsData,
-      removePendingOperationsReferencingTempId,
       setActiveWorkoutId,
       setWorkouts,
-      workoutsRef,
     ],
   );
 

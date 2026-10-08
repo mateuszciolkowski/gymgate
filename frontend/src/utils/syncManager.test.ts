@@ -408,6 +408,33 @@ describe("syncManager", () => {
     expect(postCalls).toHaveLength(1);
   });
 
+  it("replays create then delete of a temp set: resolves the temp id and deletes the real record", async () => {
+    mockedStore.getPendingSyncOperations.mockResolvedValue([
+      baseOp({
+        id: "create",
+        timestamp: 1,
+        data: { weight: 50, repetitions: 8, setNumber: 1, clientTempSetId: "temp_set_1" },
+      }),
+      baseOp({
+        id: "delete",
+        timestamp: 2,
+        type: "delete",
+        method: "DELETE",
+        endpoint: "/api/workouts/sets/temp_set_1",
+        data: undefined,
+      }),
+    ]);
+    mockedFetch.mockImplementation(async (_url: string, init?: RequestInit) =>
+      init?.method === "POST" ? makeRes(201, { data: { id: "real-set-9" } }) : makeRes(200),
+    );
+
+    await syncManager.syncNow();
+
+    const urls = mockedFetch.mock.calls.map((c) => [c[0], (c[1] as RequestInit)?.method]);
+    expect(urls).toContainEqual([expect.stringContaining("/api/workouts/items/item-1/sets"), "POST"]);
+    expect(urls).toContainEqual([expect.stringContaining("/api/workouts/sets/real-set-9"), "DELETE"]);
+  });
+
   it("does nothing while offline", async () => {
     setOnline(false);
 

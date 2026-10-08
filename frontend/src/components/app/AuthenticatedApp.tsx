@@ -28,6 +28,7 @@ import { PlansScreen, PlanFormScreen, appendExercise, type PlanDraft } from "@/f
 import { MenuScreen } from "@/features/menu";
 import { SyncFailureBanner } from "./SyncFailureBanner";
 import { ConnectionStatusBanner } from "./ConnectionStatusBanner";
+import { UpdateBanner } from "./UpdateBanner";
 import { StaleWorkoutDialog } from "./StaleWorkoutDialog";
 
 interface AuthenticatedAppProps {
@@ -323,9 +324,10 @@ export function AuthenticatedApp({
   return (
     <MainLayout
       topBanner={
-        !isOnline || failedSyncOperations.length > 0 ? (
+        (
           <>
             {!isOnline && <ConnectionStatusBanner />}
+            <UpdateBanner />
             {failedSyncOperations.length > 0 && (
               <SyncFailureBanner
                 operations={failedSyncOperations}
@@ -335,7 +337,7 @@ export function AuthenticatedApp({
               />
             )}
           </>
-        ) : undefined
+        )
       }
       drawer={
         <NavigationDrawer

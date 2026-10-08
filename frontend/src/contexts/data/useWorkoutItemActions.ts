@@ -20,7 +20,6 @@ export function useWorkoutItemActions(store: DataStore) {
     isOfflineError,
     mustQueue,
     queueSyncOperation,
-    removePendingOperationsReferencingTempId,
     purgeLocalWorkout,
     invalidateProgressionCache,
     refreshStatsData,
@@ -247,16 +246,18 @@ export function useWorkoutItemActions(store: DataStore) {
           throw error;
         }
       } else {
-        await removePendingOperationsReferencingTempId(itemId);
-        if (removedItem) {
-          await Promise.all(
-            removedItem.sets
-              .filter((set) => set.id.startsWith("temp_"))
-              .map((set) => removePendingOperationsReferencingTempId(set.id)),
-          );
-        }
+        // Keep the pending create (it may already have reached the server with
+        // the response lost) and queue the delete behind it, instead of
+        // cancelling it and risking a zombie item on the server.
+        await queueSyncOperation({
+          type: "delete",
+          entity: "workoutItem",
+          workoutId: realWorkoutId,
+          endpoint: "/api/workouts/items/" + realItemId,
+          method: "DELETE",
+        });
+        return;
       }
-      // If the ID is temporary, the removal is local only
       if (shouldRefreshStats) {
         await refreshStatsData();
         await invalidateProgressionCache(removedItem?.exerciseId);
@@ -271,7 +272,6 @@ export function useWorkoutItemActions(store: DataStore) {
       purgeLocalWorkout,
       queueSyncOperation,
       refreshStatsData,
-      removePendingOperationsReferencingTempId,
       workoutsRef,
     ],
   );
@@ -668,12 +668,11 @@ export function useWorkoutItemActions(store: DataStore) {
       // Send to the server in the background - use the real ID if we have a mapping
       const realSetId = getRealId(setId);
 
-      if (realSetId.startsWith("temp_")) {
-        await removePendingOperationsReferencingTempId(setId);
-        return;
-      }
-
-      if (await mustQueue(realWorkoutId)) {
+      // Temp set: do NOT drop its pending create. With request timeouts the POST
+      // may already have reached the server (response lost), so cancelling the
+      // create would leave a zombie set. Queue the delete behind it - SyncManager
+      // resolves the temp id after the (idempotent, clientId-deduped) create.
+      if (realSetId.startsWith("temp_") || (await mustQueue(realWorkoutId))) {
         await queueSyncOperation({
           type: "delete",
           entity: "set",
@@ -751,7 +750,6 @@ export function useWorkoutItemActions(store: DataStore) {
       queueSyncOperation,
       refreshStatsData,
       refreshWorkout,
-      removePendingOperationsReferencingTempId,
       workoutsRef,
     ],
   );

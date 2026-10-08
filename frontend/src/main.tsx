@@ -22,7 +22,7 @@ import "./index.css";
 import App from "./App.tsx";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DataProvider } from "./contexts/data";
-import { registerSW } from "virtual:pwa-register";
+import { initPwaUpdates } from "./utils/pwaUpdate";
 import { requestPersistentStorage } from "./utils/localStore";
 
 createRoot(document.getElementById("root")!).render(
@@ -35,5 +35,5 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>,
 );
 
-registerSW({ immediate: true });
+initPwaUpdates();
 void requestPersistentStorage();
