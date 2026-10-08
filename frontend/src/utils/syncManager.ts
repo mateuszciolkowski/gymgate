@@ -169,7 +169,17 @@ class SyncManager {
     // Listen for online/offline state changes
     window.addEventListener("online", this.handleOnline);
     window.addEventListener("offline", this.handleOffline);
+    // iOS Safari often misses "online" events and suspends timers in the
+    // background — resync when the app returns to the foreground.
+    document.addEventListener("visibilitychange", this.handleVisibility);
   }
+
+  private handleVisibility = () => {
+    if (document.visibilityState === "visible") {
+      this.isOnline = navigator.onLine;
+      this.syncNow();
+    }
+  };
 
   private handleOnline = () => {
     this.isOnline = true;
@@ -467,6 +477,9 @@ class SyncManager {
         if (isNetworkError) {
           // Do not increment retries — the operation will be retried on the next connection
           console.warn(`[SyncManager] Network error for operation ${op.id}, will retry when online`);
+          // Connection is down/very weak — don't burn a timeout on every remaining
+          // operation; stop this pass and retry on the next cycle.
+          break;
         } else {
           // Unexpected error (e.g. JSON parse) — treated as a server error
           console.error(`[SyncManager] Failed to process operation ${op.id}:`, error);
