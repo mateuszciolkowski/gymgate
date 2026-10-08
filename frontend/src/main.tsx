@@ -23,6 +23,7 @@ import App from "./App.tsx";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DataProvider } from "./contexts/data";
 import { registerSW } from "virtual:pwa-register";
+import { requestPersistentStorage } from "./utils/localStore";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -35,3 +36,4 @@ createRoot(document.getElementById("root")!).render(
 );
 
 registerSW({ immediate: true });
+void requestPersistentStorage();

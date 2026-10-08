@@ -32,6 +32,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_URL = `${API_BASE}/api`;
 const TOKEN_KEY = "gymgate_token";
 const USER_KEY = "gymgate_user";
+const AUTH_CHECK_TIMEOUT_MS = 6_000;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -54,11 +55,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
+        // Offline-first: with a cached user the app opens immediately from
+        // IndexedDB; the token is verified in the background. Without this a
+        // weak connection kept the splash screen up for as long as /auth/me hung.
+        if (cachedUser) {
+          setToken(savedToken);
+          setUser(cachedUser);
+          setIsLoading(false);
+        }
+
+        const controller = new AbortController();
+        const timer = window.setTimeout(() => controller.abort(), AUTH_CHECK_TIMEOUT_MS);
         try {
           const response = await fetch(`${API_URL}/auth/me`, {
             headers: {
               Authorization: `Bearer ${savedToken}`,
             },
+            signal: controller.signal,
           });
 
           if (response.ok) {
@@ -66,16 +79,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setToken(savedToken);
             setUser(result.data);
             localStorage.setItem(USER_KEY, JSON.stringify(result.data));
-          } else {
+          } else if (response.status === 401 || response.status === 403) {
+            // Only an explicit rejection of the token logs the user out.
+            // 5xx / 502 / 503 from a flaky gateway must NOT drop the session.
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(USER_KEY);
+            setToken(null);
+            setUser(null);
+          } else if (cachedUser) {
+            setToken(savedToken);
+            setUser(cachedUser);
           }
-        } catch (error) {
-          // Keep the token and restore the user from cache to enable offline mode
+        } catch {
+          // Network error / timeout: keep the token and the cached user (offline mode)
           if (cachedUser) {
             setToken(savedToken);
             setUser(cachedUser);
           }
+        } finally {
+          window.clearTimeout(timer);
         }
       }
 

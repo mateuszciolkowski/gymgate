@@ -18,6 +18,7 @@ export function useWorkoutItemActions(store: DataStore) {
     applyWorkoutUpdate,
     getRealId,
     isOfflineError,
+    mustQueue,
     queueSyncOperation,
     removePendingOperationsReferencingTempId,
     purgeLocalWorkout,
@@ -74,7 +75,7 @@ export function useWorkoutItemActions(store: DataStore) {
         clientTempItemId: tempItemId,
       };
 
-      if (realWorkoutId.startsWith("temp_") || !navigator.onLine) {
+      if (await mustQueue(realWorkoutId)) {
         await queueSyncOperation({
           type: "create",
           entity: "workoutItem",
@@ -159,6 +160,7 @@ export function useWorkoutItemActions(store: DataStore) {
       idMappingRef,
       invalidateProgressionCache,
       isOfflineError,
+      mustQueue,
       purgeLocalWorkout,
       queueSyncOperation,
       refreshStatsData,
@@ -189,7 +191,7 @@ export function useWorkoutItemActions(store: DataStore) {
       const realItemId = getRealId(itemId);
 
       if (!realItemId.startsWith("temp_")) {
-        if (!navigator.onLine) {
+        if (await mustQueue(realWorkoutId)) {
           await queueSyncOperation({
             type: "delete",
             entity: "workoutItem",
@@ -265,6 +267,7 @@ export function useWorkoutItemActions(store: DataStore) {
       getRealId,
       invalidateProgressionCache,
       isOfflineError,
+      mustQueue,
       purgeLocalWorkout,
       queueSyncOperation,
       refreshStatsData,
@@ -294,10 +297,12 @@ export function useWorkoutItemActions(store: DataStore) {
         await localStore.put("workouts", updatedWorkout);
       }
 
+      // A temp item id used to `return` here, silently dropping the note when
+      // it was edited before the item reached the server. Queue it instead -
+      // SyncManager resolves temp ids from the persisted mapping.
       const realItemId = getRealId(itemId);
-      if (realItemId.startsWith("temp_")) return;
 
-      if (!navigator.onLine) {
+      if (realItemId.startsWith("temp_") || (await mustQueue(realWorkoutId))) {
         await queueSyncOperation({
           type: "update",
           entity: "workoutItem",
@@ -352,7 +357,7 @@ export function useWorkoutItemActions(store: DataStore) {
         }
       }
     },
-    [applyWorkoutUpdate, getRealId, isOfflineError, purgeLocalWorkout, queueSyncOperation, workoutsRef],
+    [applyWorkoutUpdate, getRealId, isOfflineError, mustQueue, purgeLocalWorkout, queueSyncOperation, workoutsRef],
   );
 
   const addSet = useCallback(
@@ -406,7 +411,7 @@ export function useWorkoutItemActions(store: DataStore) {
         clientTempSetId: tempSetId,
       };
 
-      if (realItemId.startsWith("temp_") || !navigator.onLine) {
+      if (realItemId.startsWith("temp_") || (await mustQueue(realWorkoutId))) {
         await queueSyncOperation({
           type: "create",
           entity: "set",
@@ -490,6 +495,7 @@ export function useWorkoutItemActions(store: DataStore) {
       idMappingRef,
       invalidateProgressionCache,
       isOfflineError,
+      mustQueue,
       queueSyncOperation,
       refreshStatsData,
       refreshWorkout,
@@ -546,7 +552,7 @@ export function useWorkoutItemActions(store: DataStore) {
       // Send to the server in the background - use the real ID if we have a mapping
       const realSetId = getRealId(setId);
 
-      if (realSetId.startsWith("temp_") || !navigator.onLine) {
+      if (realSetId.startsWith("temp_") || (await mustQueue(realWorkoutId))) {
         await queueSyncOperation({
           type: "update",
           entity: "set",
@@ -620,6 +626,7 @@ export function useWorkoutItemActions(store: DataStore) {
       getRealId,
       invalidateProgressionCache,
       isOfflineError,
+      mustQueue,
       queueSyncOperation,
       refreshStatsData,
       refreshWorkout,
@@ -666,7 +673,7 @@ export function useWorkoutItemActions(store: DataStore) {
         return;
       }
 
-      if (!navigator.onLine) {
+      if (await mustQueue(realWorkoutId)) {
         await queueSyncOperation({
           type: "delete",
           entity: "set",
@@ -740,6 +747,7 @@ export function useWorkoutItemActions(store: DataStore) {
       getRealId,
       invalidateProgressionCache,
       isOfflineError,
+      mustQueue,
       queueSyncOperation,
       refreshStatsData,
       refreshWorkout,

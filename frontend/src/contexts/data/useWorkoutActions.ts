@@ -15,6 +15,7 @@ export function useWorkoutActions(store: DataStore) {
     setActiveWorkoutId,
     getRealId,
     isOfflineError,
+    mustQueue,
     applyWorkoutUpdate,
     queueSyncOperation,
     removePendingOperationsReferencingTempId,
@@ -129,8 +130,10 @@ export function useWorkoutActions(store: DataStore) {
       const realWorkoutId = getRealId(id);
 
       try {
-        if (realWorkoutId.startsWith("temp_")) {
-          throw new TypeError("Temporary workout id cannot be synced yet");
+        // Temp id, offline, or earlier changes still queued (sets, exercises):
+        // go through the queue so the workout is completed AFTER its sets land.
+        if (await mustQueue(realWorkoutId)) {
+          throw new TypeError("Workout changes must be synced through the queue");
         }
 
         const response = await authFetch(
@@ -193,7 +196,7 @@ export function useWorkoutActions(store: DataStore) {
         }
       }
     },
-    [applyWorkoutUpdate, getRealId, isOfflineError, purgeLocalWorkout, queueSyncOperation, setActiveWorkoutId, setWorkouts],
+    [applyWorkoutUpdate, getRealId, isOfflineError, mustQueue, purgeLocalWorkout, queueSyncOperation, setActiveWorkoutId, setWorkouts],
   );
 
   const deleteWorkout = useCallback(

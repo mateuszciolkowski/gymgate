@@ -116,13 +116,14 @@ export function useDataSync(store: DataStore) {
 
         initialLoadDone.current = true;
 
-        // Fetch fresh authoritative data from the server
-        await fetchAllFromServer();
+        // Local data is enough to render. Refresh from the server in the
+        // background so a weak connection never keeps the app on a spinner.
+        setIsLoading(false);
+        void fetchAllFromServer();
       } catch (error) {
         console.error("[DataProvider] Failed to load data:", error);
-        await fetchAllFromServer();
-      } finally {
         setIsLoading(false);
+        void fetchAllFromServer();
       }
     };
 
@@ -152,6 +153,9 @@ export function useDataSync(store: DataStore) {
       if (!initialLoadDone.current) return;
 
       try {
+        // A local optimistic write that lands while we read IndexedDB would be
+        // overwritten by the (older) snapshot - detect it and skip workouts.
+        const epochBefore = localStore.getWorkoutWriteEpoch();
         const [
           serverWorkouts,
           serverExercises,
@@ -176,11 +180,13 @@ export function useDataSync(store: DataStore) {
           idMappingRef.current.set(tempId, realId);
         });
 
-        setWorkouts(serverWorkouts);
+        if (localStore.getWorkoutWriteEpoch() === epochBefore) {
+          setWorkouts(serverWorkouts);
+          setActiveWorkoutId(serverActiveId);
+        }
         setExercises(serverExercises);
         setStats(serverStats);
         setStatsOverview(serverStatsOverview ?? null);
-        setActiveWorkoutId(serverActiveId);
         setLastSync(syncTime);
         setPlans(serverPlans);
 

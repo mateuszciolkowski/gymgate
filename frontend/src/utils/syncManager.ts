@@ -9,6 +9,7 @@ import { API_BASE } from "@/config/api";
 
 const SYNC_INTERVAL = 2 * 60 * 1000; // 2 minutes
 const MAX_RETRIES = 3;
+const TRANSIENT_STATUSES = new Set([408, 425, 429, 502, 503, 504]);
 // How many sync cycles an operation may wait for its parent temp-ID to resolve.
 // Same value as MAX_RETRIES — at a 2 min sync interval that's ~6 minutes of
 // waiting. If the mapping still doesn't exist after that (e.g. the parent
@@ -248,6 +249,9 @@ class SyncManager {
    * z operacji w kolejce i zeruje licznik prób — bez czekania na kolejny limit.
    */
   async syncNow(options: { retryFailed?: boolean } = {}): Promise<void> {
+    // navigator.onLine is read live: on iOS the "online" event is frequently
+    // missed, which would leave the event-tracked flag stuck on false forever.
+    this.isOnline = navigator.onLine;
     if (this.isSyncing || !this.isOnline) {
       return;
     }
@@ -458,6 +462,15 @@ class SyncManager {
           console.warn(
             `[SyncManager] Item/set operation ${op.id} dropped due to 404 (workout preserved)`,
           );
+        } else if (TRANSIENT_STATUSES.has(response.status)) {
+          // Gateway/proxy hiccup typical for weak mobile links (502/503/504,
+          // 408, 429). The server never processed the request, so it must not
+          // eat the retry budget - otherwise a short outage marks the
+          // operation permanently failed.
+          console.warn(
+            `[SyncManager] Transient ${response.status} for operation ${op.id}, will retry`,
+          );
+          break;
         } else if (op.retries < MAX_RETRIES) {
           // Increment the retry counter
           await localStore.updatePendingSync({
@@ -591,8 +604,7 @@ class SyncManager {
       if (workoutsRes?.ok && !workoutDataIsStale) {
         const data = await workoutsRes.json();
         if (data.data) {
-          await localStore.clear("workouts");
-          await localStore.putMany("workouts", data.data);
+          await localStore.replaceAll("workouts", data.data);
         }
       }
 
@@ -600,8 +612,7 @@ class SyncManager {
       if (exercisesRes?.ok) {
         const data = await exercisesRes.json();
         if (data.data) {
-          await localStore.clear("exercises");
-          await localStore.putMany("exercises", data.data);
+          await localStore.replaceAll("exercises", data.data);
         }
       }
 
@@ -615,8 +626,7 @@ class SyncManager {
       if (statsRes?.ok) {
         const data = await statsRes.json();
         if (data.data) {
-          await localStore.clear("stats");
-          await localStore.putMany("stats", data.data);
+          await localStore.replaceAll("stats", data.data);
         }
       }
 
@@ -653,7 +663,7 @@ class SyncManager {
    * Check whether we are online.
    */
   getIsOnline(): boolean {
-    return this.isOnline;
+    return navigator.onLine;
   }
 }
 

@@ -71,6 +71,16 @@ export function useDataStore() {
     [],
   );
 
+  // True when a mutation of this workout must go through the queue instead of
+  // straight to the server: offline, temp workout id, or earlier changes are
+  // still queued. Sending directly past the queue would let the queued (older)
+  // operation replay later and overwrite the newer value / complete a
+  // workout before its sets arrive.
+  const mustQueue = useCallback(async (realWorkoutId: string): Promise<boolean> => {
+    if (!navigator.onLine || realWorkoutId.startsWith("temp_")) return true;
+    return hasPendingWorkoutMutationsNow(realWorkoutId);
+  }, []);
+
   // Compute the new state synchronously from the ref, NOT inside the setState
   // updater - React does not guarantee the updater runs synchronously, so a
   // value captured inside it could still be null and the optimistic change
@@ -313,8 +323,7 @@ export function useDataStore() {
         const data = await statsRes.json();
         const statsPayload = data.data || [];
         setStats(statsPayload);
-        await localStore.clear("stats");
-        await localStore.putMany("stats", statsPayload);
+        await localStore.replaceAll("stats", statsPayload);
       }
 
       if (overviewRes.ok) {
@@ -401,8 +410,7 @@ export function useDataStore() {
         setWorkouts(newWorkouts);
         persistenceJobs.push(
           (async () => {
-            await localStore.clear("workouts");
-            await localStore.putMany("workouts", newWorkouts);
+            await localStore.replaceAll("workouts", newWorkouts);
           })(),
         );
       }
@@ -413,8 +421,7 @@ export function useDataStore() {
         setExercises(newExercises);
         persistenceJobs.push(
           (async () => {
-            await localStore.clear("exercises");
-            await localStore.putMany("exercises", newExercises);
+            await localStore.replaceAll("exercises", newExercises);
           })(),
         );
       }
@@ -432,8 +439,7 @@ export function useDataStore() {
         setStats(newStats);
         persistenceJobs.push(
           (async () => {
-            await localStore.clear("stats");
-            await localStore.putMany("stats", newStats);
+            await localStore.replaceAll("stats", newStats);
           })(),
         );
       }
@@ -457,8 +463,7 @@ export function useDataStore() {
         setPlans(uniquePlans);
         persistenceJobs.push(
           (async () => {
-            await localStore.clear("plans");
-            await localStore.putMany("plans", uniquePlans);
+            await localStore.replaceAll("plans", uniquePlans);
           })(),
         );
       }
@@ -508,6 +513,7 @@ export function useDataStore() {
     // helpers
     getRealId,
     isOfflineError,
+    mustQueue,
     applyWorkoutUpdate,
     applyExerciseUpdate,
     queueSyncOperation,

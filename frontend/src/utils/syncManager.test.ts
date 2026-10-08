@@ -15,6 +15,7 @@ vi.mock("./localStore", () => {
     setMetadata: vi.fn(),
     clear: vi.fn(),
     putMany: vi.fn(),
+    replaceAll: vi.fn(),
     getWorkoutWriteEpoch: vi.fn(() => 0),
   };
   return { localStore, default: localStore };
@@ -66,13 +67,15 @@ const sentUrl = () => mockedFetch.mock.calls[0]?.[0] as string | undefined;
 // would trigger an extra background syncNow() that races with the test body.
 const setOnline = (value: boolean) => {
   (syncManager as unknown as { isOnline: boolean }).isOnline = value;
+  // syncNow() reads navigator.onLine live (iOS drops "online" events).
+  Object.defineProperty(navigator, "onLine", { value, configurable: true });
 };
 
 describe("syncManager", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset internal state between tests (singleton).
-    (syncManager as unknown as { isOnline: boolean }).isOnline = true;
+    setOnline(true);
     (syncManager as unknown as { isSyncing: boolean }).isSyncing = false;
     (syncManager as unknown as { lastFailureSignature: string }).lastFailureSignature = "";
     // Sensible defaults — overridden per test.
@@ -87,6 +90,7 @@ describe("syncManager", () => {
     mockedStore.setMetadata.mockResolvedValue(undefined);
     mockedStore.clear.mockResolvedValue(undefined);
     mockedStore.putMany.mockResolvedValue(undefined);
+    mockedStore.replaceAll.mockResolvedValue(undefined);
     mockedStore.getWorkoutWriteEpoch.mockReturnValue(0);
     // Default response for fetchFreshData GETs.
     mockedFetch.mockResolvedValue(makeRes(200, { data: null }));
@@ -362,8 +366,7 @@ describe("syncManager", () => {
     await syncManager.syncNow();
 
     // Guard nie blokuje już odświeżania — aplikacja nie utyka na stanie lokalnym.
-    expect(mockedStore.clear).toHaveBeenCalledWith("workouts");
-    expect(mockedStore.putMany).toHaveBeenCalledWith("workouts", [{ id: "w1" }]);
+    expect(mockedStore.replaceAll).toHaveBeenCalledWith("workouts", [{ id: "w1" }]);
   });
 
   it("does NOT overwrite workouts when a local workout change lands while the GETs are in flight", async () => {
@@ -380,14 +383,29 @@ describe("syncManager", () => {
 
     await syncManager.syncNow();
 
-    expect(mockedStore.clear).not.toHaveBeenCalledWith("workouts");
-    expect(mockedStore.putMany).not.toHaveBeenCalledWith(
+    expect(mockedStore.replaceAll).not.toHaveBeenCalledWith(
       "workouts",
       expect.anything(),
     );
     expect(mockedStore.setActiveWorkoutId).not.toHaveBeenCalled();
     // Pozostałe dane (ćwiczenia, statystyki) wolno odświeżyć normalnie.
-    expect(mockedStore.clear).toHaveBeenCalledWith("exercises");
+    expect(mockedStore.replaceAll).toHaveBeenCalledWith("exercises", expect.anything());
+  });
+
+  it("does not burn the retry budget on a transient 503 and stops the pass", async () => {
+    mockedStore.getPendingSyncOperations.mockResolvedValue([
+      baseOp({ id: "a", timestamp: 1 }),
+      baseOp({ id: "b", timestamp: 2 }),
+    ]);
+    mockedFetch.mockResolvedValue(makeRes(503));
+
+    await syncManager.syncNow();
+
+    expect(mockedStore.updatePendingSync).not.toHaveBeenCalled();
+    const postCalls = mockedFetch.mock.calls.filter(
+      (call) => (call[1] as RequestInit | undefined)?.method === "POST",
+    );
+    expect(postCalls).toHaveLength(1);
   });
 
   it("does nothing while offline", async () => {

@@ -58,10 +58,22 @@ const openDB = (): Promise<IDBDatabase> => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onerror = () => reject(request.error);
+    request.onblocked = () => reject(new Error("IndexedDB open blocked"));
 
     request.onsuccess = () => {
-      db = request.result;
-      resolve(db);
+      const opened = request.result;
+      // iOS can close the connection while the app is in the background, and a
+      // newer tab/version may request an upgrade - drop the cached handle so the
+      // next call reopens instead of failing with InvalidStateError forever.
+      opened.onclose = () => {
+        if (db === opened) db = null;
+      };
+      opened.onversionchange = () => {
+        opened.close();
+        if (db === opened) db = null;
+      };
+      db = opened;
+      resolve(opened);
     };
 
     request.onupgradeneeded = (event) => {
@@ -108,12 +120,28 @@ const openDB = (): Promise<IDBDatabase> => {
   });
 };
 
+// Starts a transaction, transparently reopening the DB once if the cached
+// connection was closed by the browser.
+const openTx = async (
+  storeName: keyof StoreConfig,
+  mode: IDBTransactionMode,
+): Promise<IDBTransaction> => {
+  try {
+    return (await openDB()).transaction(storeName, mode);
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "InvalidStateError") {
+      db = null;
+      return (await openDB()).transaction(storeName, mode);
+    }
+    throw error;
+  }
+};
+
 // Generic CRUD operations
 export const localStore = {
   async get<T>(storeName: keyof StoreConfig, key: string): Promise<T | null> {
-    const database = await openDB();
+    const transaction = await openTx(storeName, "readonly");
     return new Promise((resolve, reject) => {
-      const transaction = database.transaction(storeName, "readonly");
       const store = transaction.objectStore(storeName);
       const request = store.get(key);
 
@@ -123,9 +151,8 @@ export const localStore = {
   },
 
   async getAll<T>(storeName: keyof StoreConfig): Promise<T[]> {
-    const database = await openDB();
+    const transaction = await openTx(storeName, "readonly");
     return new Promise((resolve, reject) => {
-      const transaction = database.transaction(storeName, "readonly");
       const store = transaction.objectStore(storeName);
       const request = store.getAll();
 
@@ -146,9 +173,8 @@ export const localStore = {
     if (storeName === "workouts" || storeName === "activeWorkout") {
       workoutWriteEpoch++;
     }
-    const database = await openDB();
+    const transaction = await openTx(storeName, "readwrite");
     return new Promise((resolve, reject) => {
-      const transaction = database.transaction(storeName, "readwrite");
       const store = transaction.objectStore(storeName);
       const request = store.put(data);
 
@@ -161,9 +187,8 @@ export const localStore = {
     storeName: keyof StoreConfig,
     items: T[],
   ): Promise<void> {
-    const database = await openDB();
+    const transaction = await openTx(storeName, "readwrite");
     return new Promise((resolve, reject) => {
-      const transaction = database.transaction(storeName, "readwrite");
       const store = transaction.objectStore(storeName);
       items.forEach((item) => {
         store.put(item);
@@ -171,6 +196,28 @@ export const localStore = {
 
       transaction.oncomplete = () => resolve();
       transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+    });
+  },
+
+  /**
+   * Replaces the whole store in ONE transaction. A separate clear() + putMany()
+   * could be interrupted (iOS kills the PWA, tab discarded) between the two
+   * steps and leave the offline cache empty.
+   */
+  async replaceAll<T extends { id?: string }>(
+    storeName: keyof StoreConfig,
+    items: T[],
+  ): Promise<void> {
+    const transaction = await openTx(storeName, "readwrite");
+    return new Promise((resolve, reject) => {
+      const store = transaction.objectStore(storeName);
+      store.clear();
+      items.forEach((item) => store.put(item));
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
     });
   },
 
@@ -178,9 +225,8 @@ export const localStore = {
     if (storeName === "workouts" || storeName === "activeWorkout") {
       workoutWriteEpoch++;
     }
-    const database = await openDB();
+    const transaction = await openTx(storeName, "readwrite");
     return new Promise((resolve, reject) => {
-      const transaction = database.transaction(storeName, "readwrite");
       const store = transaction.objectStore(storeName);
       const request = store.delete(key);
 
@@ -190,9 +236,8 @@ export const localStore = {
   },
 
   async clear(storeName: keyof StoreConfig): Promise<void> {
-    const database = await openDB();
+    const transaction = await openTx(storeName, "readwrite");
     return new Promise((resolve, reject) => {
-      const transaction = database.transaction(storeName, "readwrite");
       const store = transaction.objectStore(storeName);
       const request = store.clear();
 
@@ -279,6 +324,20 @@ export const localStore = {
       workoutId,
     } as unknown as { id: string });
   },
+};
+
+/**
+ * Ask the browser not to evict IndexedDB under storage pressure (Safari also
+ * purges script-writable storage of sites unused for 7 days). Best effort.
+ */
+export const requestPersistentStorage = async (): Promise<void> => {
+  try {
+    if (navigator.storage?.persist && !(await navigator.storage.persisted())) {
+      await navigator.storage.persist();
+    }
+  } catch {
+    // not supported / denied - nothing to do
+  }
 };
 
 export default localStore;
