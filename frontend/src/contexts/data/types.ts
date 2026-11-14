@@ -6,6 +6,7 @@ import type {
   StatsOverview,
   StatsProgressMetric,
   WorkoutPlan,
+  WorkoutPlanVersion,
 } from "@/types";
 import type { Exercise } from "@/types";
 
@@ -88,6 +89,7 @@ export interface DataContextType {
   duplicatePlan: (id: string) => Promise<WorkoutPlan>;
   favoritePlan: (id: string) => Promise<void>;
   unfavoritePlan: (id: string) => Promise<void>;
+  getPlanHistory: (id: string) => Promise<WorkoutPlanVersion[]>;
 
   // Actions - Plan integration
   skipPlanExercise: (workoutId: string, exerciseId: string) => Promise<void>;

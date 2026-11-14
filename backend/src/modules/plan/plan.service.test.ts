@@ -14,6 +14,7 @@ vi.mock("./plan.repository.js", () => {
         findByCreatorAndName: vi.fn(),
         addFavorite: vi.fn(),
         removeFavorite: vi.fn(),
+        findVersions: vi.fn(),
       };
     }),
   };
@@ -308,6 +309,56 @@ describe("PlanService", () => {
     it("throws NotFoundError for private plan of another user", async () => {
       mockRepo.findById.mockResolvedValue({ id: "p4", creatorUserId: "user-2", isPublic: false, items: [] });
       await expect(service.favoritePlan("p4", "user-1")).rejects.toThrow("Plan not found");
+    });
+  });
+
+  describe("getPlanHistory", () => {
+    const planRow = (creatorUserId: string | null) => ({
+      id: "p1",
+      name: "Push",
+      shortName: null,
+      creatorUserId,
+      isPublic: true,
+      updatedAt: new Date("2026-01-01"),
+      items: [{ exerciseId: "e1", orderInPlan: 0, exercise: { name: "Bench" } }],
+    });
+
+    it("returns stored versions for the owner", async () => {
+      mockRepo.findById.mockResolvedValue(planRow("user-1"));
+      mockRepo.findVersions.mockResolvedValue([{ version: 2 }, { version: 1 }]);
+
+      expect(await service.getPlanHistory("p1", "user-1")).toEqual([{ version: 2 }, { version: 1 }]);
+    });
+
+    it("returns current state as v1 when plan has no stored versions", async () => {
+      mockRepo.findById.mockResolvedValue(planRow("user-1"));
+      mockRepo.findVersions.mockResolvedValue([]);
+
+      expect(await service.getPlanHistory("p1", "user-1")).toEqual([
+        {
+          version: 1,
+          name: "Push",
+          shortName: null,
+          isPublic: true,
+          exercises: [{ exerciseId: "e1", name: "Bench" }],
+          createdAt: new Date("2026-01-01"),
+        },
+      ]);
+    });
+
+    it("lets admin see history of a built-in plan", async () => {
+      mockRepo.findById.mockResolvedValue(planRow(null));
+      mockRepo.findVersions.mockResolvedValue([{ version: 1 }]);
+
+      await expect(service.getPlanHistory("p1", "admin", true)).resolves.toHaveLength(1);
+    });
+
+    it("forbids non-admin on a built-in plan and non-owner on someone else's plan", async () => {
+      mockRepo.findById.mockResolvedValue(planRow(null));
+      await expect(service.getPlanHistory("p1", "user-1")).rejects.toThrow(/history/);
+
+      mockRepo.findById.mockResolvedValue(planRow("other"));
+      await expect(service.getPlanHistory("p1", "user-1", true)).rejects.toThrow(/history/);
     });
   });
 

@@ -1,6 +1,12 @@
 import prisma from "../../config/database.js";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, WorkoutPlanVersion } from "@prisma/client";
 import type { PlanTab } from "./plan.schema.js";
+import {
+  toSnapshot,
+  versionsToRecord,
+  type PlanSnapshot,
+  type PlanSnapshotExercise,
+} from "./plan.history.js";
 
 const itemsInclude = {
   items: {
@@ -30,6 +36,20 @@ export type PlanDto = Omit<PlanWithFavoriteRaw, "favoritedBy"> & { isFavorite: b
 function toDto(plan: PlanWithFavoriteRaw): PlanDto {
   const { favoritedBy, ...rest } = plan;
   return { ...rest, isFavorite: favoritedBy.length > 0 };
+}
+
+function versionData(snapshot: PlanSnapshot) {
+  return { ...snapshot, exercises: snapshot.exercises as unknown as Prisma.InputJsonValue };
+}
+
+function fromVersionRow(row: WorkoutPlanVersion): PlanSnapshot & { version: number } {
+  return {
+    version: row.version,
+    name: row.name,
+    shortName: row.shortName,
+    isPublic: row.isPublic,
+    exercises: row.exercises as unknown as PlanSnapshotExercise[],
+  };
 }
 
 export class PlanRepository {
@@ -74,20 +94,26 @@ export class PlanRepository {
     isPublic: boolean;
     exerciseIds: string[];
   }) {
-    const plan = await prisma.workoutPlan.create({
-      data: {
-        name: data.name,
-        shortName: data.shortName ?? null,
-        creatorUserId: data.creatorUserId,
-        isPublic: data.isPublic,
-        items: {
-          create: data.exerciseIds.map((exerciseId, index) => ({
-            exerciseId,
-            orderInPlan: index,
-          })),
+    const plan = await prisma.$transaction(async (tx) => {
+      const created = await tx.workoutPlan.create({
+        data: {
+          name: data.name,
+          shortName: data.shortName ?? null,
+          creatorUserId: data.creatorUserId,
+          isPublic: data.isPublic,
+          items: {
+            create: data.exerciseIds.map((exerciseId, index) => ({
+              exerciseId,
+              orderInPlan: index,
+            })),
+          },
         },
-      },
-      include: itemsInclude,
+        include: itemsInclude,
+      });
+      await tx.workoutPlanVersion.create({
+        data: { planId: created.id, version: 1, ...versionData(toSnapshot(created)) },
+      });
+      return created;
     });
     return { ...plan, isFavorite: false };
   }
@@ -104,6 +130,8 @@ export class PlanRepository {
     userId: string,
   ) {
     const plan = await prisma.$transaction(async (tx) => {
+      const before = await tx.workoutPlan.findUniqueOrThrow({ where: { id }, include: itemsInclude });
+
       if (data.exerciseIds) {
         await tx.workoutPlanItem.deleteMany({ where: { planId: id } });
         await tx.workoutPlanItem.createMany({
@@ -115,7 +143,7 @@ export class PlanRepository {
         });
       }
 
-      return tx.workoutPlan.update({
+      const updated = await tx.workoutPlan.update({
         where: { id },
         data: {
           ...(data.name !== undefined && { name: data.name }),
@@ -125,9 +153,36 @@ export class PlanRepository {
         },
         include: { ...itemsInclude, ...favoritedByInclude(userId) },
       });
+
+      // ponytail: concurrent edits of one plan can collide on (planId, version) -> P2002 -> 409; fine for single-author plans
+      const latest = await tx.workoutPlanVersion.findFirst({
+        where: { planId: id },
+        orderBy: { version: "desc" },
+      });
+      const rows = versionsToRecord(before, updated, latest && fromVersionRow(latest));
+      if (rows.length > 0) {
+        await tx.workoutPlanVersion.createMany({
+          data: rows.map(({ version, createdAt, ...snapshot }) => ({
+            planId: id,
+            version,
+            ...(createdAt && { createdAt }),
+            ...versionData(snapshot),
+          })),
+        });
+      }
+
+      return updated;
     });
 
     return toDto(plan);
+  }
+
+  async findVersions(planId: string) {
+    const rows = await prisma.workoutPlanVersion.findMany({
+      where: { planId },
+      orderBy: { version: "desc" },
+    });
+    return rows.map((row) => ({ ...fromVersionRow(row), createdAt: row.createdAt }));
   }
 
   async delete(id: string) {

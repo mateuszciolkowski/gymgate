@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { localStore } from "@/utils/localStore";
 import { authFetch, getAuthHeaders } from "@/utils/auth";
 import { API_BASE } from "@/config/api";
-import type { WorkoutPlan } from "@/types";
+import type { WorkoutPlan, WorkoutPlanVersion } from "@/types";
 import type { DataStore } from "./useDataStore";
 
 const OFFLINE_MESSAGE = "Brak połączenia z serwerem — spróbuj ponownie gdy będziesz online.";
@@ -141,6 +141,17 @@ export function usePlanActions(store: DataStore) {
     [plansRef, setPlans],
   );
 
+  // Read-only, not cached: history is fetched on demand when the user opens it.
+  const getPlanHistory = useCallback(async (id: string): Promise<WorkoutPlanVersion[]> => {
+    if (!navigator.onLine) throw new Error(OFFLINE_MESSAGE);
+
+    const response = await authFetch(`${API_BASE}/api/plans/${id}/history`);
+    if (!response.ok) throw new Error("Nie udało się pobrać historii planu");
+
+    const result = await response.json();
+    return result.data;
+  }, []);
+
   return useMemo(
     () => ({
       createPlan,
@@ -149,7 +160,8 @@ export function usePlanActions(store: DataStore) {
       duplicatePlan,
       favoritePlan,
       unfavoritePlan,
+      getPlanHistory,
     }),
-    [createPlan, updatePlan, deletePlan, duplicatePlan, favoritePlan, unfavoritePlan],
+    [createPlan, updatePlan, deletePlan, duplicatePlan, favoritePlan, unfavoritePlan, getPlanHistory],
   );
 }

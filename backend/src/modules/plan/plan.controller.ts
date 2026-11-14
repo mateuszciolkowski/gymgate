@@ -18,6 +18,7 @@ export class PlanController {
     this.duplicate = this.duplicate.bind(this);
     this.favorite = this.favorite.bind(this);
     this.unfavorite = this.unfavorite.bind(this);
+    this.history = this.history.bind(this);
   }
 
   async getAll(req: AuthRequest, res: Response) {
@@ -94,6 +95,16 @@ export class PlanController {
       const { id } = req.params as { id: string };
       await this.service.favoritePlan(id, req.userId!);
       res.json({ success: true });
+    } catch (error) {
+      sendError(res, error);
+    }
+  }
+
+  async history(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params as { id: string };
+      const versions = await this.service.getPlanHistory(id, req.userId!, req.userIsAdmin);
+      res.json({ success: true, data: versions });
     } catch (error) {
       sendError(res, error);
     }

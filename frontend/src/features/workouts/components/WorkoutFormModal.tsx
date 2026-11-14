@@ -23,7 +23,10 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
 
   const { plans } = useData();
   const visiblePlans = useMemo(
-    () => plans.filter((p) => p.isFavorite),
+    () =>
+      plans
+        .filter((p) => p.isFavorite || p.creatorUserId === null)
+        .sort((a, b) => Number(b.isFavorite) - Number(a.isFavorite)),
     [plans],
   );
 
@@ -253,7 +256,17 @@ export function WorkoutFormModal({ onClose, onSubmit }: WorkoutFormModalProps) {
                         color: workoutPlanId === plan.id ? "var(--gg-a2)" : "var(--gg-text)",
                       }}
                     >
-                      <span className="truncate pr-2">{plan.name}</span>
+                      <span className="flex items-center gap-2 min-w-0 pr-2">
+                        <span className="truncate">{plan.name}</span>
+                        {plan.isFavorite && (
+                          <span
+                            className="shrink-0 px-1.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider"
+                            style={{ background: "var(--gg-surface3)", color: "var(--gg-a1)" }}
+                          >
+                            ★ Ulubione
+                          </span>
+                        )}
+                      </span>
                       <span className="text-[11px] font-mono shrink-0" style={{ color: "var(--gg-text-muted)" }}>
                         {plan.items.length} ćw.
                       </span>
