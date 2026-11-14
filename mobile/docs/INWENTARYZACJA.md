@@ -197,3 +197,170 @@ Pliki: `components/navigation/BottomNavigation.tsx`, `components/app/StaleWorkou
 - „Kontynuuj” zamyka dialog (nie pojawi się ponownie w tej sesji aplikacji).
 - „Zakończ trening” kończy trening z `durationSeconds` = ostatnia aktywność − `createdAt` (z aktualnych danych, nie z migawki z chwili pokazania dialogu). Przy błędzie dialog zostaje, żeby można było ponowić.
 - Dialog nie sprawdza reguł zakończenia z 1.8: pozwala zakończyć trening bez ćwiczeń lub z ćwiczeniem bez serii (zastana niespójność).
+
+---
+
+## 4. Ćwiczenia
+
+Pliki: `features/exercises/components/` (`ExercisesScreen.tsx`, `ExerciseList.tsx`, `ExerciseSelectionModal.tsx`, `AddExerciseScreen.tsx`, `EditExerciseScreen.tsx`, `ExercisePhotoButton.tsx`), `constants/muscleGroups.ts`, `utils/fuzzyMatch.ts`. Zrzuty: `40`, `41`, `22`.
+
+### 4.1 Ekran listy (`exercises`)
+
+Nagłówek: nadtytuł „Twoja baza”, tytuł „Ćwiczenia”, przycisk „Nowe ćwiczenie”. Pod spodem wspólny komponent listy w trybie zarządzania.
+
+### 4.2 Lista ćwiczeń (`ExerciseList`), wspólna dla ekranu i modala wyboru
+
+Od góry:
+
+1. Wyszukiwarka, placeholder „Szukaj ćwiczenia...”, przycisk „✕” czyści.
+2. Pastylki: sortowanie „A → Z” / „Z → A” (przełącznik), filtry „Wykonywane”, „Ze zdjęciem”, „Moje własne” (każdy włącz/wyłącz, łączą się koniunkcją).
+3. Przewijany poziomo rząd grup mięśniowych; wybrana jest najwyżej jedna, ponowne kliknięcie odznacza.
+4. Lista kart.
+
+Kolejność filtrowania:
+
+1. grupa mięśniowa (`muscleGroups` zawiera wybraną wartość);
+2. widoczność: ćwiczenia bez twórcy, twórcy `"1"` lub własne;
+3. w trybie wyboru: bez ćwiczeń już dodanych do treningu;
+4. wyszukiwanie rozmyte po nazwie **oraz po surowych wartościach enum grup** (np. `CHEST`), nie po polskich etykietach (zastane; wpisanie „klatka” nie znajdzie grupy);
+5. „Moje własne”: twórca = zalogowany użytkownik;
+6. „Wykonywane”: ćwiczenie ma wpis w statystykach;
+7. „Ze zdjęciem”: ma co najmniej jedno zdjęcie;
+8. sortowanie po nazwie z porównaniem dla języka polskiego (`localeCompare(…, "pl")`).
+
+Stany: ładowanie („Ładowanie ćwiczeń...”), pusto („Nie znaleziono ćwiczeń”, a w trybie wyboru z wykluczeniami „Wszystkie ćwiczenia zostały już dodane”, także wtedy, gdy pusty wynik wynika z filtrów; zastane).
+
+Karta ćwiczenia:
+
+- nazwa; przed nazwą ikona użytkownika, gdy ćwiczenie ma twórcę innego niż `"1"` (czyli własne lub cudze prywatne);
+- przycisk zdjęcia (jeśli są zdjęcia);
+- tryb zarządzania: „Edytuj” i „Usuń”, tylko gdy użytkownik jest adminem albo twórcą;
+- tryb wyboru: cała karta jest klikalna, po prawej znak plusa;
+- etykiety grup mięśniowych;
+- opis (maksymalnie 2 linie);
+- gdy są statystyki: „Ostatnio: {lastWeight} kg × {lastReps}” i „Rekord: {maxWeight} kg × {maxWeightReps}”;
+- przy włączonym filtrze „Wykonywane” karty z historią są wyróżnione.
+
+Usuwanie: potwierdzenie „Czy na pewno chcesz usunąć ćwiczenie "{nazwa}"?”; błąd „Błąd podczas usuwania ćwiczenia”. Potwierdzenie nie ostrzega, że backend kaskadowo usuwa pozycje treningów z tym ćwiczeniem (historię), statystyki i pozycje planów.
+
+### 4.3 Modal wyboru ćwiczenia (`ExerciseSelectionModal`)
+
+Arkusz od dołu na 90% wysokości, z uchwytem; tytuł „Wybierz ćwiczenie”, przycisk zamknięcia, przycisk „Dodaj nowe ćwiczenie” (gdy wywołujący go udostępnia), lista w trybie wyboru. Kliknięcie tła zamyka. Tło strony jest blokowane przed przewijaniem z zachowaniem pozycji; przed zamknięciem i wyborem aktywne pole traci fokus (chowa klawiaturę).
+
+### 4.4 Nowe ćwiczenie (`add-exercise`)
+
+Nagłówek: „Wróć”, tytuł „Nowe ćwiczenie”, podtytuł „Dodaj ćwiczenie do swojej bazy”.
+
+- „Nazwa ćwiczenia”, placeholder „np. Wyciskanie sztangi”.
+- „Grupy mięśniowe”: lista pól wyboru (na start jedno puste, opcja „-- Wybierz grupę --”); grupa wybrana w jednym polu jest niedostępna w pozostałych; przycisk usunięcia pola (gdy jest więcej niż jedno); „+ Dodaj grupę mięśniową” (dopóki pól jest mniej niż grup).
+- „Opis” (opcjonalne), 3 wiersze, placeholder „Dodaj opis ćwiczenia...”.
+- Tylko admin: przełącznik „Globalne ćwiczenie” ze znaczkiem „ADMIN” i opisem „Widoczne dla wszystkich użytkowników aplikacji”.
+- Przycisk „Dodaj ćwiczenie” („Dodawanie...”); pola zablokowane w trakcie.
+
+Walidacja (w tej kolejności): „Nazwa ćwiczenia jest wymagana”; „Wybierz przynajmniej jedną grupę mięśniową”. Błąd zapisu: komunikat wyjątku albo „Błąd podczas dodawania ćwiczenia”.
+
+Wysyłka: `name` po `trim`, wybrane grupy, `description` po `trim` (puste pomijane), `isGlobal` tylko dla admina.
+
+Powrót zależy od miejsca otwarcia: lista ćwiczeń; trening (nowe ćwiczenie jest od razu dodawane do treningu); formularz planu (nowe ćwiczenie jest dopisywane do szkicu planu).
+
+### 4.5 Edycja ćwiczenia (`edit-exercise`)
+
+Jak formularz dodawania, z różnicami: tytuł „Edytuj ćwiczenie” i podtytuł z nazwą ćwiczenia; pola wypełnione bieżącymi wartościami; brak przełącznika globalności; jedna walidacja „Wypełnij nazwę i wybierz przynajmniej jedną grupę mięśniową”; przycisk „Zapisz zmiany” („Zapisywanie...”); błąd „Błąd aktualizacji ćwiczenia”. Puste pole opisu jest wysyłane jako brak pola, więc opisu nie da się wyczyścić (zastane). Powrót do listy ćwiczeń.
+
+### 4.6 Zdjęcie ćwiczenia (`ExercisePhotoButton`)
+
+Przycisk „Pokaż zdjęcie” widoczny tylko, gdy ćwiczenie ma zdjęcia. Otwiera modal z tytułem = nazwa ćwiczenia i listą zdjęć jedno pod drugim. Przy więcej niż jednym zdjęciu nad każdym etykieta etapu: „Pozycja startowa” (`START`), „Pozycja pośrednia” (`MIDDLE`), „Pozycja końcowa” (`END`). Adres: pełny URL bez zmian, w przeciwnym razie `{API}/uploads/{ścieżka bez prefiksu uploads/}`.
+
+### 4.7 Grupy mięśniowe (kolejność i etykiety)
+
+`CHEST` Klatka piersiowa, `BACK` Plecy, `SHOULDERS` Barki, `BICEPS` Biceps, `TRICEPS` Triceps, `FOREARMS` Przedramiona, `ABS` Brzuch, `OBLIQUES` Skośne brzucha, `LOWER_BACK` Dolne plecy, `QUADS` Czworogłowy, `HAMSTRINGS` Kulszowo-goleniowy, `GLUTES` Pośladki, `CALVES` Łydki, `ADDUCTORS` Przywodziciele, `HIP_FLEXORS` Zginacze bioder, `TRAPS` Trapez, `LATS` Najszersze, `MIDDLE_BACK` Środek pleców, `NECK` Kark, `FULL_BODY` Całe ciało.
+
+### 4.8 Wyszukiwanie rozmyte (`fuzzyMatch`)
+
+- Normalizacja: małe litery, polskie znaki zamienione na łacińskie (ą→a, ć→c, ę→e, ł→l, ń→n, ó→o, ś→s, ź→z, ż→z).
+- Tekst i zapytanie dzielone na słowa; **każde** słowo zapytania musi pasować do **któregoś** słowa tekstu (kolejność bez znaczenia).
+- Słowo pasuje, gdy: słowo tekstu je zawiera; albo odległość Levenshteina ≤ tolerancja; albo odległość do początku słowa tekstu (długość zapytania + tolerancja) ≤ tolerancja.
+- Tolerancja wg długości słowa zapytania: ≤2 znaki: 0; ≤4: 1; ≤8: 2; dłuższe: 3.
+- Puste zapytanie pasuje do wszystkiego.
+
+---
+
+## 5. Plany treningowe
+
+Pliki: `features/plans/` (`components/PlansScreen.tsx`, `PlanFormScreen.tsx`, `PlanHistoryModal.tsx`, `planDraft.ts`, `planHistory.ts`), `contexts/data/usePlanActions.ts`. Zrzuty: `70`–`72`.
+
+### 5.1 Ekran listy (`plans`)
+
+- Nagłówek: nadtytuł „Twoje plany”, tytuł „Plany”.
+- Podpowiedź: „★ Zaznacz gwiazdkę przy planie, aby móc wybrać go podczas tworzenia treningu”.
+- Przycisk „Stwórz nowy plan”.
+- Zakładki (domyślnie pierwsza): „Ulubione”, „Moje”, „Built-in”, „Społeczność”.
+  - Ulubione: `isFavorite`; Moje: `creatorUserId` = użytkownik; Built-in: `creatorUserId === null`; Społeczność: cudze i publiczne.
+- Wyszukiwarka „Szukaj planów…” (rozmyta, po nazwie, przycisk „×” czyści) i przycisk „Sortuj”, który pokazuje rząd opcji: „A–Z” (domyślna), „Z–A”, „Najnowsze”, „Najstarsze” (po `createdAt`).
+- Puste stany wg zakładki: „Brak ulubionych” / „Kliknij ★ przy planie, aby dodać do ulubionych”; „Brak planów” / „Stwórz swój pierwszy plan treningowy”; „Brak wbudowanych planów”; „Brak publicznych planów społeczności”. Te same teksty pojawiają się, gdy pusty wynik wynika z wyszukiwania.
+
+Karta planu:
+
+- nazwa; „{n} ćwiczenie” (1) / „ćwiczenia” (2–4) / „ćwiczeń” (pozostałe, w tym 0; dla 22–24 forma jest błędna, zastane); „• Publiczny” gdy `isPublic`;
+- do trzech pierwszych unikalnych grup mięśniowych z ćwiczeń planu;
+- kliknięcie nagłówka rozwija numerowaną listę ćwiczeń (w kolejności tablicy `items`);
+- przyciski: „Edytuj” (właściciel lub admin dla planu wbudowanego), „Duplikuj do moich” (gdy nie jest właścicielem; „Kopiowanie…”), gwiazdka „★”/„☆” („Usuń z ulubionych” / „Dodaj do ulubionych”), kosz „Usuń plan” (jak edycja).
+
+Akcje i komunikaty:
+
+| Akcja | Potwierdzenie | Błąd |
+|---|---|---|
+| Usuń plan | „Usunąć plan "{nazwa}"?” | „Nie udało się usunąć planu” |
+| Duplikuj | – | „Nie udało się zduplikować planu” |
+| Ulubione | – | „Nie udało się zmienić ulubionego” |
+
+### 5.2 Formularz planu (`plan-form`)
+
+- Nagłówek: „Wróć”; nadtytuł „Nowy plan” / „Edycja”; tytuł „Tworzenie planu” / „Edytuj plan”; w edycji przycisk „Historia”; przycisk „Anuluj” (działa jak „Wróć”). Wyjście bez potwierdzenia porzuca zmiany.
+- „Nazwa planu”, placeholder „np. FBW Klatka Piersiowa”, limit 100 znaków.
+- „Nazwa skrócona” (opcjonalne), placeholder „np. FBW Trening A”, limit 50, podpowiedź „Wpisywana automatycznie jako nazwa treningu przy wyborze planu”.
+- Tylko admin: przełącznik „Globalny plan treningowy” (znaczek „ADMIN”, opis „Widoczny dla wszystkich użytkowników w zakładce „Built-in””).
+- Gdy plan nie jest globalny: przełącznik „Publiczny plan”, opis „Widoczny dla innych użytkowników”.
+- „Ćwiczenia ({n}/50)”: lista z uchwytem do przeciągania („Przeciągnij aby zmienić kolejność”, przeciąganie startuje po 5 px ruchu), nazwa, grupy mięśniowe po przecinku, przycisk „Usuń ćwiczenie z planu”. Pod listą „Dodaj ćwiczenie” (dopóki jest mniej niż 50), otwiera modal wyboru z wykluczeniem ćwiczeń już w planie.
+- Przycisk „Zapisz plan” / „Zapisz zmiany” („Zapisywanie...”).
+
+Walidacja (w tej kolejności, komunikat nad formularzem):
+
+1. „Nazwa planu musi mieć co najmniej 3 znaki” (po `trim`)
+2. „Nazwa planu może mieć maksymalnie 100 znaków”
+3. „Dodaj co najmniej 1 ćwiczenie”
+4. „Plan może zawierać maksymalnie 50 ćwiczeń”
+5. „Plan publiczny lub globalny nie może zawierać prywatnych ćwiczeń” (prywatne = ma twórcę innego niż `"1"`)
+
+Wysyłka: `name` po `trim`, `shortName` po `trim` albo `null`, `exerciseIds` w kolejności listy, `isPublic` (wymuszone `true` dla globalnego), `isGlobal` tylko dla admina. Błąd zapisu: komunikat wyjątku albo „Błąd zapisu planu”.
+
+Szkic formularza (`planDraft.ts`): stan formularza przetrwa wyjście do ekranu „Nowe ćwiczenie” i powrót; nowo utworzone ćwiczenie jest dopisywane na koniec (bez duplikatów i ponad limit). W edycji `isGlobal` startuje jako `creatorUserId === null`.
+
+### 5.3 Historia planu (`PlanHistoryModal`)
+
+Tytuł „Historia planu”, podtytuł „Najnowsze zmiany na górze”. Stany: „Ładowanie…”, komunikat błędu.
+
+Dla każdej wersji (najnowsza pierwsza): „Wersja {n}” ze znacznikiem „Aktualna” przy pierwszej, data (`pl-PL`: dzień, skrócony miesiąc, rok, godzina, minuty) i strzałka. Pod spodem lista zmian względem wersji starszej, a dla najstarszej „Wersja początkowa · {n} ćw.”. Kliknięcie rozwija pełną numerowaną listę ćwiczeń tej wersji (jedna rozwinięta naraz).
+
+Zmiany (`planHistory.ts`, `diffVersions`), w tej kolejności:
+
+| Typ | Znak | Opis |
+|---|---|---|
+| nazwa | ✎ | „Nazwa: „{stara}” → „{nowa}”” |
+| nazwa skrócona | ✎ | „Nazwa skrócona: „{stara}”/brak → „{nowa}”/brak” |
+| publiczność | ◉ | „Plan stał się publiczny” / „Plan stał się prywatny” |
+| dodane | + (zielony `#22c55e`) | nazwa ćwiczenia |
+| usunięte | − (kolor błędu) | nazwa ćwiczenia |
+| przesunięte | ↕ | „{nazwa}: pozycja {z} → {na}” (pozycje od 1) |
+
+Przesunięcia: spośród ćwiczeń obecnych w obu wersjach wyznaczany jest najdłuższy podciąg, który zachował względną kolejność; jako przesunięte oznaczane są tylko ćwiczenia spoza niego. Dzięki temu wstawienie lub pojedyncze przeciągnięcie nie oznacza wszystkich przesuniętych wierszy.
+
+### 5.4 Warstwa danych planów (`usePlanActions`)
+
+- Wszystkie akcje (tworzenie, edycja, usuwanie, duplikowanie, ulubione, historia) wymagają sieci. Offline rzucają „Brak połączenia z serwerem — spróbuj ponownie gdy będziesz online.” Formularz pokazuje ten tekst jako błąd; lista pokazuje własne ogólne komunikaty z 5.1.
+- Nie ma aktualizacji optymistycznych: stan lokalny zmienia się po odpowiedzi serwera.
+- Komunikaty błędów: „Błąd tworzenia planu”, „Błąd aktualizacji planu”, „Błąd usuwania planu”, „Błąd duplikacji planu”, „Błąd dodawania do ulubionych”, „Błąd usuwania z ulubionych”, „Nie udało się pobrać historii planu”.
+- **Zastany błąd:** kod czyta `err.message` z odpowiedzi, a backend zwraca komunikat w polu `error`. W efekcie użytkownik nigdy nie widzi powodu odrzucenia (zajęta nazwa, prywatne ćwiczenia w planie publicznym), tylko ogólny tekst. W apce pokazujemy właściwy powód (odstępstwo do `DECYZJE.md`).
+- Duplikowanie przy 404: odświeżenie wszystkich danych w tle i komunikat „Plan nie istnieje — plany zostały odświeżone, spróbuj ponownie.”
+- Nowy lub zduplikowany plan trafia na początek listy w pamięci.
+- Historia nie jest buforowana.
