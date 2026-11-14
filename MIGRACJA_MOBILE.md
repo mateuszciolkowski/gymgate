@@ -8,17 +8,16 @@ Nadal obowiązują `CLAUDE.md`, `backend/CLAUDE.md` i `frontend/CLAUDE.md`, w sz
 
 ---
 
-## 0. Decyzje właściciela (do potwierdzenia)
+## 0. Decyzje właściciela (potwierdzone 2026-11-14)
 
-Poniżej przyjęte wartości domyślne. Dopóki właściciel ich nie zmieni, obowiązują.
-
-| # | Temat | Domyślnie |
+| # | Temat | Decyzja |
 |---|---|---|
 | D1 | **Odliczanie przerwy między seriami.** PWA go nie ma (jest tylko czas treningu). | Nie implementujemy. Live Activity i powiadomienie pokazują czas treningu, bieżące ćwiczenie i liczbę serii. Architektura zostawia miejsce na timer przerwy później. |
-| D2 | **Punkty kontrolne.** | Trzy obowiązkowe przystanki na przegląd właściciela: po `PLAN.md` (Etap 2), po pionowym wycinku na iPhonie (Etap 5), przed każdym mergem zmian backendu do `main`. Poza nimi pełna autonomia. |
-| D3 | **Edycja planów offline.** W PWA plany są online-only. | Apka pozwala na to offline (zgodnie z wymogiem offline-first), a odrzucenia serwera pokazuje po synchronizacji (sekcja 6.5). |
-| D4 | **Usuwanie konta.** PWA i backend go nie mają. | Dodajemy (endpoint + ekran) jako jedyny wyjątek od „bez nowych funkcji”, bo wymaga tego Apple. |
+| D2 | **Punkty kontrolne.** | Jeden: przed mergem zmian backendu do `dev`/`main` (czyli przed wdrożeniem na produkcję). Poza tym pełna autonomia, decyzje w `DECYZJE.md`. |
+| D3 | **Edycja planów offline.** W PWA plany są online-only. | Apka pozwala na to offline, a odrzucenia serwera pokazuje po synchronizacji (sekcja 6.5). |
+| D4 | **Usuwanie konta.** PWA i backend go nie mają. | Dodajemy (endpoint + ekran z potwierdzeniem hasłem) jako jedyny wyjątek od „bez nowych funkcji”, bo wymaga tego Apple. |
 | D5 | **Odświeżanie sesji.** Backend wydaje jeden JWT na 7 dni, bez refresh tokenu. | Dodajemy refresh token tylko dla apki (addytywnie); PWA dalej używa 7-dniowego JWT. |
+| D6 | **Gałęzie.** | Wszystko (apka i zmiany backendu) na jednej gałęzi `mobile-migration`. Backend trafia na produkcję dopiero po akceptacji właściciela. Skutek: do tego czasu apka działa wyłącznie z lokalnym backendem i lokalną bazą, bez dostępu do prawdziwego konta. |
 
 ---
 
@@ -169,10 +168,10 @@ Właściciel regularnie trenuje z PWA na produkcji. Przez całą migrację musi 
 
 ## 5. Tryb pracy
 
-- Pracujesz samodzielnie, bez pytań, z wyjątkiem trzech punktów kontrolnych z D2. Na punkcie kontrolnym aktualizujesz `STATUS.md`, opisujesz, co jest do przejrzenia, i kończysz sesję.
+- Pracujesz samodzielnie, bez pytań. Jedyny punkt kontrolny (D2): nie mergujesz `mobile-migration` ani zmian backendu do `dev` lub `main`; gdy backend jest gotowy do wdrożenia, opisujesz to w `STATUS.md` i `WDROZENIE_BACKENDU.md` i czekasz na decyzję właściciela, pracując dalej nad apką.
 - Niejednoznaczności rozstrzygasz na korzyść zachowania PWA i zapisujesz w `mobile/docs/DECYZJE.md` z uzasadnieniem.
 - Stan pracy trzymasz w plikach. `mobile/docs/STATUS.md` aktualizujesz po każdym kroku: zrobione, w trakcie, następne, znane problemy.
-- Gałąź: `mobile-migration`, utworzona z `dev`. Regularnie wciągasz zmiany z `dev`; po każdym takim wciągnięciu sprawdzasz, czy PWA zyskało nowe funkcje, i dopisujesz je do `INWENTARYZACJA.md` i `PARYTET.md`.
+- Gałąź: `mobile-migration`, utworzona z `dev`; cała praca, także backend, idzie tam (D6). Regularnie wciągasz zmiany z `dev`; po każdym takim wciągnięciu sprawdzasz, czy PWA zyskało nowe funkcje, i dopisujesz je do `INWENTARYZACJA.md` i `PARYTET.md`.
 - Małe commity z opisowymi komunikatami; przerwana sesja nie zostawia repo w stanie niebudowalnym.
 - **Gdzie uruchamiać.** Etapy 0–2, zmiany backendu i czysta logika TypeScript mogą powstawać w sesji chmurowej. Wszystko, co wymaga symulatora iOS, Xcode lub emulatora Androida (od Etapu 3), wymaga sesji lokalnej na MacBooku. W sesji bez symulatora nie oznaczasz niczego jako zweryfikowane na urządzeniu.
 - Czego nie zrobisz sam (test na telefonie, konto, sekret, ustawienie w panelu hostingu), dopisujesz do `mobile/docs/DLA_MATEUSZA.md` jako instrukcję krok po kroku i idziesz dalej.
@@ -288,9 +287,9 @@ Na tej podstawie `mobile/docs/PARYTET.md`: lista kontrolna, każda funkcja i ka�
 
 Zrzuty każdego ekranu i stanu PWA w widoku iPhone'a 15 Pro (Playwright) w `mobile/docs/wzorzec/`: komplet w motywie `dark` i `light`, oraz ekran treningu i lista treningów we wszystkich 12 motywach.
 
-### Etap 2: szczegółowy plan → punkt kontrolny
+### Etap 2: szczegółowy plan
 
-`mobile/docs/PLAN.md`: architektura, struktura folderów, biblioteki z uzasadnieniem, mapa nawigacji, schemat lokalnej bazy, pełny projekt synchronizacji (6.2–6.6) z listą migracji i endpointów, strategia testów, rozbicie etapów na małe zadania z kryteriami. **Zatrzymaj się na przegląd właściciela.**
+`mobile/docs/PLAN.md`: architektura, struktura folderów, biblioteki z uzasadnieniem, mapa nawigacji, schemat lokalnej bazy, pełny projekt synchronizacji (6.2–6.6) z listą migracji i endpointów, strategia testów, rozbicie etapów na małe zadania z kryteriami.
 
 ### Etap 3: fundament (sesja lokalna na Macu)
 
@@ -302,9 +301,9 @@ Przenieś z frontendu wraz z testami: typy (`types/`), `workoutTimer`, `previous
 
 Migracje addytywne, dziennik usunięć, endpointy synchronizacji, przyjmowanie identyfikatorów i czasów z klienta, refresh token, testy integracyjne, aktualizacja `API.md` i `openapi.yaml`, wpis w `WDROZENIE_BACKENDU.md`, test PWA z sekcji 4. Przy okazji naprawa wycieku z 1.11.
 
-### Etap 5: pionowy wycinek → punkt kontrolny
+### Etap 5: pionowy wycinek
 
-Lokalna baza, outbox i silnik synchronizacji oraz minimalna ścieżka: logowanie, pobranie danych, lista treningów, nowy trening, dodanie ćwiczenia, zapis serii, zakończenie, całość offline z późniejszą synchronizacją. Wgrane na iPhone'a właściciela (instrukcja w `DLA_MATEUSZA.md`). **Zatrzymaj się na test właściciela na siłowni.**
+Lokalna baza, outbox i silnik synchronizacji oraz minimalna ścieżka: logowanie, pobranie danych, lista treningów, nowy trening, dodanie ćwiczenia, zapis serii, zakończenie, całość offline z późniejszą synchronizacją. Apka łączy się z lokalnym backendem na MacBooku (D6), więc test na iPhonie odbywa się w tej samej sieci Wi-Fi na danych testowych; instrukcja w `DLA_MATEUSZA.md`. Test na prawdziwym koncie jest możliwy dopiero po wdrożeniu backendu.
 
 ### Etap 6: logowanie, rejestracja, sesja
 
@@ -368,7 +367,7 @@ Zasady uczciwości:
 
 | Plik | Zawartość |
 |---|---|
-| `mobile/docs/STATUS.md` | Stan: zrobione, w trakcie, następne, znane problemy, ustalenia o deployu |
+| `mobile/docs/STATUS.md` | Tablica postępu: etapy z listą zadań do odhaczania, w trakcie, następne, znane problemy, ustalenia o deployu |
 | `mobile/docs/INWENTARYZACJA.md` | Pełny opis obecnej aplikacji |
 | `mobile/docs/PARYTET.md` | Lista kontrolna funkcji ze sposobem weryfikacji |
 | `mobile/docs/PLAN.md` | Architektura, projekt synchronizacji, szczegółowe zadania |
