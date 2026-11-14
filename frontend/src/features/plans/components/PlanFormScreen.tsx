@@ -23,6 +23,7 @@ import { ExerciseSelectionModal } from "@/features/exercises";
 import { MUSCLE_GROUPS } from "@/constants/muscleGroups";
 import { Switch, Button, FormField } from "@/components/ui";
 import { MAX_PLAN_EXERCISES, draftFromPlan, type PlanDraft, type PlanExerciseItem } from "../planDraft";
+import { PlanHistoryModal } from "./PlanHistoryModal";
 
 function muscleLabel(value: string): string {
   return MUSCLE_GROUPS.find((g) => g.value === value)?.label ?? value;
@@ -131,6 +132,7 @@ export const PlanFormScreen = memo(function PlanFormScreen({
   const [isGlobal, setIsGlobal] = useState(initial.isGlobal);
   const [items, setItems] = useState<PlanExerciseItem[]>(initial.items);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -237,9 +239,18 @@ export const PlanFormScreen = memo(function PlanFormScreen({
             {isEditing ? "Edytuj plan" : "Tworzenie planu"}
           </h1>
         </div>
+        {isEditing && (
+          <button
+            onClick={() => setShowHistory(true)}
+            className="ml-auto text-[14px] font-medium border-none bg-transparent cursor-pointer"
+            style={{ color: "var(--gg-a1)" }}
+          >
+            Historia
+          </button>
+        )}
         <button
           onClick={onBack}
-          className="ml-auto text-[14px] font-medium border-none bg-transparent cursor-pointer"
+          className={`${isEditing ? "" : "ml-auto "}text-[14px] font-medium border-none bg-transparent cursor-pointer`}
           style={{ color: "var(--gg-text-muted)" }}
         >
           Anuluj
@@ -399,6 +410,10 @@ export const PlanFormScreen = memo(function PlanFormScreen({
       </div>
 
       </div>
+
+      {showHistory && editingPlan && (
+        <PlanHistoryModal planId={editingPlan.id} onClose={() => setShowHistory(false)} />
+      )}
 
       {showExerciseModal && (
         <ExerciseSelectionModal

@@ -142,9 +142,29 @@ model WorkoutPlan {
   items       WorkoutPlanItem[]
   workouts    Workout[]
   favoritedBy UserFavoritePlan[]
+  versions    WorkoutPlanVersion[]
 
   @@unique([creatorUserId, name])
   @@map("workout_plans")
+}
+
+// Read-only snapshot of a plan after each change (plan history).
+// `exercises` = [{ exerciseId, name }] in plan order; names are copied so history
+// stays readable after an exercise is renamed or deleted.
+model WorkoutPlanVersion {
+  id        String   @id @default(uuid())
+  planId    String
+  version   Int
+  name      String
+  shortName String?
+  isPublic  Boolean
+  exercises Json
+  createdAt DateTime @default(now())
+
+  plan WorkoutPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, version])
+  @@map("workout_plan_versions")
 }
 
 model WorkoutPlanItem {

@@ -140,6 +140,16 @@ export interface WorkoutPlan {
   updatedAt: string;
 }
 
+/** Snapshot of a plan after one change (GET /api/plans/:id/history). */
+export interface WorkoutPlanVersion {
+  version: number;
+  name: string;
+  shortName: string | null;
+  isPublic: boolean;
+  exercises: { exerciseId: string; name: string }[];
+  createdAt: string;
+}
+
 export interface CreateWorkoutDto {
   workoutDate?: string;
   workoutName?: string;

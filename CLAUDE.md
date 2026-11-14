@@ -70,6 +70,7 @@ Every module follows strict layering: `routes → controller → service → rep
 | `ExercisePendingNote` | Transient note to carry over to the next workout (userId+exerciseId UNIQUE) |
 | `WorkoutPlan` | Ordered template of exercises (name, creatorUserId, isPublic); `creatorUserId=null` = built-in |
 | `WorkoutPlanItem` | Single exercise in a plan (exerciseId, orderInPlan); `@@unique([planId, exerciseId])` |
+| `WorkoutPlanVersion` | Read-only snapshot of a plan after each change (history); `exercises` JSON `[{exerciseId, name}]`; visible to whoever can edit the plan |
 
 ## Frontend state management
 
@@ -84,7 +85,7 @@ Every module follows strict layering: `routes → controller → service → rep
 `WorkoutPlan` is an ordered list of exercises. Three visibility tabs: `mine` (own), `builtin` (`creatorUserId=null`), `community` (public plans of other users).
 
 **Creating a workout from a plan:**
-1. User selects a plan in `WorkoutFormModal` — dropdown shows `mine + builtin + community`
+1. User selects a plan in `WorkoutFormModal` — dropdown shows favorites + built-in; favorites first with a "Ulubione" badge
 2. `workoutPlanId` is sent in `POST /api/workouts` body
 3. Workout starts empty — `workoutPlanId` is just a reference (live, not a snapshot)
 

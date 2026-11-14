@@ -968,3 +968,47 @@ paths:
       responses:
         "204": { description: Usunięto z ulubionych }
         "404": { description: Nie znaleziono }
+
+  /api/plans/{id}/history:
+    get:
+      tags: [Plans]
+      summary: Historia zmian planu (wersje od najnowszej)
+      description: >
+        Dostępne tylko dla osoby, która może edytować plan: autor, a dla planu wbudowanego admin.
+        Plan bez zapisanych wersji zwraca swój obecny stan jako wersję 1.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Lista wersji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        version: { type: integer, example: 2 }
+                        name: { type: string }
+                        shortName: { type: string, nullable: true }
+                        isPublic: { type: boolean }
+                        exercises:
+                          type: array
+                          description: Ćwiczenia w kolejności planu; nazwa skopiowana w chwili zmiany
+                          items:
+                            type: object
+                            properties:
+                              exerciseId: { type: string, format: uuid }
+                              name: { type: string }
+                        createdAt: { type: string, format: date-time }
+        "403": { description: Brak uprawnień do edycji planu }
+        "404": { description: Nie znaleziono }

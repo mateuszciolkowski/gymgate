@@ -7,8 +7,14 @@ import {
   NotFoundError,
 } from "../../common/errors.js";
 import { isGlobalCreatorId } from "../../config/constants.js";
+import { toSnapshot } from "./plan.history.js";
 
 const MAX_COPY_SUFFIX = 999;
+
+// Author edits own plans; admin also edits built-in (creatorUserId = null) ones.
+function canModify(plan: { creatorUserId: string | null }, userId: string, isAdmin: boolean) {
+  return plan.creatorUserId === userId || (isAdmin && plan.creatorUserId === null);
+}
 
 export class PlanService {
   private repository: PlanRepository;
@@ -68,12 +74,8 @@ export class PlanService {
       throw new NotFoundError("Plan not found");
     }
 
-    const isGlobal = plan.creatorUserId === null;
-
-    if (!isAdmin || !isGlobal) {
-      if (plan.creatorUserId !== userId) {
-        throw new ForbiddenError("You can only edit your own plans");
-      }
+    if (!canModify(plan, userId, isAdmin)) {
+      throw new ForbiddenError("You can only edit your own plans");
     }
 
     const nextCreatorUserId =
@@ -117,15 +119,30 @@ export class PlanService {
       throw new NotFoundError("Plan not found");
     }
 
-    const isGlobal = plan.creatorUserId === null;
-
-    if (!isAdmin || !isGlobal) {
-      if (plan.creatorUserId !== userId) {
-        throw new ForbiddenError("You can only delete your own plans");
-      }
+    if (!canModify(plan, userId, isAdmin)) {
+      throw new ForbiddenError("You can only delete your own plans");
     }
 
     await this.repository.delete(id);
+  }
+
+  /** Versions newest first; visible only to whoever can edit the plan. */
+  async getPlanHistory(id: string, userId: string, isAdmin = false) {
+    const plan = await this.repository.findById(id);
+
+    if (!plan) {
+      throw new NotFoundError("Plan not found");
+    }
+
+    if (!canModify(plan, userId, isAdmin)) {
+      throw new ForbiddenError("You can only view history of your own plans");
+    }
+
+    const versions = await this.repository.findVersions(id);
+    // Plan untouched since history was introduced: its current state is v1.
+    return versions.length > 0
+      ? versions
+      : [{ version: 1, ...toSnapshot(plan), createdAt: plan.updatedAt }];
   }
 
   async duplicatePlan(id: string, userId: string) {
@@ -221,7 +238,13 @@ export class PlanService {
         "code" in err &&
         (err as { code: string }).code === "P2002"
       ) {
-        throw new ConflictError("Plan with this name already exists");
+        // P2002 can also come from (planId, version) when two saves of one plan race.
+        const target = JSON.stringify((err as { meta?: { target?: unknown } }).meta?.target ?? "name");
+        throw new ConflictError(
+          target.includes("version")
+            ? "Plan was modified at the same time elsewhere, please retry"
+            : "Plan with this name already exists",
+        );
       }
       throw err;
     }

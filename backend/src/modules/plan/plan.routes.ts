@@ -21,6 +21,13 @@ router.get(
   controller.getById,
 );
 
+router.get(
+  "/:id/history",
+  authMiddleware,
+  validate(getPlanSchema),
+  controller.history,
+);
+
 router.post("/", authMiddleware, validate(createPlanSchema), controller.create);
 
 router.put(

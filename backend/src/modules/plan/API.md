@@ -145,6 +145,36 @@ Removes a plan from the current user's favorites. Idempotent — removing a non-
 
 ---
 
+## GET /api/plans/:id/history
+
+Read-only change history of a plan, newest version first.
+Accessible only to whoever can edit the plan: the author, or an admin for built-in plans.
+
+A version is a full snapshot written in the same transaction as plan create (v1) / update
+(only when name, short name, visibility or the ordered exercise list actually changed).
+Plans created before history existed get their pre-edit state stored as v1 on their first edit;
+until then this endpoint returns the current state as a synthetic v1.
+
+**Response (200):**
+
+```typescript
+{
+  success: true,
+  data: Array<{
+    version: number;
+    name: string;
+    shortName: string | null;
+    isPublic: boolean;
+    exercises: { exerciseId: string; name: string }[]; // plan order; name copied at change time
+    createdAt: string;
+  }>
+}
+```
+
+**Errors:** `403` (caller can't edit the plan), `404` (plan does not exist).
+
+---
+
 ## isFavorite flag
 
 All `WorkoutPlan` objects returned by `GET /api/plans` and `GET /api/plans/:id` include:
