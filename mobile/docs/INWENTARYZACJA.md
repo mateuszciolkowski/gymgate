@@ -364,3 +364,84 @@ Przesunięcia: spośród ćwiczeń obecnych w obu wersjach wyznaczany jest najd�
 - Duplikowanie przy 404: odświeżenie wszystkich danych w tle i komunikat „Plan nie istnieje — plany zostały odświeżone, spróbuj ponownie.”
 - Nowy lub zduplikowany plan trafia na początek listy w pamięci.
 - Historia nie jest buforowana.
+
+---
+
+## 6. Statystyki
+
+Pliki: `features/stats/components/` (`StatsScreen.tsx`, `StatsExerciseDetailScreen.tsx`, `StatsProgressChart.tsx`). Zrzuty: `50`–`53`.
+
+### 6.1 Ekran główny (`stats`)
+
+- Nagłówek: nadtytuł „Twoje postępy”, tytuł „Statystyki”.
+- Trzy kafle: „Miesiąc” {`workoutsLastMonth`} „treningów” (wyróżniony), „Ten rok” {`workoutsLastYear`} „treningów”, „Łącznie” {`totalSets`} „wykonanych serii”. Bez podsumowania wszędzie 0. „Miesiąc” i „Ten rok” to ostatnie 30/365 dni liczone od teraz wstecz (dokładnie: miesiąc i rok kalendarzowy wstecz od chwili zapytania), nie bieżący miesiąc ani rok.
+- Przełącznik „Rekordy” / „Aktualne” z tytułem listy „Rekordy osobiste (PR)” / „Aktualne obciążenia”.
+- Lista ćwiczeń ze statystykami (każde klikalne, prowadzi do szczegółów): nazwa (albo „Ćwiczenie”) i wartość „{ciężar} kg”.
+  - Rekordy: `maxWeight`, sortowanie malejąco po `maxWeight`.
+  - Aktualne: ciężar pierwszej serii (`setNumber === 1`, a gdy jej brak pierwsza w tablicy) z najnowszego zakończonego treningu zawierającego to ćwiczenie (sortowanie po `workoutDate`); sortowanie malejąco po tej wartości; brak danych: „—” i wiersz przygaszony (opacity 0,5).
+  - Liczby formatowane `toLocaleString("pl-PL")` (przecinek dziesiętny, np. „77,5 kg”). W innych miejscach aplikacji ciężary są pokazywane surowo z kropką (np. „77.5 kg”); zastana niespójność, zachowujemy ją dla parytetu.
+- Pusto: „Brak statystyk. Zakończ pierwszy trening, aby zobaczyć rekordy.”
+
+### 6.2 Szczegóły ćwiczenia (`stats-exercise-detail`)
+
+- Nagłówek: „Wróć” (do statystyk), nadtytuł „Historia ćwiczenia”, tytuł = nazwa ćwiczenia albo „Szczegóły ćwiczenia”.
+- Cztery kafle (2×2): „Maks. ciężar” {`maxWeight`} kg (wyróżniony), „Powt. przy PR” {`maxWeightReps`}, „Sesje” {`totalWorkouts`}, „Ostatnio” „{`lastWeight`} kg × {`lastReps`}”. Bez statystyk zera.
+- Wykres „Ciężar podnoszony w czasie” (metryka `maxSetWeight`, wszystkie punkty progresji).
+- „Ostatnie sesje” z przełącznikiem „Najnowsze” / „Najstarsze”: 8 najnowszych punktów progresji (przełącznik odwraca kolejność tych samych 8). Wiersz: data (`pl-PL`, dzień, skrócony miesiąc, rok) i wszystkie serie ćwiczenia z tego treningu („70 kg × 8, 72.5 kg × 6”), a gdy treningu nie ma w pamięci: „{maxSetWeight} kg × {repetitionsAtMaxSet}”.
+- Pusto: „Brak historii dla tego ćwiczenia.” Błąd pobrania progresji jest traktowany jak brak danych.
+
+### 6.3 Wykres progresji (`StatsProgressChart`)
+
+Własny rysunek SVG w układzie 100 × 56 jednostek, skalowany do szerokości karty.
+
+- Nagłówek: etykieta i ostatnia wartość z jednym miejscem po przecinku i sufiksem (np. „77.5 kg”).
+- Bez punktów: tekst „Wykres pojawi się po zrealizowaniu sesji treningowych” (wysokość 120).
+- Obszar wykresu: x od 18 do 96, y od 8 (góra) do 46 (dół). Zakres wartości = `max − min`, nie mniej niż 1.
+- Punkty rozłożone równomiernie w poziomie wg kolejności (nie wg dat); pojedynczy punkt na środku.
+- Linie pomocnicze (przerywane 1,5/1,5) i etykiety osi Y dla **każdej unikalnej wartości** zaokrąglonej do jednego miejsca (czcionka o stałej szerokości, rozmiar 3,6); przy wielu różnych wartościach etykiety nachodzą na siebie (zastane).
+- Oś X: tylko data pierwszego i ostatniego punktu (`pl-PL`, dzień i skrócony miesiąc).
+- Linia łamana przez punkty i kółko (promień 1,4) w każdym punkcie.
+
+---
+
+## 7. Logowanie i rejestracja
+
+Pliki: `features/auth/components/LoginScreen.tsx`, `RegisterScreen.tsx`, `contexts/AuthContext.tsx`, `App.tsx`, `utils/auth.ts`. Zrzuty: `01`–`03`.
+
+### 7.1 Start aplikacji (`App.tsx`)
+
+- W trakcie wczytywania sesji: pełnoekranowy spinner i „Ładowanie...”.
+- Bez użytkownika: ekran logowania (domyślnie) albo rejestracji, przełączane lokalnym stanem.
+- Z użytkownikiem: aplikacja z zakładką „Treningi”.
+
+### 7.2 Logowanie
+
+- Logo tekstowe „GymGate”, podtytuł „Zaloguj się do swojego konta”.
+- Pola: „Email” (typ e-mail, wymagane, placeholder „twoj@email.com”), „Hasło” (wymagane, minimum 6 znaków po stronie przeglądarki, placeholder „••••••••”).
+- Przycisk „Zaloguj się” („Logowanie...”; pola i przycisk zablokowane w trakcie).
+- Stopka: „Nie masz konta? Zarejestruj się”.
+- Błąd nad formularzem: komunikat z serwera (pole `error`), a gdy go brak „Nieprawidłowy email lub hasło”; dla wyjątku innego typu „Błąd logowania”. Komunikaty serwera: „Nieprawidłowy email lub hasło” (401), „Zbyt wiele prób. Spróbuj ponownie później.” (429), błędy walidacji („Validation failed”). Błąd sieci pokazuje surowy komunikat przeglądarki (np. „Failed to fetch”); w apce zastępujemy go czytelnym tekstem (odstępstwo do `DECYZJE.md`).
+- Walidacja pól (wymagane, format e-mail, długość hasła) jest natywna dla przeglądarki; w apce potrzebne własne komunikaty.
+
+### 7.3 Rejestracja
+
+- Logo „GymGate”, podtytuł „Stwórz nowe konto”.
+- Pola: „Imię” (wymagane, „Jan”) i „Nazwisko” (wymagane, „Kowalski”) w jednym wierszu; „Email” (wymagane); „Telefon (opcjonalnie)” („+48 123 456 789”); „Hasło” (wymagane, min. 6, „Min. 6 znaków”); „Potwierdź hasło” (wymagane, min. 6, „Powtórz hasło”).
+- Przycisk „Zarejestruj się” („Tworzenie konta...”). Stopka: „Masz już konto? Zaloguj się”.
+- Walidacja klienta, w tej kolejności: „Hasła nie są identyczne”; „Hasło musi mieć minimum 6 znaków”.
+- Walidacja serwera: „Nieprawidłowy email”, „Hasło musi mieć minimum 6 znaków”, „Imię musi mieć minimum 2 znaki”, „Nazwisko musi mieć minimum 2 znaki”. Klient nie sprawdza długości imienia i nazwiska, a przy błędzie walidacji serwer zwraca ogólne „Validation failed” ze szczegółami w `details`, których PWA nie pokazuje. W apce walidujemy te reguły lokalnie z tymi samymi tekstami.
+- Zajęty e-mail: komunikat serwera (do potwierdzenia w sekcji API).
+- Po sukcesie użytkownik jest od razu zalogowany. Błąd ogólny: „Błąd rejestracji”.
+- Pusty telefon nie jest wysyłany.
+
+### 7.4 Sesja (`AuthContext`, `utils/auth.ts`)
+
+- Przechowywanie: `localStorage`, klucze `gymgate_token` (JWT) i `gymgate_user` (obiekt użytkownika: `id`, `email`, `firstName`, `lastName`, `phone`, `isAdmin`).
+- Start z zapisanym tokenem i użytkownikiem: aplikacja otwiera się natychmiast z danych lokalnych; równolegle `GET /api/auth/me` z limitem 6 s.
+  - 200: odświeżenie danych użytkownika.
+  - 401 lub 403: wylogowanie (usunięcie tokenu i użytkownika).
+  - inne statusy, błąd sieci, przekroczenie czasu: sesja zostaje.
+- Start z tokenem, ale bez zapisanego użytkownika: spinner do czasu odpowiedzi `/auth/me`; przy błędzie sieci użytkownik ląduje na ekranie logowania, choć token zostaje w pamięci (zastane).
+- Każde żądanie przez `authFetch`: limit 15 s (przekroczenie traktowane jak błąd sieci), `cache: no-store`, nagłówek `Authorization: Bearer`. Odpowiedź 401 przy posiadanym tokenie czyści sesję i przeładowuje stronę.
+- Wylogowanie: usuwa token i użytkownika oraz czyści lokalne magazyny `workouts`, `stats`, `activeWorkout`, `pendingSync`, `metadata` (kolejka niewysłanych zmian przepada bez ostrzeżenia). Magazyny `exercises` i `plans` nie są czyszczone, więc po zalogowaniu na inne konto przez chwilę widać cudze prywatne ćwiczenia i plany, do pierwszej synchronizacji (zastany błąd; w apce dane lokalne są rozdzielone per konto).
+- Token wygasa po 7 dniach; nie ma odświeżania.
