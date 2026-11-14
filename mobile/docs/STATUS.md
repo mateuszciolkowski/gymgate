@@ -6,7 +6,7 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 
 **Ostatnia aktualizacja:** 2026-11-14
 **Bieżący etap:** 0 (rozpoznanie i środowisko)
-**Następny krok:** lokalna baza i uruchomienie backendu z PWA (Etap 0), potem inwentaryzacja (Etap 1)
+**Następny krok:** przejście pełnej ścieżki treningu w lokalnym PWA (ostatnie zadanie Etapu 0), potem `INWENTARYZACJA.md` (Etap 1)
 
 ## Przegląd etapów
 
@@ -38,9 +38,9 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 - [x] Decyzje właściciela D1–D6 potwierdzone
 - [x] Gałąź `mobile-migration` utworzona z `dev` (`cca3455`)
 - [x] Stan wyjściowy testów zapisany (niżej)
-- [ ] Lokalna baza PostgreSQL z migracjami i danymi z `seed-local.ts`
-- [ ] Backend uruchomiony lokalnie z `DB_ENV=local`, PWA lokalnie na tym backendzie
-- [ ] Ręczne przejście pełnej ścieżki treningu w lokalnym PWA
+- [x] Lokalna baza PostgreSQL z migracjami i danymi z `seed-local.ts` (15 migracji, 16 treningów zakończonych + 1 aktywny)
+- [x] Backend uruchomiony lokalnie z `DB_ENV=local`, PWA lokalnie na tym backendzie (logowanie i wszystkie zakładki działają)
+- [ ] Przejście pełnej ścieżki treningu w lokalnym PWA z zapisem danych (dodanie serii, zakończenie, statystyki); dotąd tylko odczyt
 - [ ] Ustalenia o deployu (niżej) uzupełnione odpowiedziami właściciela
 
 ## Etap 1: inwentaryzacja
@@ -53,7 +53,7 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 - [ ] `INWENTARYZACJA.md`: zachowania przeglądarkowe i ich natywne odpowiedniki
 - [ ] `INWENTARYZACJA.md`: zastane błędy
 - [ ] `PARYTET.md`: lista kontrolna każdej funkcji i stanu
-- [ ] `wzorzec/`: zrzuty ekranów PWA (iPhone 15 Pro; `dark` i `light` komplet, kluczowe ekrany w 12 motywach)
+- [~] `wzorzec/`: zrzuty ekranów PWA (iPhone 15 Pro). Jest: 23 ekrany w `dark` i `light`, lista treningów i aktywny trening w pozostałych 10 motywach. Brakuje stanów: szkic i edycja serii, notatka ćwiczenia, podpowiedź z planu, modal nowego treningu i edycji treningu, rozwinięty plan, historia planu, edycja ćwiczenia, zdjęcie ćwiczenia, stany puste, banery offline i błędu synchronizacji, dialog porzuconego treningu, widok admina
 
 ## Etap 2: plan
 
@@ -80,7 +80,7 @@ Listy zadań zostaną wpisane tutaj po Etapie 2.
 | Frontend | `npm test` | 78 testów w 10 plikach, wszystkie przechodzą |
 | Frontend | `npm run lint` | 25 zastanych problemów (19 błędów, 6 ostrzeżeń), m.in. `react-hooks/set-state-in-effect`; lint nie jest częścią CI |
 
-Buildy (`npm run build`) nie były jeszcze uruchamiane. Backend i PWA nie były jeszcze uruchamiane lokalnie.
+Buildy (`npm run build`) nie były jeszcze uruchamiane.
 
 ## Ustalenia o deployu
 
@@ -100,9 +100,11 @@ Do czasu odpowiedzi: zakładam, że push na `mobile-migration` może zbudować p
 
 ## Znane problemy
 
-- Sesja chmurowa nie ma Dockera, więc `make local-setup` tu nie zadziała. PostgreSQL 16 jest zainstalowany w systemie i może posłużyć jako lokalna baza na porcie 5433.
+- Sesja chmurowa nie ma Dockera, więc `make local-setup` tu nie działa. Zamiast tego: systemowy PostgreSQL 16 na `127.0.0.1:5433`, baza `gymgate_local`, migracje i seedy z jawnie podstawionym `DATABASE_URL`/`DIRECT_URL`. Kontener sesji jest ulotny, więc w nowej sesji chmurowej bazę trzeba postawić od nowa.
+- Limit logowań backendu (10 prób na 15 minut na IP) blokuje automaty logujące się wielokrotnie; `capture.mjs` loguje się raz przez API i wstrzykuje sesję.
+- Użytkownik testowy z `seed-local.ts` ma identyfikator `local-test-user-1`, który nie jest UUID. Schematy Zod wymagają UUID tylko dla części pól; do uwzględnienia przy projektowaniu synchronizacji.
 - Zastane błędy w kodzie: lista w `MIGRACJA_MOBILE.md`, sekcja 1.11.
 
 ## Dziennik sesji
 
-- **2026-11-14 (chmura):** analiza repo, brief, decyzje D1–D6, gałąź, stan wyjściowy testów, ta tablica.
+- **2026-11-14 (chmura):** analiza repo, brief, decyzje D1–D6, gałąź, stan wyjściowy testów, ta tablica. Lokalna baza, backend i PWA uruchomione; skrypt `mobile/tools/pwa-wzorzec/capture.mjs` i pierwsza partia zrzutów wzorcowych.
