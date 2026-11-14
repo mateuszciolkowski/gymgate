@@ -106,8 +106,6 @@ export function PlanHistoryModal({ planId, onClose }: PlanHistoryModalProps) {
                   <li className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>
                     Wersja początkowa · {ver.exercises.length} ćw.
                   </li>
-                ) : changes.length === 0 ? (
-                  <li className="text-[13px]" style={{ color: "var(--gg-text-muted)" }}>Bez zmian w składzie</li>
                 ) : (
                   changes.map((c, idx) => (
                     <li key={idx} className="text-[13px] flex gap-2" style={{ color: "var(--gg-text)" }}>
