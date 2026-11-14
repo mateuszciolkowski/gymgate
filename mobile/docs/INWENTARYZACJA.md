@@ -445,3 +445,99 @@ Pliki: `features/auth/components/LoginScreen.tsx`, `RegisterScreen.tsx`, `contex
 - Każde żądanie przez `authFetch`: limit 15 s (przekroczenie traktowane jak błąd sieci), `cache: no-store`, nagłówek `Authorization: Bearer`. Odpowiedź 401 przy posiadanym tokenie czyści sesję i przeładowuje stronę.
 - Wylogowanie: usuwa token i użytkownika oraz czyści lokalne magazyny `workouts`, `stats`, `activeWorkout`, `pendingSync`, `metadata` (kolejka niewysłanych zmian przepada bez ostrzeżenia). Magazyny `exercises` i `plans` nie są czyszczone, więc po zalogowaniu na inne konto przez chwilę widać cudze prywatne ćwiczenia i plany, do pierwszej synchronizacji (zastany błąd; w apce dane lokalne są rozdzielone per konto).
 - Token wygasa po 7 dniach; nie ma odświeżania.
+
+---
+
+## 8. Nawigacja, ustawienia, banery i komponenty wspólne
+
+Pliki: `components/navigation/NavigationDrawer.tsx`, `components/layouts/MainLayout.tsx`, `components/app/*`, `features/menu/components/MenuScreen.tsx`, `hooks/useNavigation.ts`, `hooks/useTheme.ts`, `utils/pwaUpdate.ts`, `components/ui/*`, `vite.config.ts`, `index.html`. Zrzuty: `60`, `80`, `81`.
+
+### 8.1 Model nawigacji
+
+Brak routera i adresów URL; przycisk „wstecz” przeglądarki nie działa w obrębie aplikacji. Stan: `activeTab` (`trainings`, `exercises`, `stats`, `plans`, `menu`) i `screen` (zakładka albo ekran podrzędny). Zmiana zakładki ustawia też ekran. Ekran startowy: `trainings`.
+
+Mapa przejść:
+
+| Z | Do | Powrót |
+|---|---|---|
+| Treningi | `workout-detail` (karta, „Trening w toku”, pastylka w pasku, nowy trening) | Treningi |
+| Ćwiczenia | `add-exercise` | Ćwiczenia |
+| Ćwiczenia | `edit-exercise` | Ćwiczenia |
+| `workout-detail` → modal wyboru → „Dodaj nowe ćwiczenie” | `add-exercise` | `workout-detail` + automatyczne dodanie nowego ćwiczenia |
+| Statystyki | `stats-exercise-detail` | Statystyki |
+| Plany | `plan-form` (nowy / edycja) | Plany |
+| `plan-form` → modal wyboru → „Dodaj nowe ćwiczenie” | `add-exercise` | `plan-form` z zachowanym szkicem + dopisane ćwiczenie |
+
+Uwagi:
+
+- Ekran podrzędny nie zmienia `activeTab`, więc w dolnym pasku podświetlona zostaje zakładka pochodzenia (wyjątek: ekran treningu gasi wszystkie).
+- Kliknięcie zakładki z dowolnego ekranu podrzędnego przechodzi do niej bez potwierdzenia (niezapisany formularz przepada).
+- Wybrany trening, edytowane ćwiczenie i szkic planu żyją w stanie `AuthenticatedApp`, nie przetrwają przeładowania strony.
+- Zakładki „Plany” i „Ustawienia” są dostępne tylko z szuflady.
+- Zmiana ekranu odgrywa animację wejścia (`screen-enter`: 0,2 s, przezroczystość 0→1, przesunięcie 8 px w górę, krzywa `cubic-bezier(0.16, 1, 0.3, 1)`).
+
+### 8.2 Szuflada (`NavigationDrawer`)
+
+- Panel z lewej, szerokość 330 px, z przyciemnionym tłem. Otwierana przyciskiem w dolnym pasku lub przeciągnięciem od lewej krawędzi; zamykana przyciskiem „Zamknij menu”, kliknięciem tła lub przeciągnięciem w lewo.
+- Gest: start po 8 px ruchu; otwarcie po przeciągnięciu ≥ 35% szerokości (115,5 px), zamknięcie po ≥ 30% (99 px); panel i przyciemnienie podążają za palcem.
+- Zawartość: awatar z inicjałami (pierwsze litery imienia i nazwiska, wielkie; bez użytkownika „?”), imię i nazwisko, e-mail; pozycje „Historia treningów”, „Ćwiczenia”, „Statystyki”, „Plany treningowe”, „Ustawienia” (aktywna wyróżniona); na dole „Wyloguj się” i „GymGate v1.0.0”.
+- Wybór pozycji przełącza zakładkę i zamyka szufladę. Wylogowanie bez potwierdzenia.
+- W apce: gest od lewej krawędzi koliduje z systemowym gestem cofania na iOS; rozstrzygnięcie w `PLAN.md`.
+
+### 8.3 Ustawienia (`menu`)
+
+- Nagłówek: nadtytuł „Ustawienia”, tytuł „Profil i opcje”.
+- Karta profilu (tylko odczyt): inicjały, imię i nazwisko, e-mail.
+- „Motyw kolorystyczny” / „Aktualny: {nazwa}”: otwiera arkusz „Wybierz motyw kolorystyczny” z zakładkami „Ciemne” / „Jasne” (startowa wg bieżącego motywu). Każdy motyw: podgląd palety, nazwa, opis, znacznik przy aktywnym. Wybór stosuje motyw i zamyka arkusz.
+- „Odśwież pamięć podręczną (Cache)” / „Wyczyść dane offline i pobierz najnowsze z serwera”: potwierdzenie „Pobrać świeże dane z serwera i zaktualizować lokalną bazę?”, potem „Pomyślnie zsynchronizowano dane z serwerem.” albo „Nie udało się zresetować lokalnego cache.”
+- „Wyloguj się” (bez potwierdzenia).
+- Stopka: „GymGate v1.0.0 · Offline-First Training App”.
+
+Motywy (identyfikator, nazwa, opis):
+
+| Ciemne | Jasne |
+|---|---|
+| `dark` Ciemny, Emerald Dark | `light` Jasny, Emerald Light |
+| `steel` Stalowy, Steel Blue | `blossom` Różany, Blossom Light |
+| `graphite` Grafitowy, Graphite Dark | `sky` Niebieski, Sky Light |
+| `violet` Fioletowy, Violet Dark | `sand` Piaskowy, Sand Light |
+| `ember` Bursztynowy, Ember Dark | `sage` Szałwiowy, Sage Light |
+| `crimson` Karmazynowy, Crimson Dark | `slate` Grafitowy jasny, Slate Light |
+
+Motyw jest zapisywany w `localStorage` pod kluczem `theme` (domyślnie `dark`, nieznana wartość też daje `dark`) i stosowany jako klasa na elemencie `html`. Jest ustawieniem urządzenia, nie konta: nie synchronizuje się i przetrwa wylogowanie. Aplikacja nie reaguje na systemowy tryb ciemny/jasny.
+
+### 8.4 Banery globalne (nad treścią, w tej kolejności)
+
+1. **Offline** (gdy `isOnline` jest fałszem): „Brak połączenia z internetem — pracujesz offline”.
+2. **Nowa wersja** (specyficzny dla PWA): „Dostępna nowa wersja aplikacji” + „Odśwież”. Service worker działa w trybie „prompt”: nowa wersja pobiera się w tle, a aktywuje dopiero po kliknięciu, żeby aplikacja nie przeładowała się w trakcie treningu. W apce bez odpowiednika.
+3. **Nieudana synchronizacja** (gdy są operacje trwale nieudane): „Nie udało się zsynchronizować zmian:” i lista unikalnych opisów „{akcja} {obiekt}”, gdzie akcja to „Zapisanie” / „Aktualizacja” / „Usunięcie”, a obiekt „treningu” / „ćwiczenia w treningu” / „serii” / „ćwiczenia” / „planu”. Przyciski „Ponów” (nieaktywny offline, podpowiedź „Dostępne po powrocie online”) i „Zamknij”.
+
+### 8.5 Komponenty wspólne (`components/ui`)
+
+| Komponent | Zachowanie |
+|---|---|
+| `Modal` | Wyśrodkowane okno z tytułem, podtytułem i przyciskiem „Zamknij”; zamyka się klawiszem Escape i kliknięciem tła; szerokości `sm`/`md`/`lg`/`xl` |
+| `Button` | Warianty `primary`, `secondary`, `danger`, `ghost`; rozmiary `sm` (38 px, tekst 13, promień 12), `md` (44 px, 14, 14), `lg` (52 px, 15, 16); stan ładowania ze spinnerem i opcjonalnym tekstem; ikona; pełna szerokość |
+| `Switch` | Przełącznik z etykietą, opisem, znaczkiem i ikoną; warianty `accent` (`--gg-a1`), `admin` (`--gg-a2`), `default`; włączony zmienia obramowanie i tło kontenera |
+| `FormField` | Etykieta wielkimi literami, znacznik „(opcjonalnie)”, podpowiedź, komunikat błędu |
+| `EmptyState` | Ikona, tytuł, opis |
+
+Nieużywane (martwy kod, nie przenosić): `ScreenHeader`, `FilterChip`, `ScreenContainer`, `NavButton`, `AddWorkoutButton`.
+
+### 8.6 Zachowania zależne od przeglądarki i ich natywne odpowiedniki
+
+| PWA | Apka |
+|---|---|
+| Service worker z precache zasobów i trybem „prompt”; baner nowej wersji | Zasoby w paczce aplikacji; aktualizacje przez sklep |
+| Manifest: nazwa „GymGate”, `display: standalone`, kolor tła i motywu `#111827`, ikony 192 i 512 px (maskowalne) | Ikona i splash aplikacji |
+| `viewport-fit=cover`, `user-scalable=no`, `maximum-scale=1` | Safe area; brak powiększania to domyślne zachowanie natywne |
+| `overscroll-behavior: none` (wyłącza pull-to-refresh przeglądarki) | Brak pull-to-refresh w PWA, więc w apce też go nie ma; odświeżanie tylko z Ustawień |
+| `touch-action: manipulation`, brak podświetlenia dotyku | Natywne zachowanie dotyku + haptyka |
+| Blokada przewijania tła pod modalem wyboru ćwiczenia | Natywny arkusz |
+| `navigator.onLine` i zdarzenia `online`/`offline` | Biblioteka stanu sieci; uwaga: `onLine` bywa prawdą bez realnego dostępu do serwera |
+| `confirm()` / `alert()` | Natywne alerty z tymi samymi tekstami |
+| `localStorage` (token, użytkownik, motyw) | Magazyn systemowy na token; zwykły magazyn na motyw |
+| IndexedDB + `navigator.storage.persist()` | SQLite |
+| Pola `type="date"`, `type="time"`, `type="number"`, `select` | Natywne selektory daty, czasu i wyboru; klawiatura numeryczna z separatorem dziesiętnym |
+| Enter / Escape w wierszu serii | Przycisk „gotowe” klawiatury zatwierdza |
+| Atrybuty `title` (podpowiedzi po najechaniu) | Etykiety dostępności |
