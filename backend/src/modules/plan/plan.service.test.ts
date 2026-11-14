@@ -147,6 +147,19 @@ describe("PlanService", () => {
       expect(mockRepo.update).toHaveBeenCalledWith("p1", {}, "owner");
     });
 
+    it("maps a version-number race (P2002 on planId+version) to a retry message, not a name clash", async () => {
+      mockRepo.findById.mockResolvedValue({
+        id: "p1",
+        creatorUserId: "owner",
+        isPublic: false,
+        name: "p",
+        items: [],
+      });
+      mockRepo.update.mockRejectedValue({ code: "P2002", meta: { target: ["planId", "version"] } });
+
+      await expect(service.updatePlan("p1", {}, "owner")).rejects.toThrow(/retry/);
+    });
+
     it("rejects switching to public when current items are private", async () => {
       mockRepo.findById.mockResolvedValue({
         id: "p1",

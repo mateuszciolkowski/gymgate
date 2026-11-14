@@ -238,7 +238,13 @@ export class PlanService {
         "code" in err &&
         (err as { code: string }).code === "P2002"
       ) {
-        throw new ConflictError("Plan with this name already exists");
+        // P2002 can also come from (planId, version) when two saves of one plan race.
+        const target = JSON.stringify((err as { meta?: { target?: unknown } }).meta?.target ?? "name");
+        throw new ConflictError(
+          target.includes("version")
+            ? "Plan was modified at the same time elsewhere, please retry"
+            : "Plan with this name already exists",
+        );
       }
       throw err;
     }
