@@ -2,12 +2,22 @@
 
 Opis obecnej aplikacji (stan gałęzi `dev`, commit `cca3455`) jako wzorzec dla apki mobilnej. Każda sekcja powstała z przeczytania wskazanych plików. Teksty interfejsu są cytowane dosłownie. Zrzuty ekranów: `mobile/docs/wzorzec/`.
 
-Stan dokumentu: w budowie. Gotowe sekcje są wymienione w `STATUS.md`.
+Stan dokumentu: komplet sekcji 1–12. Do uzupełnienia przy budowie ekranów: dokładne wymiary komponentów (sekcja 12.3).
 
 ## Spis treści
 
-1. Ekran treningu (`workout-detail`)
-2. (kolejne sekcje dopisywane w miarę postępu)
+1. Ekran treningu
+2. Lista treningów i modal nowego treningu
+3. Dolny pasek, start treningu, porzucony trening
+4. Ćwiczenia
+5. Plany treningowe
+6. Statystyki
+7. Logowanie, rejestracja, sesja
+8. Nawigacja, ustawienia, banery, komponenty wspólne, zachowania przeglądarki
+9. Warstwa danych i obecny offline
+10. API: uzupełnienie
+11. Zastane błędy i niespójności
+12. System wizualny
 
 ---
 
@@ -541,3 +551,175 @@ Nieużywane (martwy kod, nie przenosić): `ScreenHeader`, `FilterChip`, `ScreenC
 | Pola `type="date"`, `type="time"`, `type="number"`, `select` | Natywne selektory daty, czasu i wyboru; klawiatura numeryczna z separatorem dziesiętnym |
 | Enter / Escape w wierszu serii | Przycisk „gotowe” klawiatury zatwierdza |
 | Atrybuty `title` (podpowiedzi po najechaniu) | Etykiety dostępności |
+
+---
+
+## 9. Warstwa danych i obecny offline
+
+Pliki: `contexts/data/*` (`useDataStore.ts`, `useDataSync.ts`, `useWorkoutActions.ts`, `useWorkoutItemActions.ts`, `useExerciseActions.ts`, `usePlanActions.ts`, `hooks.ts`), `utils/localStore.ts`, `utils/syncManager.ts`.
+
+Mechanizm nie jest przenoszony do apki (sekcja 6 zlecenia). Opis służy temu, żeby apka zachowała widoczne dla użytkownika zachowania i nie powtórzyła zastanych błędów.
+
+### 9.1 Stan globalny
+
+`workouts[]` (z pozycjami i seriami), `exercises[]`, `stats[]`, `statsOverview`, `activeWorkoutId`, `plans[]`, `isLoading`, `isOnline`, `lastSync`, `failedSyncOperations[]`.
+
+### 9.2 Start i pobieranie danych
+
+- Po zalogowaniu: wczytanie wszystkiego z IndexedDB, natychmiastowe pokazanie interfejsu, a w tle pełne pobranie z serwera: `GET /api/workouts` (wszystkie treningi z pozycjami i seriami, bez paginacji), `/api/exercises`, `/api/workouts/active`, `/api/workouts/stats/all`, `/api/workouts/stats/overview`, `/api/plans?tab=mine|builtin|community` (trzy żądania, wynik łączony bez duplikatów).
+- Dane z serwera **zastępują** lokalne w całości.
+- Ochrona przed nadpisaniem świeżych zmian: treningi i `activeWorkoutId` nie są pobierane ani podmieniane, gdy w kolejce czekają zmiany treningów lub gdy w trakcie żądania zaszła lokalna zmiana treningu (licznik zapisów).
+- Synchronizacja cykliczna co 2 minuty, po zdarzeniu `online` i po powrocie karty na pierwszy plan (iOS gubi zdarzenia `online` i wstrzymuje timery w tle).
+- Zmiana zalogowanego użytkownika czyści treningi, statystyki, aktywny trening, kolejkę i metadane.
+
+### 9.3 Wzorzec zapisu
+
+Dla treningów, pozycji, serii i ćwiczeń: natychmiastowa zmiana w pamięci i IndexedDB, potem żądanie do API; przy błędzie sieci operacja trafia do kolejki, przy błędzie serwera zmiana jest wycofywana.
+
+- Za błąd sieci uznaje się każdy `TypeError` (w tym przekroczenie 15 s) oraz każdą sytuację, gdy `navigator.onLine` jest fałszem.
+- Zmiana treningu idzie przez kolejkę (a nie bezpośrednio), gdy: brak sieci, trening ma tymczasowy identyfikator albo wcześniejsze zmiany tego treningu jeszcze czekają. Chroni to kolejność (np. zakończenie nie wyprzedzi zapisu serii).
+- Identyfikatory tymczasowe: `temp_workout_{ms}`, `temp_item_{ms}`, `temp_set_{ms}`, `temp_exercise_{ms}`; mapowanie na prawdziwe jest utrwalane i przeżywa przeładowanie strony. Ten sam identyfikator jest wysyłany jako `clientId`, po którym backend deduplikuje ponowienia.
+- Podwójne kliknięcie „Rozpocznij” zwraca tę samą trwającą operację.
+- Usunięcie obiektu z tymczasowym identyfikatorem nie anuluje oczekującego utworzenia, tylko kolejkuje usunięcie za nim (utworzenie mogło już dotrzeć do serwera).
+- Po zmianach w zakończonym treningu, po zakończeniu i po usunięciu treningu statystyki są pobierane ponownie z serwera, a bufor progresji czyszczony. Offline statystyki się nie zmieniają.
+
+### 9.4 Kolejka (`syncManager`)
+
+- Operacja: typ (`create`/`update`/`delete`), obiekt (`workout`/`workoutItem`/`set`/`exercise`), adres, metoda, dane, znacznik czasu, licznik prób.
+- Wysyłka w kolejności dodania; identyfikatory tymczasowe w adresie i danych są podmieniane na prawdziwe. Operacja z nierozwiązanym identyfikatorem czeka; po 3 cyklach jest oznaczana jako trwale nieudana.
+- Odpowiedzi:
+  - błąd sieci: bez zwiększania licznika, ponowienie przy następnej okazji;
+  - 408, 425, 429, 502, 503, 504: przejściowe, bez zwiększania licznika;
+  - 404 dla operacji na treningu: operacja usuwana, trening kasowany lokalnie (z komunikatem „Ten trening nie istnieje już na serwerze — został usunięty z urządzenia.” przy akcjach bezpośrednich);
+  - 404 dla pozycji lub serii: operacja porzucana, trening zostaje;
+  - inne błędy: do 3 prób, potem trwała porażka.
+- Operacje trwale nieudane zostają w IndexedDB i są pokazywane w banerze; „Ponów” zeruje ich licznik i próbuje ponownie; „Zamknij” tylko chowa baner.
+- Po opróżnieniu kolejki następuje pełne pobranie danych.
+
+### 9.5 Buforowanie statystyk
+
+- `stats[]` i `statsOverview` są kopią z serwera (IndexedDB).
+- Progresja ćwiczenia: bufor w pamięci na czas sesji aplikacji oraz kopia w IndexedDB używana tylko offline. Offline bez kopii żądanie kończy się błędem, a ekran pokazuje pusty wykres i brak historii.
+
+### 9.6 „Odśwież pamięć podręczną”
+
+Czyści lokalne treningi, ćwiczenia, statystyki, aktywny trening, **kolejkę oczekujących zmian** i metadane, po czym pobiera wszystko z serwera. Plany nie są czyszczone.
+
+### 9.7 Zastane wady obecnego offline
+
+Poza ograniczeniami opisanymi w zleceniu:
+
+- Trening utworzony offline dostaje na serwerze `createdAt` z chwili synchronizacji, a nie startu; po pełnym pobraniu licznik czasu przeskakuje.
+- `skipPlanExercise` offline (lub dla treningu z tymczasowym identyfikatorem) zmienia tylko stan lokalny i **nie trafia do kolejki**; najbliższe pełne pobranie cofa pominięcie.
+- „Odśwież pamięć podręczną” kasuje niewysłane zmiany bez ostrzeżenia, a uruchomione offline zostawia aplikację bez danych do powrotu sieci.
+- Wylogowanie kasuje niewysłane zmiany bez ostrzeżenia.
+- Plany są wyłącznie online.
+- Statystyki nie reagują na zmiany zrobione offline.
+
+---
+
+## 10. API: uzupełnienie do opisów modułów
+
+Pełne kontrakty są w `backend/src/modules/*/API.md` i `docs/api/openapi.yaml`. Tu tylko to, co istotne dla apki, a czego tam nie widać.
+
+- Każda odpowiedź: `{ success, data }` albo `{ success: false, error, details? }`.
+- Błąd walidacji (Zod): status **400**, `error: "Validation failed"`, `details: [{ path, message }]`. (`backend/CLAUDE.md` podaje 422; faktycznie jest 400.)
+- Middleware `validate` tylko sprawdza dane, nie podmienia ich na wynik parsowania: wartości domyślne i transformacje ze schematów (np. `tab` domyślnie `mine`, `limit` jako liczba) nie trafiają do kontrolera w ten sposób.
+- Rejestracja z zajętym e-mailem: „Użytkownik z tym emailem już istnieje”.
+- Limit logowania i rejestracji: 10 żądań na 15 minut na IP, licznik w pamięci procesu; odpowiedź 429 „Zbyt wiele prób. Spróbuj ponownie później.”
+- `POST /api/workouts` przy istniejącym aktywnym treningu `DRAFT` zwraca ten istniejący (status jak dla utworzenia), ignorując przesłane dane. Wyjątek: ten sam `clientId` zawsze zwraca swój trening.
+- `PATCH /api/workouts/:id` wymaga `workoutDate` jako pełnego znacznika ISO; sama data jest odrzucana (patrz 11, błąd B1).
+- `weight` w seriach i statystykach wraca jako tekst (`"77.5"`), w progresji jako liczba.
+- `GET /api/exercises` zwraca ćwiczenia globalne (`creatorUserId` puste lub `"1"`) i własne, posortowane od najnowszych, z `photos` i pełnym obiektem `creator`.
+- Usunięcie ćwiczenia kaskadowo usuwa: pozycje treningów z tym ćwiczeniem (i ich serie), statystyki, oczekujące notatki i pozycje planów. Statystyki pozostałych ćwiczeń nie wymagają przeliczenia, ale podsumowanie (`totalSets`, `totalVolume`) się zmienia.
+- Użytkownik testowy z `seed-local.ts` ma identyfikator niebędący UUID (`local-test-user-1`); w produkcji występuje też historyczny twórca `"1"`. Identyfikatorów użytkowników nie wolno walidować jako UUID.
+
+---
+
+## 11. Zastane błędy i niespójności
+
+Błędów nie przenosimy. Każde odstępstwo apki od zachowania PWA jest odnotowywane w `DECYZJE.md`.
+
+### 11.1 Błędy funkcjonalne
+
+| # | Błąd | Gdzie | W apce |
+|---|---|---|---|
+| B1 | **Edycja szczegółów treningu nie działa online.** Modal wysyła `workoutDate` jako `RRRR-MM-DD`, backend wymaga pełnego ISO i odrzuca całe żądanie (400). Użytkownik widzi „Nie udało się zapisać zmian”; nie zapisuje się też nazwa, siłownia ani czas trwania. Offline zmiana trafia do kolejki i kończy jako trwale nieudana. Potwierdzone żądaniem do lokalnego backendu. | `WorkoutEditModal.tsx`, `workout.schema.ts` | Wysyłamy poprawny znacznik czasu |
+| B2 | `GET /api/exercises` i `/api/exercises/:id` zwracają cały wiersz twórcy, w tym hash hasła. | `exercise.repository.ts` (`creator: true`) | Naprawa w backendzie (zgodna wstecznie) |
+| B3 | Komunikaty serwera przy błędach planów nie są pokazywane (klient czyta `message`, serwer wysyła `error`). | `usePlanActions.ts` | Pokazujemy powód |
+| B4 | Pominięcie ćwiczenia z planu offline nie jest synchronizowane i znika. | `useWorkoutActions.ts` | Normalna zmiana w kolejce |
+| B5 | Trening utworzony offline ma na serwerze czas startu z chwili synchronizacji. | backend `createdAt` | Serwer przyjmuje czas startu z telefonu |
+| B6 | „Odśwież pamięć podręczną” i wylogowanie kasują niewysłane zmiany bez ostrzeżenia. | `useDataSync.ts`, `AuthContext.tsx` | Najpierw wysyłka kolejki albo ostrzeżenie |
+| B7 | Po wylogowaniu zostają lokalne ćwiczenia i plany poprzedniego konta. | `AuthContext.tsx` | Dane lokalne rozdzielone per konto |
+| B8 | `updateWorkoutSet` w backendzie wykonuje pusty zapis przed sprawdzeniem uprawnień: podbija `updatedAt` cudzej serii, a dla nieistniejącej zwraca 500 zamiast 404. | `workout.service.ts` | Naprawa w backendzie |
+| B9 | Dialog porzuconego treningu pozwala zakończyć trening bez ćwiczeń lub z ćwiczeniem bez serii, wbrew regułom ekranu treningu. | `AuthenticatedApp.tsx` | Decyzja w `PLAN.md` (domyślnie: jak w PWA, bo to ratunkowe zamknięcie) |
+| B10 | Licznik w dolnym pasku nie stosuje reguły porzuconego treningu i po ponad 2 godzinach bezczynności różni się od licznika na ekranie treningu. | `BottomNavigation.tsx` | Jedna funkcja dla obu miejsc |
+| B11 | Nazwy treningu, siłowni i opisu ćwiczenia nie da się wyczyścić (puste pole jest pomijane w żądaniu). | modale edycji | Decyzja w `PLAN.md` (domyślnie: pozwalamy wyczyścić) |
+
+### 11.2 Teksty i drobne niespójności (zachowujemy dla parytetu, chyba że zaznaczono)
+
+- „{n} serie” dla każdej liczby poza 1 (karta ćwiczenia); „{n} ćwiczeń · {m} zalogowanych serii” bez odmiany; „ćwiczenia” dla 22–24 w planach. W apce poprawna odmiana (odstępstwo do `DECYZJE.md`).
+- Zakładka planów „Built-in” po angielsku wśród polskich.
+- „Ten rok” i „Miesiąc” oznaczają ostatnie 12 miesięcy i ostatni miesiąc, nie okresy kalendarzowe.
+- Ciężary raz z przecinkiem (lista statystyk), raz z kropką (wszędzie indziej).
+- Pusty stan listy treningów odsyła do przycisku „powyżej”, który jest w dolnym pasku.
+- Wyszukiwanie ćwiczeń dopasowuje angielskie wartości grup mięśniowych zamiast polskich etykiet. W apce dopasowujemy etykiety (odstępstwo).
+- Pusty wynik filtrowania w modalu wyboru pokazuje „Wszystkie ćwiczenia zostały już dodane”.
+- Trzy różne formaty czasu trwania: „1h 5min” (ekran treningu), „1h 5m” (lista, modal edycji), „Brak danych” / „0 min” / pusty dla braku.
+- Komunikaty błędów backendu częściowo po angielsku (plany, ćwiczenia).
+
+### 11.3 Długi techniczne (bez wpływu na apkę)
+
+- Martwy kod: druga obsługa modala nowego treningu w `TrainingsScreen`, komponenty `ScreenHeader`, `FilterChip`, `ScreenContainer`, `NavButton`, `AddWorkoutButton`, hooki zgodności w `hooks.ts`.
+- Typ `MuscleGroup` we frontendzie zawiera `LEGS`, którego nie ma w bazie.
+- `tailwind.config.js` zawiera starą paletę kolorów niezgodną z `index.css`; obowiązuje `index.css`.
+- Kolor motywu w manifeście i `index.html` (`#111827`) nie pasuje do żadnego motywu.
+- `CLAUDE.md` i `PRODUCT.md` opisują ciasteczko httpOnly; faktycznie jest token Bearer w `localStorage`.
+- `CLAUDE.md` wymienia kolekcję Postmana, której nie ma w repo.
+- Lint frontendu zgłasza 25 problemów; nie jest częścią CI.
+
+---
+
+## 12. System wizualny
+
+Źródło prawdy: `frontend/src/index.css`. Wartości wszystkich motywów w formie do wczytania przez apkę: `mobile/docs/tokeny-motywow.json` (wygenerowane skryptem z `index.css`).
+
+### 12.1 Tokeny (każdy motyw definiuje komplet)
+
+| Token | Rola |
+|---|---|
+| `--gg-bg` | tło aplikacji |
+| `--gg-surface`, `--gg-surface2`, `--gg-surface3` | karty; pola i przyciski drugorzędne; elementy zagnieżdżone |
+| `--gg-border`, `--gg-border-med`, `--gg-border-strong` | obramowania o rosnącym kontraście |
+| `--gg-text`, `--gg-text-sub`, `--gg-text-muted` | tekst główny, pomocniczy, wyciszony |
+| `--gg-a1`, `--gg-a2` | akcent podstawowy i jaśniejszy (wartości, aktywne ikony) |
+| `--gg-btn-bg`, `--gg-btn-hover` | przycisk główny; oba tworzą gradient 135° (`--gg-grad-btn`) |
+| `--gg-glow` | poświata przycisku: `--gg-btn-bg` w 35% krycia |
+| `--gg-tag-bg`, `--gg-tag-text` | etykiety grup mięśniowych |
+| `--gg-record-bg`, `--gg-record-text` | wyróżnienie rekordu |
+| `--gg-nav-bg` | półprzezroczyste tło dolnego paska (z rozmyciem) |
+| `--gg-shadow`, `--gg-shadow-elevated` | cień karty i elementu uniesionego |
+| `--gg-active-border`, `--gg-active-glow`, `--gg-active-bg` | aktywny trening i ostrzeżenia (bursztyn) |
+| `--gg-error` | błąd (`#EF4444`; nadpisany w `ember` i `crimson`) |
+
+### 12.2 Typografia
+
+- Tekst podstawowy: DM Sans (400, 500, 600, 700, kursywa 400).
+- Nagłówki i liczby: Barlow (400–900), klasa `font-barlow`.
+- Barlow Condensed (600–900) jest ładowany; użycia do potwierdzenia przy budowie komponentów.
+- Liczby (ciężary, powtórzenia, liczniki): cyfry tabelaryczne (`num-tabular`). Licznik w pasku i etykiety wykresu: czcionka o stałej szerokości.
+- Wygładzanie czcionek włączone. Rozmiary podawane w pikselach przy elementach (najczęstsze: 10, 11, 12, 13, 14, 15, 17, 18, 20, 22, 28).
+
+### 12.3 Kształt i ruch
+
+- Promienie: 12, 14, 16, 18 px dla pól i przycisków; 24 i 28 px dla arkuszy i dużych kart; pełne zaokrąglenie dla pastylek.
+- Minimalna wysokość elementów dotykowych: 44 px (reguła globalna dla ekranów do 768 px).
+- Ekrany: margines boczny 20 px (ekran treningu 16 px), dolny odstęp 112 px pod pływający pasek, maksymalna szerokość treści 672 px.
+- Animacje: wejście ekranu 0,2 s; obrót strzałek 0,15 s; zmiana tła przy zmianie motywu 0,25 s; pulsowanie kropki aktywnego treningu; spinner. Przy systemowym ograniczeniu ruchu wszystkie animacje i przejścia są praktycznie wyłączone.
+- Efekty: rozmycie tła pod modalami (4–6 px) i pod dolnym paskiem; przyciemnienie tła modali `rgba(0,0,0,0.55–0.75)`.
+
+Dokładne wymiary poszczególnych komponentów (odstępy, rozmiary ikon, grubości obramowań) są w stylach inline plików komponentów i na zrzutach w `wzorzec/`; przy budowie każdego ekranu odczytujemy je z pliku źródłowego.
+
+### 12.4 Ikony
+
+Ręcznie pisane SVG w komponentach (siatka 24 × 24, kreska 1,8–2,5, zaokrąglone końce), bez biblioteki. W apce przenosimy te same ścieżki. Zestaw wydzielony w `components/icons/`: `ArchiveIcon`, `ChartIcon`, `DumbbellIcon`, `EditIcon`, `MenuIcon`, `PhotoIcon`, `PlusIcon`, `TrashIcon`; pozostałe są wpisane bezpośrednio w ekranach.
