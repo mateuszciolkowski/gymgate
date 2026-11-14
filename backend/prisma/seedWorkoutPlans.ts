@@ -1,4 +1,9 @@
 import prisma from "../src/config/database.js";
+import { PlanRepository } from "../src/modules/plan/plan.repository.js";
+
+const planRepository = new PlanRepository();
+// Only scopes the isFavorite flag of the returned plan; not stored anywhere.
+const SEED_USER_ID = "seed";
 
 /**
  * Single source of truth for built-in workout plans.
@@ -191,36 +196,20 @@ export async function seedWorkoutPlans() {
   for (const plan of planDefinitions) {
     const existing = existingByName.get(plan.name);
     if (existing) {
-      // Keep existing plan ID, just replace its items
-      await prisma.$transaction(async (tx) => {
-        await tx.workoutPlan.update({
-          where: { id: existing.id },
-          data: { shortName: plan.shortName },
-        });
-        await tx.workoutPlanItem.deleteMany({ where: { planId: existing.id } });
-        await tx.workoutPlanItem.createMany({
-          data: plan.exerciseNames.map((name, index) => ({
-            planId: existing.id,
-            exerciseId: byName.get(name)!,
-            orderInPlan: index,
-          })),
-        });
-      });
+      // Keep existing plan ID; go through the repository so plan history records the change.
+      await planRepository.update(
+        existing.id,
+        { shortName: plan.shortName, exerciseIds: plan.exerciseNames.map((name) => byName.get(name)!) },
+        SEED_USER_ID,
+      );
       console.log(`✓ Updated built-in plan: ${plan.name}`);
     } else {
-      await prisma.workoutPlan.create({
-        data: {
-          name: plan.name,
-          shortName: plan.shortName,
-          creatorUserId: null,
-          isPublic: true,
-          items: {
-            create: plan.exerciseNames.map((name, index) => ({
-              exerciseId: byName.get(name)!,
-              orderInPlan: index,
-            })),
-          },
-        },
+      await planRepository.create({
+        name: plan.name,
+        shortName: plan.shortName,
+        creatorUserId: null,
+        isPublic: true,
+        exerciseIds: plan.exerciseNames.map((name) => byName.get(name)!),
       });
       console.log(`✓ Created built-in plan: ${plan.name}`);
     }
