@@ -5,15 +5,15 @@ Zlecenie i zasady: [`MIGRACJA_MOBILE.md`](../../MIGRACJA_MOBILE.md). Ten plik m�
 Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[!]` zablokowane (powód obok).
 
 **Ostatnia aktualizacja:** 2026-11-14
-**Bieżący etap:** 0 (rozpoznanie i środowisko)
-**Następny krok:** przejście pełnej ścieżki treningu w lokalnym PWA (ostatnie zadanie Etapu 0), potem `INWENTARYZACJA.md` (Etap 1)
+**Bieżący etap:** 1 (inwentaryzacja)
+**Następny krok:** `INWENTARYZACJA.md` (Etap 1)
 
 ## Przegląd etapów
 
 | Etap | Zakres | Gdzie | Stan |
 |---|---|---|---|
-| 0 | Rozpoznanie i środowisko | chmura / Mac | w trakcie |
-| 1 | Pełna inwentaryzacja PWA, lista parytetu, zrzuty wzorcowe | chmura / Mac | do zrobienia |
+| 0 | Rozpoznanie i środowisko | chmura / Mac | ukończony (pytania o hosting odłożone) |
+| 1 | Pełna inwentaryzacja PWA, lista parytetu, zrzuty wzorcowe | chmura / Mac | w trakcie |
 | 2 | Szczegółowy plan (architektura, synchronizacja, zadania) | chmura / Mac | do zrobienia |
 | 3 | Fundament apki (Expo, motywy, komponenty, buildy) | Mac | do zrobienia |
 | 4 | Backend pod synchronizację | chmura / Mac | do zrobienia |
@@ -40,7 +40,7 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 - [x] Stan wyjściowy testów zapisany (niżej)
 - [x] Lokalna baza PostgreSQL z migracjami i danymi z `seed-local.ts` (15 migracji, 16 treningów zakończonych + 1 aktywny)
 - [x] Backend uruchomiony lokalnie z `DB_ENV=local`, PWA lokalnie na tym backendzie (logowanie i wszystkie zakładki działają)
-- [ ] Przejście pełnej ścieżki treningu w lokalnym PWA z zapisem danych (dodanie serii, zakończenie, statystyki); dotąd tylko odczyt
+- [x] Przejście pełnej ścieżki treningu w lokalnym PWA z zapisem danych: `node mobile/tools/pwa-smoke/smoke.mjs`, 12/12 kroków (logowanie formularzem, blokada zakończenia bez serii, 2 serie, notatka, zakończenie, historia, statystyki i rekord, baner offline)
 - [ ] Ustalenia o deployu (niżej) uzupełnione odpowiedziami właściciela
 
 ## Etap 1: inwentaryzacja
@@ -102,6 +102,7 @@ Do czasu odpowiedzi: zakładam, że push na `mobile-migration` może zbudować p
 
 ## Znane problemy
 
+- Test dymny i zrzuty zmieniają lub zakładają dane z seeda: przed każdym uruchomieniem `npm run seed:local` (z lokalnym `DATABASE_URL`), a po kilku uruchomieniach restart backendu, bo limit logowań jest w pamięci procesu.
 - Sesja chmurowa nie ma Dockera, więc `make local-setup` tu nie działa. Zamiast tego: systemowy PostgreSQL 16 na `127.0.0.1:5433`, baza `gymgate_local`, migracje i seedy z jawnie podstawionym `DATABASE_URL`/`DIRECT_URL`. Kontener sesji jest ulotny, więc w nowej sesji chmurowej bazę trzeba postawić od nowa.
 - Limit logowań backendu (10 prób na 15 minut na IP) blokuje automaty logujące się wielokrotnie; `capture.mjs` loguje się raz przez API i wstrzykuje sesję.
 - Użytkownik testowy z `seed-local.ts` ma identyfikator `local-test-user-1`, który nie jest UUID. Schematy Zod wymagają UUID tylko dla części pól; do uwzględnienia przy projektowaniu synchronizacji.
