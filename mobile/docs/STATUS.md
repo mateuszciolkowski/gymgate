@@ -96,6 +96,8 @@ Do potwierdzenia przez właściciela (patrz `DLA_MATEUSZA.md`, gdy powstanie):
 - [ ] Czy Vercel buduje podglądy z gałęzi innych niż `main` i na jakie API wskazują
 - [ ] Czy `backend/.env` na MacBooku zawiera produkcyjny adres bazy
 
+Stan na 2026-11-14: właściciel nie zna jeszcze odpowiedzi; pytania odłożone, nie blokują etapów 0–3. Właściciel ma własny VPS z Coolify i dopuszcza przeniesienie hostingu tam (kod backendu już to przewiduje: `trust proxy` w `app.ts` wspomina Traefik na Coolify). Do rozważenia w Etapie 2: osobna instancja backendu z osobną bazą na VPS jako środowisko testowe apki, co pozwoliłoby testować na telefonie poza domowym Wi-Fi bez dotykania produkcji (łagodzi skutek decyzji D6).
+
 Do czasu odpowiedzi: zakładam, że push na `mobile-migration` może zbudować podgląd Vercel, więc nie zmieniam niczego w `frontend/`.
 
 ## Znane problemy
