@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from "@/ui/ScreenPlaceholder";
+import { TrainingsScreen } from "@/features/workouts";
 
 export default function Trainings() {
-  return <ScreenPlaceholder title="Treningi" />;
+  return <TrainingsScreen />;
 }

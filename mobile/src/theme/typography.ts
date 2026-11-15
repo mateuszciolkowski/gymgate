@@ -24,6 +24,20 @@ export const fonts = {
   dmSansItalic: { 400: "DMSans_400Regular_Italic" },
 } as const;
 
+/**
+ * What the PWA actually renders for `font-barlow`: Tailwind 4 ignores frontend/tailwind.config.js, so the class
+ * generates no CSS and the text falls back to DM Sans (max loaded weight 700). The reference screenshots show this.
+ * Use this instead of `barlow` wherever the PWA says `font-barlow`.
+ */
+export const pwaBarlow = {
+  400: "DMSans_400Regular",
+  500: "DMSans_500Medium",
+  600: "DMSans_600SemiBold",
+  700: "DMSans_700Bold",
+  800: "DMSans_700Bold",
+  900: "DMSans_700Bold",
+} as const;
+
 /** Font sizes most used in the PWA (px == dp). */
 export const fontSizes = [10, 11, 12, 13, 14, 15, 17, 18, 20, 22, 28] as const;
 

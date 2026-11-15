@@ -187,6 +187,17 @@ const defs = {
     round: true,
     nodes: [line(12, 5, 12, 19), line(5, 12, 19, 12)],
   },
+  trophy: {
+    size: 26,
+    stroke: 2.2,
+    round: true,
+    nodes: [["path", { d: "M6 9H4a2 2 0 000 4h2M18 9h2a2 2 0 010 4h-2M6 9V4h12v5M6 9a6 6 0 0012 0M12 15v4M9 19h6" }]],
+  },
+  emptyHistory: {
+    size: 32,
+    stroke: 1.5,
+    nodes: [["path", { d: "M6 5v14M18 5v14M2 9h4M18 9h4M2 15h4M18 15h4M6 12h12" }]],
+  },
   /** Crossed-dumbbell glyph of the "new workout" button (filled). */
   workoutAction: {
     size: 32,

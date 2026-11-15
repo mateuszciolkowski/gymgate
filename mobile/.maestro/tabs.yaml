@@ -1,0 +1,45 @@
+# Navigation through all five tabs via the bottom bar (3 tabs) and the drawer (all 5).
+# Placeholders show their title on the tabs not built yet; Treningi shows the empty state.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Brak ukończonych treningów"
+- tapOn:
+    id: "bar-tab-exercises"
+- assertVisible: "Ćwiczenia"
+- tapOn:
+    id: "bar-tab-stats"
+- assertVisible: "Statystyki"
+- tapOn:
+    id: "bar-tab-trainings"
+- assertVisible: "Brak ukończonych treningów"
+- tapOn:
+    id: "bar-menu"
+- assertVisible: "Wyloguj się"
+- tapOn:
+    id: "drawer-item-plans"
+- assertVisible: "Plany"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-settings"
+- assertVisible: "Ustawienia"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-exercises"
+- assertVisible: "Ćwiczenia"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-stats"
+- assertVisible: "Statystyki"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-trainings"
+- assertVisible: "Brak ukończonych treningów"

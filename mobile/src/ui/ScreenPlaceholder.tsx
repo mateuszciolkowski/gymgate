@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { fonts, useTheme } from "@/theme";
+import { fonts, pwaBarlow, useTheme } from "@/theme";
 
 /** Temporary screen body for the routing skeleton: themed background + title in Barlow. */
 export function ScreenPlaceholder({ title }: { title: string }) {
@@ -16,6 +16,6 @@ export function ScreenPlaceholder({ title }: { title: string }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, paddingHorizontal: 20 },
-  title: { fontFamily: fonts.barlow[800], fontSize: 28 },
+  title: { fontFamily: pwaBarlow[800], fontSize: 28 },
   sub: { fontFamily: fonts.dmSans[400], fontSize: 14, marginTop: 4 },
 });

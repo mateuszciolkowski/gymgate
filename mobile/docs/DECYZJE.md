@@ -86,6 +86,14 @@ Format: numer, data, decyzja, powód, skutek.
 
 **D-45 (2026-11-15) Powtórzone odświeżenie starym tokenem może zostawić dwa ważne następniki** do czasu wygaśnięcia. Przyjęte dla prostoty rotacji odpornej na zgubioną odpowiedź.
 
+## Interfejs apki (zadania 3.5–3.6)
+
+**D-46 (2026-11-15) Nagłówki w DM Sans, tak jak faktycznie renderuje je PWA.** Klasa `font-barlow` nie generuje w PWA żadnego CSS (Tailwind 4 pomija `tailwind.config.js`), więc tekst wyświetla się w DM Sans i tak wyglądają zrzuty wzorcowe. Apka odwzorowuje stan widoczny, nie zamierzony. Do decyzji właściciela: zostać przy parytecie czy przejść na prawdziwy Barlow.
+
+**D-47 (2026-11-15) Tekst błędu pustego pola: „Wypełnij to pole”.** PWA polega na dymkach walidacji przeglądarki; apka pokazuje błąd pod polem.
+
+**D-48 (2026-11-15) Szufladę zamyka też przeciągnięcie po samym panelu**, a progi liczone są od rzeczywistej szerokości panelu (min. z 82% ekranu i 330), nie od stałej 330.
+
 ## Otwarte, do rozstrzygnięcia w trakcie
 
 - Biblioteka przeciągania w formularzu planu (Etap 8).

@@ -75,8 +75,8 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 - [x] 3.2 `domain/`: logika przeniesiona z PWA z testami
 - [x] 3.3 Motywy: generator z `tokeny-motywow.json`, kontekst, zapis wyboru (na symulatorze widziany tylko `dark`)
 - [x] 3.4 Fonty i ikony
-- [~] 3.5 Komponenty bazowe
-- [~] 3.6 Szkielet nawigacji z dolnym paskiem i szufladą (trasy są; pasek i szuflada w trakcie)
+- [x] 3.5 Komponenty bazowe (`Modal`, `FilterChip`, `ScreenHeader`, `Switch` jeszcze niewidziane na ekranie)
+- [x] 3.6 Dolny pasek i szuflada na iOS (Maestro: 5 zakładek paskiem i szufladą); gest palcem i „wstecz” Androida niesprawdzone. Ekrany logowania, rejestracji i pusta lista treningów zgodne ze wzorcem w `dark` i `light` (`zrzuty/`), bez podpiętej sesji
 - [x] 3.7 Klient API, środowiska, bezpieczny magazyn (testy z atrapą `fetch`; bez próby na żywym backendzie)
 - [~] 3.8 Development build: iOS uruchamia się na symulatorze (`zrzuty/etap3-boot.png`), Maestro 2.12 zainstalowane; Android `[!]` brak SDK (Android Studio po stronie właściciela)
 - [x] 3.9 `mobile-ci.yml` (jeszcze nieuruchomiony w GitHub Actions)

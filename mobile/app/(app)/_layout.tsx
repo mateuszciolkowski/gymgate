@@ -1,6 +1,14 @@
 import { Stack } from "expo-router";
+import { useTheme } from "@/theme";
+import { NavShell } from "@/ui/navigation/NavShell";
 
-// Later: floating bottom bar, drawer and banners are rendered here (PLAN.md section 3).
+// Bar, drawer and (later) banners sit above the stack so they stay on every screen (D-09).
+// `user` and `onLogout` are wired by the session layer (Etap 6).
 export default function AppLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  const { theme } = useTheme();
+  return (
+    <NavShell>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.bg } }} />
+    </NavShell>
+  );
 }

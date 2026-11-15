@@ -1,0 +1,38 @@
+# Login and register screens: client-side validation errors and navigation between them.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
+- tapOn:
+    text: "Open"
+    optional: true
+- openLink: "gymgate:///login"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Zaloguj się do swojego konta"
+- tapOn:
+    id: "login-submit"
+- assertVisible: "Wypełnij to pole"
+- tapOn:
+    id: "login-email"
+- inputText: "zly"
+- tapOn:
+    id: "login-password"
+- inputText: "123"
+# The keyboard covers the button; the password field submits on return (onSubmitEditing).
+- pressKey: Enter
+- assertVisible: "Nieprawidłowy email"
+- assertVisible: "Hasło musi mieć minimum 6 znaków"
+# A downward drag dismisses the keyboard (keyboardDismissMode="on-drag").
+- swipe:
+    start: 50%, 25%
+    end: 50%, 55%
+# The link is a nested Text (not an accessibility element of its own), so it is tapped by its text.
+- tapOn: "Zarejestruj się"
+- assertVisible: "Stwórz nowe konto"
+- tapOn:
+    id: "register-submit"
+- assertVisible: "Wypełnij to pole"
+- tapOn: "Zaloguj się"
+- assertVisible: "Zaloguj się do swojego konta"

@@ -1,0 +1,33 @@
+# Takes the screenshots for docs/zrzuty (theme = DEFAULT_THEME of the build; run once per theme).
+# Run: maestro test -e OUT=dark .maestro/zrzuty.yaml; Maestro saves the PNGs under ~/.maestro/tests/<run>/zrzuty/takeScreenshot/<OUT>/, copy them to docs/zrzuty/<theme>/.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Brak ukończonych treningów"
+- takeScreenshot: ${OUT}/10-treningi-pusta
+- tapOn:
+    id: "bar-menu"
+- assertVisible: "Wyloguj się"
+- takeScreenshot: ${OUT}/60-szuflada
+- tapOn:
+    id: "drawer-close"
+- openLink: "gymgate:///login"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Zaloguj się do swojego konta"
+- takeScreenshot: ${OUT}/01-logowanie
+- tapOn:
+    id: "login-submit"
+- assertVisible: "Wypełnij to pole"
+- takeScreenshot: ${OUT}/02-logowanie-blad
+- openLink: "gymgate:///register"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Stwórz nowe konto"
+- takeScreenshot: ${OUT}/03-rejestracja

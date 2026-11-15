@@ -1,5 +1,10 @@
-import { ScreenPlaceholder } from "@/ui/ScreenPlaceholder";
+import { useRouter } from "expo-router";
+import { LoginScreen } from "@/features/auth";
+
+// The session layer (Etap 6) replaces this stub; until then submitting reports that it is not wired.
+const notWired = () => Promise.reject(new Error("Logowanie nie jest jeszcze dostępne w tej wersji apki"));
 
 export default function Login() {
-  return <ScreenPlaceholder title="Logowanie" />;
+  const router = useRouter();
+  return <LoginScreen onSubmit={notWired} onSwitchToRegister={() => router.replace("/register")} />;
 }
