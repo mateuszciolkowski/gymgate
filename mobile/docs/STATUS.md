@@ -5,8 +5,8 @@ Zlecenie i zasady: [`MIGRACJA_MOBILE.md`](../../MIGRACJA_MOBILE.md). Ten plik m�
 Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[!]` zablokowane (powód obok).
 
 **Ostatnia aktualizacja:** 2026-11-15
-**Bieżący etap:** 2 (szczegółowy plan)
-**Następny krok:** `PLAN.md`: architektura apki i projekt synchronizacji (Etap 2)
+**Bieżący etap:** 4 (backend pod synchronizację; wykonalny w chmurze). Etap 3 czeka na sesję na MacBooku, z wyjątkiem zadań oznaczonych „(chmura)”.
+**Następny krok:** zadanie 4.1 z `PLAN.md` (testy integracyjne na lokalnym PostgreSQL), potem 4.2 (dziennik zmian i wyzwalacze)
 
 ## Przegląd etapów
 
@@ -14,7 +14,7 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 |---|---|---|---|
 | 0 | Rozpoznanie i środowisko | chmura / Mac | ukończony (pytania o hosting odłożone) |
 | 1 | Pełna inwentaryzacja PWA, lista parytetu, zrzuty wzorcowe | chmura / Mac | ukończony poza brakującymi zrzutami stanów |
-| 2 | Szczegółowy plan (architektura, synchronizacja, zadania) | chmura / Mac | w trakcie |
+| 2 | Szczegółowy plan (architektura, synchronizacja, zadania) | chmura / Mac | ukończony |
 | 3 | Fundament apki (Expo, motywy, komponenty, buildy) | Mac | do zrobienia |
 | 4 | Backend pod synchronizację | chmura / Mac | do zrobienia |
 | 5 | Pionowy wycinek: trening offline + synchronizacja | Mac | do zrobienia |
@@ -60,18 +60,53 @@ Najważniejsze znaleziska (pełna lista: `INWENTARYZACJA.md`, sekcja 11):
 
 ## Etap 2: plan
 
-- [ ] Architektura apki i struktura folderów
-- [ ] Biblioteki z uzasadnieniem (po sprawdzeniu aktualnej dokumentacji)
-- [ ] Mapa nawigacji
-- [ ] Schemat lokalnej bazy
-- [ ] Projekt synchronizacji: push/pull, kursor, dziennik usunięć, znaczniki czasu, konflikty, odrzucenia, sesja
-- [ ] Lista migracji i endpointów backendu
-- [ ] Strategia testów
-- [ ] Zadania etapów 3–15 z kryteriami ukończenia (przeniesione do tego pliku)
+- [x] `PLAN.md`: biblioteki (po sprawdzeniu stanu Expo, `expo-widgets`, Drizzle, Notifee), struktura apki, mapa nawigacji
+- [x] `PLAN.md`: schemat lokalnej bazy i reguły zapisu
+- [x] `PLAN.md`: synchronizacja (operacje, push, pull, kursor, konflikty, odrzucenia, widoczny stan)
+- [x] `PLAN.md`: zmiany w backendzie (3 migracje, endpointy, minimalne zmiany istniejącego kodu)
+- [x] `PLAN.md`: sesja, statystyki lokalne, strategia testów, zadania etapów 3–15
+- [x] `DECYZJE.md`: 26 decyzji i odstępstw
 
-## Etapy 3–15
+Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLAN.md` sekcje 5–7 oraz `DECYZJE.md`, zwłaszcza D-03 (wyzwalacze w bazie), D-05 (statystyki tylko lokalnie), D-11 (naprawa błędu B1 w backendzie).
 
-Listy zadań zostaną wpisane tutaj po Etapie 2.
+## Etap 3: fundament (Mac; część w chmurze)
+
+- [ ] 3.1 Projekt Expo, TypeScript strict, lint, skrypty
+- [ ] 3.2 `domain/`: logika przeniesiona z PWA z testami (chmura)
+- [ ] 3.3 Motywy: generator z `tokeny-motywow.json`, kontekst, zapis wyboru (chmura: generator)
+- [ ] 3.4 Fonty i ikony
+- [ ] 3.5 Komponenty bazowe
+- [ ] 3.6 Szkielet nawigacji z dolnym paskiem i szufladą
+- [ ] 3.7 Klient API, środowiska, bezpieczny magazyn
+- [ ] 3.8 Development build iOS i Android, Maestro
+- [ ] 3.9 `mobile-ci.yml`
+
+## Etap 4: backend pod synchronizację (chmura)
+
+- [ ] 4.1 Infrastruktura testów integracyjnych (`test:integration`)
+- [ ] 4.2 Migracja M1: `sync_changes` + wyzwalacze + testy
+- [ ] 4.3 Eksport funkcji pochodnych, opcjonalne `id` i czasy w repozytoriach
+- [ ] 4.4 Migracja M2 + `POST /api/sync/push`
+- [ ] 4.5 `GET /api/sync/pull`
+- [ ] 4.6 Migracja M3 + sesje mobilne
+- [ ] 4.7 `DELETE /api/auth/account`
+- [ ] 4.8 Naprawy B2, B8, B1
+- [ ] 4.9 `API.md`, `openapi.yaml`, `WDROZENIE_BACKENDU.md`
+- [ ] 4.10 Regresja: `make check`, test dymny PWA (rozszerzony)
+
+## Etap 5: pionowy wycinek
+
+- [ ] 5.1 Schemat lokalnej bazy, migracje, repozytoria (chmura)
+- [ ] 5.2 Outbox, push, pull, silnik, zegar (chmura)
+- [ ] 5.3 Testy protokołu przeciwko lokalnemu backendowi (chmura)
+- [ ] 5.4 Sesja mobilna (chmura: logika)
+- [ ] 5.5 Ekrany minimalne (Mac)
+- [ ] 5.6 Maestro: tryb samolotowy, zabicie apki (Mac)
+- [ ] 5.7 Instrukcja wgrania na iPhone'a
+
+## Etapy 6–15
+
+Zakres każdego etapu to grupy z `PARYTET.md` wskazane w `PLAN.md`, sekcja 10. Listy zadań rozpisujemy tutaj przy wejściu w dany etap.
 
 ## Stan wyjściowy testów (2026-11-14, commit `cca3455`)
 
@@ -113,5 +148,5 @@ Do czasu odpowiedzi: zakładam, że push na `mobile-migration` może zbudować p
 
 ## Dziennik sesji
 
-- **2026-11-15 (chmura, po restarcie procesu):** lista parytetu zacommitowana; lokalna baza i serwery zniknęły z kontenera, do postawienia ponownie przed testami backendu.
+- **2026-11-15 (chmura, po restarcie procesu):** lista parytetu, plan (Etap 2) i rejestr decyzji; lokalna baza i serwery zniknęły z kontenera, do postawienia ponownie przed testami backendu.
 - **2026-11-14 (chmura):** analiza repo, brief, decyzje D1–D6, gałąź, stan wyjściowy testów, ta tablica. Lokalna baza, backend i PWA uruchomione; skrypt `mobile/tools/pwa-wzorzec/capture.mjs` i pierwsza partia zrzutów wzorcowych, test dymny PWA (12/12), pełna inwentaryzacja.
