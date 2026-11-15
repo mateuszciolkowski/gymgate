@@ -60,6 +60,18 @@ Format: numer, data, decyzja, powód, skutek.
 
 **D-26 (2026-11-15) Zakładka planów zachowuje nazwę „Built-in”.** Jak w PWA.
 
+## Fundament apki (Etap 3)
+
+**D-35 (2026-11-15) Node 24 dla `mobile/`.** Expo SDK 58 nie działa na Node 20; backend i frontend zostają na Node 20, CI apki używa 24.
+
+**D-36 (2026-11-15) Wybór motywu zapisywany w `expo-sqlite/kv-store`**, bez dodatkowej biblioteki magazynu.
+
+**D-37 (2026-11-15) Fonty z pakietów `@expo-google-fonts`.** `@fontsource` z PWA dostarcza tylko woff, a React Native wymaga TTF; kroje i wagi te same.
+
+**D-38 (2026-11-15) Reguła ESLint `array-type` wyłączona**, żeby kod przenoszony z PWA (`Array<T>`) kopiować bez zmian.
+
+**D-39 (2026-11-15) Ikona apki tymczasowo z `frontend/public/pwa-512x512.png`**; docelowa ikona i splash w Etapie 13.
+
 ## Otwarte, do rozstrzygnięcia w trakcie
 
 - Biblioteka przeciągania w formularzu planu (Etap 8).

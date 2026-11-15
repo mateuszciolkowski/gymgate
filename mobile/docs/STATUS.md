@@ -5,8 +5,8 @@ Zlecenie i zasady: [`MIGRACJA_MOBILE.md`](../../MIGRACJA_MOBILE.md). Ten plik m�
 Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[!]` zablokowane (powód obok).
 
 **Ostatnia aktualizacja:** 2026-11-15
-**Bieżący etap:** 4 (backend pod synchronizację; wykonalny w chmurze). Etap 3 czeka na sesję na MacBooku, z wyjątkiem zadań oznaczonych „(chmura)”.
-**Następny krok:** zadanie 4.3 z `PLAN.md` (eksport funkcji pochodnych, opcjonalne `id` i czasy w repozytoriach), potem 4.4 (`POST /api/sync/push`)
+**Bieżący etap:** 3, 4 i 5 równolegle, sesja lokalna na MacBooku (sesja chmurowa wyłączona).
+**Następny krok:** w toku 4.5–4.8 (backend), 3.5–3.6 z ekranami logowania (apka), 5.1 z outboxem i statystykami (apka). Potem 5.2 (silnik push/pull) i 4.9–4.10.
 
 ## Przegląd etapów
 
@@ -71,23 +71,23 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 
 ## Etap 3: fundament (Mac; część w chmurze)
 
-- [ ] 3.1 Projekt Expo, TypeScript strict, lint, skrypty
-- [ ] 3.2 `domain/`: logika przeniesiona z PWA z testami (chmura)
-- [ ] 3.3 Motywy: generator z `tokeny-motywow.json`, kontekst, zapis wyboru (chmura: generator)
-- [ ] 3.4 Fonty i ikony
-- [ ] 3.5 Komponenty bazowe
-- [ ] 3.6 Szkielet nawigacji z dolnym paskiem i szufladą
-- [ ] 3.7 Klient API, środowiska, bezpieczny magazyn
-- [ ] 3.8 Development build iOS i Android, Maestro
-- [ ] 3.9 `mobile-ci.yml`
+- [x] 3.1 Projekt Expo SDK 58 (Node 24), TypeScript strict, lint, skrypty; typecheck, lint i 65 testów przechodzą
+- [x] 3.2 `domain/`: logika przeniesiona z PWA z testami
+- [x] 3.3 Motywy: generator z `tokeny-motywow.json`, kontekst, zapis wyboru (na symulatorze widziany tylko `dark`)
+- [x] 3.4 Fonty i ikony
+- [~] 3.5 Komponenty bazowe
+- [~] 3.6 Szkielet nawigacji z dolnym paskiem i szufladą (trasy są; pasek i szuflada w trakcie)
+- [x] 3.7 Klient API, środowiska, bezpieczny magazyn (testy z atrapą `fetch`; bez próby na żywym backendzie)
+- [~] 3.8 Development build: iOS uruchamia się na symulatorze (`zrzuty/etap3-boot.png`), Maestro 2.12 zainstalowane; Android `[!]` brak SDK (Android Studio po stronie właściciela)
+- [x] 3.9 `mobile-ci.yml` (jeszcze nieuruchomiony w GitHub Actions)
 
 ## Etap 4: backend pod synchronizację (chmura)
 
 - [x] 4.1 Infrastruktura testów integracyjnych: `npm run test:integration` w `backend/` (pliki `*.itest.ts`, baza `gymgate_test` na localhost; skrypt odmawia pracy na bazie spoza localhost lub bez sufiksu `_test`)
 - [x] 4.2 Migracja M1 `20261115120000_add_sync_changes`: tabela + wyzwalacze na 10 tabelach; 18 testów integracyjnych (zapisy przez istniejące serwisy, kaskady, widoczność planów); `npm test` 203/203, test dymny PWA 12/12 na bazie z wyzwalaczami; brak dryfu schematu Prisma
-- [ ] 4.3 Eksport funkcji pochodnych, opcjonalne `id` i czasy w repozytoriach
-- [ ] 4.4 Migracja M2 + `POST /api/sync/push`
-- [ ] 4.5 `GET /api/sync/pull`
+- [x] 4.3 Eksport funkcji pochodnych, opcjonalne `id` i czasy w repozytoriach (`npm test` 229/229)
+- [x] 4.4 Migracja M2 `20261116120000_add_sync_operations` + `POST /api/sync/push` (testy integracyjne 56/56; test dymny PWA jeszcze nie powtórzony, patrz 4.10)
+- [~] 4.5 `GET /api/sync/pull`
 - [ ] 4.6 Migracja M3 + sesje mobilne
 - [ ] 4.7 `DELETE /api/auth/account`
 - [ ] 4.8 Naprawy B2, B8, B1
@@ -96,7 +96,7 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 
 ## Etap 5: pionowy wycinek
 
-- [ ] 5.1 Schemat lokalnej bazy, migracje, repozytoria (chmura)
+- [~] 5.1 Schemat lokalnej bazy, migracje, repozytoria
 - [ ] 5.2 Outbox, push, pull, silnik, zegar (chmura)
 - [ ] 5.3 Testy protokołu przeciwko lokalnemu backendowi (chmura)
 - [ ] 5.4 Sesja mobilna (chmura: logika)
@@ -140,6 +140,10 @@ Do czasu odpowiedzi: zakładam, że push na `mobile-migration` może zbudować p
 
 ## Znane problemy
 
+- `mobile/` wymaga Node 24 (Expo SDK 58), `backend/` zostaje na Node 20.
+- Runtime symulatora iOS 27.1 nie obsługuje zwykłych iPhone'ów; używamy iOS 27.0.
+- `tokeny-motywow.json`: wartość `--gg-btn-hover` motywu `dark` ma błąd ekstrakcji; generator motywów nadpisuje ją wartością z `index.css`.
+
 - Po restarcie kontenera chmurowego proces PostgreSQL znika, ale dane w `/var/lib/postgresql/gymgate_local` zostają: wystarczy `pg_ctl start` (polecenie w dzienniku sesji 2026-11-15), bez ponownego seeda.
 - Test dymny i zrzuty zmieniają lub zakładają dane z seeda: przed każdym uruchomieniem `npm run seed:local` (z lokalnym `DATABASE_URL`), a po kilku uruchomieniach restart backendu, bo limit logowań jest w pamięci procesu.
 - Sesja chmurowa nie ma Dockera, więc `make local-setup` tu nie działa. Zamiast tego: systemowy PostgreSQL 16 na `127.0.0.1:5433`, baza `gymgate_local`, migracje i seedy z jawnie podstawionym `DATABASE_URL`/`DIRECT_URL`. Kontener sesji jest ulotny, więc w nowej sesji chmurowej bazę trzeba postawić od nowa.
@@ -148,6 +152,8 @@ Do czasu odpowiedzi: zakładam, że push na `mobile-migration` może zbudować p
 - Zastane błędy w kodzie: lista w `MIGRACJA_MOBILE.md`, sekcja 1.11.
 
 ## Dziennik sesji
+
+- **2026-11-15 (MacBook):** `backend/.env` przełączony na `DB_ENV=local`, produkcyjne adresy zakomentowane. Lokalna baza w Dockerze (`make -C backend local-up`), symulator „GymGate iPhone 15 Pro” (iOS 27.0). Zadania 4.3–4.4 i 3.1–3.4, 3.7, 3.9, część 3.8. Praca dzielona na podagentów; commity po przeglądzie, bez pusha.
 
 - **2026-11-15 (chmura, po restarcie procesu):** lista parytetu, plan (Etap 2), rejestr decyzji, zadania 4.1–4.2 backendu. Start bazy: `su postgres -c "/usr/lib/postgresql/16/bin/pg_ctl -D /var/lib/postgresql/gymgate_local -o '-p 5433 -c listen_addresses=127.0.0.1 -c unix_socket_directories=/var/lib/postgresql/gymgate_local' -l /var/lib/postgresql/gymgate_local/server.log start"`; lokalna baza i serwery zniknęły z kontenera, do postawienia ponownie przed testami backendu.
 - **2026-11-14 (chmura):** analiza repo, brief, decyzje D1–D6, gałąź, stan wyjściowy testów, ta tablica. Lokalna baza, backend i PWA uruchomione; skrypt `mobile/tools/pwa-wzorzec/capture.mjs` i pierwsza partia zrzutów wzorcowych, test dymny PWA (12/12), pełna inwentaryzacja.
