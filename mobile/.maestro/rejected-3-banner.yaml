@@ -1,0 +1,16 @@
+# Rejected-changes banner, step 3/3 (backend running again, the workout deleted through the old API):
+# a foreground sync pushes the queued set, the server answers "not found", the banner appears and the workout screen closes.
+appId: com.gymgate.app
+---
+- pressKey: home
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible: ".*Nie udało się zsynchronizować zmian.*"
+    timeout: 40000
+- assertVisible: "Historia sesji"
+- assertVisible: ".*Trening został usunięty na innym urządzeniu; 1 niewysłana zmiana pominięto.*"
+- takeScreenshot: ${OUT}/41-baner-odrzucone
+- tapOn:
+    id: "issues-close"
+- assertNotVisible: ".*Nie udało się zsynchronizować zmian.*"

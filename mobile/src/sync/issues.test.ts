@@ -1,7 +1,7 @@
 import { addItem, createPlan, createWorkout, getPlan, updatePlan } from "../db/repositories";
 import { outbox, workouts } from "../db/schema";
 import { seedExercise, setupWorld } from "../db/testing";
-import { discardIssue, groupIssues, listOpenIssues, openIssueCount, retryIssue } from "./issues";
+import { describeIssue, discardIssue, groupIssues, listOpenIssues, openIssueCount, retryIssue } from "./issues";
 import { markApplied, markRejected, nextBatch } from "./outbox";
 
 const at = "2026-01-01T12:00:00.000Z";
@@ -65,5 +65,14 @@ describe("groupIssues", () => {
     expect(del.issues).toHaveLength(3);
     expect(del.message).toBe("Trening został usunięty na innym urządzeniu; 3 niewysłane zmiany pominięto");
     expect(groups.find((g) => g.kind === "single")!.message).toBe("err4");
+  });
+});
+
+describe("describeIssue", () => {
+  it("names action and object like the PWA banner", () => {
+    expect(describeIssue({ type: "plan.update", entity: "plan" })).toBe("Aktualizacja planu");
+    expect(describeIssue({ type: "set.add", entity: "set" })).toBe("Zapisanie serii");
+    expect(describeIssue({ type: "item.delete", entity: "item" })).toBe("Usunięcie ćwiczenia w treningu");
+    expect(describeIssue({ type: "workout.complete", entity: "workout" })).toBe("Zapisanie treningu");
   });
 });

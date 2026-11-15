@@ -1,0 +1,10 @@
+# Rejected-changes banner, step 2/3 (backend stopped): save the open draft set offline; it waits in the outbox.
+appId: com.gymgate.app
+---
+- tapOn:
+    id: "draft-confirm"
+- assertVisible: "Edytuj serię 1"
+- extendedWaitUntil:
+    visible: ".*pracujesz offline.*"
+    timeout: 30000
+- assertVisible: ".*Oczekujące zmiany: .*"

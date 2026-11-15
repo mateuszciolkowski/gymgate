@@ -62,6 +62,15 @@ export function ExercisePickerSheet({ workoutId }: { workoutId: string }) {
               <Icon name="close" size={15} strokeWidth={2} color={c.text} />
             </Pressable>
           </View>
+          <Pressable
+            accessibilityRole="button"
+            testID="picker-new-exercise"
+            onPress={() => router.replace("/exercise-new")}
+            style={[styles.newButton, { backgroundColor: c.btnBg }]}
+          >
+            <Icon name="plusLines" size={17} strokeWidth={2.5} color="#ffffff" />
+            <Text style={styles.newButtonText}>Dodaj nowe ćwiczenie</Text>
+          </Pressable>
         </View>
 
         <View style={[styles.searchWrap, { borderBottomColor: c.border }]}>
@@ -158,7 +167,9 @@ const styles = StyleSheet.create({
   sheet: { height: "90%", borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1.5, overflow: "hidden" },
   top: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12, borderBottomWidth: 1 },
   handle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, marginBottom: 16 },
-  titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+  newButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 13, borderRadius: 15 },
+  newButtonText: { fontFamily: fonts.dmSans[700], fontSize: 14, color: "#ffffff" },
   title: { fontFamily: pwaBarlow[900], fontSize: 24, lineHeight: 32 },
   close: { width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   searchWrap: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1 },

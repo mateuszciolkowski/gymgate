@@ -94,6 +94,18 @@ Format: numer, data, decyzja, powód, skutek.
 
 **D-48 (2026-11-15) Szufladę zamyka też przeciągnięcie po samym panelu**, a progi liczone są od rzeczywistej szerokości panelu (min. z 82% ekranu i 330), nie od stałej 330.
 
+## Ekran treningu (Etap 9)
+
+**D-49 (2026-11-15) Szkic serii otwiera się automatycznie tylko po dodaniu ćwiczenia.** Ponowne rozwinięcie pustej karty pokazuje „Brak zapisanych serii.” i „+ Dodaj serię”. Tak faktycznie zachowuje się PWA (wzorzec 21): jej szkic z montowania kasuje własny efekt.
+
+**D-50 (2026-11-15) Baner planu według kodu PWA, nie `CLAUDE.md`:** „Kolejne z planu” + nazwa ćwiczenia i przycisk „Pomiń”.
+
+**D-51 (2026-11-15) Baner odrzuconych zmian:** „Zamknij” ukrywa go do końca sesji; dotknięcie listy otwiera alert z powodami z serwera i „Odrzuć zmiany”; „Ponów” ponownie kolejkuje pojedyncze odrzucenia, a pomija zmiany obiektów usuniętych na innym urządzeniu.
+
+**D-52 (2026-11-15) Odmiana „1 zalogowana seria / 2 zalogowane serie / 5 zalogowanych serii”** (rozszerza D-17; PWA nie odmienia).
+
+**D-53 (2026-11-15) Zmiana daty w szczegółach treningu zachowuje pierwotną godzinę.**
+
 ## Otwarte, do rozstrzygnięcia w trakcie
 
 - Biblioteka przeciągania w formularzu planu (Etap 8).

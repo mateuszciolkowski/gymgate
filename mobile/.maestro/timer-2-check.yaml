@@ -1,0 +1,27 @@
+# Timer from timestamps, step 2/2: after >= 70 s in the background the timer is >= 01:10 (not frozen at 00:0x);
+# after killing the app and starting it again it is still counted from the start (>= 01:1x).
+appId: com.gymgate.app
+---
+- launchApp:
+    stopApp: false
+- assertVisible:
+    id: "workout-timer"
+    text: "01:[1-9].*|0[2-9]:.*"
+- stopApp
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible:
+    id: "bar-timer"
+    text: "01:[1-9].*|0[2-9]:.*"
+- tapOn:
+    id: "bar-continue-workout"
+- assertVisible:
+    id: "workout-timer"
+    text: "01:[1-9].*|0[2-9]:.*"
+- tapOn:
+    id: "workout-delete"
+- tapOn: "Usuń"
+- assertVisible: "Historia sesji"

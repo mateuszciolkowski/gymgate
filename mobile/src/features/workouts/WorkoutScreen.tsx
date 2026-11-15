@@ -3,14 +3,18 @@ import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { completeWorkout, deleteItem, deleteSet, deleteWorkout, addSet, updateSet } from "@/db/repositories";
+import { addItem, addSet, completeWorkout, deleteItem, deleteSet, deleteWorkout, skipPlanExercise, updateItemNotes, updateSet, updateWorkout } from "@/db/repositories";
 import { fmtDate, fmtDuration, fmtTimer } from "@/domain/formatters";
+import { nextFromPlan, remainingFromPlan } from "@/domain/planNext";
 import { completionError } from "@/domain/validation";
 import { useAction } from "@/providers";
 import { fonts, pwaBarlow, tabularNums, toBoxShadow, useTheme } from "@/theme";
 import { confirmAlert, Icon, LoadingBlock, showAlert } from "@/ui";
 import { useWorkoutElapsed, useWorkoutScreen } from "./queries";
+import { PlanBanner } from "./PlanBanner";
+import { WorkoutEditModal } from "./WorkoutEditModal";
 import { WorkoutItemCard } from "./WorkoutItemCard";
+import { WorkoutNotesModal } from "./WorkoutNotesModal";
 
 /** Workout screen (PWA WorkoutDetailScreen). DRAFT: timer, add exercise, sets, finish. COMPLETED: read-only. */
 export function WorkoutScreen({ id }: { id: string }) {
@@ -19,9 +23,13 @@ export function WorkoutScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const act = useAction();
-  const { workout, previous, stats } = useWorkoutScreen(id);
+  const { workout, plan, previous, stats } = useWorkoutScreen(id);
   const elapsed = useWorkoutElapsed(workout?.status === "DRAFT" ? workout : null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [fresh, setFresh] = useState<string | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const known = useRef<Set<string> | null>(null);
   const leaving = useRef(false);
 
@@ -37,8 +45,11 @@ export function WorkoutScreen({ id }: { id: string }) {
     if (!workout) return;
     const ids = new Set(workout.items.map((i) => i.id));
     if (known.current) {
-      const fresh = workout.items.find((i) => !known.current?.has(i.id));
-      if (fresh) setExpanded(fresh.id);
+      const added = workout.items.find((i) => !known.current?.has(i.id));
+      if (added) {
+        setExpanded(added.id);
+        setFresh(added.id);
+      }
     }
     known.current = ids;
   }, [workout]);
@@ -46,6 +57,14 @@ export function WorkoutScreen({ id }: { id: string }) {
   if (!workout) return <LoadingBlock />;
   const isCompleted = workout.status === "COMPLETED";
   const items = [...workout.items].sort((a, b) => a.orderInWorkout - b.orderInWorkout);
+  const canEdit = !isCompleted || editMode;
+
+  const added = items.map((i) => i.exerciseId);
+  const skipped = workout.skippedPlanExerciseIds ?? [];
+  const next = nextFromPlan(plan, added, skipped);
+  const nextName = next ? (plan?.items.find((i) => i.exerciseId === next.exerciseId)?.exercise.name ?? "") : null;
+  const planTotal = plan?.items.length ?? 0;
+  const planDone = planTotal - remainingFromPlan(plan, added, skipped);
 
   const remove = async () => {
     if (!(await confirmAlert("Czy na pewno chcesz usunąć ten trening? Tej operacji nie można cofnąć.", "Usuń"))) return;
@@ -91,9 +110,25 @@ export function WorkoutScreen({ id }: { id: string }) {
             <Text style={[styles.date, { color: c.textMuted }]}>{fmtDate(workout.workoutDate)}</Text>
           </View>
         </View>
-        <Pressable accessibilityRole="button" accessibilityLabel="Usuń trening" testID="workout-delete" onPress={() => void remove()} style={[styles.iconButton, { backgroundColor: c.surface2 }]}>
-          <Icon name="bin" color={c.textMuted} />
-        </Pressable>
+        <View style={styles.topRight}>
+          {isCompleted ? (
+            <Pressable accessibilityRole="button" accessibilityLabel="Edytuj szczegóły treningu" testID="workout-details" onPress={() => setDetailsOpen(true)} style={[styles.iconButton, { backgroundColor: c.surface2 }]}>
+              <Icon name="calendar" size={15} color={c.textSub} />
+            </Pressable>
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={isCompleted ? (editMode ? "Zakończ edycję ćwiczeń" : "Edytuj ćwiczenia") : "Edytuj szczegóły treningu"}
+            testID="workout-edit"
+            onPress={() => (isCompleted ? setEditMode((v) => !v) : setDetailsOpen(true))}
+            style={[styles.iconButton, { backgroundColor: editMode ? c.a1 : c.surface2 }]}
+          >
+            <Icon name={isCompleted && editMode ? "check" : "pencil"} size={15} strokeWidth={isCompleted && editMode ? 2.5 : 2} color={editMode ? "#ffffff" : c.textSub} />
+          </Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Usuń trening" testID="workout-delete" onPress={() => void remove()} style={[styles.iconButton, { backgroundColor: c.surface2 }]}>
+            <Icon name="bin" color={c.textMuted} />
+          </Pressable>
+        </View>
       </View>
 
       {isCompleted ? (
@@ -112,20 +147,60 @@ export function WorkoutScreen({ id }: { id: string }) {
               <Text style={[styles.summaryValue, { color: c.text }]}>{workout.gymName}</Text>
             </View>
           ) : null}
+          {workout.workoutNotes ? (
+            <Pressable testID="workout-notes-card" onPress={() => setNotesOpen(true)} style={[styles.summaryNotes, { borderTopColor: c.border }]}>
+              <Text style={[styles.notesLabel, { color: c.textMuted }]}>Notatki</Text>
+              <Text style={[styles.notesText, { color: c.text }]}>{workout.workoutNotes}</Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : (
         <>
           <View style={[styles.timerCard, { backgroundColor: c.surface, borderColor: c.border, boxShadow: toBoxShadow(theme.shadow) }]}>
-            <Text style={[styles.timerLabel, { color: c.textMuted }]}>Czas trwania</Text>
-            <Text testID="workout-timer" style={[styles.timer, tabularNums, { color: c.text }]}>
-              {fmtTimer(elapsed)}
-            </Text>
-            {workout.gymName ? (
-              <View style={styles.gymRow}>
-                <Text style={[styles.gym, { backgroundColor: c.surface2, color: c.textSub }]}>{workout.gymName}</Text>
-              </View>
-            ) : null}
+            <View style={styles.timerLeft}>
+              <Text style={[styles.timerLabel, { color: c.textMuted }]}>Czas trwania</Text>
+              <Text testID="workout-timer" style={[styles.timer, tabularNums, { color: c.text }]}>
+                {fmtTimer(elapsed)}
+              </Text>
+              {workout.gymName ? (
+                <View style={styles.gymRow}>
+                  <Text style={[styles.gym, { backgroundColor: c.surface2, color: c.textSub }]}>{workout.gymName}</Text>
+                </View>
+              ) : null}
+            </View>
+            <View style={styles.timerRight}>
+              <Pressable accessibilityRole="button" testID="workout-notes" onPress={() => setNotesOpen(true)} style={[styles.notesButton, { backgroundColor: c.surface2 }]}>
+                <Icon name="notes" size={13} color={c.textSub} />
+                <Text style={[styles.notesButtonText, { color: c.textSub }]}>Notatki</Text>
+              </Pressable>
+              {plan ? (
+                <Text testID="plan-progress" style={[styles.planProgress, tabularNums, { backgroundColor: c.activeBg, borderColor: c.activeBorder, color: c.activeBorder }]}>
+                  Plan {planDone}/{planTotal}
+                </Text>
+              ) : null}
+            </View>
           </View>
+
+          {workout.workoutNotes ? (
+            <Pressable testID="workout-notes-card" onPress={() => setNotesOpen(true)} style={[styles.notesCard, { backgroundColor: c.surface, borderColor: c.border }]}>
+              <Text style={[styles.notesLabel, { color: c.textMuted }]}>Notatki do treningu</Text>
+              <Text style={[styles.notesText, { color: c.text }]}>{workout.workoutNotes}</Text>
+            </Pressable>
+          ) : null}
+
+          {plan ? (
+            <PlanBanner
+              nextName={nextName}
+              onAdd={() => next && act((ctx) => addItem(ctx, id, next.exerciseId))}
+              onSkip={() => {
+                try {
+                  if (next) act((ctx) => skipPlanExercise(ctx, id, next.exerciseId));
+                } catch {
+                  // silent, as in the PWA
+                }
+              }}
+            />
+          ) : null}
 
           <View style={styles.actions}>
             <Pressable
@@ -145,6 +220,18 @@ export function WorkoutScreen({ id }: { id: string }) {
         </>
       )}
 
+      {isCompleted && editMode ? (
+        <Pressable
+          accessibilityRole="button"
+          testID="add-exercise"
+          onPress={() => router.push({ pathname: "/exercise-picker", params: { workoutId: id } })}
+          style={[styles.action, styles.addWide, { backgroundColor: c.surface, borderColor: c.borderMed, borderWidth: 1 }]}
+        >
+          <Icon name="plusLines" size={15} strokeWidth={2.5} color={c.text} />
+          <Text style={[styles.actionText, { color: c.text }]}>Dodaj ćwiczenie</Text>
+        </Pressable>
+      ) : null}
+
       <View style={styles.list}>
         {items.length === 0 ? (
           <View style={[styles.none, { backgroundColor: c.surface, borderColor: c.border }]}>
@@ -157,20 +244,32 @@ export function WorkoutScreen({ id }: { id: string }) {
               key={item.id}
               item={item}
               number={index + 1}
-              canEdit={!isCompleted}
+              canEdit={canEdit}
               isExpanded={expanded === item.id}
+              autoDraft={fresh === item.id}
               stats={stats.get(item.exerciseId)}
               lastSetsSummary={previous.latestSetsByExerciseId.get(item.exerciseId)}
               previousSets={previous.previousSetsByExerciseId.get(item.exerciseId)}
-              onToggle={(itemId) => setExpanded((cur) => (cur === itemId ? null : itemId))}
+              onToggle={(itemId) => {
+                setFresh(null);
+                setExpanded((cur) => (cur === itemId ? null : itemId));
+              }}
               onAddSet={(itemId, data) => act((ctx) => addSet(ctx, itemId, data))}
               onUpdateSet={(setId, data) => act((ctx) => updateSet(ctx, setId, data))}
               onDeleteSet={(setId) => act((ctx) => deleteSet(ctx, setId))}
               onDeleteItem={(itemId) => act((ctx) => deleteItem(ctx, itemId))}
+              onUpdateNotes={(itemId, notes) => act((ctx) => updateItemNotes(ctx, itemId, notes))}
             />
           ))
         )}
       </View>
+      <WorkoutNotesModal
+        isOpen={notesOpen}
+        initialNotes={workout.workoutNotes}
+        onClose={() => setNotesOpen(false)}
+        onSave={(notes) => act((ctx) => updateWorkout(ctx, id, { workoutNotes: notes }))}
+      />
+      <WorkoutEditModal isOpen={detailsOpen} workout={workout} onClose={() => setDetailsOpen(false)} onSave={(patch) => act((ctx) => updateWorkout(ctx, id, patch))} />
     </KeyboardAwareScrollView>
   );
 }
@@ -183,7 +282,18 @@ const styles = StyleSheet.create({
   iconButton: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   title: { fontFamily: pwaBarlow[800], fontSize: 20, lineHeight: 28, letterSpacing: -0.5 },
   date: { fontFamily: fonts.dmSans[500], fontSize: 12, lineHeight: 18 },
-  timerCard: { borderRadius: 16, borderWidth: 1, padding: 20, marginBottom: 16 },
+  topRight: { flexDirection: "row", alignItems: "center", gap: 6 },
+  timerCard: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16, borderRadius: 16, borderWidth: 1, padding: 20, marginBottom: 16 },
+  timerLeft: { flexShrink: 1 },
+  timerRight: { gap: 8, flexShrink: 0 },
+  notesButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 },
+  notesButtonText: { fontFamily: fonts.dmSans[700], fontSize: 12, lineHeight: 18 },
+  planProgress: { textAlign: "center", fontFamily: fonts.dmSans[700], fontSize: 11, lineHeight: 16.5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, overflow: "hidden" },
+  notesCard: { borderRadius: 12, borderWidth: 1, padding: 14, marginBottom: 12 },
+  summaryNotes: { marginTop: 12, paddingTop: 12, borderTopWidth: 1 },
+  notesLabel: { fontFamily: fonts.dmSans[700], fontSize: 10, lineHeight: 15, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 },
+  notesText: { fontFamily: fonts.dmSans[500], fontSize: 13, lineHeight: 21 },
+  addWide: { flex: 0, alignSelf: "stretch", marginBottom: 16 },
   timerLabel: { fontFamily: fonts.dmSans[700], fontSize: 11, lineHeight: 16.5, letterSpacing: 0.55, textTransform: "uppercase", marginBottom: 4 },
   timer: { fontFamily: pwaBarlow[900], fontSize: 44, lineHeight: 44, letterSpacing: -1.1 },
   gymRow: { flexDirection: "row", marginTop: 8 },

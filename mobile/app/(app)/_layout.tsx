@@ -1,5 +1,6 @@
 import { Redirect, Stack } from "expo-router";
 import { useActiveWorkout, useInitialPullDone } from "@/features/workouts/queries";
+import { AbandonedWorkoutDialog } from "@/features/workouts/AbandonedWorkoutDialog";
 import { ContinuePill } from "@/features/workouts/ContinuePill";
 import { logoutWithPrompt } from "@/features/auth";
 import { DownloadScreen } from "@/features/sync/DownloadScreen";
@@ -38,6 +39,7 @@ function Shell() {
           <Stack.Screen name="exercise-picker" options={{ presentation: "transparentModal", animation: "slide_from_bottom", contentStyle: { backgroundColor: "transparent" } }} />
         </Stack>
       </StatusFrame>
+      {active ? <AbandonedWorkoutDialog workout={active} /> : null}
     </NavShell>
   );
 }

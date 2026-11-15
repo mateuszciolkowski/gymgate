@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getActiveWorkout, getAllStats, getStatsOverview, getWorkout, listPlansForWorkoutPicker, listWorkouts, listExercises } from "@/db/repositories";
+import { getActiveWorkout, getAllStats, getPlan, getStatsOverview, getWorkout, listPlansForWorkoutPicker, listWorkouts, listExercises } from "@/db/repositories";
 import type { Db } from "@/db/types";
 import { computePreviousSets } from "@/domain/previousSets";
 import { computeWorkoutElapsed } from "@/domain/workoutTimer";
@@ -25,11 +25,15 @@ export function useActiveWorkout(): Workout | null {
 /** Everything the workout screen needs besides the workout: previous sessions' sets and the stats of every exercise. */
 export function useWorkoutScreen(id: string) {
   const read = useCallback(
-    (db: Db) => ({
-      workout: getWorkout(db, id),
-      previous: computePreviousSets(listWorkouts(db), id),
-      stats: new Map(getAllStats(db).map((s) => [s.exerciseId, s])),
-    }),
+    (db: Db) => {
+      const workout = getWorkout(db, id);
+      return {
+        workout,
+        plan: workout?.workoutPlanId ? getPlan(db, workout.workoutPlanId) : null,
+        previous: computePreviousSets(listWorkouts(db), id),
+        stats: new Map(getAllStats(db).map((s) => [s.exerciseId, s])),
+      };
+    },
     [id],
   );
   return useDbQuery(read);

@@ -1,0 +1,87 @@
+# Edit-details modal: active workout (rename, clear the gym), completed workout (time range, "Czas całkowity"), then delete.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+      - assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Detale A"
+- hideKeyboard
+- tapOn:
+    id: "workout-gym"
+- inputText: "Gym X"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- assertVisible: "Gym X"
+- tapOn:
+    id: "workout-edit"
+- assertVisible: "Aktywny trening"
+- takeScreenshot: ${OUT}/24-szczegoly-aktywny
+- tapOn:
+    id: "edit-name"
+- eraseText: 20
+- inputText: "Detale B"
+- tapOn:
+    id: "edit-gym"
+- eraseText: 20
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn:
+          id: "edit-save"
+      - assertNotVisible:
+          id: "edit-save"
+- assertVisible: "Detale B"
+- assertNotVisible: "Gym X"
+# add a set and finish
+- tapOn:
+    id: "add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "wyciskanie sztangi"
+- tapOn: "Wyciskanie sztangi na ławce płaskiej"
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn:
+          id: "draft-confirm"
+      - assertVisible: "Edytuj serię 1"
+- scroll
+- scrollUntilVisible:
+    element:
+      id: "finish-workout"
+    direction: UP
+- tapOn:
+    id: "finish-workout"
+- assertVisible: "Historia sesji"
+- tapOn: "Detale B.*"
+- tapOn:
+    id: "workout-details"
+- assertVisible: "Zakończony trening"
+- assertVisible: "(?i).*czas ca.kowity.*"
+- takeScreenshot: ${OUT}/25-szczegoly-zakonczony
+- tapOn:
+    id: "edit-save"
+- assertVisible: "Czas treningu"
+- tapOn:
+    id: "workout-delete"
+- tapOn: "Usuń"
+- assertVisible: "Historia sesji"

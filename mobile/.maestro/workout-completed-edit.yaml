@@ -1,0 +1,123 @@
+# Completed workout: read-only view, edit mode (edit a set, add an exercise), stats follow (Rekord), delete reverts the stats.
+# Needs a signed-in app with the seeded data (record for "Wyciskanie sztangi na ławce płaskiej" = 77.5 kg).
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+      - assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Edycja zakonczonego"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- tapOn:
+    id: "add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "wyciskanie sztangi"
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn:
+          id: "exercise-561bf2fe-106b-4af1-a1d1-f36132863cc4"
+      - assertVisible:
+          id: "draft-weight"
+- tapOn:
+    id: "draft-weight"
+- eraseText: 10
+- inputText: "70"
+- tapOn:
+    id: "draft-reps"
+- eraseText: 5
+- inputText: "6"
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn:
+          id: "draft-confirm"
+      - assertVisible: "Edytuj serię 1"
+- scroll
+- scrollUntilVisible:
+    element:
+      id: "finish-workout"
+    direction: UP
+- tapOn:
+    id: "finish-workout"
+- assertVisible: "Historia sesji"
+# read-only view
+- tapOn: "Edycja zakonczonego.*"
+- assertVisible: "Czas treningu"
+- assertVisible: "Data i godzina"
+- assertNotVisible: "+ Dodaj serię"
+- takeScreenshot: ${OUT}/30-trening-zakonczony
+- tapOn:
+    id: "item-header-1"
+- assertVisible: ".*Ostatnio.*"
+- assertNotVisible: "Edytuj serię 1"
+- takeScreenshot: ${OUT}/31-trening-zakonczony-cwiczenie-rozwiniete
+# edit mode
+- tapOn:
+    id: "workout-edit"
+- assertVisible: "Edytuj serię 1"
+- takeScreenshot: ${OUT}/32-trening-zakonczony-edycja
+- tapOn: "Edytuj serię 1"
+- tapOn:
+    id: "set-1-weight"
+- eraseText: 10
+- inputText: "100"
+- tapOn:
+    id: "set-1-confirm"
+- assertVisible: ".*Rekord:.*100 kg × 6.*"
+- tapOn:
+    id: "add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "martwy ciąg klasyczny"
+- tapOn:
+    id: "exercise-0185a8a6-4015-457a-9eb3-c3102ce338e3"
+- tapOn:
+    id: "draft-confirm"
+- assertVisible: ".*Martwy ciąg klasyczny.*"
+- tapOn:
+    id: "workout-edit"
+- assertNotVisible: "+ Dodaj serię"
+# delete -> the record goes back to the seeded 77.5
+- tapOn:
+    id: "workout-delete"
+- tapOn: "Usuń"
+- assertVisible: "Historia sesji"
+- assertNotVisible: "Edycja zakonczonego.*"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-submit"
+- tapOn:
+    id: "add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "wyciskanie sztangi"
+- tapOn: "Wyciskanie sztangi na ławce płaskiej"
+- assertVisible: ".*Rekord:.*77.5 kg × 5.*"
+- tapOn:
+    id: "draft-cancel"
+- tapOn:
+    id: "workout-delete"
+- tapOn: "Usuń"
+- assertVisible: "Historia sesji"

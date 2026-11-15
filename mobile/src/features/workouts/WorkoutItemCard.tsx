@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { draftDefaults, type DraftValues } from "@/domain/draftSet";
 import { setsWord } from "@/domain/formatters";
 import { MUSCLE_GROUPS } from "@/domain/muscleGroups";
@@ -8,14 +8,17 @@ import type { ExerciseStatsResult } from "@/domain/stats";
 import type { WorkoutItem, WorkoutSet } from "@/domain/types";
 import { fonts, pwaBarlow, tabularNums, toBoxShadow, useTheme } from "@/theme";
 import { confirmAlert, Icon } from "@/ui";
+import { ExercisePhotoButton } from "./ExercisePhotoButton";
 import { SetEditor } from "./SetEditor";
 
 export interface ItemCardProps {
   item: WorkoutItem;
   number: number;
-  /** DRAFT workout: sets can be added, edited, deleted. COMPLETED is read-only here (edit mode is stage 9). */
+  /** DRAFT workout or COMPLETED in edit mode: sets, notes and the exercise can be changed. */
   canEdit: boolean;
   isExpanded: boolean;
+  /** The exercise was just added: expanding it opens the pre-filled draft set (later expansions show "Brak zapisanych serii."). */
+  autoDraft?: boolean;
   stats?: ExerciseStatsResult;
   lastSetsSummary?: string;
   previousSets?: PreviousSetData[];
@@ -24,6 +27,7 @@ export interface ItemCardProps {
   onUpdateSet: (setId: string, data: { weight?: number; repetitions?: number }) => void;
   onDeleteSet: (setId: string) => void;
   onDeleteItem: (itemId: string) => void;
+  onUpdateNotes: (itemId: string, notes: string) => void;
 }
 
 function SetRow({ set, canEdit, onSave, onDelete }: { set: WorkoutSet; canEdit: boolean; onSave: ItemCardProps["onUpdateSet"]; onDelete: (id: string) => void }) {
@@ -55,7 +59,7 @@ function SetRow({ set, canEdit, onSave, onDelete }: { set: WorkoutSet; canEdit: 
   return (
     <View style={[styles.setRow, { backgroundColor: c.surface2, borderColor: c.border }]} testID={`set-row-${set.setNumber}`}>
       <Text style={[styles.setNumber, { color: c.textMuted }]}>#{set.setNumber}</Text>
-      <Pressable disabled={!canEdit} onPress={() => setEditing(true)} style={styles.setValues} accessibilityLabel={`Edytuj serię ${set.setNumber}`}>
+      <Pressable disabled={!canEdit} onPress={() => setEditing(true)} style={styles.setValues} accessibilityLabel={canEdit ? `Edytuj serię ${set.setNumber}` : undefined}>
         <Text style={[styles.setBig, tabularNums, { color: c.text }]}>{set.weight}</Text>
         <Text style={[styles.setUnit, { color: c.textMuted }]}>kg</Text>
         <Text style={[styles.setTimes, { color: c.text }]}>×</Text>
@@ -87,6 +91,7 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
   number,
   canEdit,
   isExpanded,
+  autoDraft = false,
   stats,
   lastSetsSummary,
   previousSets,
@@ -95,19 +100,34 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
   onUpdateSet,
   onDeleteSet,
   onDeleteItem,
+  onUpdateNotes,
 }: ItemCardProps) {
   const { theme } = useTheme();
   const c = theme.colors;
   const [draft, setDraft] = useState<DraftValues | null>(null);
   const [wasExpanded, setWasExpanded] = useState(false);
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState(item.notes ?? "");
   const nextSetNumber = Math.max(0, ...item.sets.map((s) => s.setNumber)) + 1;
   const defaults = () => draftDefaults({ sets: item.sets, previousSets, stats });
 
-  // Expanding an exercise without sets opens the draft (pre-filled); collapsing discards it (PWA F11, F12).
+  // A freshly added exercise opens its pre-filled draft; collapsing discards it, re-expanding does not bring it back (PWA 1.7).
   if (isExpanded !== wasExpanded) {
     setWasExpanded(isExpanded);
-    setDraft(isExpanded && canEdit && item.sets.length === 0 ? defaults() : null);
+    setDraft(isExpanded && autoDraft && canEdit && item.sets.length === 0 ? defaults() : null);
   }
+
+  const saveNotes = () => {
+    const notes = notesValue.trim();
+    setNotesValue(notes);
+    setEditingNotes(false);
+    Keyboard.dismiss();
+    onUpdateNotes(item.id, notes);
+  };
+  const toggleNotes = () => {
+    if (!editingNotes) setNotesValue(item.notes ?? "");
+    setEditingNotes((v) => !v);
+  };
 
   return (
     <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border, boxShadow: toBoxShadow(theme.shadow) }]} testID={`item-card-${number}`}>
@@ -129,8 +149,17 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
               · {item.sets.length} {setsWord(item.sets.length)}
             </Text>
           </View>
+          {item.previousNote ? (
+            <View style={[styles.carry, { backgroundColor: c.surface2, borderColor: c.border }]} testID={`item-previous-note-${number}`}>
+              <Text style={[styles.carryLabel, { color: c.a2 }]}>Uwaga:</Text>
+              <Text numberOfLines={1} style={[styles.carryText, { color: c.textSub }]}>
+                {`"${item.previousNote}"`}
+              </Text>
+            </View>
+          ) : null}
         </View>
         <View style={styles.headerButtons}>
+          <ExercisePhotoButton photos={item.exercise.photos} exerciseName={item.exercise.name} />
           {canEdit ? (
             <Pressable
               accessibilityRole="button"
@@ -191,14 +220,69 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
           )}
 
           {canEdit ? (
+            <View style={styles.actions}>
+              <Pressable
+                accessibilityRole="button"
+                testID={`add-set-${number}`}
+                disabled={draft !== null}
+                onPress={() => setDraft(defaults())}
+                style={[styles.addSet, { backgroundColor: c.surface2, borderColor: c.borderMed, opacity: draft ? 0.4 : 1 }]}
+              >
+                <Text style={[styles.addSetText, { color: c.a2 }]}>+ Dodaj serię</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                testID={`item-notes-toggle-${number}`}
+                onPress={toggleNotes}
+                style={[styles.addSet, { backgroundColor: c.surface2, borderColor: c.border }]}
+              >
+                <Text style={[styles.addSetText, { color: c.textSub }]}>{editingNotes ? "Ukryj notatki" : "Notatki"}</Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          {editingNotes ? (
+            <View style={[styles.notesEditor, { backgroundColor: c.surface2, borderColor: c.a1 }]}>
+              <Text style={[styles.notesTitle, { color: c.text }]}>Notatka do ćwiczenia</Text>
+              <TextInput
+                testID={`item-notes-input-${number}`}
+                value={notesValue}
+                onChangeText={setNotesValue}
+                placeholder="Wpisz notatkę..."
+                placeholderTextColor={c.textMuted}
+                selectionColor={c.a1}
+                multiline
+                autoFocus
+                textAlignVertical="top"
+                style={[styles.notesInput, { color: c.text, backgroundColor: c.surface, borderColor: c.borderMed }]}
+              />
+              <View style={styles.notesButtons}>
+                <Pressable
+                  accessibilityRole="button"
+                  testID={`item-notes-cancel-${number}`}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setNotesValue(item.notes ?? "");
+                    setEditingNotes(false);
+                  }}
+                  style={[styles.notesCancel, { backgroundColor: c.surface3 }]}
+                >
+                  <Text style={[styles.notesButtonText, { color: c.textMuted }]}>Anuluj</Text>
+                </Pressable>
+                <Pressable accessibilityRole="button" testID={`item-notes-save-${number}`} onPress={saveNotes} style={[styles.notesSave, { backgroundColor: c.btnBg }]}>
+                  <Text style={[styles.notesButtonText, { color: "#ffffff" }]}>Zapisz notatkę</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : item.notes ? (
             <Pressable
-              accessibilityRole="button"
-              testID={`add-set-${number}`}
-              disabled={draft !== null}
-              onPress={() => setDraft(defaults())}
-              style={[styles.addSet, { backgroundColor: c.surface2, borderColor: c.borderMed, opacity: draft ? 0.4 : 1 }]}
+              disabled={!canEdit}
+              testID={`item-notes-${number}`}
+              onPress={toggleNotes}
+              style={[styles.notesShown, { backgroundColor: c.surface2, borderColor: c.border }]}
             >
-              <Text style={[styles.addSetText, { color: c.a2 }]}>+ Dodaj serię</Text>
+              <Text style={[styles.notesShownLabel, { color: c.textMuted }]}>Notatka:</Text>
+              <Text style={[styles.notesShownText, { color: c.text }]}>{item.notes}</Text>
             </Pressable>
           ) : null}
         </View>
@@ -233,6 +317,20 @@ const styles = StyleSheet.create({
   setTimes: { fontFamily: fonts.dmSans[700], fontSize: 14, opacity: 0.4, paddingHorizontal: 2 },
   setActions: { flexDirection: "row", alignItems: "center", gap: 4 },
   smallButton: { width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" },
-  addSet: { minHeight: 40, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center", paddingVertical: 10, marginTop: 4 },
+  carry: { flexDirection: "row", alignItems: "flex-start", gap: 6, marginTop: 10, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
+  carryLabel: { fontFamily: fonts.dmSans[700], fontSize: 11, lineHeight: 16.5 },
+  carryText: { flex: 1, fontFamily: fonts.dmSans[400], fontStyle: "italic", fontSize: 11, lineHeight: 16.5 },
+  actions: { flexDirection: "row", gap: 8, marginTop: 4 },
+  addSet: { flex: 1, minHeight: 40, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center", paddingVertical: 10 },
+  notesEditor: { marginTop: 12, borderRadius: 16, borderWidth: 1.5, padding: 14 },
+  notesTitle: { fontFamily: fonts.dmSans[700], fontSize: 12, lineHeight: 18, marginBottom: 8 },
+  notesInput: { minHeight: 64, padding: 10, borderRadius: 12, borderWidth: 1, fontFamily: fonts.dmSans[400], fontSize: 13, lineHeight: 19.5 },
+  notesButtons: { flexDirection: "row", gap: 8, marginTop: 10 },
+  notesCancel: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, justifyContent: "center" },
+  notesSave: { flex: 1, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, alignItems: "center" },
+  notesButtonText: { fontFamily: fonts.dmSans[700], fontSize: 12, lineHeight: 18 },
+  notesShown: { marginTop: 10, borderRadius: 12, borderWidth: 1, padding: 12 },
+  notesShownLabel: { fontFamily: fonts.dmSans[700], fontSize: 11, lineHeight: 16.5, marginBottom: 2 },
+  notesShownText: { fontFamily: fonts.dmSans[500], fontSize: 12, lineHeight: 19.5 },
   addSetText: { fontFamily: fonts.dmSans[700], fontSize: 13, lineHeight: 19.5 },
 });

@@ -1,9 +1,12 @@
 import { useRouter } from "expo-router";
-import type { ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaInsetsContext, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSession, useSync } from "@/providers";
+import type { Db } from "@/db/types";
+import { useDbQuery, useSession, useSync } from "@/providers";
+import { listOpenIssues } from "@/sync";
 import { fonts, useTheme } from "@/theme";
+import { SyncIssuesBanner } from "./SyncIssuesBanner";
 
 export const OFFLINE_TEXT = "Brak połączenia z internetem — pracujesz offline";
 export const REAUTH_TEXT = "Sesja wygasła. Zaloguj się ponownie, aby wysłać zmiany; aplikacja działa dalej na danych z telefonu.";
@@ -20,7 +23,10 @@ export function StatusFrame({ children }: { children: ReactNode }) {
   const { state: session } = useSession();
   const { state, offline } = useSync();
   const reauth = session.status === "reauthRequired";
-  const banners = offline || reauth;
+  const openIssues = useDbQuery(useCallback((d: Db) => listOpenIssues(d), []));
+  const [hidden, setHidden] = useState<ReadonlySet<number>>(new Set());
+  const issues = openIssues.some((i) => !hidden.has(i.id));
+  const banners = offline || reauth || issues;
 
   const row = [styles.row, { backgroundColor: c.activeBg, borderBottomColor: c.activeBorder }];
   return (
@@ -36,6 +42,7 @@ export function StatusFrame({ children }: { children: ReactNode }) {
               </Text>
             </View>
           ) : null}
+          {issues ? <SyncIssuesBanner issues={openIssues} online={!offline} onHide={() => setHidden(new Set(openIssues.map((i) => i.id)))} /> : null}
           {reauth ? (
             <View style={row} testID="reauth-banner">
               <Text style={[styles.text, { color: c.activeBorder }]}>{REAUTH_TEXT}</Text>

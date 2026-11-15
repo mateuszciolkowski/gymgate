@@ -1,0 +1,58 @@
+# Screenshots of the workout feature for docs/zrzuty/<theme>/ (theme = the persisted theme key, see tools in the report).
+# Run on a freshly seeded user (active workout "Klatka piersiowa" with 2 exercises): maestro test -e OUT=dark .maestro/zrzuty-trening.yaml
+# Maestro saves the PNGs under ~/.maestro/tests/<run>/zrzuty-trening/takeScreenshot/<OUT>/.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- takeScreenshot: ${OUT}/10-treningi
+- scroll
+- takeScreenshot: ${OUT}/11-treningi-przewiniete
+- scrollUntilVisible:
+    element: "Dziennik treningowy"
+    direction: UP
+- openLink: "gymgate:///workout-new"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Rozpocznij"
+- takeScreenshot: ${OUT}/12-nowy-trening
+- tapOn:
+    id: "workout-cancel"
+- tapOn:
+    id: "bar-continue-workout"
+- assertVisible: "Czas trwania"
+- takeScreenshot: ${OUT}/20-trening-aktywny
+- tapOn:
+    id: "item-header-1"
+- assertVisible: "Brak zapisanych serii."
+- takeScreenshot: ${OUT}/21-trening-aktywny-cwiczenie-rozwiniete
+- tapOn:
+    id: "item-header-1"
+- tapOn:
+    id: "workout-notes"
+- assertVisible: "Sesja treningowa"
+- takeScreenshot: ${OUT}/23-notatki-treningu
+- tapOn:
+    id: "workout-notes-cancel"
+- tapOn:
+    id: "add-exercise"
+- assertVisible: "Wybierz ćwiczenie"
+- takeScreenshot: ${OUT}/22-wybor-cwiczenia
+- tapOn:
+    id: "picker-close"
+- tapOn:
+    id: "workout-back"
+- scrollUntilVisible:
+    element: "Barki i ramiona.*"
+- tapOn: "Barki i ramiona.*"
+- assertVisible: "Czas treningu"
+- takeScreenshot: ${OUT}/30-trening-zakonczony
+- tapOn:
+    id: "item-header-1"
+- assertVisible: ".*Ostatnio.*"
+- takeScreenshot: ${OUT}/31-trening-zakonczony-cwiczenie-rozwiniete

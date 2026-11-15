@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { memo, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { exercisesWord, fmtListDate, fmtListDuration, setsWord } from "@/domain/formatters";
+import { exercisesWord, fmtListDate, fmtListDuration, loggedSetsWord, setsWord } from "@/domain/formatters";
 import type { Workout } from "@/domain/types";
 import { fonts, pwaBarlow, tabularNums, toBoxShadow, useTheme } from "@/theme";
 import { EmptyState, Icon, PulseDot } from "@/ui";
@@ -84,7 +84,7 @@ function ActiveCard({ workout, onPress }: { workout: Workout; onPress: (id: stri
           {workout.workoutName || "Aktywny trening"}
         </Text>
         <Text style={[styles.activeMeta, { color: c.textSub }, tabularNums]}>
-          {n} {exercisesWord(n)} · {setsOf(workout)} zalogowanych serii
+          {n} {exercisesWord(n)} · {setsOf(workout)} {loggedSetsWord(setsOf(workout))}
         </Text>
       </View>
       <View style={[styles.back, { backgroundColor: c.activeBorder }]}>
@@ -197,6 +197,8 @@ export function TrainingsScreen() {
         </View>
       }
       showsVerticalScrollIndicator={false}
+      // Re-sorting must not keep the old first card in view (it would jump the list to the other end).
+      maintainVisibleContentPosition={{ disabled: true }}
     />
   );
 }

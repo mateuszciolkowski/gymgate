@@ -88,3 +88,14 @@ export function groupIssues(issues: SyncIssue[]): IssueGroup[] {
   }
   return groups;
 }
+
+const ACTION = (type: string): string => {
+  const verb = type.split(".")[1] ?? "";
+  if (verb === "update") return "Aktualizacja";
+  if (verb === "delete") return "Usunięcie";
+  return "Zapisanie";
+};
+const OBJECT: Record<string, string> = { workout: "treningu", item: "ćwiczenia w treningu", set: "serii", exercise: "ćwiczenia", plan: "planu" };
+
+/** "{akcja} {obiekt}" line of the rejected-changes banner (PWA SyncFailureBanner wording), e.g. "Aktualizacja planu". */
+export const describeIssue = (issue: Pick<SyncIssue, "type" | "entity">): string => `${ACTION(issue.type)} ${OBJECT[issue.entity] ?? "treningu"}`;

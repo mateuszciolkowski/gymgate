@@ -1,0 +1,32 @@
+# Timer from timestamps, step 1/2: start a workout and send the app to the background (home). Wait >= 70 s, then run timer-2-check.yaml.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+      - assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Licznik"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- assertVisible:
+    id: "workout-timer"
+    text: "00:0.*"
+- pressKey: home

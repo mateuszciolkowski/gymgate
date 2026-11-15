@@ -1,0 +1,44 @@
+# Workout from a plan: skip the first exercise, add the next one, "Plan completed" indicator. Leaves the workout open
+# (the next flow's cleanup deletes it) so the server state can be checked. Needs plan "E2E mini plan" (2 exercises) in the DB.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+      - assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-plan"
+- tapOn:
+    id: "plan-option-7e2e0000-0000-4000-8000-000000000001"
+- takeScreenshot: ${OUT}/12b-nowy-trening-plan
+- tapOn:
+    id: "workout-submit"
+- assertVisible: "Czas trwania"
+- assertVisible: "Plan 0/2"
+- assertVisible: ".*Kolejne z planu.*Wyciskanie sztangi na ławce płaskiej.*"
+- takeScreenshot: ${OUT}/20b-plan-baner
+- tapOn:
+    id: "plan-skip"
+- assertVisible: "Plan 1/2"
+- assertVisible: ".*Kolejne z planu.*Martwy ciąg klasyczny.*"
+- tapOn:
+    id: "plan-add-next"
+- assertVisible: "Plan 2/2"
+- assertVisible: "Wszystkie ćwiczenia z planu zostały dodane"
+- takeScreenshot: ${OUT}/20c-plan-ukonczony
+- assertVisible: ".*Martwy ciąg klasyczny.*"

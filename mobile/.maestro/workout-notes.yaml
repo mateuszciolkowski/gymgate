@@ -1,0 +1,92 @@
+# Notes: workout note (modal) + exercise note, carried over as "Uwaga" into the next workout with the same exercise.
+# Needs a signed-in app (login-sync.yaml first).
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+      - assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Notatki A"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- assertVisible: "Czas trwania"
+# workout note
+- tapOn:
+    id: "workout-notes"
+- assertVisible: "Sesja treningowa"
+- takeScreenshot: ${OUT}/23-notatki-treningu
+- tapOn:
+    id: "workout-notes-input"
+- inputText: "  Dobra forma dnia  "
+- tapOn:
+    id: "workout-notes-save"
+- extendedWaitUntil:
+    visible: "(?i).*notatki do treningu.*Dobra forma dnia.*"
+    timeout: 5000
+# exercise + exercise note
+- tapOn:
+    id: "add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "wyciskanie sztangi"
+- tapOn: "Wyciskanie sztangi na ławce płaskiej"
+- tapOn:
+    id: "draft-confirm"
+- assertVisible: "Edytuj serię 1"
+- tapOn:
+    id: "item-notes-toggle-1"
+- tapOn:
+    id: "item-notes-input-1"
+- inputText: "Barki do przodu"
+- tapOn:
+    id: "item-notes-save-1"
+- assertVisible: ".*Notatka:.*Barki do przodu.*"
+- scroll
+- scrollUntilVisible:
+    element:
+      id: "finish-workout"
+    direction: UP
+- tapOn:
+    id: "finish-workout"
+- assertVisible: "Historia sesji"
+# next workout with the same exercise shows the carried-over note
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Notatki B"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- tapOn:
+    id: "add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "wyciskanie sztangi"
+- tapOn: "Wyciskanie sztangi na ławce płaskiej"
+- assertVisible: ".*Uwaga:.*Barki do przodu.*"
+- takeScreenshot: ${OUT}/21b-uwaga
+- tapOn:
+    id: "draft-cancel"
+- tapOn:
+    id: "workout-delete"
+- tapOn: "Usuń"
+- assertVisible: "Historia sesji"

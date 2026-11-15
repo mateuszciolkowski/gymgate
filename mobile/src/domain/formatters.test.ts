@@ -1,4 +1,4 @@
-import { exercisesWord, fmtDate, fmtDuration, fmtListDuration, fmtTimer, setsWord } from "./formatters";
+import { exercisesWord, loggedSetsWord, fmtDate, fmtDuration, fmtListDuration, fmtTimer, setsWord } from "./formatters";
 
 describe("fmtTimer", () => {
   it("pads minutes and seconds", () => {
@@ -33,6 +33,7 @@ describe("list formatters and plurals (D-17, D-25)", () => {
   it("inflects sets and exercises", () => {
     expect([0, 1, 2, 5, 12, 22].map(setsWord)).toEqual(["serii", "seria", "serie", "serii", "serii", "serie"]);
     expect([1, 2, 5, 22].map(exercisesWord)).toEqual(["ćwiczenie", "ćwiczenia", "ćwiczeń", "ćwiczenia"]);
+    expect([0, 1, 3, 9].map(loggedSetsWord)).toEqual(["zalogowanych serii", "zalogowana seria", "zalogowane serie", "zalogowanych serii"]);
   });
 });
 

@@ -40,9 +40,17 @@ appId: com.gymgate.app
     id: "draft-reps"
 - eraseText: 5
 - inputText: "6"
-- tapOn:
-    id: "draft-confirm"
-- assertVisible: "Edytuj serię 1"
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn:
+          id: "draft-confirm"
+      - assertVisible: "Edytuj serię 1"
+- scroll
+- scrollUntilVisible:
+    element:
+      id: "finish-workout"
+    direction: UP
 - tapOn:
     id: "finish-workout"
 - assertVisible: "Historia sesji"

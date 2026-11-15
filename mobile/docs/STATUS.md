@@ -6,7 +6,7 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 
 **Ostatnia aktualizacja:** 2026-11-15
 **Bieżący etap:** 3, 4 i 5 równolegle, sesja lokalna na MacBooku (sesja chmurowa wyłączona).
-**Następny krok:** Etap 9 (pełny ekran treningu: notatki, plan w treningu, edycja szczegółów, porzucony trening), potem 7, 8, 10, 11. Otwarte: 5.7 (instrukcja wgrania na iPhone'a), baner odrzuconych operacji.
+**Następny krok:** Etap 7 (ćwiczenia), potem 8, 10, 11. Otwarte: 5.7 (instrukcja wgrania na iPhone'a).
 
 ## Przegląd etapów
 
@@ -106,6 +106,8 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 
 ## Etapy 6–15
 
+- [x] Etap 9 (pełny ekran treningu): notatki treningu i ćwiczenia, plan w treningu, szczegóły, trening zakończony z edycją, dialog porzuconego treningu, baner odrzuconych zmian. 240 testów Jest, typecheck i lint czyste (uruchomione przez orkiestratora); przepływy Maestro i porównanie zrzutów według agenta. Niesprawdzone: zmiana daty i godzin w natywnym selektorze, „Ponów” na banerze, przycisk zdjęcia, blokada ekranu, ścieżki błędów (E19, E20). Zrzuty listy i treningu w 12 motywach; z wzorcem porównane tylko dark, light i blossom.
+
 Zakres każdego etapu to grupy z `PARYTET.md` wskazane w `PLAN.md`, sekcja 10. Listy zadań rozpisujemy tutaj przy wejściu w dany etap.
 
 ## Stan wyjściowy testów (2026-11-14, commit `cca3455`)
@@ -141,7 +143,8 @@ Do czasu odpowiedzi: zakładam, że push na `mobile-migration` może zbudować p
 ## Znane problemy
 
 - Symulator ma włączone „Ogranicz ruch” (ustawione dla stabilności Maestro).
-- Niewyjaśnione: trening „Kill test” z przepływu Maestro znalazł się na serwerze jako zakończony, choć przepływ go nie kończy; nie udało się odtworzyć.
+- Trening „Kill test” zakończony na serwerze: prawdopodobnie test dymny PWA (`tools/pwa-smoke/smoke.mjs` kończy dowolny aktywny trening); ustalone czytaniem kodu, nie odtworzone. W apce i na serwerze brak ścieżki kończącej trening bez akcji użytkownika.
+- Maestro: pierwsze dotknięcie po wpisaniu liczby bywa gubione (animacja klawiatury); przepływy używają `retry`. `tabs.yaml` zakłada pustą historię i nie przechodzi po synchronizacji. `workout-completed-edit` wymaga świeżego seeda.
 - Przy niedostępnym backendzie ponowna próba synchronizacji może czekać do 5 minut; powrót apki na pierwszy plan lub zmiana sieci zeruje odstęp.
 
 - `mobile/` wymaga Node 24 (Expo SDK 58), `backend/` zostaje na Node 20.

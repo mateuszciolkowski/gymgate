@@ -1,0 +1,57 @@
+# Abandoned workout, step 2/2. Run after abandoned-1-create.yaml and:
+#   UPDATE workouts SET "createdAt" = now() - interval '5 hours 30 minutes', "updatedAt" = now() - interval '5 hours' WHERE "workoutName" = 'Porzucony';
+#   UPDATE workout_items SET "createdAt" = now() - interval '5 hours', "updatedAt" = now() - interval '5 hours' WHERE "workoutId" IN (SELECT id FROM workouts WHERE "workoutName" = 'Porzucony');
+#   UPDATE workout_sets  SET "createdAt" = now() - interval '5 hours', "updatedAt" = now() - interval '5 hours' WHERE "itemId" IN (SELECT id FROM workout_items WHERE "workoutId" IN (SELECT id FROM workouts WHERE "workoutName" = 'Porzucony'));
+# The app pulls the old timestamps on the first launch; the dialog shows at the next start (local data is already old).
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- extendedWaitUntil:
+    visible: "Porzucony.*"
+    timeout: 10000
+- stopApp
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Trening się skończył?"
+- assertVisible: "Ostatnia aktywność 5h 0min temu"
+- assertVisible: "Porzucony"
+- takeScreenshot: ${OUT}/26-porzucony-dialog
+# "Kontynuuj": dialog closes, the timer is capped at last activity - start (30:00) on the screen and in the pill
+- tapOn:
+    id: "abandoned-continue"
+- assertNotVisible: "Trening się skończył?"
+- assertVisible:
+    id: "bar-timer"
+    text: "30:00"
+- tapOn:
+    id: "bar-continue-workout"
+- assertVisible:
+    id: "workout-timer"
+    text: "30:00"
+- takeScreenshot: ${OUT}/27-porzucony-licznik
+# once per workout and launch: going around the app does not bring it back
+- tapOn:
+    id: "workout-back"
+- assertNotVisible: "Trening się skończył?"
+# next launch: "Zakończ trening" finishes it with 30 min
+- stopApp
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Trening się skończył?"
+- tapOn:
+    id: "abandoned-finish"
+- assertNotVisible: "Trening się skończył?"
+- assertVisible: "Porzucony.*30 min.*"
+- assertNotVisible:
+    id: "bar-continue-workout"

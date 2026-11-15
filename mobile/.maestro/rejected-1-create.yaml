@@ -1,0 +1,38 @@
+# Rejected-changes banner, step 1/3: create workout "Odrzucone" with an exercise and an open draft set; stays on the workout screen.
+# Then: stop the backend, run rejected-2-offline-set.yaml, start the backend, DELETE /api/workouts/<id> through the old API
+# (login as the seeded user), run rejected-3-banner.yaml.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+      - assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Odrzucone"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- tapOn:
+    id: "add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "wyciskanie sztangi"
+- tapOn: "Wyciskanie sztangi na ławce płaskiej"
+- assertVisible:
+    id: "draft-confirm"

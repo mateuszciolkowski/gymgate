@@ -4,7 +4,7 @@ Każda pozycja to funkcja lub stan PWA, który apka musi odtworzyć. Opis zachow
 
 Oznaczenia: `[ ]` do zrobienia, `[x]` zweryfikowane, `[~]` zrobione, niezweryfikowane na urządzeniu, `[o]` świadome odstępstwo (wpis w `DECYZJE.md`).
 
-Stan: 0 z 243 pozycji.
+Stan: 77 z 243 pozycji zweryfikowanych.
 
 ## A. Start, logowanie, rejestracja, sesja (7)
 
@@ -54,108 +54,108 @@ Stan: 0 z 243 pozycji.
 
 ## C. Lista treningów (2)
 
-- [ ] C1 Nagłówek „Dziennik treningowy” / „Treningi”
-- [ ] C2 Pasek aktywności: liczba treningów (ostatnie 12 miesięcy) i serii, znacznik „Aktywność”
-- [ ] C3 Pasek aktywności: wartości zastępcze bez podsumowania
-- [ ] C4 Sekcja „Trening w toku”: karta, teksty, przycisk „Wróć”, pulsująca kropka
-- [ ] C5 Sekcja „Trening w toku”: więcej niż jeden trening DRAFT
-- [ ] C6 „Historia sesji” z licznikiem
-- [ ] C7 Sortowanie „Od najnowszych” / „Od najstarszych” (widoczne przy więcej niż jednym)
-- [ ] C8 Karta treningu: nazwa lub „Trening”, czas, data, siłownia, liczba ćwiczeń i serii
+- [x] C1 Nagłówek „Dziennik treningowy” / „Treningi” — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] C2 Pasek aktywności: liczba treningów (ostatnie 12 miesięcy) i serii, znacznik „Aktywność” — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] C3 Pasek aktywności: wartości zastępcze bez podsumowania — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] C4 Sekcja „Trening w toku”: karta, teksty, przycisk „Wróć”, pulsująca kropka — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [~] C5 Sekcja „Trening w toku”: więcej niż jeden trening DRAFT — zbudowane, w danych testowych tylko jeden DRAFT
+- [x] C6 „Historia sesji” z licznikiem — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] C7 Sortowanie „Od najnowszych” / „Od najstarszych” (widoczne przy więcej niż jednym) — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] C8 Karta treningu: nazwa lub „Trening”, czas, data, siłownia, liczba ćwiczeń i serii — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
 - [ ] C9 Stan ładowania „Ładowanie sesji...”
 - [ ] C10 Stan pusty „Brak ukończonych treningów”
 - [ ] C11 Płynne przewijanie długiej historii (setki treningów)
 
 ## D. Nowy trening (2.3)
 
-- [ ] D1 Arkusz: tytuł, podtytuł, uchwyt, zamknięcie tłem
-- [ ] D2 Pola nazwy i siłowni z placeholderami
-- [ ] D3 Data: domyślnie dziś, maksimum dziś, format wyświetlania, natywny wybór
-- [ ] D4 Wybór planu: widoczny tylko przy planach ulubionych lub wbudowanych
-- [ ] D5 Wybór planu: „Zacznij bez planu”, ulubione pierwsze ze znacznikiem, liczba ćwiczeń
-- [ ] D6 Wybór planu wpisuje nazwę skróconą wg reguły (puste pole lub nazwa poprzedniego planu)
-- [ ] D7 „Rozpocznij” / „Tworzenie…”, blokada podwójnego wysłania
-- [ ] D8 Data z bieżącą godziną jako `workoutDate`
-- [ ] D9 Po utworzeniu przejście do treningu; trening staje się aktywny
-- [ ] D10 Błąd utworzenia: komunikat i odblokowanie
-- [ ] D11 Przy aktywnym treningu przycisk prowadzi do niego zamiast otwierać arkusz
-- [ ] D12 Tworzenie działa offline
+- [x] D1 Arkusz: tytuł, podtytuł, uchwyt, zamknięcie tłem — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] D2 Pola nazwy i siłowni z placeholderami — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] D3 Data: domyślnie dziś, maksimum dziś, format wyświetlania, natywny wybór — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] D4 Wybór planu: widoczny tylko przy planach ulubionych lub wbudowanych — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] D5 Wybór planu: „Zacznij bez planu”, ulubione pierwsze ze znacznikiem, liczba ćwiczeń — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] D6 Wybór planu wpisuje nazwę skróconą wg reguły (puste pole lub nazwa poprzedniego planu) — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] D7 „Rozpocznij” / „Tworzenie…”, blokada podwójnego wysłania — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] D8 Data z bieżącą godziną jako `workoutDate` — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] D9 Po utworzeniu przejście do treningu; trening staje się aktywny — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] D10 Błąd utworzenia: komunikat i odblokowanie — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] D11 Przy aktywnym treningu przycisk prowadzi do niego zamiast otwierać arkusz — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] D12 Tworzenie działa offline — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
 
 ## E. Ekran treningu: aktywny (1)
 
-- [ ] E1 Górny pasek: wróć, nazwa lub „Trening”, data z godziną
-- [ ] E2 Przycisk edycji otwiera modal szczegółów
-- [ ] E3 „Usuń trening” z potwierdzeniem i powrotem do listy
-- [ ] E4 Karta „Czas trwania” z licznikiem MM:SS tykającym co sekundę
-- [ ] E5 Licznik poprawny po zablokowaniu ekranu, tle i zabiciu apki
-- [ ] E6 Reguła porzuconego treningu (2 h) w liczniku
-- [ ] E7 Etykieta siłowni
-- [ ] E8 Przycisk „Notatki” i karta „Notatki do treningu”
-- [ ] E9 Znacznik „Plan {zrobione}/{wszystkie}”
-- [ ] E10 Baner „Kolejne z planu” z dodaniem ćwiczenia
-- [ ] E11 „Pomiń” ćwiczenie z planu (także offline; naprawa B4)
-- [ ] E12 „Wszystkie ćwiczenia z planu zostały dodane”
-- [ ] E13 Algorytm następnego ćwiczenia: kolejność planu, bez dodanych i pominiętych
-- [ ] E14 Przyciski „Dodaj ćwiczenie” i „Zakończ trening”
-- [ ] E15 Stan „Brak ćwiczeń w tej sesji” z podpowiedzią
-- [ ] E16 Zakończenie: blokada bez ćwiczeń (tekst)
-- [ ] E17 Zakończenie: blokada przy ćwiczeniu bez serii (tekst z nazwą)
-- [ ] E18 Zakończenie: wysyła czas z licznika, wraca do listy, czyści aktywny trening
-- [ ] E19 Zakończenie: błąd „Nie udało się zapisać treningu”
-- [ ] E20 Stan ładowania i błędu ekranu
-- [ ] E21 Trening usunięty gdzie indziej: komunikat i powrót
+- [x] E1 Górny pasek: wróć, nazwa lub „Trening”, data z godziną — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E2 Przycisk edycji otwiera modal szczegółów — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E3 „Usuń trening” z potwierdzeniem i powrotem do listy — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E4 Karta „Czas trwania” z licznikiem MM:SS tykającym co sekundę — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [~] E5 Licznik poprawny po zablokowaniu ekranu, tle i zabiciu apki — tło i zabicie apki sprawdzone w Maestro; blokada ekranu nie
+- [x] E6 Reguła porzuconego treningu (2 h) w liczniku — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E7 Etykieta siłowni — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E8 Przycisk „Notatki” i karta „Notatki do treningu” — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E9 Znacznik „Plan {zrobione}/{wszystkie}” — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E10 Baner „Kolejne z planu” z dodaniem ćwiczenia — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E11 „Pomiń” ćwiczenie z planu (także offline; naprawa B4) — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E12 „Wszystkie ćwiczenia z planu zostały dodane” — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E13 Algorytm następnego ćwiczenia: kolejność planu, bez dodanych i pominiętych — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E14 Przyciski „Dodaj ćwiczenie” i „Zakończ trening” — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E15 Stan „Brak ćwiczeń w tej sesji” z podpowiedzią — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] E16 Zakończenie: blokada bez ćwiczeń (tekst) — test jednostkowy
+- [x] E17 Zakończenie: blokada przy ćwiczeniu bez serii (tekst z nazwą) — test jednostkowy
+- [x] E18 Zakończenie: wysyła czas z licznika, wraca do listy, czyści aktywny trening — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [~] E19 Zakończenie: błąd „Nie udało się zapisać treningu” — ścieżka błędu niewywołana
+- [~] E20 Stan ładowania i błędu ekranu — ścieżka błędu niewywołana
+- [x] E21 Trening usunięty gdzie indziej: komunikat i powrót — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
 
 ## F. Karta ćwiczenia w treningu (1.6–1.8)
 
-- [ ] F1 Nagłówek: numer, nazwa z ucinaniem, etykiety grup, licznik serii
-- [ ] F2 Notatka przeniesiona „Uwaga: "…"”
-- [ ] F3 Przycisk zdjęcia (gdy są zdjęcia)
-- [ ] F4 „Usuń ćwiczenie” z potwierdzeniem
-- [ ] F5 Rozwijanie: jedna karta naraz, obrót strzałki
-- [ ] F6 „Ostatnio” z seriami poprzedniego treningu (także niezakończonego)
-- [ ] F7 „Ostatnio” ze statystyk, gdy brak poprzedniego treningu
-- [ ] F8 „Rekord”
-- [ ] F9 „Brak zapisanych serii.”
-- [ ] F10 Wiersz serii: numer, ciężar, powtórzenia, przyciski edycji i usunięcia
-- [ ] F11 Szkic otwiera się automatycznie dla ćwiczenia bez serii
-- [ ] F12 Zwinięcie karty kasuje szkic
-- [ ] F13 Wartości domyślne szkicu automatycznego (poprzednia seria o tym numerze → statystyki → 0/1)
-- [ ] F14 Wartości domyślne po „+ Dodaj serię” (ostatnia seria → poprzedni trening → statystyki → 0/1)
-- [ ] F15 „+ Dodaj serię” nieaktywny przy otwartym szkicu
+- [x] F1 Nagłówek: numer, nazwa z ucinaniem, etykiety grup, licznik serii — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F2 Notatka przeniesiona „Uwaga: "…"” — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [~] F3 Przycisk zdjęcia (gdy są zdjęcia) — test jednostkowy; brak zdjęć w danych
+- [x] F4 „Usuń ćwiczenie” z potwierdzeniem — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F5 Rozwijanie: jedna karta naraz, obrót strzałki — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F6 „Ostatnio” z seriami poprzedniego treningu (także niezakończonego) — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F7 „Ostatnio” ze statystyk, gdy brak poprzedniego treningu — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F8 „Rekord” — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F9 „Brak zapisanych serii.” — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F10 Wiersz serii: numer, ciężar, powtórzenia, przyciski edycji i usunięcia — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [o] F11 Szkic otwiera się automatycznie dla ćwiczenia bez serii — D-49
+- [x] F12 Zwinięcie karty kasuje szkic — test jednostkowy
+- [x] F13 Wartości domyślne szkicu automatycznego (poprzednia seria o tym numerze → statystyki → 0/1) — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F14 Wartości domyślne po „+ Dodaj serię” (ostatnia seria → poprzedni trening → statystyki → 0/1) — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F15 „+ Dodaj serię” nieaktywny przy otwartym szkicu — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
 - [ ] F16 Numer serii = największy numer + 1
-- [ ] F17 Walidacja serii i komunikat; pusty ciężar = 0
-- [ ] F18 Klawiatura numeryczna z separatorem dziesiętnym dla ciężaru, bez separatora dla powtórzeń; krok 0,5
-- [ ] F19 Zatwierdzenie z klawiatury
-- [ ] F20 Anulowanie szkicu
-- [ ] F21 Edycja serii: tylko zmienione pola, brak żądania bez zmian
-- [ ] F22 Usunięcie serii z potwierdzeniem
-- [ ] F23 Notatka ćwiczenia: otwarcie, edycja, „Zapisz notatkę”, „Anuluj”, „Ukryj notatki”
-- [ ] F24 Notatka ćwiczenia: wyświetlanie i edycja kliknięciem
-- [ ] F25 Notatka ćwiczenia: pusta treść czyści notatkę
-- [ ] F26 Przeniesienie notatki do następnego treningu z tym ćwiczeniem (jednorazowe)
-- [ ] F27 Seria zapisana lokalnie natychmiast, widoczna po restarcie apki
+- [x] F17 Walidacja serii i komunikat; pusty ciężar = 0 — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F18 Klawiatura numeryczna z separatorem dziesiętnym dla ciężaru, bez separatora dla powtórzeń; krok 0,5 — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F19 Zatwierdzenie z klawiatury — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F20 Anulowanie szkicu — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F21 Edycja serii: tylko zmienione pola, brak żądania bez zmian — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F22 Usunięcie serii z potwierdzeniem — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F23 Notatka ćwiczenia: otwarcie, edycja, „Zapisz notatkę”, „Anuluj”, „Ukryj notatki” — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F24 Notatka ćwiczenia: wyświetlanie i edycja kliknięciem — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F25 Notatka ćwiczenia: pusta treść czyści notatkę — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F26 Przeniesienie notatki do następnego treningu z tym ćwiczeniem (jednorazowe) — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] F27 Seria zapisana lokalnie natychmiast, widoczna po restarcie apki — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
 
 ## G. Ekran treningu: zakończony (1.5)
 
-- [ ] G1 Karta podsumowania: czas, data i godzina, siłownia, notatki
-- [ ] G2 „Brak danych” dla treningu bez czasu
-- [ ] G3 Serie tylko do odczytu
-- [ ] G4 Przycisk „Edytuj szczegóły treningu” (ikona kalendarza)
-- [ ] G5 Tryb edycji: przełączanie, ikona ptaszka, tytuły
-- [ ] G6 Tryb edycji: dodawanie ćwiczeń, edycja i usuwanie serii, ćwiczeń, notatek
-- [ ] G7 Zmiany w zakończonym treningu przeliczają statystyki
-- [ ] G8 Usunięcie zakończonego treningu przelicza statystyki
+- [x] G1 Karta podsumowania: czas, data i godzina, siłownia, notatki — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [~] G2 „Brak danych” dla treningu bez czasu — tylko kod
+- [x] G3 Serie tylko do odczytu — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] G4 Przycisk „Edytuj szczegóły treningu” (ikona kalendarza) — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] G5 Tryb edycji: przełączanie, ikona ptaszka, tytuły — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] G6 Tryb edycji: dodawanie ćwiczeń, edycja i usuwanie serii, ćwiczeń, notatek — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] G7 Zmiany w zakończonym treningu przeliczają statystyki — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] G8 Usunięcie zakończonego treningu przelicza statystyki — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
 
 ## H. Modale treningu (1.10, 1.11, 3.3)
 
-- [ ] H1 Notatki treningu: tytuł, pole, placeholder, zapis z przycięciem, błąd
-- [ ] H2 Szczegóły treningu: pola nazwy, siłowni, daty (maksimum dziś)
-- [ ] H3 Szczegóły zakończonego: godziny rozpoczęcia i zakończenia, „Czas całkowity”
-- [ ] H4 Szczegóły zakończonego: wartości początkowe godzin; przejście przez północ
-- [ ] H5 Szczegóły: zapis działa (naprawa B1) i przelicza kolejność w statystykach przy zmianie daty
-- [ ] H6 Dialog porzuconego treningu: warunek, teksty, „Kontynuuj”, „Zakończ trening”
-- [ ] H7 Dialog porzuconego treningu: raz na trening na uruchomienie apki
-- [ ] H8 Dialog porzuconego treningu: czas = ostatnia aktywność − start
+- [x] H1 Notatki treningu: tytuł, pole, placeholder, zapis z przycięciem, błąd — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] H2 Szczegóły treningu: pola nazwy, siłowni, daty (maksimum dziś) — test jednostkowy
+- [x] H3 Szczegóły zakończonego: godziny rozpoczęcia i zakończenia, „Czas całkowity” — test jednostkowy
+- [x] H4 Szczegóły zakończonego: wartości początkowe godzin; przejście przez północ — test jednostkowy
+- [~] H5 Szczegóły: zapis działa (naprawa B1) i przelicza kolejność w statystykach przy zmianie daty — nazwa i siłownia sprawdzone w Maestro; zmiana daty nie
+- [x] H6 Dialog porzuconego treningu: warunek, teksty, „Kontynuuj”, „Zakończ trening” — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] H7 Dialog porzuconego treningu: raz na trening na uruchomienie apki — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] H8 Dialog porzuconego treningu: czas = ostatnia aktywność − start — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
 
 ## I. Ćwiczenia (4)
 
@@ -247,9 +247,9 @@ Stan: 0 z 243 pozycji.
 
 ## M. Banery i stan synchronizacji (8.4)
 
-- [ ] M1 Baner offline z tekstem z PWA
-- [ ] M2 Liczba oczekujących zmian (dodatek wymagany zleceniem)
-- [ ] M3 Informacja o zmianach odrzuconych przez serwer z opisem „{akcja} {obiekt}”, „Ponów”, „Zamknij”
+- [x] M1 Baner offline z tekstem z PWA — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [x] M2 Liczba oczekujących zmian (dodatek wymagany zleceniem) — Maestro na symulatorze iOS + zrzut vs wzorzec (Etap 9, wg raportu agenta)
+- [~] M3 Informacja o zmianach odrzuconych przez serwer z opisem „{akcja} {obiekt}”, „Ponów”, „Zamknij” — baner, szczegóły, „Odrzuć zmiany”, „Zamknij” w Maestro; „Ponów” tylko test jednostkowy
 - [ ] M4 Baner nowej wersji: brak odpowiednika (odstępstwo)
 
 ## N. Offline i synchronizacja (zlecenie, sekcja 6.8)

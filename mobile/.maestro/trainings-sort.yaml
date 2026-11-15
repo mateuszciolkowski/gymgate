@@ -1,0 +1,19 @@
+# Trainings list: sort toggle "Od najnowszych" <-> "Od najstarszych", the newest/oldest card comes first.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- assertVisible: "Od najnowszych"
+- assertVisible: "Barki i ramiona.*"
+- tapOn:
+    id: "sort-toggle"
+- assertVisible: "Od najstarszych"
+- assertNotVisible: "Barki i ramiona.*12 lis.*"
+- tapOn:
+    id: "sort-toggle"
+- assertVisible: "Od najnowszych"
+- assertVisible: "Barki i ramiona.*"

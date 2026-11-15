@@ -1,0 +1,44 @@
+# Abandoned workout, step 1/2: create "Porzucony" (1 exercise, 1 set) and wait for it to sync.
+# Between the steps make it 5 h old in the local Postgres (see abandoned-2-dialog.yaml), then run step 2.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+      - assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Porzucony"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- tapOn:
+    id: "add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "wyciskanie sztangi"
+- tapOn: "Wyciskanie sztangi na ławce płaskiej"
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn:
+          id: "draft-confirm"
+      - assertVisible: "Edytuj serię 1"
+- extendedWaitUntil:
+    notVisible: ".*pracujesz offline.*"
+    timeout: 5000

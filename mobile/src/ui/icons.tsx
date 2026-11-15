@@ -226,6 +226,31 @@ const defs = {
       ["path", { d: "M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2" }],
     ],
   },
+  /** Clipboard of the "Notatki" buttons (WorkoutDetailScreen). */
+  notes: {
+    size: 13,
+    stroke: 2,
+    round: true,
+    nodes: [
+      ["path", { d: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" }],
+      rect(9, 3, 6, 4, 1),
+      ["path", { d: "M9 12h6M9 16h4" }],
+    ],
+  },
+  /** Skip-forward of the plan banner "Pomiń". */
+  skip: {
+    size: 13,
+    stroke: 2.5,
+    round: true,
+    nodes: [["polyline", { points: "5 4 15 12 5 20 5 4" }], line(19, 5, 19, 19)],
+  },
+  /** Clock of the abandoned-workout dialog. */
+  clock: {
+    size: 16,
+    stroke: 2.2,
+    round: true,
+    nodes: [["circle", { cx: 12, cy: 12, r: 10 }], ["polyline", { points: "12 6 12 12 16 14" }]],
+  },
   /** Crossed-dumbbell glyph of the "new workout" button (filled). */
   workoutAction: {
     size: 32,

@@ -1,0 +1,14 @@
+# List and active workout for one theme (O5): maestro test -e OUT=<theme> .maestro/zrzuty-motyw.yaml. Needs the seeded active workout.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- takeScreenshot: ${OUT}/10-treningi
+- tapOn:
+    id: "bar-continue-workout"
+- assertVisible: "Czas trwania"
+- takeScreenshot: ${OUT}/20-trening-aktywny
