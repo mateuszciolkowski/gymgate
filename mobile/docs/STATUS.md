@@ -6,7 +6,7 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 
 **Ostatnia aktualizacja:** 2026-11-15
 **Bieżący etap:** 3, 4 i 5 równolegle, sesja lokalna na MacBooku (sesja chmurowa wyłączona).
-**Następny krok:** w toku 4.5–4.8 (backend), 3.5–3.6 z ekranami logowania (apka), 5.1 z outboxem i statystykami (apka). Potem 5.2 (silnik push/pull) i 4.9–4.10.
+**Następny krok:** 5.5 (podpięcie ekranów do bazy, sesji i synchronizacji na symulatorze), potem 5.6 i Etap 6. Etap 4 gotowy do punktu kontrolnego D2 (`WDROZENIE_BACKENDU.md`).
 
 ## Przegląd etapów
 
@@ -92,7 +92,7 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 - [x] 4.7 `DELETE /api/auth/account`
 - [x] 4.8 Naprawy B2, B8, B1 (`npm test` 243/243, integracyjne 109/109)
 - [x] 4.9 `API.md`, `openapi.yaml`, `WDROZENIE_BACKENDU.md`
-- [~] 4.10 Regresja: backend 244 jednostkowe, frontend 78/78 (według agenta); test dymny PWA rozszerzony do 28 kroków (plany, trening z planu, edycja serii i szczegółów, offline), według agenta 28/28 na zmienionym backendzie; przeciągania kolejności w planie test nie obejmuje. Do powtórzenia: pełne testy integracyjne na nieobciążonej maszynie (pod obciążeniem symulatora 1 test `sync-push` przekroczył czas)
+- [x] 4.10 Regresja: backend 244 jednostkowe i 110 integracyjnych (10 s na nieobciążonej maszynie), frontend 78/78 (według agenta); test dymny PWA rozszerzony do 28 kroków (plany, trening z planu, edycja serii i szczegółów, offline), według agenta 28/28 na zmienionym backendzie; przeciągania kolejności w planie test nie obejmuje
 
 ## Etap 5: pionowy wycinek
 
