@@ -4,17 +4,17 @@ Zlecenie i zasady: [`MIGRACJA_MOBILE.md`](../../MIGRACJA_MOBILE.md). Ten plik m�
 
 Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[!]` zablokowane (powód obok).
 
-**Ostatnia aktualizacja:** 2026-11-14
-**Bieżący etap:** 1 (inwentaryzacja)
-**Następny krok:** `INWENTARYZACJA.md` (Etap 1)
+**Ostatnia aktualizacja:** 2026-11-15
+**Bieżący etap:** 2 (szczegółowy plan)
+**Następny krok:** `PLAN.md`: architektura apki i projekt synchronizacji (Etap 2)
 
 ## Przegląd etapów
 
 | Etap | Zakres | Gdzie | Stan |
 |---|---|---|---|
 | 0 | Rozpoznanie i środowisko | chmura / Mac | ukończony (pytania o hosting odłożone) |
-| 1 | Pełna inwentaryzacja PWA, lista parytetu, zrzuty wzorcowe | chmura / Mac | w trakcie |
-| 2 | Szczegółowy plan (architektura, synchronizacja, zadania) | chmura / Mac | do zrobienia |
+| 1 | Pełna inwentaryzacja PWA, lista parytetu, zrzuty wzorcowe | chmura / Mac | ukończony poza brakującymi zrzutami stanów |
+| 2 | Szczegółowy plan (architektura, synchronizacja, zadania) | chmura / Mac | w trakcie |
 | 3 | Fundament apki (Expo, motywy, komponenty, buildy) | Mac | do zrobienia |
 | 4 | Backend pod synchronizację | chmura / Mac | do zrobienia |
 | 5 | Pionowy wycinek: trening offline + synchronizacja | Mac | do zrobienia |
@@ -45,15 +45,18 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 
 ## Etap 1: inwentaryzacja
 
-- [ ] `INWENTARYZACJA.md`: ekrany, modale, banery, mapa przejść
-- [ ] `INWENTARYZACJA.md`: API (każdy endpoint, błędy, miejsca użycia)
-- [ ] `INWENTARYZACJA.md`: logika klienta i przypadki brzegowe z testów
-- [ ] `INWENTARYZACJA.md`: tokeny 12 motywów, typografia, wymiary, animacje
-- [ ] `INWENTARYZACJA.md`: wszystkie teksty interfejsu
-- [ ] `INWENTARYZACJA.md`: zachowania przeglądarkowe i ich natywne odpowiedniki
-- [ ] `INWENTARYZACJA.md`: zastane błędy
-- [ ] `PARYTET.md`: lista kontrolna każdej funkcji i stanu
+- [x] `INWENTARYZACJA.md`: 12 sekcji (ekrany, nawigacja, logika klienta, warstwa danych, API, zastane błędy, system wizualny)
+- [x] `tokeny-motywow.json`: wartości wszystkich 12 motywów wyciągnięte skryptem z `index.css`
+- [x] `PARYTET.md`: 243 pozycje w 16 grupach
 - [~] `wzorzec/`: zrzuty ekranów PWA (iPhone 15 Pro). Jest: 23 ekrany w `dark` i `light`, lista treningów i aktywny trening w pozostałych 10 motywach. Brakuje stanów: szkic i edycja serii, notatka ćwiczenia, podpowiedź z planu, modal nowego treningu i edycji treningu, rozwinięty plan, historia planu, edycja ćwiczenia, zdjęcie ćwiczenia, stany puste, banery offline i błędu synchronizacji, dialog porzuconego treningu, widok admina
+- [ ] Dokładne wymiary komponentów (odstępy, rozmiary ikon): odczytywane z plików źródłowych przy budowie każdego ekranu
+
+Najważniejsze znaleziska (pełna lista: `INWENTARYZACJA.md`, sekcja 11):
+
+- **B1: edycja szczegółów treningu w PWA nie działa online.** Modal wysyła samą datę, backend wymaga pełnego znacznika czasu i odrzuca żądanie; nie zapisuje się też nazwa, siłownia ani czas. Błąd produkcyjny, niezależny od migracji.
+- **B2: `GET /api/exercises` zwraca hash hasła twórcy ćwiczenia.**
+- **B4: pominięcie ćwiczenia z planu offline nie jest synchronizowane.**
+- **B6: „Odśwież pamięć podręczną” i wylogowanie kasują niewysłane zmiany bez ostrzeżenia.**
 
 ## Etap 2: plan
 
@@ -110,4 +113,5 @@ Do czasu odpowiedzi: zakładam, że push na `mobile-migration` może zbudować p
 
 ## Dziennik sesji
 
-- **2026-11-14 (chmura):** analiza repo, brief, decyzje D1–D6, gałąź, stan wyjściowy testów, ta tablica. Lokalna baza, backend i PWA uruchomione; skrypt `mobile/tools/pwa-wzorzec/capture.mjs` i pierwsza partia zrzutów wzorcowych.
+- **2026-11-15 (chmura, po restarcie procesu):** lista parytetu zacommitowana; lokalna baza i serwery zniknęły z kontenera, do postawienia ponownie przed testami backendu.
+- **2026-11-14 (chmura):** analiza repo, brief, decyzje D1–D6, gałąź, stan wyjściowy testów, ta tablica. Lokalna baza, backend i PWA uruchomione; skrypt `mobile/tools/pwa-wzorzec/capture.mjs` i pierwsza partia zrzutów wzorcowych, test dymny PWA (12/12), pełna inwentaryzacja.
