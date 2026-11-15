@@ -1,0 +1,54 @@
+# (c1) Backend stopped: a whole workout offline, the offline banner shows the unsent-changes count.
+# Run with the local backend stopped (see offline-sync.md in the report); then start it and run offline-resume.yaml.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Offline trening"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- tapOn:
+    id: "add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "wyciskanie sztangi"
+- tapOn: "Wyciskanie sztangi na ławce płaskiej"
+- tapOn:
+    id: "draft-weight"
+- eraseText: 10
+- inputText: "70"
+- tapOn:
+    id: "draft-reps"
+- eraseText: 5
+- inputText: "6"
+- tapOn:
+    id: "draft-confirm"
+- assertVisible: "Edytuj serię 1"
+- tapOn:
+    id: "finish-workout"
+- assertVisible: "Historia sesji"
+- assertVisible: "Offline trening.*"
+- extendedWaitUntil:
+    visible: ".*pracujesz offline.*"
+    timeout: 20000
+- assertVisible: ".*Oczekujące zmiany: .*"
+- takeScreenshot: offline-banner

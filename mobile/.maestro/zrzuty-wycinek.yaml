@@ -1,0 +1,52 @@
+# Screenshots of the vertical slice for docs/zrzuty (theme = DEFAULT_THEME of the build; run once per theme).
+# Run: maestro test -e OUT=dark --config=config.yaml zrzuty-wycinek.yaml ; PNGs land in ./${OUT}/ (copy to docs/zrzuty/<theme>/).
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+- assertVisible: "Historia sesji"
+- takeScreenshot: ${OUT}/10-treningi
+- tapOn:
+    id: "bar-new-workout"
+- assertVisible: "Rozpocznij"
+- takeScreenshot: ${OUT}/12-nowy-trening
+- tapOn:
+    id: "workout-name"
+- inputText: "Klatka piersiowa"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- assertVisible: "Czas trwania"
+- takeScreenshot: ${OUT}/20-trening-aktywny
+- tapOn:
+    id: "add-exercise"
+- assertVisible: "Wybierz ćwiczenie"
+- takeScreenshot: ${OUT}/22-wybor-cwiczenia
+- tapOn:
+    id: "picker-search"
+- inputText: "wyciskanie sztangi"
+- tapOn: "Wyciskanie sztangi na ławce płaskiej"
+- assertVisible: "Ostatnio.*"
+- takeScreenshot: ${OUT}/21-trening-aktywny-cwiczenie-rozwiniete
+- tapOn:
+    id: "draft-confirm"
+- tapOn:
+    id: "finish-workout"
+- assertVisible: "Historia sesji"
+- tapOn: "Klatka piersiowa.*"
+- assertVisible: "Czas treningu"
+- takeScreenshot: ${OUT}/30-trening-zakonczony

@@ -14,19 +14,23 @@ interface NavShellProps {
   /** Logged-in user for the drawer profile; null until the session layer exists. */
   user?: NavUser | null;
   onLogout?: () => void;
+  /** Replaces the "Nowy trening" button while a workout is in progress ("Kontynuuj trening"). */
+  workoutPill?: ReactNode;
 }
 
 /**
  * Renders the stack (children) with the floating bar and the drawer above it, so both stay visible on
  * sub-screens (D-09). The edge swipe only works on tab screens (D-08).
  */
-export function NavShell({ children, user = null, onLogout }: NavShellProps) {
+export function NavShell({ children, user = null, onLogout, workoutPill }: NavShellProps) {
   const router = useRouter();
   const segments = useSegments() as string[];
   const [drawerOpen, setDrawerOpen] = useState(false);
   const progress = useSharedValue(0);
 
   const onTabScreen = segments[1] === "(tabs)";
+  // Bottom sheets cover the bar.
+  const onSheet = segments[1] === "workout-new" || segments[1] === "exercise-picker";
   const currentTab = onTabScreen && isTabId(segments[2]) ? segments[2] : null;
   const [lastTab, setLastTab] = useState<TabId>("trainings");
   if (currentTab && currentTab !== lastTab) setLastTab(currentTab);
@@ -76,12 +80,15 @@ export function NavShell({ children, user = null, onLogout }: NavShellProps) {
     <NavContext.Provider value={ctx}>
       <View style={styles.root}>
         {children}
-        <BottomBar
-          activeTab={activeTab}
-          onTabPress={goToTab}
-          onAddWorkout={() => router.push("/workout-new")}
-          onOpenMenu={openDrawer}
-        />
+        {onSheet ? null : (
+          <BottomBar
+            activeTab={activeTab}
+            onTabPress={goToTab}
+            onAddWorkout={() => router.push("/workout-new")}
+            onOpenMenu={openDrawer}
+            workoutPill={workoutPill}
+          />
+        )}
         <Drawer
           progress={progress}
           isOpen={drawerOpen}

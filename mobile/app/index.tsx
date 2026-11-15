@@ -1,6 +1,7 @@
 import { Redirect } from "expo-router";
+import { useSession } from "@/providers";
 
-// Skeleton: no session guard yet (Etap 5/6). Boot straight into the tabs.
 export default function Index() {
-  return <Redirect href="/trainings" />;
+  const { state } = useSession();
+  return <Redirect href={state.status === "signedOut" ? "/login" : "/trainings"} />;
 }

@@ -1,4 +1,5 @@
 import { BlurView } from "expo-blur";
+import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { pwaBarlow, toBoxShadow, useTheme } from "@/theme";
@@ -10,10 +11,11 @@ interface BottomBarProps {
   onTabPress: (tab: TabId) => void;
   onAddWorkout: () => void;
   onOpenMenu: () => void;
+  workoutPill?: ReactNode;
 }
 
 /** Floating pill bar (PWA BottomNavigation): 3 tab buttons, menu button, spacer, "Nowy trening". */
-export function BottomBar({ activeTab, onTabPress, onAddWorkout, onOpenMenu }: BottomBarProps) {
+export function BottomBar({ activeTab, onTabPress, onAddWorkout, onOpenMenu, workoutPill }: BottomBarProps) {
   const { theme, isDark } = useTheme();
   const c = theme.colors;
   const insets = useSafeAreaInsets();
@@ -56,23 +58,25 @@ export function BottomBar({ activeTab, onTabPress, onAddWorkout, onOpenMenu }: B
             <Icon name="menuLines" color={c.textMuted} />
           </Pressable>
           <View style={styles.spacer} />
+          {workoutPill ?? (
           <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Nowy trening"
-            testID="bar-new-workout"
-            onPress={onAddWorkout}
-            style={({ pressed }) => [
-              styles.newWorkout,
-              {
-                backgroundColor: c.btnBg,
-                transform: [{ scale: pressed ? 0.95 : 1 }],
-                boxShadow: [{ offsetX: 0, offsetY: 2, blurRadius: 10, color: "rgba(0,0,0,0.3)" }],
-              },
-            ]}
-          >
-            <Text style={styles.newWorkoutLabel}>Nowy trening</Text>
-            <Icon name="plusLines" color="#ffffff" />
-          </Pressable>
+              accessibilityRole="button"
+              accessibilityLabel="Nowy trening"
+              testID="bar-new-workout"
+              onPress={onAddWorkout}
+              style={({ pressed }) => [
+                styles.newWorkout,
+                {
+                  backgroundColor: c.btnBg,
+                  transform: [{ scale: pressed ? 0.95 : 1 }],
+                  boxShadow: [{ offsetX: 0, offsetY: 2, blurRadius: 10, color: "rgba(0,0,0,0.3)" }],
+                },
+              ]}
+            >
+              <Text style={styles.newWorkoutLabel}>Nowy trening</Text>
+              <Icon name="plusLines" color="#ffffff" />
+            </Pressable>
+          )}
         </View>
       </View>
     </View>

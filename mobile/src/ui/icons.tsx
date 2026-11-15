@@ -198,6 +198,34 @@ const defs = {
     stroke: 1.5,
     nodes: [["path", { d: "M6 5v14M18 5v14M2 9h4M18 9h4M2 15h4M18 15h4M6 12h12" }]],
   },
+  check: { size: 15, stroke: 2.5, round: true, nodes: [["path", { d: "M5 12l5 5 9-9" }]] },
+  chevronDown: { size: 14, stroke: 2, round: true, nodes: [["polyline", { points: "6 9 12 15 18 9" }]] },
+  search: { size: 15, stroke: 2, round: true, nodes: [["circle", { cx: 11, cy: 11, r: 7 }], ["path", { d: "M20 20l-4-4" }]] },
+  calendar: {
+    size: 16,
+    stroke: 2,
+    round: true,
+    nodes: [rect(3, 4, 18, 18, 2), line(16, 2, 16, 6), line(8, 2, 8, 6), line(3, 10, 21, 10)],
+  },
+  /** Pencil-on-square of the workout screens (the `edit` glyph above is the heroicons one of the exercise list). */
+  pencil: {
+    size: 15,
+    stroke: 2,
+    round: true,
+    nodes: [
+      ["path", { d: "M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" }],
+      ["path", { d: "M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z" }],
+    ],
+  },
+  bin: {
+    size: 15,
+    stroke: 2,
+    round: true,
+    nodes: [
+      ["polyline", { points: "3 6 5 6 21 6" }],
+      ["path", { d: "M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2" }],
+    ],
+  },
   /** Crossed-dumbbell glyph of the "new workout" button (filled). */
   workoutAction: {
     size: 32,

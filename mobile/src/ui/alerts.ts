@@ -19,3 +19,19 @@ export function confirmAlert(message: string, confirmLabel = "OK", cancelLabel =
     );
   });
 }
+
+/** Three-way choice for logging out with unsent changes. Resolves null on cancel. */
+export function chooseLogout(pending: number): Promise<"keep" | "discard" | null> {
+  return new Promise((resolve) => {
+    Alert.alert(
+      "Niewysłane zmiany",
+      `Masz niewysłane zmiany (${pending}). Zachowaj dane na urządzeniu, aby wysłać je po ponownym zalogowaniu, albo porzuć je i wyloguj się.`,
+      [
+        { text: "Anuluj", style: "cancel", onPress: () => resolve(null) },
+        { text: "Zachowaj dane", onPress: () => resolve("keep") },
+        { text: "Porzuć zmiany", style: "destructive", onPress: () => resolve("discard") },
+      ],
+      { cancelable: true, onDismiss: () => resolve(null) },
+    );
+  });
+}

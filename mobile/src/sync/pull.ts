@@ -16,6 +16,11 @@ export interface PullOutcome {
   pages: number;
 }
 
+/** True once the first full snapshot has been applied. */
+export function initialPullDone(db: Db): boolean {
+  return db.select().from(syncState).where(eq(syncState.id, 1)).get()?.initialPullAt != null;
+}
+
 const get = async (api: Transport, query: string): Promise<PullData> =>
   (await api.get<{ data: PullData }>(`/api/sync/pull${query}`)).data;
 

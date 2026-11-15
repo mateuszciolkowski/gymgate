@@ -4,7 +4,7 @@
 appId: com.gymgate.app
 ---
 - launchApp
-- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
 - assertVisible:
     text: "Treningi"
     optional: false

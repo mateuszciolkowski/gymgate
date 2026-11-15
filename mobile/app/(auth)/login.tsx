@@ -1,10 +1,16 @@
 import { useRouter } from "expo-router";
-import { LoginScreen } from "@/features/auth";
-
-// The session layer (Etap 6) replaces this stub; until then submitting reports that it is not wired.
-const notWired = () => Promise.reject(new Error("Logowanie nie jest jeszcze dostępne w tej wersji apki"));
+import { authenticate, LoginScreen, switchPrompt } from "@/features/auth";
+import { useSession } from "@/providers";
+import { confirmAlert } from "@/ui";
 
 export default function Login() {
   const router = useRouter();
-  return <LoginScreen onSubmit={notWired} onSwitchToRegister={() => router.replace("/register")} />;
+  const { login } = useSession();
+  const submit = (email: string, password: string) =>
+    authenticate(
+      (o) => login(email, password, o),
+      (pending) => confirmAlert(switchPrompt(pending), "Zaloguj"),
+      "Nieprawidłowy email lub hasło",
+    );
+  return <LoginScreen onSubmit={submit} onSwitchToRegister={() => router.replace("/register")} />;
 }

@@ -1,6 +1,5 @@
-import { ScreenPlaceholder } from "@/ui/ScreenPlaceholder";
+import { NewWorkoutSheet } from "@/features/workouts";
 
-// Placeholder for the "new workout" sheet (Etap 9).
 export default function WorkoutNew() {
-  return <ScreenPlaceholder title="Nowy trening" />;
+  return <NewWorkoutSheet />;
 }

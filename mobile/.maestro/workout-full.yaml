@@ -1,0 +1,60 @@
+# (b) Full workout: new -> add exercise -> 2 sets -> finish -> appears in history. Needs a signed-in app (run login-sync.yaml first).
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+# A leftover workout in progress turns the bar button into the pill: delete it first.
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+      - assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "E2E trening"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- assertVisible: "Czas trwania"
+- assertVisible:
+    id: "bar-timer"
+- tapOn:
+    id: "add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "wyciskanie sztangi"
+- tapOn: "Wyciskanie sztangi na ławce płaskiej"
+- tapOn:
+    id: "draft-weight"
+- eraseText: 10
+- inputText: "62.5"
+- tapOn:
+    id: "draft-reps"
+- eraseText: 5
+- inputText: "8"
+- tapOn:
+    id: "draft-confirm"
+- assertVisible: "Edytuj serię 1"
+- tapOn:
+    id: "add-set-1"
+- tapOn:
+    id: "draft-confirm"
+- assertVisible: "Edytuj serię 2"
+- tapOn:
+    id: "finish-workout"
+- extendedWaitUntil:
+    visible: "E2E trening.*"
+    timeout: 10000
+- assertVisible: "Historia sesji"

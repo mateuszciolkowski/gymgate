@@ -1,0 +1,36 @@
+# (a) Login with the seeded user -> first sync -> the list shows the seeded workouts.
+# Needs: Metro on 8081, local backend on 3000 with seed data, app signed out (logs out first if needed).
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- runFlow:
+    when:
+      notVisible: "Zaloguj się do swojego konta"
+    commands:
+      - tapOn:
+          id: "bar-menu"
+      - tapOn:
+          id: "drawer-logout"
+      - tapOn:
+          text: "Porzuć zmiany"
+          optional: true
+- assertVisible: "Zaloguj się do swojego konta"
+- tapOn:
+    id: "login-email"
+- inputText: "test@gymgate.com"
+- tapOn:
+    id: "login-password"
+- inputText: "Test1234!"
+- pressKey: Enter
+- extendedWaitUntil:
+    visible: "Historia sesji"
+    timeout: 30000
+- assertVisible: "Dziennik treningowy"
+- scrollUntilVisible:
+    element: "Barki i ramiona.*"
+    timeout: 30000
+- assertVisible: "Od najnowszych"

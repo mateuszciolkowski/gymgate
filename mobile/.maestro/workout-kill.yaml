@@ -1,0 +1,53 @@
+# (d) Kill the app mid-workout (stopApp, launchApp without clearState) and continue the same workout.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+      - assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Kill test"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- assertVisible: "Czas trwania"
+- tapOn:
+    id: "add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "wyciskanie sztangi"
+- tapOn: "Wyciskanie sztangi na ławce płaskiej"
+- tapOn:
+    id: "draft-confirm"
+- assertVisible: "Edytuj serię 1"
+- stopApp
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible:
+    id: "bar-continue-workout"
+- tapOn:
+    id: "bar-continue-workout"
+- assertVisible: "Kill test"
+- assertVisible: "Czas trwania"
+- tapOn:
+    id: "item-header-1"
+- assertVisible: "Edytuj serię 1"

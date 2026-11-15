@@ -1,0 +1,10 @@
+# (c2) Backend is back: sending the app to the background and back (AppState "active") triggers a sync, the banner disappears.
+appId: com.gymgate.app
+---
+- pressKey: home
+- launchApp:
+    stopApp: false
+- assertVisible: "Offline trening.*"
+- extendedWaitUntil:
+    notVisible: ".*pracujesz offline.*"
+    timeout: 30000
