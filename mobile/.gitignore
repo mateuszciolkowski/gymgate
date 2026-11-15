@@ -23,3 +23,13 @@ expo-env.d.ts
 *.pem
 npm-debug.*
 .metro-health-check*
+
+# Test and tool output
+coverage/
+test-results/
+playwright-report/
+tools/pwa-smoke/smoke-failure.png
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
