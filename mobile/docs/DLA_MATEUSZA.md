@@ -74,4 +74,32 @@ Edycja szczegółów treningu (nazwa, siłownia, data, czas) nie zapisuje się, 
 
 ## 5. Testy na urządzeniach
 
-Scenariusze będą dopisywane tutaj w miarę powstawania apki (pierwsze przy Etapie 5: wgranie na iPhone'a i trening w trybie samolotowym).
+### 5.1 Wgranie na iPhone'a (backend na MacBooku)
+
+Niesprawdzone na fizycznym telefonie: kroki spisane na podstawie konfiguracji projektu, apka była uruchamiana tylko na symulatorze.
+
+1. iPhone i MacBook w tej samej sieci Wi-Fi. Na telefonie włącz tryb dewelopera: Ustawienia → Prywatność i ochrona → Tryb dewelopera (pojawia się po pierwszym podłączeniu do Xcode).
+2. Nazwa MacBooka w sieci: `scutil --get LocalHostName`. Adres backendu to `http://<nazwa>.local:3000`.
+3. W `mobile/.env` (plik nie trafia do repo) wpisz `EXPO_PUBLIC_API_URL=http://<nazwa>.local:3000`. Adres jest wkompilowany w apkę, więc po zmianie trzeba zbudować ją ponownie.
+4. Backend z lokalną bazą: `make -C backend local-up`, potem `cd backend && npm run dev` (Node 20, `DB_ENV=local`).
+5. Podłącz telefon kablem i zbuduj (Node 24):
+   ```bash
+   cd mobile && npx expo run:ios --device --configuration Release
+   ```
+   Wersja Release nie potrzebuje Metro, więc apka działa po odłączeniu kabla.
+6. Przy błędzie podpisu: otwórz `mobile/ios/GymGate.xcworkspace` w Xcode → target GymGate → Signing & Capabilities → zaznacz „Automatically manage signing” i wybierz swój Team (wystarczy darmowe Apple ID). Jeśli identyfikator `com.gymgate.app` jest zajęty, zmień go w `app.json` (`ios.bundleIdentifier`) i zbuduj ponownie.
+7. Na telefonie: Ustawienia → Ogólne → VPN i zarządzanie urządzeniem → zaufaj swojemu certyfikatowi. Przy pierwszym logowaniu iOS zapyta o dostęp do sieci lokalnej: zezwól.
+8. Logowanie: `test@gymgate.com` / `Test1234!` (użytkownik z seeda).
+
+Ograniczenia: z darmowym Apple ID apka wygasa po 7 dniach (trzeba zbudować ponownie). Poza domową siecią apka nie widzi backendu i działa offline; zmiany wyślą się po powrocie do sieci.
+
+### 5.2 Scenariusz: trening w trybie samolotowym
+
+1. Zaloguj się i poczekaj na pierwsze pobranie danych.
+2. Włącz tryb samolotowy. Powinien pojawić się baner offline.
+3. Nowy trening, dwa ćwiczenia, po kilka serii, notatka, „Zakończ trening”. Baner pokazuje rosnącą liczbę oczekujących zmian.
+4. Zabij apkę i otwórz ponownie: trening jest w historii.
+5. Wyłącz tryb samolotowy. Baner znika w ciągu kilku sekund (albo po przejściu apki w tło i z powrotem).
+6. Sprawdź w PWA lub bazie, że trening ma czas startu i trwania z telefonu.
+
+Prawdziwy tryb samolotowy nie był dotąd testowany; na symulatorze brak sieci był symulowany zatrzymaniem backendu.

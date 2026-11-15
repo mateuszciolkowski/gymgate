@@ -6,7 +6,7 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 
 **Ostatnia aktualizacja:** 2026-11-15
 **Bieżący etap:** 3, 4 i 5 równolegle, sesja lokalna na MacBooku (sesja chmurowa wyłączona).
-**Następny krok:** Etap 7 (ćwiczenia), potem 8, 10, 11. Otwarte: 5.7 (instrukcja wgrania na iPhone'a).
+**Następny krok:** Etap 7 (ćwiczenia), potem 8, 10, 11.
 
 ## Przegląd etapów
 
@@ -102,7 +102,7 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 - [x] 5.4 Sesja mobilna: logika (bez podpięcia do ekranów i bez próby na symulatorze)
 - [x] 5.5 Ekrany minimalne na symulatorze iOS: logowanie z pierwszym pobraniem, lista treningów, nowy trening, ekran treningu z seriami, zakończenie, baner offline z liczbą zmian. Brak: baner odrzuconych operacji; niesprawdzone na symulatorze: wylogowanie z niepustą kolejką, zmiana konta, stan „wymagane logowanie”, selektor daty
 - [x] 5.6 Maestro (iOS, według agenta wszystkie przechodzą): logowanie z synchronizacją, pełny trening, trening offline z późniejszą synchronizacją (brak sieci symulowany zatrzymaniem backendu, nie trybem samolotowym), zabicie apki w połowie treningu
-- [ ] 5.7 Instrukcja wgrania na iPhone'a
+- [x] 5.7 Instrukcja wgrania na iPhone'a: `DLA_MATEUSZA.md`, sekcja 5 (niesprawdzona na fizycznym telefonie)
 
 ## Etapy 6–15
 
