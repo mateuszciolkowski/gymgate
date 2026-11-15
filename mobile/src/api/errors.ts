@@ -28,3 +28,10 @@ export function isTransient(error: unknown): boolean {
   if (error instanceof NetworkError || error instanceof TimeoutError) return true;
   return error instanceof HttpError && (error.status >= 500 || error.status === 429);
 }
+
+/** The refresh token was refused (expired or revoked): the user must sign in again. Local data and the outbox stay. */
+export class ReauthRequiredError extends ApiError {
+  constructor() {
+    super("Re-login required");
+  }
+}

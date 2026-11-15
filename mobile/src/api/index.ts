@@ -7,4 +7,5 @@ export type {
   TokenProvider,
 } from "./client";
 export { API_BASE } from "./config";
-export { ApiError, HttpError, NetworkError, TimeoutError, isTransient } from "./errors";
+export { ApiError, HttpError, NetworkError, ReauthRequiredError, TimeoutError, isTransient } from "./errors";
+export type { AuthData, PullData, PushResult, PushResponse, SessionUser, Transport } from "./contract";

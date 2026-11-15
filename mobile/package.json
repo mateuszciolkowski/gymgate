@@ -13,7 +13,8 @@
     "test": "jest",
     "gen:themes": "node tools/gen-themes.mjs",
     "db:generate": "drizzle-kit generate && node src/db/genMigrations.mjs",
-    "test:parity": "jest --config jest.parity.config.js"
+    "test:parity": "jest --config jest.parity.config.js",
+    "test:protocol": "jest --config jest.protocol.config.js --runInBand"
   },
   "dependencies": {
     "@expo-google-fonts/barlow": "^0.4.1",

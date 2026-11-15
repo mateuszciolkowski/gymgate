@@ -96,12 +96,17 @@ export function deleteExercise(ctx: Ctx, id: string): void {
     if (!isAdmin && current.creatorUserId !== ctx.userId) {
       throw new ValidationError("Unauthorized: You can only delete your own exercises");
     }
-    const itemIds = tx.select({ id: workoutItems.id }).from(workoutItems).where(eq(workoutItems.exerciseId, id)).all().map((r) => r.id);
-    forChunks(itemIds, (c) => tx.delete(workoutSets).where(inArray(workoutSets.itemId, c)).run());
-    tx.delete(workoutItems).where(eq(workoutItems.exerciseId, id)).run();
-    tx.delete(planItems).where(eq(planItems.exerciseId, id)).run();
-    tx.delete(pendingNotes).where(eq(pendingNotes.exerciseId, id)).run();
-    tx.delete(exercises).where(eq(exercises.id, id)).run();
+    deleteExerciseRows(tx, id);
     emit(ctx, tx, at, "exercise.delete", "exercise", id, { id });
   });
+}
+
+/** Local cascade only (also used when pull applies a delete). */
+export function deleteExerciseRows(tx: Db, id: string): void {
+  const itemIds = tx.select({ id: workoutItems.id }).from(workoutItems).where(eq(workoutItems.exerciseId, id)).all().map((r) => r.id);
+  forChunks(itemIds, (c) => tx.delete(workoutSets).where(inArray(workoutSets.itemId, c)).run());
+  tx.delete(workoutItems).where(eq(workoutItems.exerciseId, id)).run();
+  tx.delete(planItems).where(eq(planItems.exerciseId, id)).run();
+  tx.delete(pendingNotes).where(eq(pendingNotes.exerciseId, id)).run();
+  tx.delete(exercises).where(eq(exercises.id, id)).run();
 }
