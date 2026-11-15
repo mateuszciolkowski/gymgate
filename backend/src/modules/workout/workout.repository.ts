@@ -570,6 +570,11 @@ export const getExerciseProgression = async (
           },
         },
       },
+      // Deterministic "reps at max weight": the first set with the max weight wins
+      // (strict > below), so order sets by setNumber, then createdAt, then id.
+      { setNumber: "asc" },
+      { createdAt: "asc" },
+      { id: "asc" },
     ],
   });
 

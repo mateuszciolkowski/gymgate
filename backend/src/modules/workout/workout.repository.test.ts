@@ -75,6 +75,9 @@ describe("workout.repository", () => {
           orderBy: [
             { item: { workout: { workoutDate: "asc" } } },
             { item: { workout: { createdAt: "asc" } } },
+            { setNumber: "asc" },
+            { createdAt: "asc" },
+            { id: "asc" },
           ],
         }),
       );
@@ -105,6 +108,18 @@ describe("workout.repository", () => {
       expect(progression).toHaveLength(2);
       expect(progression[progression.length - 1]!.workoutId).toBe("w-evening");
       expect(progression[progression.length - 1]!.maxSetWeight).toBe(80);
+    });
+  });
+
+  describe("getExerciseProgression max-weight ties", () => {
+    it("takes reps from the first set (query order) among sets sharing the max weight", async () => {
+      const d = new Date("2026-08-30T00:00:00.000Z");
+      const set = (weight: string, repetitions: number) => ({ weight, repetitions, item: { workout: { id: "w1", workoutDate: d } } });
+      workoutSetFindManyMock.mockResolvedValue([set("100", 5), set("100", 8), set("90", 12)]);
+
+      const [point] = await workoutRepository.getExerciseProgression("u1", "e1");
+
+      expect(point).toMatchObject({ maxSetWeight: 100, repetitionsAtMaxSet: 5, volume: 500 + 800 + 1080 });
     });
   });
 

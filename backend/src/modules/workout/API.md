@@ -349,6 +349,8 @@ All values are calculated only from workouts with status `COMPLETED`.
 - `from` (optional): ISO datetime lower bound
 - `to` (optional): ISO datetime upper bound
 
+`repetitionsAtMaxSet` (and `maxWeightReps` in stats) come from the first set with the max weight in a workout, ordered by `setNumber`, then `createdAt`, then `id`; ties on weight are therefore deterministic.
+
 **Response:**
 
 ```json

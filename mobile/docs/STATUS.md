@@ -92,14 +92,14 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 - [x] 4.7 `DELETE /api/auth/account`
 - [x] 4.8 Naprawy B2, B8, B1 (`npm test` 243/243, integracyjne 109/109)
 - [x] 4.9 `API.md`, `openapi.yaml`, `WDROZENIE_BACKENDU.md`
-- [ ] 4.10 Regresja: `make check`, test dymny PWA (rozszerzony)
+- [~] 4.10 Regresja: backend 244 jednostkowe, frontend 78/78 (według agenta); test dymny PWA rozszerzony do 28 kroków (plany, trening z planu, edycja serii i szczegółów, offline), według agenta 28/28 na zmienionym backendzie; przeciągania kolejności w planie test nie obejmuje. Do powtórzenia: pełne testy integracyjne na nieobciążonej maszynie (pod obciążeniem symulatora 1 test `sync-push` przekroczył czas)
 
 ## Etap 5: pionowy wycinek
 
 - [x] 5.1 Schemat lokalnej bazy, migracje, repozytoria, outbox, zegar, statystyki lokalne (110 testów w Node; otwarcie bazy przez `expo-sqlite` niesprawdzone na symulatorze)
-- [ ] 5.2 Outbox, push, pull, silnik, zegar (chmura)
-- [ ] 5.3 Testy protokołu przeciwko lokalnemu backendowi (chmura)
-- [ ] 5.4 Sesja mobilna (chmura: logika)
+- [x] 5.2 Outbox, push, pull, silnik, zegar (testy w Node)
+- [x] 5.3 Testy protokołu przeciwko lokalnemu backendowi: `npm run test:protocol`, według agenta 13/13 (scenariusze 6.8 możliwe bez urządzenia); `resyncRequired` tylko testem z atrapą
+- [x] 5.4 Sesja mobilna: logika (bez podpięcia do ekranów i bez próby na symulatorze)
 - [ ] 5.5 Ekrany minimalne (Mac)
 - [ ] 5.6 Maestro: tryb samolotowy, zabicie apki (Mac)
 - [ ] 5.7 Instrukcja wgrania na iPhone'a
