@@ -30,7 +30,7 @@ appId: com.gymgate.app
     visible: "Historia sesji"
     timeout: 30000
 - assertVisible: "Dziennik treningowy"
+- assertVisible: "Od najnowszych"
 - scrollUntilVisible:
     element: "Barki i ramiona.*"
     timeout: 30000
-- assertVisible: "Od najnowszych"

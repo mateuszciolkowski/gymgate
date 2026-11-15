@@ -6,7 +6,7 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 
 **Ostatnia aktualizacja:** 2026-11-15
 **Bieżący etap:** 3, 4 i 5 równolegle, sesja lokalna na MacBooku (sesja chmurowa wyłączona).
-**Następny krok:** 5.5 (podpięcie ekranów do bazy, sesji i synchronizacji na symulatorze), potem 5.6 i Etap 6. Etap 4 gotowy do punktu kontrolnego D2 (`WDROZENIE_BACKENDU.md`).
+**Następny krok:** Etap 9 (pełny ekran treningu: notatki, plan w treningu, edycja szczegółów, porzucony trening), potem 7, 8, 10, 11. Otwarte: 5.7 (instrukcja wgrania na iPhone'a), baner odrzuconych operacji.
 
 ## Przegląd etapów
 
@@ -100,8 +100,8 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 - [x] 5.2 Outbox, push, pull, silnik, zegar (testy w Node)
 - [x] 5.3 Testy protokołu przeciwko lokalnemu backendowi: `npm run test:protocol`, według agenta 13/13 (scenariusze 6.8 możliwe bez urządzenia); `resyncRequired` tylko testem z atrapą
 - [x] 5.4 Sesja mobilna: logika (bez podpięcia do ekranów i bez próby na symulatorze)
-- [ ] 5.5 Ekrany minimalne (Mac)
-- [ ] 5.6 Maestro: tryb samolotowy, zabicie apki (Mac)
+- [x] 5.5 Ekrany minimalne na symulatorze iOS: logowanie z pierwszym pobraniem, lista treningów, nowy trening, ekran treningu z seriami, zakończenie, baner offline z liczbą zmian. Brak: baner odrzuconych operacji; niesprawdzone na symulatorze: wylogowanie z niepustą kolejką, zmiana konta, stan „wymagane logowanie”, selektor daty
+- [x] 5.6 Maestro (iOS, według agenta wszystkie przechodzą): logowanie z synchronizacją, pełny trening, trening offline z późniejszą synchronizacją (brak sieci symulowany zatrzymaniem backendu, nie trybem samolotowym), zabicie apki w połowie treningu
 - [ ] 5.7 Instrukcja wgrania na iPhone'a
 
 ## Etapy 6–15
@@ -139,6 +139,10 @@ Stan na 2026-11-14: właściciel nie zna jeszcze odpowiedzi; pytania odłożone,
 Do czasu odpowiedzi: zakładam, że push na `mobile-migration` może zbudować podgląd Vercel, więc nie zmieniam niczego w `frontend/`.
 
 ## Znane problemy
+
+- Symulator ma włączone „Ogranicz ruch” (ustawione dla stabilności Maestro).
+- Niewyjaśnione: trening „Kill test” z przepływu Maestro znalazł się na serwerze jako zakończony, choć przepływ go nie kończy; nie udało się odtworzyć.
+- Przy niedostępnym backendzie ponowna próba synchronizacji może czekać do 5 minut; powrót apki na pierwszy plan lub zmiana sieci zeruje odstęp.
 
 - `mobile/` wymaga Node 24 (Expo SDK 58), `backend/` zostaje na Node 20.
 - Runtime symulatora iOS 27.1 nie obsługuje zwykłych iPhone'ów; używamy iOS 27.0.
