@@ -33,6 +33,12 @@ describe("workout.schema", () => {
   });
 
   describe("updateWorkoutSchema", () => {
+    it("akceptuje workoutDate jako pełny znacznik i jako sama data (B1)", () => {
+      expect(updateWorkoutSchema.safeParse({ body: { workoutDate: "2026-01-01T10:00:00.000Z" } }).success).toBe(true);
+      expect(updateWorkoutSchema.safeParse({ body: { workoutDate: "2026-01-01" } }).success).toBe(true);
+      expect(updateWorkoutSchema.safeParse({ body: { workoutDate: "01.01.2026" } }).success).toBe(false);
+    });
+
     it("akceptuje dozwolony status", () => {
       expect(
         updateWorkoutSchema.safeParse({ body: { status: "COMPLETED" } }).success,

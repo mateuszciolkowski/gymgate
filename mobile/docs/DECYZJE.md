@@ -72,6 +72,20 @@ Format: numer, data, decyzja, powód, skutek.
 
 **D-39 (2026-11-15) Ikona apki tymczasowo z `frontend/public/pwa-512x512.png`**; docelowa ikona i splash w Etapie 13.
 
+## Backend: `pull`, sesje mobilne, usuwanie konta (zadania 4.5–4.8)
+
+**D-40 (2026-11-15) `resyncRequired` według wieku kursora.** Kursor niesie czas wydania; starszy niż 90 dni wymusza pełne pobranie. Powód: numery wpisów dziennika mają naturalne luki, więc porównanie z najstarszym wpisem nie odróżnia luki od wyczyszczenia.
+
+**D-41 (2026-11-15) Czyszczenie przy starcie serwera i co 24 h:** `sync_changes` i `sync_operations` starsze niż 90 dni, tokeny odświeżania wygasłe lub unieważnione ponad 30 dni temu.
+
+**D-42 (2026-11-15) `refresh_tokens.familyId`.** Dodatkowa kolumna względem planu, potrzebna do unieważniania całej rodziny tokenów.
+
+**D-43 (2026-11-15) Błędne hasło przy usuwaniu konta zwraca 403**, nie 401, bo klienci traktują 401 jako wygasłą sesję.
+
+**D-44 (2026-11-15) Konta o identyfikatorze "1" nie da się usunąć** (403): jest właścicielem globalnego katalogu ćwiczeń, który zniknąłby kaskadowo.
+
+**D-45 (2026-11-15) Powtórzone odświeżenie starym tokenem może zostawić dwa ważne następniki** do czasu wygaśnięcia. Przyjęte dla prostoty rotacji odpornej na zgubioną odpowiedź.
+
 ## Otwarte, do rozstrzygnięcia w trakcie
 
 - Biblioteka przeciągania w formularzu planu (Etap 8).

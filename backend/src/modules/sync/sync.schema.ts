@@ -26,6 +26,18 @@ export const pushSchema = z.object({
 
 export type PushBody = z.infer<typeof pushSchema>["body"];
 
+/** GET /api/sync/pull: no params = snapshot page 1; `snapshotToken` = next snapshot page; `cursor` = incremental. */
+export const pullSchema = z.object({
+  query: z
+    .object({
+      cursor: z.string().min(1).max(100).optional(),
+      snapshotToken: z.string().min(1).max(500).optional(),
+    })
+    .refine((q) => !(q.cursor && q.snapshotToken), "Podaj cursor albo snapshotToken, nie oba"),
+});
+
+export type PullQuery = z.infer<typeof pullSchema>["query"];
+
 const iso = z.string().datetime({ offset: true });
 const id = z.string().uuid();
 // Decimal(6,2) on the server; the device may send a number or a decimal string.

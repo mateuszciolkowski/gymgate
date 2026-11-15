@@ -97,6 +97,7 @@ model User {
   workoutPlans   WorkoutPlan[]
   favoritePlans  UserFavoritePlan[]
   syncOperations SyncOperation[]
+  refreshTokens  RefreshToken[]
   activeWorkout  Workout?               @relation("ActiveWorkout", fields: [activeWorkoutId], references: [id], onDelete: SetNull)
 
   @@map("users")
@@ -302,4 +303,27 @@ model SyncOperation {
   @@index([userId, createdAt])
   @@index([createdAt])
   @@map("sync_operations")
+}
+
+// Sesje aplikacji mobilnej (POST /api/auth/mobile/*). Token odświeżania jest losowy; w bazie jest
+// tylko jego skrót SHA-256. Tokeny jednego logowania tworzą rodzinę (`familyId`): użycie tokenu
+// starszego niż poprzedni unieważnia całą rodzinę. `lastUsedAt = null` = token jeszcze nie użyty.
+model RefreshToken {
+  id           String    @id @default(uuid())
+  userId       String
+  familyId     String
+  tokenHash    String    @unique
+  deviceId     String
+  deviceName   String?
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("refresh_tokens")
 }

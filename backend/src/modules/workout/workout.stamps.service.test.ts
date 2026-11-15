@@ -19,6 +19,7 @@ describe("workout.service: write stamps are opt-in", () => {
     vi.mocked(workoutRepo.addExerciseToWorkoutWithPendingNote).mockResolvedValue({ id: "i1" } as any);
     vi.mocked(workoutRepo.updateWorkout).mockResolvedValue({ id: "w1" } as any);
     vi.mocked(workoutRepo.updateWorkoutItem).mockResolvedValue({ id: "i1" } as any);
+    vi.mocked(workoutRepo.findWorkoutSetById).mockResolvedValue({ id: "s1", itemId: "i1" } as any);
     vi.mocked(workoutRepo.updateWorkoutSet).mockResolvedValue({ id: "s1", itemId: "i1" } as any);
     vi.mocked(workoutRepo.findWorkoutWithPlan).mockResolvedValue({
       id: "w1", userId: "u1", skippedPlanExerciseIds: [], plan: { items: [{ exerciseId: "e1" }] },

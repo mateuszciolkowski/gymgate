@@ -120,9 +120,12 @@ Each stats entry may include `lastNote: null` if no note was saved on the latest
 {
   "status": "COMPLETED", // DRAFT or COMPLETED
   "workoutName": "Updated name",
-  "workoutNotes": "New notes"
+  "workoutNotes": "New notes",
+  "workoutDate": "2026-03-01" // full ISO timestamp OR date-only YYYY-MM-DD (stored as midnight UTC)
 }
 ```
+
+`workoutDate` accepts both forms on PATCH (the PWA edit modal sends a date-only value). `POST /api/workouts` still requires the full timestamp.
 
 **Note:** When status is changed to `COMPLETED`, the system automatically:
 
@@ -238,6 +241,8 @@ Each stats entry may include `lastNote: null` if no note was saved on the latest
 
 - `weight` (optional): number `>= 0`
 - `repetitions` (optional): positive integer
+
+**Errors:** `404` when the set does not exist; `403` when it belongs to another user. Permissions are checked before any write, so a foreign set is never touched (its `updatedAt` is not bumped).
 
 ### 11. Delete Set
 

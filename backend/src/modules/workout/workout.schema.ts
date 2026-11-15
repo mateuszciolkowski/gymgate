@@ -16,8 +16,11 @@ export const createWorkoutSchema = z.object({
   body: createWorkoutBody,
 });
 
+// PATCH also accepts a date-only value (YYYY-MM-DD): the PWA edit modal sends it (B1).
+const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date");
+
 const updateWorkoutBody = z.object({
-  workoutDate: z.string().datetime().optional(),
+  workoutDate: z.union([z.string().datetime(), dateOnly]).optional(),
   status: z.enum(["DRAFT", "COMPLETED"]).optional(),
   workoutName: z.string().optional(),
   gymName: z.string().optional(),

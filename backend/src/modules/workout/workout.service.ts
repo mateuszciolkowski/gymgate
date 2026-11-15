@@ -307,7 +307,11 @@ export const updateWorkoutSet = async (
   data: UpdateWorkoutSetDto,
   stamp?: Pick<WriteStamp, "updatedAt">,
 ) => {
-  const set = await workoutRepo.updateWorkoutSet(setId, {});
+  // Permission checks come before any write (B8): a foreign set must not even get its updatedAt bumped.
+  const set = await workoutRepo.findWorkoutSetById(setId);
+  if (!set) {
+    throw new NotFoundError("Nie znaleziono serii");
+  }
   const item = await workoutRepo.findWorkoutItemById(set.itemId);
   if (!item) {
     throw new NotFoundError("Nie znaleziono pozycji treningowej");

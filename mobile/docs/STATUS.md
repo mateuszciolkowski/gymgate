@@ -87,16 +87,16 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 - [x] 4.2 Migracja M1 `20261115120000_add_sync_changes`: tabela + wyzwalacze na 10 tabelach; 18 testów integracyjnych (zapisy przez istniejące serwisy, kaskady, widoczność planów); `npm test` 203/203, test dymny PWA 12/12 na bazie z wyzwalaczami; brak dryfu schematu Prisma
 - [x] 4.3 Eksport funkcji pochodnych, opcjonalne `id` i czasy w repozytoriach (`npm test` 229/229)
 - [x] 4.4 Migracja M2 `20261116120000_add_sync_operations` + `POST /api/sync/push` (testy integracyjne 56/56; test dymny PWA jeszcze nie powtórzony, patrz 4.10)
-- [~] 4.5 `GET /api/sync/pull`
-- [ ] 4.6 Migracja M3 + sesje mobilne
-- [ ] 4.7 `DELETE /api/auth/account`
-- [ ] 4.8 Naprawy B2, B8, B1
-- [ ] 4.9 `API.md`, `openapi.yaml`, `WDROZENIE_BACKENDU.md`
+- [x] 4.5 `GET /api/sync/pull` (w tym test kursora przy równoległych transakcjach)
+- [x] 4.6 Migracja M3 `20261117120000_add_refresh_tokens` + sesje mobilne
+- [x] 4.7 `DELETE /api/auth/account`
+- [x] 4.8 Naprawy B2, B8, B1 (`npm test` 243/243, integracyjne 109/109)
+- [x] 4.9 `API.md`, `openapi.yaml`, `WDROZENIE_BACKENDU.md`
 - [ ] 4.10 Regresja: `make check`, test dymny PWA (rozszerzony)
 
 ## Etap 5: pionowy wycinek
 
-- [~] 5.1 Schemat lokalnej bazy, migracje, repozytoria
+- [x] 5.1 Schemat lokalnej bazy, migracje, repozytoria, outbox, zegar, statystyki lokalne (110 testów w Node; otwarcie bazy przez `expo-sqlite` niesprawdzone na symulatorze)
 - [ ] 5.2 Outbox, push, pull, silnik, zegar (chmura)
 - [ ] 5.3 Testy protokołu przeciwko lokalnemu backendowi (chmura)
 - [ ] 5.4 Sesja mobilna (chmura: logika)

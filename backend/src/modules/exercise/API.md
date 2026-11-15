@@ -140,11 +140,12 @@
   createdAt: string
   updatedAt: string
   photos: ExercisePhoto[]
-  creator: {
+  creator: {            // null for global exercises; never contains the password hash (B2 fix)
     id: string
-    name: string
+    firstName: string
+    lastName: string
     email: string
-  }
+  } | null
 }
 ```
 

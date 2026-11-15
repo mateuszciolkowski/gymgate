@@ -7,6 +7,9 @@ import type {
 import type { MuscleGroup } from "@prisma/client";
 import type { WriteStamp } from "../workout/workout.repository.js";
 
+// Never expose the full user row (password hash) to clients (B2).
+const creatorSelect = { id: true, firstName: true, lastName: true, email: true } as const;
+
 export class ExerciseRepository {
   async findAll(filters?: FilterExercisesDto & { userId?: string }) {
     const orConditions = [
@@ -36,7 +39,7 @@ export class ExerciseRepository {
       where,
       include: {
         photos: true,
-        creator: true,
+        creator: { select: creatorSelect },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -47,7 +50,7 @@ export class ExerciseRepository {
       where: { id },
       include: {
         photos: true,
-        creator: true,
+        creator: { select: creatorSelect },
       },
     });
   }

@@ -36,3 +36,4 @@ export const createUserRateLimiter = (limit: number, skipInTest = true) =>
   });
 
 export const syncRateLimiter = createUserRateLimiter(60);
+export const syncPullRateLimiter = createUserRateLimiter(60);

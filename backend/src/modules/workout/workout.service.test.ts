@@ -637,9 +637,8 @@ describe("workout.service", () => {
   it("updateWorkoutSet: recalculates stats for completed workouts", async () => {
     const workoutDate = new Date("2026-02-11T10:00:00.000Z");
 
-    vi.mocked(workoutRepo.updateWorkoutSet)
-      .mockResolvedValueOnce({ id: "set-1", itemId: "item-1" } as any)
-      .mockResolvedValueOnce({ id: "set-1", itemId: "item-1" } as any);
+    vi.mocked(workoutRepo.findWorkoutSetById).mockResolvedValue({ id: "set-1", itemId: "item-1" } as any);
+    vi.mocked(workoutRepo.updateWorkoutSet).mockResolvedValue({ id: "set-1", itemId: "item-1" } as any);
     vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValue({
       id: "item-1",
       workoutId: "w1",
@@ -662,10 +661,8 @@ describe("workout.service", () => {
 
     await workoutService.updateWorkoutSet("set-1", "u1", { weight: 95 });
 
-    expect(workoutRepo.updateWorkoutSet).toHaveBeenNthCalledWith(1, "set-1", {});
-    expect(workoutRepo.updateWorkoutSet).toHaveBeenNthCalledWith(2, "set-1", {
-      weight: 95,
-    });
+    expect(workoutRepo.updateWorkoutSet).toHaveBeenCalledTimes(1);
+    expect(workoutRepo.updateWorkoutSet).toHaveBeenCalledWith("set-1", { weight: 95 });
     expect(workoutRepo.upsertExerciseStats).toHaveBeenCalledWith("u1", "e1", {
       maxWeight: 95,
       maxWeightReps: 5,
@@ -676,6 +673,18 @@ describe("workout.service", () => {
       totalWorkouts: 1,
       lastNote: null,
     });
+  });
+
+  it("updateWorkoutSet: 404 for a missing set, 403 for a foreign set, and never writes in either case (B8)", async () => {
+    vi.mocked(workoutRepo.findWorkoutSetById).mockResolvedValueOnce(null);
+    await expect(workoutService.updateWorkoutSet("nope", "u1", { weight: 1 })).rejects.toMatchObject({ status: 404 });
+
+    vi.mocked(workoutRepo.findWorkoutSetById).mockResolvedValueOnce({ id: "set-1", itemId: "item-1" } as any);
+    vi.mocked(workoutRepo.findWorkoutItemById).mockResolvedValueOnce({ id: "item-1", workoutId: "w1", exerciseId: "e1" } as any);
+    vi.mocked(workoutRepo.findWorkoutById).mockResolvedValueOnce({ id: "w1", userId: "someone-else", status: "DRAFT" } as any);
+    await expect(workoutService.updateWorkoutSet("set-1", "u1", { weight: 1 })).rejects.toMatchObject({ status: 403 });
+
+    expect(workoutRepo.updateWorkoutSet).not.toHaveBeenCalled();
   });
 
   it("getActiveWorkoutId: returns id when active workout exists and is DRAFT", async () => {

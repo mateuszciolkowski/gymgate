@@ -75,6 +75,15 @@ components:
         photos:
           type: array
           items: { $ref: "#/components/schemas/ExercisePhoto" }
+        creator:
+          nullable: true
+          description: Twórca ćwiczenia (null dla ćwiczeń globalnych). Nigdy nie zawiera hasła ani innych pól użytkownika.
+          type: object
+          properties:
+            id: { type: string }
+            firstName: { type: string }
+            lastName: { type: string }
+            email: { type: string, format: email }
 
     WorkoutSet:
       type: object
@@ -165,11 +174,100 @@ components:
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
 
+    RegisterBody:
+      type: object
+      required: [email, password, firstName, lastName]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+        firstName: { type: string, minLength: 2 }
+        lastName: { type: string, minLength: 2 }
+        phone: { type: string }
+
+    DeviceInfo:
+      type: object
+      properties:
+        deviceId: { type: string, maxLength: 128, description: "Domyślnie 'unknown'" }
+        deviceName: { type: string, maxLength: 100 }
+
+    MobileSession:
+      type: object
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+        accessToken: { type: string, description: "JWT w formacie jak token PWA, ważny 1 godzinę" }
+        accessTokenExpiresIn: { type: integer, example: 3600, description: sekundy }
+        refreshToken: { type: string, description: "Losowy, ważny 180 dni od ostatniego użycia" }
+        refreshTokenExpiresAt: { type: string, format: date-time }
+
+    SyncOperation:
+      type: object
+      description: |
+        Płaska operacja `{ opId, type, at, ...pola }`. `at` = czas zmiany na urządzeniu (serwer obcina
+        przyszłość do własnego czasu). Typy i pola: `workout.create|update|complete|delete|skipPlanExercise`,
+        `item.add|update|delete`, `set.add|update|delete`, `exercise.create|update|delete`,
+        `plan.create|update|delete|duplicate|favorite|unfavorite` (szczegóły: `backend/src/modules/sync/API.md`).
+      required: [opId, type, at]
+      additionalProperties: true
+      properties:
+        opId: { type: string, maxLength: 64 }
+        type: { type: string }
+        at: { type: string, format: date-time }
+
+    SyncOpResult:
+      type: object
+      required: [opId, status]
+      properties:
+        opId: { type: string }
+        status: { type: string, enum: [applied, duplicate, superseded, rejected] }
+        code: { type: string, description: "Tylko dla rejected: validation, not_found, forbidden, conflict, bad_request, stale_start, unknown_type" }
+        error: { type: string }
+        current: { nullable: true, description: "Stan rekordu na serwerze (rejected / superseded); null gdy brak lub niewidoczny" }
+
+    SyncUpserts:
+      type: object
+      description: Płaskie wiersze dla lokalnej bazy klienta; `weight` jako ciąg dziesiętny, daty ISO.
+      properties:
+        workouts: { type: array, items: { type: object } }
+        workoutItems: { type: array, items: { type: object } }
+        workoutSets: { type: array, items: { type: object } }
+        exercises: { type: array, items: { type: object } }
+        plans: { type: array, items: { type: object }, description: "Z pozycjami `items: [{ id, exerciseId, orderInPlan }]` i `isFavorite`" }
+        pendingNotes: { type: array, items: { type: object }, description: "Identyfikatorem notatki jest `exerciseId`" }
+        profile: { type: object, nullable: true, description: "id, email, firstName, lastName, phone, isAdmin, activeWorkoutId" }
+
+    SyncPullResponse:
+      type: object
+      properties:
+        cursor: { type: string, nullable: true, description: "Nieprzezroczysty; null przy resyncRequired" }
+        hasMore: { type: boolean }
+        resyncRequired: { type: boolean }
+        snapshotToken: { type: string, nullable: true, description: "Tylko strony snapshotu; null na ostatniej" }
+        upserts: { $ref: "#/components/schemas/SyncUpserts" }
+        deletes:
+          type: array
+          items:
+            type: object
+            properties:
+              entity: { type: string, enum: [workout, workoutItem, workoutSet, exercise, plan, pendingNote] }
+              id: { type: string }
+        serverTime: { type: string, format: date-time }
+
     Error:
       type: object
       properties:
         success: { type: boolean, example: false }
         error: { type: string }
+
+  responses:
+    MobileSession:
+      description: Sesja mobilna
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean }
+              data: { $ref: "#/components/schemas/MobileSession" }
 
 paths:
   # ── AUTH ──────────────────────────────────────────────────────────────────
@@ -261,6 +359,133 @@ paths:
                   success: { type: boolean }
                   data: { $ref: "#/components/schemas/User" }
         "401": { description: Brak lub wygasły token }
+
+  /api/auth/account:
+    delete:
+      tags: [Auth]
+      summary: Usuń konto i wszystkie dane użytkownika
+      description: |
+        Wymaga tokenu dostępu i potwierdzenia hasłem. Jedna transakcja: użytkownik, jego ćwiczenia,
+        treningi (z pozycjami i seriami), statystyki, notatki oczekujące, plany (także publiczne;
+        ulubione innych użytkowników znikają razem z planem, a ich treningi tracą `workoutPlanId`),
+        ulubione, operacje synchronizacji i tokeny odświeżania. Ćwiczenia globalne i plany wbudowane
+        zostają. Błędne hasło daje 403 (nie 401: klienty traktują 401 jako wygasłą sesję).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string }
+      responses:
+        "200":
+          description: Konto usunięte
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { nullable: true }
+        "400": { description: Brak hasła }
+        "401": { description: Brak lub wygasły token albo użytkownik już nie istnieje }
+        "403": { description: Nieprawidłowe hasło ("Nieprawidłowe hasło") albo konto chronione ("Tego konta nie można usunąć") }
+        "429": { description: Zbyt wiele prób (ten sam limit co logowanie) }
+
+  /api/auth/mobile/register:
+    post:
+      tags: [Auth]
+      summary: Rejestracja z sesją mobilną
+      description: Te same pola i komunikaty walidacji co `/api/auth/register`; zamiast 7-dniowego tokenu zwraca token dostępu (1 h) i token odświeżania (180 dni, przesuwany). Ten sam limit prób co logowanie.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/RegisterBody"
+                - $ref: "#/components/schemas/DeviceInfo"
+      responses:
+        "201": { $ref: "#/components/responses/MobileSession" }
+        "400": { description: Błąd walidacji }
+        "409": { description: Email już zajęty }
+        "429": { description: Zbyt wiele prób }
+
+  /api/auth/mobile/login:
+    post:
+      tags: [Auth]
+      summary: Logowanie z sesją mobilną
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - type: object
+                  required: [email, password]
+                  properties:
+                    email: { type: string, format: email }
+                    password: { type: string }
+                - $ref: "#/components/schemas/DeviceInfo"
+      responses:
+        "200": { $ref: "#/components/responses/MobileSession" }
+        "400": { description: Błąd walidacji }
+        "401": { description: Nieprawidłowy email lub hasło }
+        "429": { description: Zbyt wiele prób }
+
+  /api/auth/mobile/refresh:
+    post:
+      tags: [Auth]
+      summary: Wymiana tokenu odświeżania (rotacja)
+      description: |
+        Zwraca nowy token dostępu i NOWY token odświeżania. Poprzedni token pozostaje ważny, dopóki
+        nowy nie zostanie użyty po raz pierwszy (odporność na zgubioną odpowiedź). Użycie tokenu
+        starszego niż poprzedni unieważnia całą rodzinę tokenów tego logowania.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        "200": { $ref: "#/components/responses/MobileSession" }
+        "400": { description: Brak tokenu }
+        "401": { description: Token nieznany, wygasły, unieważniony albo użytkownik usunięty }
+
+  /api/auth/mobile/logout:
+    post:
+      tags: [Auth]
+      summary: Wylogowanie (unieważnienie rodziny tokenów odświeżania)
+      description: Idempotentne; nieznany token też daje 200.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        "200":
+          description: Wylogowano
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { nullable: true }
+        "400": { description: Brak tokenu }
 
   # ── EXERCISES ─────────────────────────────────────────────────────────────
 
@@ -487,6 +712,11 @@ paths:
             schema:
               type: object
               properties:
+                workoutDate:
+                  description: Pełny znacznik czasu ISO albo sama data `YYYY-MM-DD` (traktowana jako północ UTC).
+                  oneOf:
+                    - { type: string, format: date-time }
+                    - { type: string, format: date, example: "2026-03-01" }
                 status: { $ref: "#/components/schemas/WorkoutStatus" }
                 workoutName: { type: string }
                 gymName: { type: string }
@@ -648,6 +878,8 @@ paths:
                 properties:
                   success: { type: boolean }
                   data: { $ref: "#/components/schemas/WorkoutSet" }
+        "403": { description: Seria należy do innego użytkownika (nic nie jest zapisywane) }
+        "404": { description: Seria nie istnieje }
     delete:
       tags: [WorkoutSets]
       summary: Usuń serię
@@ -1012,3 +1244,79 @@ paths:
                         createdAt: { type: string, format: date-time }
         "403": { description: Brak uprawnień do edycji planu }
         "404": { description: Nie znaleziono }
+
+  # ── SYNC (aplikacja mobilna) ──────────────────────────────────────────────
+
+  /api/sync/push:
+    post:
+      tags: [Sync]
+      summary: Wysyłka paczki operacji z urządzenia
+      description: |
+        Do 100 operacji, 60 żądań na minutę na użytkownika. Operacje wykonują się po kolei, każda we
+        własnej transakcji; odrzucenie jednej nie przerywa pozostałych. Idempotentne po `opId`.
+        Szczegóły i lista typów: `backend/src/modules/sync/API.md`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceId, ops]
+              properties:
+                deviceId: { type: string, maxLength: 128 }
+                ops:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  items: { $ref: "#/components/schemas/SyncOperation" }
+      responses:
+        "200":
+          description: Wynik dla każdej operacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      serverTime: { type: string, format: date-time }
+                      results:
+                        type: array
+                        items: { $ref: "#/components/schemas/SyncOpResult" }
+        "400": { description: Błędna koperta żądania }
+        "429": { description: Zbyt wiele żądań }
+
+  /api/sync/pull:
+    get:
+      tags: [Sync]
+      summary: Pobranie danych (snapshot albo zmiany od kursora)
+      description: |
+        Bez parametrów: pierwsza strona snapshotu (ćwiczenia, plany z pozycjami i `isFavorite`, notatki
+        oczekujące, profil z `activeWorkoutId`, pierwsze 200 treningów z pozycjami i seriami); `cursor` w
+        odpowiedzi jest zapamiętany PRZED odczytem. Z `snapshotToken`: kolejna strona treningów.
+        Z `cursor`: do 500 zmian; dla każdego zmienionego rekordu serwer zwraca jego AKTUALNY stan z
+        punktu widzenia użytkownika (widoczny: upsert z pełnym wierszem; w przeciwnym razie: delete).
+        Kursor `(txid, seq)` jest ograniczony przez xmin migawki PostgreSQL, więc zmiana z równolegle
+        trwającej transakcji nigdy nie zostanie pominięta. Kursor wydany ponad 90 dni temu:
+        `resyncRequired: true`. 60 żądań na minutę na użytkownika.
+      parameters:
+        - in: query
+          name: cursor
+          schema: { type: string }
+        - in: query
+          name: snapshotToken
+          schema: { type: string }
+      responses:
+        "200":
+          description: Strona danych
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/SyncPullResponse" }
+        "400": { description: Nieprawidłowy kursor lub token, albo podane oba }
+        "429": { description: Zbyt wiele żądań }
