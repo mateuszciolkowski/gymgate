@@ -6,7 +6,7 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 
 **Ostatnia aktualizacja:** 2026-11-15
 **Bieżący etap:** 4 (backend pod synchronizację; wykonalny w chmurze). Etap 3 czeka na sesję na MacBooku, z wyjątkiem zadań oznaczonych „(chmura)”.
-**Następny krok:** zadanie 4.1 z `PLAN.md` (testy integracyjne na lokalnym PostgreSQL), potem 4.2 (dziennik zmian i wyzwalacze)
+**Następny krok:** zadanie 4.3 z `PLAN.md` (eksport funkcji pochodnych, opcjonalne `id` i czasy w repozytoriach), potem 4.4 (`POST /api/sync/push`)
 
 ## Przegląd etapów
 
@@ -83,8 +83,8 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 
 ## Etap 4: backend pod synchronizację (chmura)
 
-- [ ] 4.1 Infrastruktura testów integracyjnych (`test:integration`)
-- [ ] 4.2 Migracja M1: `sync_changes` + wyzwalacze + testy
+- [x] 4.1 Infrastruktura testów integracyjnych: `npm run test:integration` w `backend/` (pliki `*.itest.ts`, baza `gymgate_test` na localhost; skrypt odmawia pracy na bazie spoza localhost lub bez sufiksu `_test`)
+- [x] 4.2 Migracja M1 `20261115120000_add_sync_changes`: tabela + wyzwalacze na 10 tabelach; 18 testów integracyjnych (zapisy przez istniejące serwisy, kaskady, widoczność planów); `npm test` 203/203, test dymny PWA 12/12 na bazie z wyzwalaczami; brak dryfu schematu Prisma
 - [ ] 4.3 Eksport funkcji pochodnych, opcjonalne `id` i czasy w repozytoriach
 - [ ] 4.4 Migracja M2 + `POST /api/sync/push`
 - [ ] 4.5 `GET /api/sync/pull`
@@ -140,6 +140,7 @@ Do czasu odpowiedzi: zakładam, że push na `mobile-migration` może zbudować p
 
 ## Znane problemy
 
+- Po restarcie kontenera chmurowego proces PostgreSQL znika, ale dane w `/var/lib/postgresql/gymgate_local` zostają: wystarczy `pg_ctl start` (polecenie w dzienniku sesji 2026-11-15), bez ponownego seeda.
 - Test dymny i zrzuty zmieniają lub zakładają dane z seeda: przed każdym uruchomieniem `npm run seed:local` (z lokalnym `DATABASE_URL`), a po kilku uruchomieniach restart backendu, bo limit logowań jest w pamięci procesu.
 - Sesja chmurowa nie ma Dockera, więc `make local-setup` tu nie działa. Zamiast tego: systemowy PostgreSQL 16 na `127.0.0.1:5433`, baza `gymgate_local`, migracje i seedy z jawnie podstawionym `DATABASE_URL`/`DIRECT_URL`. Kontener sesji jest ulotny, więc w nowej sesji chmurowej bazę trzeba postawić od nowa.
 - Limit logowań backendu (10 prób na 15 minut na IP) blokuje automaty logujące się wielokrotnie; `capture.mjs` loguje się raz przez API i wstrzykuje sesję.
@@ -148,5 +149,5 @@ Do czasu odpowiedzi: zakładam, że push na `mobile-migration` może zbudować p
 
 ## Dziennik sesji
 
-- **2026-11-15 (chmura, po restarcie procesu):** lista parytetu, plan (Etap 2) i rejestr decyzji; lokalna baza i serwery zniknęły z kontenera, do postawienia ponownie przed testami backendu.
+- **2026-11-15 (chmura, po restarcie procesu):** lista parytetu, plan (Etap 2), rejestr decyzji, zadania 4.1–4.2 backendu. Start bazy: `su postgres -c "/usr/lib/postgresql/16/bin/pg_ctl -D /var/lib/postgresql/gymgate_local -o '-p 5433 -c listen_addresses=127.0.0.1 -c unix_socket_directories=/var/lib/postgresql/gymgate_local' -l /var/lib/postgresql/gymgate_local/server.log start"`; lokalna baza i serwery zniknęły z kontenera, do postawienia ponownie przed testami backendu.
 - **2026-11-14 (chmura):** analiza repo, brief, decyzje D1–D6, gałąź, stan wyjściowy testów, ta tablica. Lokalna baza, backend i PWA uruchomione; skrypt `mobile/tools/pwa-wzorzec/capture.mjs` i pierwsza partia zrzutów wzorcowych, test dymny PWA (12/12), pełna inwentaryzacja.

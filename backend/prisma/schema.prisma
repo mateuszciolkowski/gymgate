@@ -268,3 +268,19 @@ model UserFavoritePlan {
   @@unique([userId, planId])
   @@map("user_favorite_plans")
 }
+
+// Dziennik zmian dla synchronizacji aplikacji mobilnej. Wiersze dopisują wyłącznie
+// wyzwalacze PostgreSQL (migracja add_sync_changes); kod aplikacji tylko je czyta.
+// `scopeUserId = null` oznacza zmianę widoczną dla wszystkich użytkowników.
+model SyncChange {
+  seq         BigInt   @id @default(autoincrement())
+  txid        BigInt   @default(dbgenerated("((pg_current_xact_id())::text)::bigint"))
+  scopeUserId String?
+  entity      String
+  entityId    String
+  createdAt   DateTime @default(now())
+
+  @@index([scopeUserId, txid, seq])
+  @@index([createdAt])
+  @@map("sync_changes")
+}

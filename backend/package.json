@@ -34,6 +34,7 @@
     "build": "prisma generate && tsc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:integration": "tsx scripts/test-integration.ts",
     "check": "npm run typecheck && npm run test",
     "start": "node dist/index.js",
     "start:railway": "prisma migrate deploy && node dist/index.js",
