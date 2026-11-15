@@ -65,3 +65,21 @@ Format: numer, data, decyzja, powód, skutek.
 - Biblioteka przeciągania w formularzu planu (Etap 8).
 - Arkusze dolne: natywna prezentacja routera czy biblioteka (Etap 3).
 - Rozwiązanie powiadomienia na Androidzie: własny moduł czy gotowa biblioteka (Etap 12).
+
+## Backend: `POST /api/sync/push` (zadania 4.3–4.4)
+
+**D-27 (2026-11-15) Jedna transakcja na operację przez kontekst asynchroniczny.** Repozytoria używają `db()` z `config/txContext.ts`; poza modułem sync to zwykły klient Prisma, więc ścieżki PWA działają jak dotąd. Powód: istniejące serwisy wołane pod blokadą wiersza użytkownika zakleszczałyby się na własnej blokadzie. Odrzucona operacja jest wycofywana w całości, a odrzucenie zapisuje osobna mała transakcja.
+
+**D-28 (2026-11-15) Format odpowiedzi `push` zgodny z konwencją repo:** `{ success, data: { serverTime, results } }`, operacje płaskie `{ opId, type, at, ...pola }`. Wynik ma dodatkowe pole `code` (`validation`, `not_found`, `forbidden`, `conflict`, `bad_request`, `stale_start`, `unknown_type`).
+
+**D-29 (2026-11-15) Powtórka operacji:** wcześniej `applied` wraca jako `duplicate`; zapisane `rejected` i `superseded` wracają bez zmian.
+
+**D-30 (2026-11-15) Walidacja per operacja.** Błędna koperta żądania daje 400; błędne dane jednej operacji odrzucają tylko ją. Pola nazwy, siłowni, notatek i opisu przyjmują `null` (czyszczenie pola, D-23).
+
+**D-31 (2026-11-15) Zakończenie starszego szkicu nie gasi nowszego aktywnego treningu.** Istniejący serwis czyści wskaźnik bezwarunkowo; sync przywraca go po `workout.complete` starszego treningu.
+
+**D-32 (2026-11-15) Usunięcie nieistniejącego rekordu i `plan.unfavorite` nieistniejącego planu są sukcesem.** `item.add` z ćwiczeniem niewidocznym dla użytkownika jest odrzucane jako `not_found`; `opId` użyty przez inne konto jako `forbidden`.
+
+**D-33 (2026-11-15) Numer serii nadaje urządzenie** (istniejący serwis ignoruje `setNumber` z żądania; ścieżka PWA bez zmian).
+
+**D-34 (2026-11-15) Czas serwera dla danych pochodnych.** Wersje historii planu i `exercise_pending_notes.updatedAt` dostają czas serwera; czas z urządzenia dostają tylko rekordy główne.

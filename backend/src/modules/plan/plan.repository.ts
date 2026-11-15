@@ -1,6 +1,7 @@
-import prisma from "../../config/database.js";
+import { db, runInTx } from "../../config/txContext.js";
 import type { Prisma, WorkoutPlanVersion } from "@prisma/client";
 import type { PlanTab } from "./plan.schema.js";
+import type { WriteStamp } from "../workout/workout.repository.js";
 import {
   toSnapshot,
   versionsToRecord,
@@ -65,7 +66,7 @@ export class PlanRepository {
               NOT: { creatorUserId: userId },
             };
 
-    const plans = await prisma.workoutPlan.findMany({
+    const plans = await db().workoutPlan.findMany({
       where,
       include: { ...itemsInclude, ...favoritedByInclude(userId) },
       orderBy: { createdAt: "desc" },
@@ -75,7 +76,7 @@ export class PlanRepository {
   }
 
   async findById(id: string, userId?: string) {
-    const plan = await prisma.workoutPlan.findUnique({
+    const plan = await db().workoutPlan.findUnique({
       where: { id },
       include: {
         ...itemsInclude,
@@ -93,14 +94,17 @@ export class PlanRepository {
     creatorUserId: string | null;
     isPublic: boolean;
     exerciseIds: string[];
-  }) {
-    const plan = await prisma.$transaction(async (tx) => {
+  }, stamp?: WriteStamp) {
+    const plan = await runInTx(async (tx) => {
       const created = await tx.workoutPlan.create({
         data: {
           name: data.name,
           shortName: data.shortName ?? null,
           creatorUserId: data.creatorUserId,
           isPublic: data.isPublic,
+          ...(stamp?.id !== undefined && { id: stamp.id }),
+          ...(stamp?.createdAt !== undefined && { createdAt: stamp.createdAt }),
+          ...(stamp?.updatedAt !== undefined && { updatedAt: stamp.updatedAt }),
           items: {
             create: data.exerciseIds.map((exerciseId, index) => ({
               exerciseId,
@@ -128,8 +132,9 @@ export class PlanRepository {
       exerciseIds?: string[] | undefined;
     },
     userId: string,
+    stamp?: WriteStamp,
   ) {
-    const plan = await prisma.$transaction(async (tx) => {
+    const plan = await runInTx(async (tx) => {
       const before = await tx.workoutPlan.findUniqueOrThrow({ where: { id }, include: itemsInclude });
 
       if (data.exerciseIds) {
@@ -150,6 +155,7 @@ export class PlanRepository {
           ...(data.shortName !== undefined && { shortName: data.shortName }),
           ...(data.creatorUserId !== undefined && { creatorUserId: data.creatorUserId }),
           ...(data.isPublic !== undefined && { isPublic: data.isPublic }),
+          ...(stamp?.updatedAt !== undefined && { updatedAt: stamp.updatedAt }),
         },
         include: { ...itemsInclude, ...favoritedByInclude(userId) },
       });
@@ -178,7 +184,7 @@ export class PlanRepository {
   }
 
   async findVersions(planId: string) {
-    const rows = await prisma.workoutPlanVersion.findMany({
+    const rows = await db().workoutPlanVersion.findMany({
       where: { planId },
       orderBy: { version: "desc" },
     });
@@ -186,24 +192,24 @@ export class PlanRepository {
   }
 
   async delete(id: string) {
-    return prisma.workoutPlan.delete({ where: { id } });
+    return db().workoutPlan.delete({ where: { id } });
   }
 
   async findExercisesByIds(ids: string[]) {
-    return prisma.exercise.findMany({
+    return db().exercise.findMany({
       where: { id: { in: ids } },
       select: { id: true, name: true, creatorUserId: true },
     });
   }
 
   async findByCreatorAndName(creatorUserId: string | null, name: string) {
-    return prisma.workoutPlan.findFirst({
+    return db().workoutPlan.findFirst({
       where: { creatorUserId, name },
     });
   }
 
   async addFavorite(userId: string, planId: string) {
-    await prisma.userFavoritePlan.upsert({
+    await db().userFavoritePlan.upsert({
       where: { userId_planId: { userId, planId } },
       create: { userId, planId },
       update: {},
@@ -211,7 +217,7 @@ export class PlanRepository {
   }
 
   async removeFavorite(userId: string, planId: string) {
-    await prisma.userFavoritePlan.deleteMany({
+    await db().userFavoritePlan.deleteMany({
       where: { userId, planId },
     });
   }

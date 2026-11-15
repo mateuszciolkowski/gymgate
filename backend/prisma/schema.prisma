@@ -96,6 +96,7 @@ model User {
   pendingNotes   ExercisePendingNote[]
   workoutPlans   WorkoutPlan[]
   favoritePlans  UserFavoritePlan[]
+  syncOperations SyncOperation[]
   activeWorkout  Workout?               @relation("ActiveWorkout", fields: [activeWorkoutId], references: [id], onDelete: SetNull)
 
   @@map("users")
@@ -283,4 +284,22 @@ model SyncChange {
   @@index([scopeUserId, txid, seq])
   @@index([createdAt])
   @@map("sync_changes")
+}
+
+// Przetworzone operacje synchronizacji (POST /api/sync/push). Klucz `opId` daje idempotencję:
+// powtórka operacji zwraca zapisany wynik. Czyszczone po 90 dniach (poza kodem aplikacji).
+model SyncOperation {
+  opId      String   @id
+  userId    String
+  deviceId  String
+  type      String
+  status    String
+  result    Json
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("sync_operations")
 }

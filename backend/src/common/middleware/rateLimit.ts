@@ -18,3 +18,21 @@ export const authRateLimiter = rateLimit({
     error: "Zbyt wiele prób. Spróbuj ponownie później.",
   },
 });
+
+/**
+ * Per-user limiter for POST /api/sync/push: 60 requests per minute (PLAN 6.6).
+ * Must be mounted after authMiddleware (keyed by user id). `skipInTest` lets
+ * unit tests exercise the real limiter; the app instance is skipped under NODE_ENV=test.
+ */
+export const createUserRateLimiter = (limit: number, skipInTest = true) =>
+  rateLimit({
+    windowMs: 60 * 1000,
+    limit,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    skip: () => skipInTest && isTestEnv,
+    keyGenerator: (req) => (req as { userId?: string }).userId ?? "anonymous",
+    message: { success: false, error: "Zbyt wiele żądań synchronizacji. Spróbuj ponownie za chwilę." },
+  });
+
+export const syncRateLimiter = createUserRateLimiter(60);

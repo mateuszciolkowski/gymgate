@@ -15,6 +15,7 @@ import userRouter from "./modules/user/user.routes.js";
 import workoutRouter from "./modules/workout/workout.routes.js";
 import authRouter from "./modules/auth/auth.routes.js";
 import { planRouter } from "./modules/plan/plan.routes.js";
+import { syncRouter } from "./modules/sync/sync.routes.js";
 
 // Prisma returns BigInt for some aggregate fields — serialize it as a string.
 (BigInt.prototype as unknown as { toJSON: () => string }).toJSON = function () {
@@ -86,6 +87,7 @@ export const createApp = (): Express => {
   app.use("/api/users", userRouter);
   app.use("/api/workouts", workoutRouter);
   app.use("/api/plans", planRouter);
+  app.use("/api/sync", syncRouter);
 
   // Centralny error-handler: AppError -> jego status, ZodError -> 400, reszta -> 500.
   app.use(

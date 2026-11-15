@@ -8,11 +8,12 @@ import {
 } from "../../common/errors.js";
 import { isGlobalCreatorId } from "../../config/constants.js";
 import { toSnapshot } from "./plan.history.js";
+import type { WriteStamp } from "../workout/workout.repository.js";
 
 const MAX_COPY_SUFFIX = 999;
 
 // Author edits own plans; admin also edits built-in (creatorUserId = null) ones.
-function canModify(plan: { creatorUserId: string | null }, userId: string, isAdmin: boolean) {
+export function canModify(plan: { creatorUserId: string | null }, userId: string, isAdmin: boolean) {
   return plan.creatorUserId === userId || (isAdmin && plan.creatorUserId === null);
 }
 
@@ -45,7 +46,12 @@ export class PlanService {
     return plan;
   }
 
-  async createPlan(data: CreatePlanDto & { isGlobal?: boolean }, userId: string, isAdmin = false) {
+  async createPlan(
+    data: CreatePlanDto & { isGlobal?: boolean },
+    userId: string,
+    isAdmin = false,
+    stamp?: WriteStamp,
+  ) {
     if (data.isGlobal && !isAdmin) {
       throw new ForbiddenError("Only admins can create global plans");
     }
@@ -56,18 +62,25 @@ export class PlanService {
     await this.assertExercisesExistAndPublic(data.exerciseIds, isPublic);
     await this.assertNameAvailable(creatorUserId, data.name);
 
+    const input = {
+      name: data.name,
+      shortName: data.shortName,
+      creatorUserId,
+      isPublic,
+      exerciseIds: data.exerciseIds,
+    };
     return this.runCreateWithUniqueGuard(() =>
-      this.repository.create({
-        name: data.name,
-        shortName: data.shortName,
-        creatorUserId,
-        isPublic,
-        exerciseIds: data.exerciseIds,
-      }),
+      stamp ? this.repository.create(input, stamp) : this.repository.create(input),
     );
   }
 
-  async updatePlan(id: string, data: UpdatePlanDto & { isGlobal?: boolean }, userId: string, isAdmin = false) {
+  async updatePlan(
+    id: string,
+    data: UpdatePlanDto & { isGlobal?: boolean },
+    userId: string,
+    isAdmin = false,
+    stamp?: Pick<WriteStamp, "updatedAt">,
+  ) {
     const plan = await this.repository.findById(id);
 
     if (!plan) {
@@ -108,7 +121,9 @@ export class PlanService {
     }
 
     return this.runCreateWithUniqueGuard(() =>
-      this.repository.update(id, updateData, userId),
+      stamp
+        ? this.repository.update(id, updateData, userId, stamp)
+        : this.repository.update(id, updateData, userId),
     );
   }
 
@@ -145,21 +160,28 @@ export class PlanService {
       : [{ version: 1, ...toSnapshot(plan), createdAt: plan.updatedAt }];
   }
 
-  async duplicatePlan(id: string, userId: string) {
+  async duplicatePlan(id: string, userId: string, nameOverride?: string, stamp?: WriteStamp) {
     const source = await this.getPlanById(id, userId);
 
-    const baseName = source.name;
-    const name = await this.findFreeCopyName(userId, baseName);
+    // nameOverride: sync passes the copy name computed on the device.
+    let name: string;
+    if (nameOverride === undefined) {
+      name = await this.findFreeCopyName(userId, source.name);
+    } else {
+      await this.assertNameAvailable(userId, nameOverride);
+      name = nameOverride;
+    }
 
+    const input = {
+      name,
+      creatorUserId: userId,
+      isPublic: false,
+      exerciseIds: source.items
+        .sort((a, b) => a.orderInPlan - b.orderInPlan)
+        .map((i) => i.exerciseId),
+    };
     return this.runCreateWithUniqueGuard(() =>
-      this.repository.create({
-        name,
-        creatorUserId: userId,
-        isPublic: false,
-        exerciseIds: source.items
-          .sort((a, b) => a.orderInPlan - b.orderInPlan)
-          .map((i) => i.exerciseId),
-      }),
+      stamp ? this.repository.create(input, stamp) : this.repository.create(input),
     );
   }
 

@@ -9,6 +9,7 @@ import type {
   GetStatsProgressionQuery,
 } from "./workout.schema.js";
 import * as workoutRepo from "./workout.repository.js";
+import type { WriteStamp } from "./workout.repository.js";
 import { Prisma } from "@prisma/client";
 import { PlanService } from "../plan/plan.service.js";
 import {
@@ -95,7 +96,8 @@ export const getUserWorkouts = async (
 export const updateWorkout = async (
   id: string,
   userId: string,
-  data: UpdateWorkoutDto
+  data: UpdateWorkoutDto,
+  stamp?: Pick<WriteStamp, "updatedAt">,
 ) => {
   const existingWorkout = await getWorkoutById(id, userId);
   const previousStatus = existingWorkout.status;
@@ -112,6 +114,7 @@ export const updateWorkout = async (
     ...(data.location !== undefined && { location: data.location }),
     ...(data.workoutNotes !== undefined && { workoutNotes: data.workoutNotes }),
     ...(data.durationSeconds !== undefined && { durationSeconds: data.durationSeconds }),
+    ...(stamp?.updatedAt !== undefined && { updatedAt: stamp.updatedAt }),
   };
 
   const updatedWorkout = await workoutRepo.updateWorkout(id, updateData);
@@ -156,7 +159,8 @@ export const deleteWorkout = async (id: string, userId: string) => {
 export const addExerciseToWorkout = async (
   workoutId: string,
   userId: string,
-  data: AddExerciseToWorkoutDto
+  data: AddExerciseToWorkoutDto,
+  stamp?: WriteStamp,
 ) => {
   const workout = await getWorkoutById(workoutId, userId);
 
@@ -168,14 +172,18 @@ export const addExerciseToWorkout = async (
 
   let item;
   try {
-    item = await workoutRepo.addExerciseToWorkoutWithPendingNote(
+    const args = [
       workoutId,
       userId,
       data.exerciseId,
       orderInWorkout,
       data.notes,
       data.clientId,
-    );
+    ] as const;
+    // The stamp argument is passed only when given, so PWA calls are unchanged.
+    item = stamp
+      ? await workoutRepo.addExerciseToWorkoutWithPendingNote(...args, stamp)
+      : await workoutRepo.addExerciseToWorkoutWithPendingNote(...args);
   } catch (error) {
     if (data.clientId && isUniqueConstraintViolation(error)) {
       const existing = await workoutRepo.findWorkoutItemByClientId(
@@ -197,7 +205,8 @@ export const addExerciseToWorkout = async (
 export const updateWorkoutItem = async (
   itemId: string,
   userId: string,
-  data: UpdateWorkoutItemDto
+  data: UpdateWorkoutItemDto,
+  stamp?: Pick<WriteStamp, "updatedAt">,
 ) => {
   const item = await workoutRepo.findWorkoutItemById(itemId);
   if (!item) {
@@ -213,6 +222,7 @@ export const updateWorkoutItem = async (
   if (data.orderInWorkout !== undefined)
     updateData.orderInWorkout = data.orderInWorkout;
   if (data.notes !== undefined) updateData.notes = data.notes ?? null;
+  if (stamp?.updatedAt !== undefined) updateData.updatedAt = stamp.updatedAt;
   const updatedItem = await workoutRepo.updateWorkoutItem(itemId, updateData);
 
   if (data.notes !== undefined) {
@@ -248,7 +258,8 @@ export const deleteWorkoutItem = async (itemId: string, userId: string) => {
 export const addSetToWorkoutItem = async (
   itemId: string,
   userId: string,
-  data: CreateWorkoutSetDto
+  data: CreateWorkoutSetDto,
+  stamp?: WriteStamp & { setNumber?: number },
 ) => {
   const item = await workoutRepo.findWorkoutItemById(itemId);
   if (!item) {
@@ -265,18 +276,16 @@ export const addSetToWorkoutItem = async (
     if (existing) return existing;
   }
 
-  const maxSetNumber = await workoutRepo.getMaxSetNumber(itemId);
-  const setNumber = maxSetNumber + 1;
+  // Device-assigned number (sync) wins; otherwise max + 1 as before.
+  const setNumber = stamp?.setNumber ?? (await workoutRepo.getMaxSetNumber(itemId)) + 1;
 
   let createdSet;
   try {
-    createdSet = await workoutRepo.addSetToWorkoutItem(
-      itemId,
-      data.weight,
-      data.repetitions,
-      setNumber,
-      data.clientId,
-    );
+    const { setNumber: _ignored, ...writeStamp } = stamp ?? {};
+    const args = [itemId, data.weight, data.repetitions, setNumber, data.clientId] as const;
+    createdSet = stamp
+      ? await workoutRepo.addSetToWorkoutItem(...args, writeStamp)
+      : await workoutRepo.addSetToWorkoutItem(...args);
   } catch (error) {
     if (data.clientId && isUniqueConstraintViolation(error)) {
       const existing = await workoutRepo.findWorkoutSetByClientId(itemId, data.clientId);
@@ -295,7 +304,8 @@ export const addSetToWorkoutItem = async (
 export const updateWorkoutSet = async (
   setId: string,
   userId: string,
-  data: UpdateWorkoutSetDto
+  data: UpdateWorkoutSetDto,
+  stamp?: Pick<WriteStamp, "updatedAt">,
 ) => {
   const set = await workoutRepo.updateWorkoutSet(setId, {});
   const item = await workoutRepo.findWorkoutItemById(set.itemId);
@@ -311,6 +321,7 @@ export const updateWorkoutSet = async (
   const updateData: any = {};
   if (data.weight !== undefined) updateData.weight = data.weight;
   if (data.repetitions !== undefined) updateData.repetitions = data.repetitions;
+  if (stamp?.updatedAt !== undefined) updateData.updatedAt = stamp.updatedAt;
   const updatedSet = await workoutRepo.updateWorkoutSet(setId, updateData);
   if (workout.status === "COMPLETED") {
     await rebuildExerciseStatsFromCompletedWorkouts(userId, item.exerciseId);
@@ -385,7 +396,7 @@ export const getExerciseProgression = async (
   };
 };
 
-const rebuildExerciseStatsFromCompletedWorkouts = async (
+export const rebuildExerciseStatsFromCompletedWorkouts = async (
   userId: string,
   exerciseId: string
 ) => {
@@ -424,7 +435,7 @@ const normalizeExerciseNote = (note: string | null | undefined): string | null =
   return normalized.length > 0 ? normalized : null;
 };
 
-const syncPendingNoteForExercise = async (
+export const syncPendingNoteForExercise = async (
   userId: string,
   exerciseId: string,
   note: string | null | undefined,
@@ -505,6 +516,7 @@ export const skipPlanExercise = async (
   workoutId: string,
   userId: string,
   exerciseId: string,
+  stamp?: Pick<WriteStamp, "updatedAt">,
 ) => {
   const workout = await workoutRepo.findWorkoutWithPlan(workoutId);
   if (!workout) {
@@ -532,7 +544,9 @@ export const skipPlanExercise = async (
   }
 
   const next = [...workout.skippedPlanExerciseIds, exerciseId];
-  const updated = await workoutRepo.setSkippedPlanExerciseIds(workoutId, next);
+  const updated = stamp?.updatedAt !== undefined
+    ? await workoutRepo.setSkippedPlanExerciseIds(workoutId, next, stamp.updatedAt)
+    : await workoutRepo.setSkippedPlanExerciseIds(workoutId, next);
   return {
     workoutId: updated.id,
     skippedPlanExerciseIds: updated.skippedPlanExerciseIds,

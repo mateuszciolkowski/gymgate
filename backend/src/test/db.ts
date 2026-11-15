@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import prisma from "../config/database.js";
 
 /**
@@ -70,3 +71,9 @@ export const lastChangeSeq = async (): Promise<bigint> => {
 };
 
 export { prisma };
+
+/** Bearer token for a test user, signed like auth.service does. */
+export const tokenFor = (user: { id: string; email: string; isAdmin: boolean }): string =>
+  jwt.sign({ userId: user.id, email: user.email, isAdmin: user.isAdmin }, process.env.JWT_SECRET ?? "", {
+    expiresIn: "1h",
+  });

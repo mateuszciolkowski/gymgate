@@ -1,10 +1,11 @@
-import prisma from "../../config/database.js";
+import { db } from "../../config/txContext.js";
 import type {
   CreateExerciseDto,
   UpdateExerciseDto,
   FilterExercisesDto,
 } from "./exercise.schema.js";
 import type { MuscleGroup } from "@prisma/client";
+import type { WriteStamp } from "../workout/workout.repository.js";
 
 export class ExerciseRepository {
   async findAll(filters?: FilterExercisesDto & { userId?: string }) {
@@ -31,7 +32,7 @@ export class ExerciseRepository {
         ? { AND: [{ OR: orConditions }, ...andConditions] }
         : { OR: orConditions };
 
-    return await prisma.exercise.findMany({
+    return await db().exercise.findMany({
       where,
       include: {
         photos: true,
@@ -42,7 +43,7 @@ export class ExerciseRepository {
   }
 
   async findById(id: string) {
-    return await prisma.exercise.findUnique({
+    return await db().exercise.findUnique({
       where: { id },
       include: {
         photos: true,
@@ -51,13 +52,16 @@ export class ExerciseRepository {
     });
   }
 
-  async create(data: CreateExerciseDto & { userId?: string; isGlobal?: boolean }) {
+  async create(data: CreateExerciseDto & { userId?: string; isGlobal?: boolean }, stamp?: WriteStamp) {
     const { photos, description, userId, isGlobal, ...exerciseData } = data;
 
     const createInput: any = {
       ...exerciseData,
       description: description ?? null,
       creatorUserId: isGlobal ? null : (userId || "1"),
+      ...(stamp?.id !== undefined && { id: stamp.id }),
+      ...(stamp?.createdAt !== undefined && { createdAt: stamp.createdAt }),
+      ...(stamp?.updatedAt !== undefined && { updatedAt: stamp.updatedAt }),
     };
 
     if (photos && photos.length > 0) {
@@ -66,7 +70,7 @@ export class ExerciseRepository {
       };
     }
 
-    return await prisma.exercise.create({
+    return await db().exercise.create({
       data: createInput,
       include: {
         photos: true,
@@ -82,7 +86,7 @@ export class ExerciseRepository {
     });
   }
 
-  async update(id: string, data: UpdateExerciseDto) {
+  async update(id: string, data: UpdateExerciseDto, stamp?: WriteStamp) {
     const updateData: any = {};
 
     if (data.name !== undefined) {
@@ -97,7 +101,11 @@ export class ExerciseRepository {
       updateData.description = data.description ?? null;
     }
 
-    return await prisma.exercise.update({
+    if (stamp?.updatedAt !== undefined) {
+      updateData.updatedAt = stamp.updatedAt;
+    }
+
+    return await db().exercise.update({
       where: { id },
       data: updateData,
       include: {
@@ -115,13 +123,13 @@ export class ExerciseRepository {
   }
 
   async delete(id: string) {
-    return await prisma.exercise.delete({
+    return await db().exercise.delete({
       where: { id },
     });
   }
 
   async findByMuscleGroups(muscleGroups: MuscleGroup[]) {
-    return await prisma.exercise.findMany({
+    return await db().exercise.findMany({
       where: {
         muscleGroups: { hasSome: muscleGroups },
       },

@@ -1,10 +1,26 @@
-import prisma from "../../config/database.js";
+import { db, runInTx } from "../../config/txContext.js";
 import type { Prisma } from "@prisma/client";
 
 interface ProgressionQueryFilters {
   from?: Date;
   to?: Date;
 }
+
+/**
+ * Optional overrides used only by the sync module (client-supplied primary key and
+ * client timestamps). PWA callers never pass them, so their writes are unchanged.
+ */
+export interface WriteStamp {
+  id?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const stampData = (stamp?: WriteStamp) => ({
+  ...(stamp?.id !== undefined && { id: stamp.id }),
+  ...(stamp?.createdAt !== undefined && { createdAt: stamp.createdAt }),
+  ...(stamp?.updatedAt !== undefined && { updatedAt: stamp.updatedAt }),
+});
 
 export interface ExerciseProgressionPoint {
   workoutId: string;
@@ -15,7 +31,7 @@ export interface ExerciseProgressionPoint {
 }
 
 export const createWorkout = (data: Prisma.WorkoutCreateInput) => {
-  return prisma.workout.create({
+  return db().workout.create({
     data,
     include: {
       items: {
@@ -64,7 +80,7 @@ export const createWorkoutWithActiveGuard = async (
   userId: string,
   data: Prisma.WorkoutCreateInput,
 ): Promise<{ workout: WorkoutWithItems; reused: boolean }> => {
-  return prisma.$transaction(async (tx) => {
+  return runInTx(async (tx) => {
     // Lock wiersza użytkownika — serializuje równoległe tworzenie treningu.
     await tx.$queryRaw`SELECT id FROM "users" WHERE id = ${userId} FOR UPDATE`;
 
@@ -111,14 +127,14 @@ export const createWorkoutWithActiveGuard = async (
 type WorkoutWithItems = Prisma.WorkoutGetPayload<{ include: typeof workoutInclude }>;
 
 export const findWorkoutByClientId = (userId: string, clientId: string) => {
-  return prisma.workout.findUnique({
+  return db().workout.findUnique({
     where: { userId_clientId: { userId, clientId } },
     include: workoutInclude,
   });
 };
 
 export const findWorkoutById = (id: string) => {
-  return prisma.workout.findUnique({
+  return db().workout.findUnique({
     where: { id },
     include: {
       items: {
@@ -142,7 +158,7 @@ export const findWorkoutsByUser = (
   userId: string,
   filters?: { status?: "DRAFT" | "COMPLETED"; limit?: number; offset?: number }
 ) => {
-  return prisma.workout.findMany({
+  return db().workout.findMany({
     where: {
       userId,
       ...(filters?.status && { status: filters.status }),
@@ -155,7 +171,7 @@ export const findWorkoutsByUser = (
 };
 
 export const updateWorkout = (id: string, data: Prisma.WorkoutUpdateInput) => {
-  return prisma.workout.update({
+  return db().workout.update({
     where: { id },
     data,
     include: {
@@ -171,7 +187,7 @@ export const updateWorkout = (id: string, data: Prisma.WorkoutUpdateInput) => {
 };
 
 export const deleteWorkout = (id: string) => {
-  return prisma.$transaction(async (tx) => {
+  return runInTx(async (tx) => {
     await tx.workoutSet.deleteMany({
       where: {
         item: {
@@ -196,7 +212,7 @@ export const addExerciseToWorkout = (
   orderInWorkout: number,
   notes?: string
 ) => {
-  return prisma.workoutItem.create({
+  return db().workoutItem.create({
     data: {
       workoutId,
       exerciseId,
@@ -225,8 +241,9 @@ export const addExerciseToWorkoutWithPendingNote = (
   orderInWorkout: number,
   notes?: string,
   clientId?: string,
+  stamp?: WriteStamp,
 ) => {
-  return prisma.$transaction(async (tx) => {
+  return runInTx(async (tx) => {
     if (clientId) {
       const existingByClientId = await tx.workoutItem.findUnique({
         where: { workoutId_clientId: { workoutId, clientId } },
@@ -264,6 +281,7 @@ export const addExerciseToWorkoutWithPendingNote = (
         notes: notes ?? null,
         previousNote: pendingNote?.note ?? null,
         clientId: clientId ?? null,
+        ...stampData(stamp),
       },
       include: {
         exercise: {
@@ -291,7 +309,7 @@ export const addExerciseToWorkoutWithPendingNote = (
 };
 
 export const findWorkoutItemByClientId = (workoutId: string, clientId: string) => {
-  return prisma.workoutItem.findUnique({
+  return db().workoutItem.findUnique({
     where: { workoutId_clientId: { workoutId, clientId } },
     include: {
       exercise: true,
@@ -303,7 +321,7 @@ export const findWorkoutItemByClientId = (workoutId: string, clientId: string) =
 };
 
 export const findWorkoutItemById = (id: string) => {
-  return prisma.workoutItem.findUnique({
+  return db().workoutItem.findUnique({
     where: { id },
     include: {
       exercise: true,
@@ -318,7 +336,7 @@ export const updateWorkoutItem = (
   id: string,
   data: Prisma.WorkoutItemUpdateInput
 ) => {
-  return prisma.workoutItem.update({
+  return db().workoutItem.update({
     where: { id },
     data,
     include: {
@@ -329,7 +347,7 @@ export const updateWorkoutItem = (
 };
 
 export const deleteWorkoutItem = (id: string) => {
-  return prisma.workoutItem.delete({
+  return db().workoutItem.delete({
     where: { id },
   });
 };
@@ -337,7 +355,7 @@ export const deleteWorkoutItem = (id: string) => {
 export const getMaxOrderInWorkout = async (
   workoutId: string
 ): Promise<number> => {
-  const result = await prisma.workoutItem.aggregate({
+  const result = await db().workoutItem.aggregate({
     where: { workoutId },
     _max: { orderInWorkout: true },
   });
@@ -353,26 +371,28 @@ export const addSetToWorkoutItem = (
   repetitions: number,
   setNumber: number,
   clientId?: string,
+  stamp?: WriteStamp,
 ) => {
-  return prisma.workoutSet.create({
+  return db().workoutSet.create({
     data: {
       itemId,
       weight,
       repetitions,
       setNumber,
       clientId: clientId ?? null,
+      ...stampData(stamp),
     },
   });
 };
 
 export const findWorkoutSetByClientId = (itemId: string, clientId: string) => {
-  return prisma.workoutSet.findUnique({
+  return db().workoutSet.findUnique({
     where: { itemId_clientId: { itemId, clientId } },
   });
 };
 
 export const findWorkoutSetById = (id: string) => {
-  return prisma.workoutSet.findUnique({
+  return db().workoutSet.findUnique({
     where: { id },
   });
 };
@@ -381,20 +401,20 @@ export const updateWorkoutSet = (
   id: string,
   data: Prisma.WorkoutSetUpdateInput
 ) => {
-  return prisma.workoutSet.update({
+  return db().workoutSet.update({
     where: { id },
     data,
   });
 };
 
 export const deleteWorkoutSet = (id: string) => {
-  return prisma.workoutSet.delete({
+  return db().workoutSet.delete({
     where: { id },
   });
 };
 
 export const getMaxSetNumber = async (itemId: string): Promise<number> => {
-  const result = await prisma.workoutSet.aggregate({
+  const result = await db().workoutSet.aggregate({
     where: { itemId },
     _max: { setNumber: true },
   });
@@ -402,7 +422,7 @@ export const getMaxSetNumber = async (itemId: string): Promise<number> => {
 };
 
 export const getExerciseStats = (userId: string, exerciseId: string) => {
-  return prisma.exerciseUserStats.findFirst({
+  return db().exerciseUserStats.findFirst({
     where: {
       userId,
       exerciseId,
@@ -421,7 +441,7 @@ export const getExerciseStats = (userId: string, exerciseId: string) => {
 };
 
 export const getAllUserStats = (userId: string) => {
-  return prisma.exerciseUserStats.findMany({
+  return db().exerciseUserStats.findMany({
     where: {
       userId,
       exercise: {
@@ -451,21 +471,21 @@ export const getStatsOverview = async (userId: string) => {
 
   const [workoutsLastMonth, workoutsLastYear, totalSets, totalVolumeRows] =
     await Promise.all([
-      prisma.workout.count({
+      db().workout.count({
         where: {
           userId,
           status: "COMPLETED",
           workoutDate: { gte: monthAgo },
         },
       }),
-      prisma.workout.count({
+      db().workout.count({
         where: {
           userId,
           status: "COMPLETED",
           workoutDate: { gte: yearAgo },
         },
       }),
-      prisma.workoutSet.count({
+      db().workoutSet.count({
         where: {
           item: {
             workout: {
@@ -475,7 +495,7 @@ export const getStatsOverview = async (userId: string) => {
           },
         },
       }),
-      prisma.$queryRaw<Array<{ totalVolume: string | number | null }>>`
+      db().$queryRaw<Array<{ totalVolume: string | number | null }>>`
         SELECT COALESCE(SUM(CAST(ws."weight" AS numeric) * ws."repetitions"), 0) AS "totalVolume"
         FROM "workout_sets" ws
         INNER JOIN "workout_items" wi ON wi."id" = ws."itemId"
@@ -501,7 +521,7 @@ export const getExerciseProgression = async (
   exerciseId: string,
   filters?: ProgressionQueryFilters,
 ): Promise<ExerciseProgressionPoint[]> => {
-  const sets = await prisma.workoutSet.findMany({
+  const sets = await db().workoutSet.findMany({
     where: {
       item: {
         exerciseId,
@@ -586,7 +606,7 @@ export const getExerciseProgression = async (
 };
 
 export const getLastWorkoutNote = async (userId: string, exerciseId: string): Promise<string | null> => {
-  const lastItem = await prisma.workoutItem.findFirst({
+  const lastItem = await db().workoutItem.findFirst({
     where: {
       exerciseId,
       workout: {
@@ -609,7 +629,7 @@ export const setPendingExerciseNote = (
   exerciseId: string,
   note: string,
 ) => {
-  return prisma.exercisePendingNote.upsert({
+  return db().exercisePendingNote.upsert({
     where: {
       userId_exerciseId: {
         userId,
@@ -628,7 +648,7 @@ export const setPendingExerciseNote = (
 };
 
 export const clearPendingExerciseNote = (userId: string, exerciseId: string) => {
-  return prisma.exercisePendingNote.deleteMany({
+  return db().exercisePendingNote.deleteMany({
     where: {
       userId,
       exerciseId,
@@ -650,7 +670,7 @@ export const upsertExerciseStats = (
     lastNote?: string | null;
   }
 ) => {
-  return prisma.exerciseUserStats.upsert({
+  return db().exerciseUserStats.upsert({
     where: {
       userId_exerciseId: {
         userId,
@@ -668,7 +688,7 @@ export const upsertExerciseStats = (
 };
 
 export const deleteExerciseStats = (userId: string, exerciseId: string) => {
-  return prisma.exerciseUserStats.deleteMany({
+  return db().exerciseUserStats.deleteMany({
     where: {
       userId,
       exerciseId,
@@ -677,14 +697,14 @@ export const deleteExerciseStats = (userId: string, exerciseId: string) => {
 };
 
 export const setActiveWorkout = (userId: string, workoutId: string) => {
-  return prisma.user.update({
+  return db().user.update({
     where: { id: userId },
     data: { activeWorkoutId: workoutId },
   });
 };
 
 export const getActiveWorkout = (userId: string) => {
-  return prisma.user.findUnique({
+  return db().user.findUnique({
     where: { id: userId },
     select: { activeWorkoutId: true },
   });
@@ -693,14 +713,14 @@ export const getActiveWorkout = (userId: string) => {
 // Lekkie sprawdzenie statusu treningu — bez ciągnięcia items/sets/photos.
 // Używane na często wołanym endpoincie /workouts/active.
 export const findWorkoutStatus = (id: string) => {
-  return prisma.workout.findUnique({
+  return db().workout.findUnique({
     where: { id },
     select: { status: true },
   });
 };
 
 export const clearActiveWorkout = (userId: string) => {
-  return prisma.user.update({
+  return db().user.update({
     where: { id: userId },
     data: { activeWorkoutId: null },
   });
@@ -710,14 +730,14 @@ export const clearActiveWorkout = (userId: string) => {
 // (nieaktualny) id. Zapobiega wyścigowi: równoległy createWorkout mógł właśnie
 // ustawić nowy aktywny trening, którego nie wolno nam wyzerować.
 export const clearActiveWorkoutIfMatches = (userId: string, workoutId: string) => {
-  return prisma.user.updateMany({
+  return db().user.updateMany({
     where: { id: userId, activeWorkoutId: workoutId },
     data: { activeWorkoutId: null },
   });
 };
 
 export const findWorkoutWithPlan = (id: string) => {
-  return prisma.workout.findUnique({
+  return db().workout.findUnique({
     where: { id },
     select: {
       id: true,
@@ -745,10 +765,11 @@ export const findWorkoutWithPlan = (id: string) => {
 export const setSkippedPlanExerciseIds = (
   workoutId: string,
   ids: string[],
+  updatedAt?: Date,
 ) => {
-  return prisma.workout.update({
+  return db().workout.update({
     where: { id: workoutId },
-    data: { skippedPlanExerciseIds: ids },
+    data: { skippedPlanExerciseIds: ids, ...(updatedAt !== undefined && { updatedAt }) },
     select: { id: true, skippedPlanExerciseIds: true },
   });
 };

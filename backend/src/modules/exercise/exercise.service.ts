@@ -5,6 +5,7 @@ import type {
   UpdateExerciseDto,
   FilterExercisesDto,
 } from "./exercise.schema.js";
+import type { WriteStamp } from "../workout/workout.repository.js";
 
 export class ExerciseService {
   private repository: ExerciseRepository;
@@ -27,18 +28,27 @@ export class ExerciseService {
     return exercise;
   }
 
-  async createExercise(data: CreateExerciseDto & { userId?: string; isGlobal?: boolean }) {
-    return this.repository.create(data);
+  async createExercise(
+    data: CreateExerciseDto & { userId?: string; isGlobal?: boolean },
+    stamp?: WriteStamp,
+  ) {
+    return stamp ? this.repository.create(data, stamp) : this.repository.create(data);
   }
 
-  async updateExercise(id: string, data: UpdateExerciseDto, userId: string, isAdmin = false) {
+  async updateExercise(
+    id: string,
+    data: UpdateExerciseDto,
+    userId: string,
+    isAdmin = false,
+    stamp?: Pick<WriteStamp, "updatedAt">,
+  ) {
     const exercise = await this.getExerciseById(id);
 
     if (!isAdmin && exercise.creatorUserId !== userId) {
       throw new ForbiddenError("Unauthorized: You can only edit your own exercises");
     }
 
-    return this.repository.update(id, data);
+    return stamp ? this.repository.update(id, data, stamp) : this.repository.update(id, data);
   }
 
   async deleteExercise(id: string, userId: string, isAdmin = false) {
