@@ -1,0 +1,9 @@
+node_modules
+ios
+android
+.expo
+package-lock.json
+docs
+tools/pwa-smoke
+tools/pwa-wzorzec
+src/theme/themes.generated.ts

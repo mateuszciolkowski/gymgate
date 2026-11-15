@@ -1,0 +1,10 @@
+# Smoke test: the app launches and lands on the Treningi tab.
+# Dev build: Metro must run (npx expo start --dev-client); the flow opens it through the dev-client deep link.
+# Run: maestro test .maestro/boot.yaml
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
+- assertVisible:
+    text: "Treningi"
+    optional: false

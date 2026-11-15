@@ -1,0 +1,25 @@
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native (continuous native generation: npx expo prebuild)
+/ios
+/android
+.kotlin/
+
+# env
+.env
+.env*.local
+
+*.tsbuildinfo
+.DS_Store
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+npm-debug.*
+.metro-health-check*
