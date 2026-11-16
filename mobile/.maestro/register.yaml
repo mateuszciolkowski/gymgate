@@ -1,0 +1,80 @@
+# Registration: validations, server duplicate error, success with auto-login (empty account), logout.
+# maestro test -e EMAIL=maestro-<unique>@example.com .maestro/register.yaml   (throwaway e-mail, never test@gymgate.com)
+appId: com.gymgate.app
+---
+- runFlow: lib/signed-out.yaml
+- tapOn: "Zarejestruj się"
+- assertVisible: "Stwórz nowe konto"
+- assertVisible: "Jan"
+- assertVisible: "Min. 6 znaków"
+# All fields invalid
+- tapOn:
+    id: "register-firstName"
+- inputText: "J"
+- tapOn:
+    id: "register-lastName"
+- inputText: "K"
+- tapOn:
+    id: "register-email"
+- inputText: "zly"
+- tapOn:
+    id: "register-password"
+- inputText: "123"
+- tapOn:
+    id: "register-confirmPassword"
+- inputText: "12"
+- pressKey: Enter
+- assertVisible: "Imię musi mieć minimum 2 znaki"
+- assertVisible: "Nazwisko musi mieć minimum 2 znaki"
+- assertVisible: "Nieprawidłowy email"
+- assertVisible: "Hasło musi mieć minimum 6 znaków"
+# Valid names, mismatching passwords
+- tapOn:
+    id: "register-firstName"
+- eraseText: 5
+- inputText: "Maestro"
+- tapOn:
+    id: "register-lastName"
+- eraseText: 5
+- inputText: "Tester"
+- tapOn:
+    id: "register-email"
+- eraseText: 10
+- inputText: "test@gymgate.com"
+- tapOn:
+    id: "register-password"
+- eraseText: 10
+- inputText: "Test1234!"
+- tapOn:
+    id: "register-confirmPassword"
+- eraseText: 10
+- inputText: "Inne1234!"
+- pressKey: Enter
+- assertVisible: "Hasła nie są identyczne"
+# Existing e-mail: server error
+- tapOn:
+    id: "register-confirmPassword"
+- eraseText: 15
+- inputText: "Test1234!"
+- pressKey: Enter
+- assertVisible: "Użytkownik z tym emailem już istnieje"
+# Fresh e-mail: account created, auto-login, empty account
+- tapOn:
+    id: "register-email"
+- eraseText: 30
+- inputText: ${EMAIL}
+- tapOn:
+    id: "register-confirmPassword"
+- pressKey: Enter
+- extendedWaitUntil:
+    visible: "Brak ukończonych treningów"
+    timeout: 30000
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-settings"
+- assertVisible: "Maestro Tester"
+- assertVisible: "MT"
+- tapOn:
+    id: "settings-logout"
+- assertVisible: "Zaloguj się do swojego konta"

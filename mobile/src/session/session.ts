@@ -158,9 +158,12 @@ export function createSession(opts: SessionOptions) {
     async restore(): Promise<SessionState> {
       const userId = await store.get(KEYS.userId);
       if (!userId) return state;
+      const expired = (await store.get(KEYS.reauth)) !== null;
+      // No tokens and no "expired" mark = the user logged out choosing "keep my data": stay signed out, show nothing.
+      if (!expired && !(await store.get(KEYS.refresh))) return state;
       db = opts.openDb(userId);
       accessToken = await store.get(KEYS.access);
-      const needsLogin = !(await store.get(KEYS.refresh)) || (await store.get(KEYS.reauth)) !== null;
+      const needsLogin = expired || !(await store.get(KEYS.refresh));
       set({ status: needsLogin ? "reauthRequired" : "active", user: getProfile(db) as SessionUser | null });
       return state;
     },

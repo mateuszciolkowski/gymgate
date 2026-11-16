@@ -1,0 +1,10 @@
+# Sub-flow: logs in with -e EMAIL / -e PASSWORD from the login screen and waits for the list.
+appId: com.gymgate.app
+---
+- tapOn:
+    id: "login-email"
+- inputText: ${EMAIL}
+- tapOn:
+    id: "login-password"
+- inputText: ${PASSWORD}
+- pressKey: Enter

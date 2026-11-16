@@ -283,6 +283,14 @@ const defs = {
   statFlame: { size: 15, stroke: 2, round: true, nodes: [["path", { d: "M12 2s-5 6-5 11a5 5 0 0010 0C17 8 12 2 12 2z" }]] },
   statBars: { size: 15, stroke: 2, round: true, nodes: [rect(3, 13, 4, 7, 1), rect(10, 8, 4, 12, 1), rect(17, 4, 4, 16, 1)] },
   statLines: { size: 15, stroke: 2, round: true, nodes: [rect(3, 5, 18, 2, 1), rect(3, 11, 18, 2, 1), rect(3, 17, 11, 2, 1)] },
+  /** Settings rows (MenuScreen): theme target and cache refresh. */
+  themeTarget: { size: 18, stroke: 1.8, round: true, nodes: [["circle", { cx: 12, cy: 12, r: 4 }], ["circle", { cx: 12, cy: 12, r: 9 }], ["circle", { cx: 12, cy: 12, r: 1 }]] },
+  refresh: {
+    size: 18,
+    stroke: 1.8,
+    round: true,
+    nodes: [["polyline", { points: "23 4 23 10 17 10" }], ["polyline", { points: "1 20 1 14 7 14" }], ["path", { d: "M3.51 9a9 9 0 0114.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0020.49 15" }]],
+  },
   /** Crossed-dumbbell glyph of the "new workout" button (filled). */
   workoutAction: {
     size: 32,

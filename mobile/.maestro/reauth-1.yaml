@@ -1,0 +1,48 @@
+# Expired session (A18 / N8), part 1. Before running: the seeded user is signed in; the test script revoked that user's
+# refresh tokens in the LOCAL database and restarted the backend with another JWT_SECRET (the access token is now refused).
+# The app must switch to "reauthRequired" (banner), keep working on local data and keep the new workout queued.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Reauth keep"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- assertVisible: "Czas trwania"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-trainings"
+- extendedWaitUntil:
+    visible: "Sesja wygasła.*"
+    timeout: 30000
+- assertVisible: "Reauth keep.*"
+- takeScreenshot: ${OUT}/87-sesja-wygasla
+# Survives an app restart: still reauthRequired with the local data and the queued workout.
+- killApp
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Sesja wygasła.*"
+- assertVisible: "Reauth keep.*"

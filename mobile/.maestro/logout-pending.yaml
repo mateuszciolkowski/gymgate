@@ -1,0 +1,48 @@
+# Logout with unsent changes, DISCARD path (run with the local backend STOPPED; login before it with the backend up).
+# Needs: signed in as the seeded user. Creates a workout offline, logout asks; "Anuluj" keeps the session,
+# "Porzuć zmiany" signs out and drops the data. Afterwards start the backend and run logout-pending-after.yaml.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Pending discard"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- assertVisible: "Czas trwania"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-settings"
+- extendedWaitUntil:
+    visible: ".*Oczekujące zmiany.*"
+    timeout: 20000
+- tapOn:
+    id: "settings-logout"
+- assertVisible: "Niewysłane zmiany"
+- assertVisible: ".*Zachowaj dane na urządzeniu.*"
+- takeScreenshot: ${OUT}/85-wylogowanie-niewyslane
+- tapOn: "Anuluj"
+- assertVisible: "Profil i opcje"
+- tapOn:
+    id: "settings-logout"
+- tapOn: "Porzuć zmiany"
+- assertVisible: "Zaloguj się do swojego konta"

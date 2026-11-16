@@ -1,0 +1,14 @@
+# Login without network (backend STOPPED): readable message instead of a raw fetch error; fields enabled again.
+appId: com.gymgate.app
+---
+- runFlow: lib/signed-out.yaml
+- tapOn:
+    id: "login-email"
+- inputText: "test@gymgate.com"
+- tapOn:
+    id: "login-password"
+- inputText: "Test1234!"
+- pressKey: Enter
+- assertVisible: "Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie."
+- assertVisible: "Zaloguj się"
+- takeScreenshot: ${OUT}/05-logowanie-offline

@@ -1,0 +1,37 @@
+# A19 + account deletion without network. Run with the local backend STOPPED, signed in as the seeded user:
+# restarting the app offline must keep the session; deleting the account must explain that it needs the internet.
+# (Never confirms with a correct password: the seeded account must survive.)
+appId: com.gymgate.app
+---
+- killApp
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- extendedWaitUntil:
+    visible: ".*pracujesz offline.*"
+    timeout: 60000
+- assertNotVisible: "Zaloguj się do swojego konta"
+- assertNotVisible: "Sesja wygasła.*"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-settings"
+- tapOn:
+    id: "settings-delete"
+- assertVisible: "Usuń konto"
+- tapOn:
+    id: "delete-password"
+- inputText: "cokolwiek"
+- tapOn:
+    id: "delete-confirm"
+- extendedWaitUntil:
+    visible: "Usunięcie konta wymaga połączenia z internetem.*"
+    timeout: 30000
+- takeScreenshot: ${OUT}/88-usuwanie-offline
+- tapOn:
+    id: "delete-cancel"
+- assertVisible: "Profil i opcje"
+- assertNotVisible: "Zaloguj się do swojego konta"

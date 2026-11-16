@@ -1,0 +1,74 @@
+# Settings screen, theme picker, theme persistence (restart and logout). Screenshots: maestro test -e OUT=dark settings-theme.yaml
+# Needs: signed in as the seeded user, theme dark. Ends on dark again. Run with -e OUT=<theme>.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-settings"
+- assertVisible: "Profil i opcje"
+- assertVisible: "Jan Kowalski"
+- assertVisible: "test@gymgate.com"
+- assertVisible: ".*Aktualny: Ciemny.*"
+- assertVisible: "GymGate v1.0.0.*"
+- takeScreenshot: ${OUT}/80-ustawienia
+- tapOn:
+    id: "settings-theme"
+- assertVisible: "Wybierz motyw kolorystyczny"
+- assertVisible: ".*Steel Blue.*"
+- takeScreenshot: ${OUT}/81-wybor-motywu
+- tapOn:
+    id: "theme-tab-light"
+- assertVisible: ".*Sand Light.*"
+- takeScreenshot: ${OUT}/82-wybor-motywu-jasne
+- tapOn:
+    id: "theme-option-sand"
+- assertVisible: ".*Aktualny: Piaskowy.*"
+- takeScreenshot: ${OUT}/83-ustawienia-piaskowy
+# Persistence 1: app restart.
+- killApp
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-settings"
+- assertVisible: ".*Aktualny: Piaskowy.*"
+# Persistence 2: logout (empty outbox signs out without a prompt) and login again.
+- tapOn:
+    id: "settings-logout"
+- assertVisible: "Zaloguj się do swojego konta"
+- takeScreenshot: ${OUT}/84-logowanie-piaskowy
+- tapOn:
+    id: "login-email"
+- inputText: "test@gymgate.com"
+- tapOn:
+    id: "login-password"
+- inputText: "Test1234!"
+- pressKey: Enter
+- extendedWaitUntil:
+    visible: "Historia sesji"
+    timeout: 30000
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-settings"
+- assertVisible: ".*Aktualny: Piaskowy.*"
+# Back to dark.
+- tapOn:
+    id: "settings-theme"
+- tapOn:
+    id: "theme-tab-dark"
+- tapOn:
+    id: "theme-option-dark"
+- assertVisible: ".*Aktualny: Ciemny.*"

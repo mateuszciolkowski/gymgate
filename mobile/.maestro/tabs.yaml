@@ -1,5 +1,5 @@
 # Navigation through all five tabs via the bottom bar (3 tabs) and the drawer (all 5).
-# Placeholders show their title on the tabs not built yet; Treningi shows the empty state.
+# Needs the seeded account (the list shows "Historia sesji"); Ustawienia is the real screen now.
 appId: com.gymgate.app
 ---
 - launchApp
@@ -7,7 +7,7 @@ appId: com.gymgate.app
 - tapOn:
     text: "Open"
     optional: true
-- assertVisible: "Brak ukończonych treningów"
+- assertVisible: "Historia sesji"
 - tapOn:
     id: "bar-tab-exercises"
 - assertVisible: "Ćwiczenia"
@@ -16,10 +16,13 @@ appId: com.gymgate.app
 - assertVisible: "Statystyki"
 - tapOn:
     id: "bar-tab-trainings"
-- assertVisible: "Brak ukończonych treningów"
+- assertVisible: "Historia sesji"
 - tapOn:
     id: "bar-menu"
 - assertVisible: "Wyloguj się"
+- assertVisible: "Jan Kowalski"
+- assertVisible: "test@gymgate.com"
+- assertVisible: "GymGate v1.0.0"
 - tapOn:
     id: "drawer-item-plans"
 - assertVisible: "Plany"
@@ -27,7 +30,7 @@ appId: com.gymgate.app
     id: "bar-menu"
 - tapOn:
     id: "drawer-item-settings"
-- assertVisible: "Ustawienia"
+- assertVisible: "Profil i opcje"
 - tapOn:
     id: "bar-menu"
 - tapOn:
@@ -42,4 +45,4 @@ appId: com.gymgate.app
     id: "bar-menu"
 - tapOn:
     id: "drawer-item-trainings"
-- assertVisible: "Brak ukończonych treningów"
+- assertVisible: "Historia sesji"

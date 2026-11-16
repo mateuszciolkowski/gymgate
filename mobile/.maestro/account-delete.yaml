@@ -1,0 +1,46 @@
+# Account deletion (backend up): -e EMAIL_B / -e PASSWORD_B of a THROWAWAY account (never the seeded one).
+# Empty password, wrong password (403 text), correct password -> signed out; the account no longer logs in.
+appId: com.gymgate.app
+---
+- runFlow: lib/signed-out.yaml
+- runFlow:
+    file: lib/login.yaml
+    env:
+      EMAIL: ${EMAIL_B}
+      PASSWORD: ${PASSWORD_B}
+- extendedWaitUntil:
+    visible: "Brak ukończonych treningów"
+    timeout: 30000
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-settings"
+- assertVisible: "Maestro Tester"
+- tapOn:
+    id: "settings-delete"
+- takeScreenshot: ${OUT}/89-usuwanie-konta
+- tapOn:
+    id: "delete-confirm"
+- assertVisible: "Wpisz hasło, aby potwierdzić."
+- tapOn:
+    id: "delete-password"
+- inputText: "ZleHaslo123"
+- tapOn:
+    id: "delete-confirm"
+- assertVisible: "Nieprawidłowe hasło"
+- takeScreenshot: ${OUT}/90-usuwanie-konta-zle-haslo
+- tapOn:
+    id: "delete-password"
+- eraseText: 20
+- inputText: ${PASSWORD_B}
+- tapOn:
+    id: "delete-confirm"
+- extendedWaitUntil:
+    visible: "Zaloguj się do swojego konta"
+    timeout: 30000
+- runFlow:
+    file: lib/login.yaml
+    env:
+      EMAIL: ${EMAIL_B}
+      PASSWORD: ${PASSWORD_B}
+- assertVisible: "Nieprawidłowy email lub hasło"

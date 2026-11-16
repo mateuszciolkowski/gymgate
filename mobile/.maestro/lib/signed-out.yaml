@@ -1,0 +1,20 @@
+# Sub-flow: ends on the login screen (logs out if signed in; discards unsent changes).
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- runFlow:
+    when:
+      notVisible: "Zaloguj się do swojego konta"
+    commands:
+      - tapOn:
+          id: "bar-menu"
+      - tapOn:
+          id: "drawer-logout"
+      - tapOn:
+          text: "Porzuć zmiany"
+          optional: true
+- assertVisible: "Zaloguj się do swojego konta"

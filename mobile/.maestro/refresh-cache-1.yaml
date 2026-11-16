@@ -1,0 +1,49 @@
+# "Odśwież pamięć podręczną" without network and with an unsent workout (B6): fails with the PWA message and loses nothing.
+# Run with the backend STOPPED, signed in as the seeded user; then start the backend and run refresh-cache-2.yaml.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Cache pending"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- assertVisible: "Czas trwania"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-settings"
+- extendedWaitUntil:
+    visible: ".*Oczekujące zmiany.*"
+    timeout: 20000
+- tapOn:
+    id: "settings-refresh"
+- assertVisible: ".*Pobrać świeże dane z serwera.*Niewysłane zmiany.*"
+- takeScreenshot: ${OUT}/91-odswiez-cache-potwierdzenie
+- tapOn: "OK"
+- assertVisible: "Nie udało się zresetować lokalnego cache."
+- tapOn: "OK"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-trainings"
+- assertVisible: "Cache pending.*"
+- assertVisible: ".*Oczekujące zmiany.*"

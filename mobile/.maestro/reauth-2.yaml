@@ -1,0 +1,23 @@
+# Expired session, part 2 (backend back on the normal secret): "Zaloguj się" in the banner, same account,
+# the queued workout is sent (no pending changes left) and the app is clean again.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Sesja wygasła.*"
+- tapOn:
+    id: "reauth-login"
+- assertVisible: "Zaloguj się do swojego konta"
+- runFlow:
+    file: lib/login.yaml
+    env:
+      EMAIL: "test@gymgate.com"
+      PASSWORD: "Test1234!"
+- extendedWaitUntil:
+    notVisible: "Sesja wygasła.*"
+    timeout: 30000
+- assertVisible: "Reauth keep.*"
+- assertNotVisible: ".*Oczekujące zmiany.*"

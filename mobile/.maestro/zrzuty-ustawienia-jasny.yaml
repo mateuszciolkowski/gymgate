@@ -1,0 +1,31 @@
+# Settings screenshots in the light theme (docs/zrzuty/light). Needs the seeded user, theme dark; returns to dark.
+# maestro test -e OUT=light .maestro/zrzuty-ustawienia-jasny.yaml
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-settings"
+- tapOn:
+    id: "settings-theme"
+- tapOn:
+    id: "theme-tab-light"
+- tapOn:
+    id: "theme-option-light"
+- assertVisible: ".*Aktualny: Jasny.*"
+- takeScreenshot: ${OUT}/80-ustawienia
+- tapOn:
+    id: "settings-theme"
+- assertVisible: "Wybierz motyw kolorystyczny"
+- takeScreenshot: ${OUT}/81-wybor-motywu
+- tapOn:
+    id: "theme-tab-dark"
+- tapOn:
+    id: "theme-option-dark"
+- assertVisible: ".*Aktualny: Ciemny.*"

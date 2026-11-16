@@ -1,0 +1,21 @@
+# Login errors from the server: wrong password text, then the rate-limit text (10 attempts / 15 min per IP).
+# Restart the backend afterwards (the counter lives in its memory).
+appId: com.gymgate.app
+---
+- runFlow: lib/signed-out.yaml
+- tapOn:
+    id: "login-email"
+- inputText: "test@gymgate.com"
+- tapOn:
+    id: "login-password"
+- inputText: "ZleHaslo1"
+- pressKey: Enter
+- assertVisible: "Nieprawidłowy email lub hasło"
+- takeScreenshot: ${OUT}/04-logowanie-zle-haslo
+- repeat:
+    times: 10
+    commands:
+      - tapOn:
+          id: "login-password"
+      - pressKey: Enter
+- assertVisible: "Zbyt wiele prób. Spróbuj ponownie później."

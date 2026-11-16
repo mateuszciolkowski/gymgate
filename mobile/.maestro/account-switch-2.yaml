@@ -1,0 +1,49 @@
+# Account switch, part 2 (backend up): -e EMAIL_B=<second account> -e PASSWORD_B=<its password>.
+# B sees none of A's data (A22); A's unsent workout is still there after logging back in and gets synced.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Zaloguj się do swojego konta"
+- runFlow:
+    file: lib/login.yaml
+    env:
+      EMAIL: ${EMAIL_B}
+      PASSWORD: ${PASSWORD_B}
+- assertVisible: ".*niewysłane zmiany innego konta.*"
+- takeScreenshot: ${OUT}/86-zmiana-konta
+- tapOn: "Zaloguj"
+- extendedWaitUntil:
+    visible: "Brak ukończonych treningów"
+    timeout: 30000
+- assertNotVisible: "Pending keep.*"
+- assertNotVisible: "Trening w toku"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-exercises"
+- assertNotVisible: "Wyciskanie.*"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-logout"
+- assertVisible: "Zaloguj się do swojego konta"
+- runFlow:
+    file: lib/login.yaml
+    env:
+      EMAIL: "test@gymgate.com"
+      PASSWORD: "Test1234!"
+- extendedWaitUntil:
+    visible: "Pending keep.*"
+    timeout: 30000
+- assertNotVisible: ".*Oczekujące zmiany.*"
+# Clean up: delete the workout (synced).
+- tapOn:
+    id: "bar-continue-workout"
+- tapOn:
+    id: "workout-delete"
+- tapOn: "Usuń"
+- assertVisible: "Historia sesji"

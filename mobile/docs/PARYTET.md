@@ -4,51 +4,51 @@ Każda pozycja to funkcja lub stan PWA, który apka musi odtworzyć. Opis zachow
 
 Oznaczenia: `[ ]` do zrobienia, `[x]` zweryfikowane, `[~]` zrobione, niezweryfikowane na urządzeniu, `[o]` świadome odstępstwo (wpis w `DECYZJE.md`).
 
-Stan: 130 z 243 pozycji zweryfikowanych.
+Stan: 163 z 243 pozycji zweryfikowanych.
 
 ## A. Start, logowanie, rejestracja, sesja (7)
 
-- [ ] A1 Ekran ładowania sesji: spinner i „Ładowanie...”
-- [ ] A2 Logowanie: układ, pola, placeholdery, przycisk i jego stan „Logowanie...”
-- [ ] A3 Logowanie: blokada pól w trakcie
-- [ ] A4 Logowanie: błąd „Nieprawidłowy email lub hasło”
-- [ ] A5 Logowanie: błąd limitu prób „Zbyt wiele prób. Spróbuj ponownie później.”
-- [ ] A6 Logowanie: czytelny komunikat przy braku sieci (odstępstwo od surowego błędu przeglądarki)
-- [ ] A7 Logowanie: walidacja pól wymaganych, formatu e-mail i minimalnej długości hasła
-- [ ] A8 Przejście logowanie ↔ rejestracja
-- [ ] A9 Rejestracja: układ, sześć pól, placeholdery, stan „Tworzenie konta...”
-- [ ] A10 Rejestracja: „Hasła nie są identyczne”
-- [ ] A11 Rejestracja: „Hasło musi mieć minimum 6 znaków”
-- [ ] A12 Rejestracja: imię i nazwisko minimum 2 znaki (teksty serwera, walidacja lokalna)
-- [ ] A13 Rejestracja: „Nieprawidłowy email”
-- [ ] A14 Rejestracja: „Użytkownik z tym emailem już istnieje”
-- [ ] A15 Rejestracja: pusty telefon nie jest wysyłany
-- [ ] A16 Rejestracja: automatyczne zalogowanie po sukcesie
-- [ ] A17 Sesja przetrwa restart apki; apka otwiera się od razu z danych lokalnych
-- [ ] A18 Weryfikacja sesji w tle; wylogowanie tylko przy jawnym odrzuceniu (401/403)
-- [ ] A19 Brak sieci i błędy 5xx nie wylogowują
-- [ ] A20 Istniejące konto z PWA loguje się i widzi wszystkie swoje dane
-- [ ] A21 Wylogowanie z szuflady i z ustawień
-- [ ] A22 Dane lokalne rozdzielone per konto (naprawa B7)
+- [~] A1 Ekran ładowania sesji: spinner i „Ładowanie...” — stan zbyt krótki, by go zobaczyć
+- [x] A2 Logowanie: układ, pola, placeholdery, przycisk i jego stan „Logowanie...” — zrzut vs wzorzec (wg raportu agenta)
+- [~] A3 Logowanie: blokada pól w trakcie — stan zbyt krótki, by go zobaczyć
+- [x] A4 Logowanie: błąd „Nieprawidłowy email lub hasło” — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] A5 Logowanie: błąd limitu prób „Zbyt wiele prób. Spróbuj ponownie później.” — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] A6 Logowanie: czytelny komunikat przy braku sieci (odstępstwo od surowego błędu przeglądarki) — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] A7 Logowanie: walidacja pól wymaganych, formatu e-mail i minimalnej długości hasła — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] A8 Przejście logowanie ↔ rejestracja — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [~] A9 Rejestracja: układ, sześć pól, placeholdery, stan „Tworzenie konta...” — układ: zrzut vs wzorzec; „Tworzenie konta...” niewidziane
+- [x] A10 Rejestracja: „Hasła nie są identyczne” — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] A11 Rejestracja: „Hasło musi mieć minimum 6 znaków” — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] A12 Rejestracja: imię i nazwisko minimum 2 znaki (teksty serwera, walidacja lokalna) — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] A13 Rejestracja: „Nieprawidłowy email” — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] A14 Rejestracja: „Użytkownik z tym emailem już istnieje” — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [~] A15 Rejestracja: pusty telefon nie jest wysyłany — wiersz w bazie bez telefonu, NULL niepotwierdzony
+- [x] A16 Rejestracja: automatyczne zalogowanie po sukcesie — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] A17 Sesja przetrwa restart apki; apka otwiera się od razu z danych lokalnych — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] A18 Weryfikacja sesji w tle; wylogowanie tylko przy jawnym odrzuceniu (401/403) — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [~] A19 Brak sieci i błędy 5xx nie wylogowują — brak sieci w Maestro (zatrzymany backend); 5xx tylko test jednostkowy
+- [~] A20 Istniejące konto z PWA loguje się i widzi wszystkie swoje dane — konto z seeda; bez porównania z danymi utworzonymi w PWA
+- [x] A21 Wylogowanie z szuflady i z ustawień — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] A22 Dane lokalne rozdzielone per konto (naprawa B7) — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
 
 ## B. Nawigacja i szkielet (8.1, 8.2, 3.1)
 
-- [ ] B1 Ekran startowy: Treningi
-- [ ] B2 Dolny pasek: trzy zakładki z ikonami, stan aktywny (tło, kolor, grubość kreski)
-- [ ] B3 Dolny pasek: przycisk szuflady
-- [ ] B4 Dolny pasek: „Nowy trening” bez aktywnego treningu
-- [ ] B5 Dolny pasek: pastylka z licznikiem przy aktywnym treningu, prowadzi do treningu
+- [x] B1 Ekran startowy: Treningi — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [~] B2 Dolny pasek: trzy zakładki z ikonami, stan aktywny (tło, kolor, grubość kreski) — widoczne w Maestro i na zrzutach, bez dokładnego porównania
+- [x] B3 Dolny pasek: przycisk szuflady — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] B4 Dolny pasek: „Nowy trening” bez aktywnego treningu — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] B5 Dolny pasek: pastylka z licznikiem przy aktywnym treningu, prowadzi do treningu — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
 - [ ] B6 Dolny pasek: żadna zakładka nie jest aktywna na ekranie treningu
-- [ ] B7 Dolny pasek: pływający, rozmyte tło, margines bezpieczny od dołu
-- [ ] B8 Szuflada: otwarcie przyciskiem, zamknięcie przyciskiem i tłem
-- [ ] B9 Szuflada: gest otwarcia od krawędzi i zamknięcia przeciągnięciem, progi 35% / 30%
-- [ ] B10 Szuflada: profil z inicjałami, imieniem, nazwiskiem, e-mailem
-- [ ] B11 Szuflada: pięć pozycji, wyróżnienie aktywnej, przejście i zamknięcie
-- [ ] B12 Szuflada: „Wyloguj się”, „GymGate v1.0.0”
+- [~] B7 Dolny pasek: pływający, rozmyte tło, margines bezpieczny od dołu — widoczne w Maestro i na zrzutach, bez dokładnego porównania
+- [~] B8 Szuflada: otwarcie przyciskiem, zamknięcie przyciskiem i tłem — przycisk w Maestro; dotknięcie tła niesprawdzone
+- [~] B9 Szuflada: gest otwarcia od krawędzi i zamknięcia przeciągnięciem, progi 35% / 30% — progi w teście jednostkowym; gest niesprawdzony na symulatorze
+- [x] B10 Szuflada: profil z inicjałami, imieniem, nazwiskiem, e-mailem — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] B11 Szuflada: pięć pozycji, wyróżnienie aktywnej, przejście i zamknięcie — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] B12 Szuflada: „Wyloguj się”, „GymGate v1.0.0” — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
 - [ ] B13 Ekrany podrzędne na natywnym stosie z gestem cofania
-- [ ] B14 Powrót z „Nowe ćwiczenie” do treningu z automatycznym dodaniem ćwiczenia
-- [ ] B15 Powrót z „Nowe ćwiczenie” do formularza planu z zachowanym szkicem i dopisanym ćwiczeniem
-- [ ] B16 Powrót z „Nowe ćwiczenie” do listy ćwiczeń
+- [x] B14 Powrót z „Nowe ćwiczenie” do treningu z automatycznym dodaniem ćwiczenia — Maestro na symulatorze iOS (Etapy 7–8, wg raportów agentów)
+- [x] B15 Powrót z „Nowe ćwiczenie” do formularza planu z zachowanym szkicem i dopisanym ćwiczeniem — Maestro na symulatorze iOS (Etapy 7–8, wg raportów agentów)
+- [x] B16 Powrót z „Nowe ćwiczenie” do listy ćwiczeń — Maestro na symulatorze iOS (Etapy 7–8, wg raportów agentów)
 - [ ] B17 Zniknięcie otwartego treningu wraca do listy
 - [ ] B18 Animacja wejścia ekranu zastąpiona natywnym przejściem; ograniczenie ruchu respektowane
 
@@ -236,14 +236,14 @@ Stan: 130 z 243 pozycji zweryfikowanych.
 
 ## L. Ustawienia (8.3)
 
-- [ ] L1 Nagłówek „Ustawienia” / „Profil i opcje”, karta profilu
-- [ ] L2 Wybór motywu: arkusz, zakładki „Ciemne” / „Jasne”, podglądy, znacznik aktywnego
-- [ ] L3 12 motywów z poprawnymi paletami; zmiana natychmiastowa
-- [ ] L4 Motyw zapamiętany na urządzeniu, także po wylogowaniu
-- [ ] L5 „Odśwież pamięć podręczną”: potwierdzenie, komunikaty, bez utraty niewysłanych zmian (naprawa B6)
-- [ ] L6 „Wyloguj się” z ostrzeżeniem przy niewysłanych zmianach (odstępstwo)
-- [ ] L7 Stopka z wersją
-- [ ] L8 Usuwanie konta (D4): potwierdzenie hasłem, usunięcie danych, wylogowanie
+- [x] L1 Nagłówek „Ustawienia” / „Profil i opcje”, karta profilu — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] L2 Wybór motywu: arkusz, zakładki „Ciemne” / „Jasne”, podglądy, znacznik aktywnego — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [~] L3 12 motywów z poprawnymi paletami; zmiana natychmiastowa — 12 motywów w teście; na symulatorze przełączono tylko sand, light, dark
+- [x] L4 Motyw zapamiętany na urządzeniu, także po wylogowaniu — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] L5 „Odśwież pamięć podręczną”: potwierdzenie, komunikaty, bez utraty niewysłanych zmian (naprawa B6) — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] L6 „Wyloguj się” z ostrzeżeniem przy niewysłanych zmianach (odstępstwo) — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] L7 Stopka z wersją — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
+- [x] L8 Usuwanie konta (D4): potwierdzenie hasłem, usunięcie danych, wylogowanie — Maestro na symulatorze iOS (Etap 11, wg raportu agenta)
 
 ## M. Banery i stan synchronizacji (8.4)
 

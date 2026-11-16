@@ -6,7 +6,7 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 
 **Ostatnia aktualizacja:** 2026-11-15
 **Bieżący etap:** 3, 4 i 5 równolegle, sesja lokalna na MacBooku (sesja chmurowa wyłączona).
-**Następny krok:** Etap 11 (ustawienia, usuwanie konta), potem pozostałości Etapu 6 i Etap 12.
+**Następny krok:** Etap 12 (Live Activity), potem 13 (dopracowanie natywne, grupa O), 14, 15. Zaległe: niesprawdzone pozycje `[~]` w `PARYTET.md`, scenariusze N.
 
 ## Przegląd etapów
 
@@ -110,6 +110,7 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 - [x] Etap 7 (ćwiczenia): zakładka z wyszukiwaniem, filtrami i partiami, tworzenie, edycja, usuwanie, tworzenie z poziomu wyboru ćwiczenia w treningu. 257 testów Jest, typecheck i lint czyste (uruchomione przez orkiestratora); Maestro i zrzuty według agenta. Niesprawdzone: modal zdjęć i ich pamięć offline, przełącznik admina, wyróżnienie „Wykonywane”, ciemny przepływ CRUD po ostatnich zmianach formularza. Zrzut `40` pokazuje jeszcze starą wersję przycisku „Nowe ćwiczenie”. Do Etapu 13: klawiatura zasłania przycisk zapisu przy aktywnym polu opisu.
 - [x] Etap 8 (plany): zakładki, wyszukiwanie, sortowanie, formularz z przeciąganiem kolejności, duplikowanie, ulubione, usuwanie, historia planu, wszystko offline. 278 testów Jest, typecheck i lint czyste (uruchomione przez orkiestratora); Maestro i zrzuty według agenta. Niesprawdzone: ścieżki admina, zakładka „Społeczność” z danymi, odrzucenie zmiany planu przez serwer, stan bazy serwera po synchronizacji planu utworzonego offline. Do Etapu 13: dolny pasek zasłania „Zapisz plan” do przewinięcia.
 - [x] Etap 10 (statystyki): kafle, Rekordy / Aktualne, szczegóły ćwiczenia z wykresem i ostatnimi sesjami, liczone lokalnie. 288 testów Jest, typecheck i lint czyste (uruchomione przez orkiestratora); Maestro i zrzuty według agenta. Niesprawdzone: zgodność z serwerem (`test:parity` nieuruchomiony), aktualizacja offline po zakończeniu treningu, stan „—” w „Aktualne”.
+- [x] Etap 11 (ustawienia, konto) i weryfikacja grup A, B: ekran ustawień, 12 motywów, odświeżanie pamięci podręcznej, wylogowanie z ostrzeżeniem, usuwanie konta; zmiana konta, wymuszone ponowne logowanie i brak wylogowania offline sprawdzone w Maestro (według agenta). 301 testów Jest, typecheck i lint czyste (uruchomione przez orkiestratora). Niesprawdzone: 5xx na symulatorze, gesty szuflady, natywny gest cofania (B13), B6, B17, B18, palety 9 z 12 motywów na ekranie ustawień. `logout-pending` nie był powtórzony po poprawce `session.ts`.
 
 Zakres każdego etapu to grupy z `PARYTET.md` wskazane w `PLAN.md`, sekcja 10. Listy zadań rozpisujemy tutaj przy wejściu w dany etap.
 

@@ -133,6 +133,18 @@ describe("session", () => {
     expect(await session.login("a", "b")).toBe(db); // the same local database again
   });
 
+  it("after a 'keep my data' logout an app restart stays signed out and opens no database", async () => {
+    const { session, dbs, store } = setup((url) => (url.includes("/login") ? json(200, auth("u1")) : json(200, { success: true, data: null })));
+    const db = await session.login("a", "b");
+    createWorkout(testCtx(db, "u1"));
+    await session.logout({ pendingChanges: "keep" });
+    const opened: string[] = [];
+    const restarted = createSession({ baseUrl: "http://x.test", store, openDb: (id) => (opened.push(id), dbs.get(id)!), deleteDb: () => undefined, newId: () => "n" });
+    expect((await restarted.restore()).status).toBe("signedOut");
+    expect(opened).toEqual([]);
+    expect(restarted.getDb()).toBeNull();
+  });
+
   it("logout: pending changes need a choice; revokes the refresh token; empty outbox deletes the database", async () => {
     const { session, dbs, calls, store } = setup((url) => (url.endsWith("/login") ? json(200, auth("u1")) : json(200, { success: true, data: null })));
     const db = await session.login("a", "b");

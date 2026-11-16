@@ -1,0 +1,32 @@
+# After refresh-cache-1 with the backend back: refresh sends the queued workout first, then replaces local data.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Cache pending.*"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-settings"
+- tapOn:
+    id: "settings-refresh"
+- tapOn: "OK"
+- assertVisible: "Pomyślnie zsynchronizowano dane z serwerem."
+- takeScreenshot: ${OUT}/92-odswiez-cache-ok
+- tapOn: "OK"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-trainings"
+- assertVisible: "Cache pending.*"
+- assertVisible: "Historia sesji"
+# Clean up.
+- tapOn:
+    id: "bar-continue-workout"
+- tapOn:
+    id: "workout-delete"
+- tapOn: "Usuń"
+- assertVisible: "Historia sesji"

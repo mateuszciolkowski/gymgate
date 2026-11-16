@@ -140,6 +140,16 @@ Format: numer, data, decyzja, powód, skutek.
 
 **D-67 (2026-11-16) Wykres rysowany w `react-native-svg`** z geometrią PWA (viewBox 100×60); czcionka osi: Menlo na iOS, `monospace` na Androidzie.
 
+## Ustawienia i sesja (Etap 11)
+
+**D-68 (2026-11-16) „Usuń konto” pod wylogowaniem,** z dialogiem hasła (D4). Ostrzega o utracie niewysłanych zmian; bez sieci pokazuje komunikat.
+
+**D-69 (2026-11-16) „Odśwież pamięć podręczną” najpierw wysyła kolejkę** i podmienia dane tylko po sukcesie; potwierdzenie dopisuje „Niewysłane zmiany (n) zostaną najpierw wysłane”.
+
+**D-70 (2026-11-16) Arkusz motywów to natywny modal,** więc zakrywa dolny pasek (w PWA pasek zostaje widoczny).
+
+**D-71 (2026-11-16) Wylogowanie z opcją „Zachowaj dane” zostaje wylogowaniem po restarcie apki.** Wcześniej restart otwierał dane tego konta z banerem „Sesja wygasła”.
+
 ## Otwarte, do rozstrzygnięcia w trakcie
 
 - Biblioteka przeciągania w formularzu planu (Etap 8).

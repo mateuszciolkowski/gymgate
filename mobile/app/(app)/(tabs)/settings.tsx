@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from "@/ui/ScreenPlaceholder";
+import { SettingsScreen } from "@/features/settings";
 
 export default function Settings() {
-  return <ScreenPlaceholder title="Ustawienia" />;
+  return <SettingsScreen />;
 }

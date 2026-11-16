@@ -1,0 +1,13 @@
+# After logout-pending.yaml, backend running again: login shows no trace of the discarded workout.
+appId: com.gymgate.app
+---
+- runFlow: lib/signed-out.yaml
+- runFlow:
+    file: lib/login.yaml
+    env:
+      EMAIL: "test@gymgate.com"
+      PASSWORD: "Test1234!"
+- extendedWaitUntil:
+    visible: "Historia sesji"
+    timeout: 30000
+- assertNotVisible: "Pending discard.*"
