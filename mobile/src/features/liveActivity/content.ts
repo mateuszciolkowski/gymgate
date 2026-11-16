@@ -13,6 +13,8 @@ export interface ActivityProps {
   /** Saved sets of the current exercise. */
   sets: number;
   lastSet: string | null;
+  /** Next exercise suggested by the workout's plan, if any. */
+  next: string | null;
   accent: string;
   /** Already abandoned when sent (app relaunched after 2 h): the system shows no activity that is stale at start, so the layout is told explicitly. */
   abandoned: boolean;
@@ -31,7 +33,21 @@ function currentItem(workout: Workout) {
   return best?.item ?? null;
 }
 
-export function workoutToActivity(workout: Workout | null, clockOffsetMs: number, accent: string, now: number = Date.now()): ActivityProps | null {
+/** What the "+ set" button on the activity saves: the last set of the current exercise again. Null when there is nothing to repeat. */
+export function repeatLastSet(workout: Workout | null): { itemId: string; weight: string | number; repetitions: number } | null {
+  if (!workout || workout.status !== "DRAFT") return null;
+  const item = currentItem(workout);
+  const last = item?.sets.reduce<(typeof item.sets)[number] | null>((m, s) => (!m || s.setNumber >= m.setNumber ? s : m), null);
+  return item && last ? { itemId: item.id, weight: last.weight, repetitions: last.repetitions } : null;
+}
+
+export function workoutToActivity(
+  workout: Workout | null,
+  clockOffsetMs: number,
+  accent: string,
+  now: number = Date.now(),
+  next: string | null = null,
+): ActivityProps | null {
   if (!workout || workout.status !== "DRAFT") return null;
   const item = currentItem(workout);
   const last = item?.sets.reduce<(typeof item.sets)[number] | null>((m, s) => (!m || s.setNumber >= m.setNumber ? s : m), null) ?? null;
@@ -45,6 +61,7 @@ export function workoutToActivity(workout: Workout | null, clockOffsetMs: number
     exercise: item?.exercise.name ?? null,
     sets: item?.sets.length ?? 0,
     lastSet: last ? `${Number(last.weight)} kg × ${last.repetitions}` : null,
+    next,
     accent,
   };
 }

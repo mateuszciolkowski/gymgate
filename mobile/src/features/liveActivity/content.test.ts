@@ -1,6 +1,6 @@
 import type { Workout } from "@/domain/types";
 import { STALE_WORKOUT_MS } from "@/domain/workoutTimer";
-import { reconcile, staleDateOf, workoutToActivity, type ActivityApi, type ActivityProps, type Reconciler } from "./content";
+import { reconcile, repeatLastSet, staleDateOf, workoutToActivity, type ActivityApi, type ActivityProps, type Reconciler } from "./content";
 
 const at = (m: number) => new Date(Date.UTC(2026, 0, 1, 10, m)).toISOString();
 const set = (n: number, weight: string, reps: number, m: number) => ({ id: `s${n}`, itemId: "i", setNumber: n, weight, repetitions: reps, createdAt: at(m), updatedAt: at(m) });
@@ -11,7 +11,21 @@ const workout = (over: Partial<Workout> = {}): Workout => ({
   id: "w", userId: "u", workoutDate: at(0), status: "DRAFT", workoutName: "Push", createdAt: at(0), updatedAt: at(0), items: [], ...over,
 });
 
+describe("repeatLastSet", () => {
+  it("repeats the last set of the current exercise, or nothing without sets", () => {
+    expect(repeatLastSet(workout({ items: [item("a", "Przysiad", 0, 1)] }))).toBeNull();
+    const w = workout({ items: [item("a", "Przysiad", 0, 1, [set(1, "100", 5, 2), set(2, "105", 3, 3)])] });
+    expect(repeatLastSet(w)).toEqual({ itemId: "a", weight: "105", repetitions: 3 });
+    expect(repeatLastSet(workout({ status: "COMPLETED" }))).toBeNull();
+  });
+});
+
 describe("workoutToActivity", () => {
+  it("carries the next plan exercise", () => {
+    expect(workoutToActivity(workout(), 0, "#fff", Date.now(), "Dipy")!.next).toBe("Dipy");
+    expect(workoutToActivity(workout(), 0, "#fff")!.next).toBeNull();
+  });
+
   it("is null without a DRAFT workout (completed, deleted or none)", () => {
     expect(workoutToActivity(null, 0, "#fff")).toBeNull();
     expect(workoutToActivity(workout({ status: "COMPLETED" }), 0, "#fff")).toBeNull();
@@ -53,7 +67,7 @@ describe("workoutToActivity", () => {
 });
 
 describe("reconcile", () => {
-  const props = (over: Partial<ActivityProps> = {}): ActivityProps => ({ workoutId: "w", name: "Push", startedAt: 1, lastActivityAt: 1, abandoned: false, exercise: null, sets: 0, lastSet: null, accent: "#fff", ...over });
+  const props = (over: Partial<ActivityProps> = {}): ActivityProps => ({ workoutId: "w", name: "Push", startedAt: 1, lastActivityAt: 1, abandoned: false, exercise: null, sets: 0, lastSet: null, next: null, accent: "#fff", ...over });
   const fake = (exists = false) => {
     const calls: string[] = [];
     const api: ActivityApi = {

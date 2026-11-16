@@ -1,6 +1,6 @@
-import { HStack, Image, Spacer, Text, VStack } from "@expo/ui/swift-ui";
+import { Button, HStack, Image, Spacer, Text, VStack } from "@expo/ui/swift-ui";
 import { font, foregroundStyle, padding } from "@expo/ui/swift-ui/modifiers";
-import { createLiveActivity, type LiveActivityEnvironment } from "expo-widgets";
+import { addUserInteractionListener, createLiveActivity, type LiveActivityEnvironment } from "expo-widgets";
 import type { ActivityProps } from "./content";
 
 /**
@@ -23,6 +23,9 @@ const WorkoutActivity = (p: ActivityProps, env: LiveActivityEnvironment) => {
   const detail = p.exercise ?? "Dodaj pierwsze ćwiczenie";
   const sets = p.exercise ? `Serie: ${p.sets}${p.lastSet ? ` · ${p.lastSet}` : ""}` : "";
   const status = stale ? "Trening wstrzymany" : p.name;
+  const next = p.next ? `Następne: ${p.next}` : "";
+  // Saves the last set again (handled in the app: useLiveActivity). Hidden until there is a set to repeat.
+  const addSet = p.lastSet && !stale ? <Button label={`+ ${p.lastSet}`} target="add-set" /> : null;
   const icon = <Image systemName={stale ? "pause.circle.fill" : "dumbbell.fill"} color={stale ? "#9CA3AF" : p.accent} />;
   return {
     banner: (
@@ -31,9 +34,13 @@ const WorkoutActivity = (p: ActivityProps, env: LiveActivityEnvironment) => {
           <Text modifiers={[font({ size: 13, weight: "semibold" })]}>{status}</Text>
           <Text modifiers={[font({ size: 12 })]}>{detail}</Text>
           <Text modifiers={[font({ size: 12 })]}>{sets}</Text>
+          {next ? <Text modifiers={[font({ size: 12 }), foregroundStyle("#9CA3AF")]}>{next}</Text> : null}
         </VStack>
         <Spacer />
-        {timer(26)}
+        <VStack alignment="trailing" spacing={6}>
+          {timer(26)}
+          {addSet}
+        </VStack>
       </HStack>
     ),
     compactLeading: icon,
@@ -50,9 +57,14 @@ const WorkoutActivity = (p: ActivityProps, env: LiveActivityEnvironment) => {
       <VStack modifiers={[padding({ all: 8 })]}>
         <Text modifiers={[font({ size: 13 })]}>{detail}</Text>
         <Text modifiers={[font({ size: 13 })]}>{sets}</Text>
+        {next ? <Text modifiers={[font({ size: 12 }), foregroundStyle("#9CA3AF")]}>{next}</Text> : null}
+        {addSet}
       </VStack>
     ),
   };
 };
 
 export const workoutActivity = createLiveActivity("WorkoutActivity", WorkoutActivity);
+
+/** Taps on the activity's "+ set" button, delivered to the running app. */
+export const onAddSetPressed = (cb: () => void) => addUserInteractionListener((e) => e.target === "add-set" && cb());
