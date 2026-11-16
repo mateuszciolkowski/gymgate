@@ -14,8 +14,19 @@ interface BottomBarProps {
   workoutPill?: ReactNode;
 }
 
+/** Bottom padding that keeps scrollable content clear of the floating bar (8 top + 58 bar + safe area + 16 gap). */
+export function useBarClearance(): number {
+  return 82 + Math.max(16, useSafeAreaInsets().bottom);
+}
+
 /** Floating pill bar (PWA BottomNavigation): 3 tab buttons, menu button, spacer, "Nowy trening". */
-export function BottomBar({ activeTab, onTabPress, onAddWorkout, onOpenMenu, workoutPill }: BottomBarProps) {
+export function BottomBar({
+  activeTab,
+  onTabPress,
+  onAddWorkout,
+  onOpenMenu,
+  workoutPill,
+}: BottomBarProps) {
   const { theme, isDark } = useTheme();
   const c = theme.colors;
   const insets = useSafeAreaInsets();
@@ -27,12 +38,17 @@ export function BottomBar({ activeTab, onTabPress, onAddWorkout, onOpenMenu, wor
     >
       <View style={[styles.shadow, { boxShadow: toBoxShadow(theme.shadowElevated) }]}>
         <View style={[styles.bar, { borderColor: c.borderMed }]}>
-          <BlurView intensity={40} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+          <BlurView
+            intensity={40}
+            tint={isDark ? "dark" : "light"}
+            style={StyleSheet.absoluteFill}
+          />
           <View style={[StyleSheet.absoluteFill, { backgroundColor: c.navBg }]} />
           {BAR_TABS.map((tab) => {
             const active = activeTab === tab.id;
             return (
               <Pressable
+                hitSlop={{ left: 2, right: 2 }}
                 key={tab.id}
                 accessibilityRole="tab"
                 accessibilityLabel={tab.label}
@@ -41,25 +57,37 @@ export function BottomBar({ activeTab, onTabPress, onAddWorkout, onOpenMenu, wor
                 onPress={() => onTabPress(tab.id)}
                 style={({ pressed }) => [
                   styles.iconButton,
-                  { backgroundColor: active ? c.surface2 : "transparent", transform: [{ scale: pressed ? 0.95 : 1 }] },
+                  {
+                    backgroundColor: active ? c.surface2 : "transparent",
+                    transform: [{ scale: pressed ? 0.95 : 1 }],
+                  },
                 ]}
               >
-                <Icon name={tab.icon} size={20} strokeWidth={active ? 2.3 : 1.8} color={active ? c.a2 : c.textMuted} />
+                <Icon
+                  name={tab.icon}
+                  size={20}
+                  strokeWidth={active ? 2.3 : 1.8}
+                  color={active ? c.a2 : c.textMuted}
+                />
               </Pressable>
             );
           })}
           <Pressable
+            hitSlop={{ left: 2, right: 2 }}
             accessibilityRole="button"
             accessibilityLabel="Otwórz menu"
             testID="bar-menu"
             onPress={onOpenMenu}
-            style={({ pressed }) => [styles.iconButton, { transform: [{ scale: pressed ? 0.95 : 1 }] }]}
+            style={({ pressed }) => [
+              styles.iconButton,
+              { transform: [{ scale: pressed ? 0.95 : 1 }] },
+            ]}
           >
             <Icon name="menuLines" color={c.textMuted} />
           </Pressable>
           <View style={styles.spacer} />
           {workoutPill ?? (
-          <Pressable
+            <Pressable
               accessibilityRole="button"
               accessibilityLabel="Nowy trening"
               testID="bar-new-workout"
@@ -84,7 +112,16 @@ export function BottomBar({ activeTab, onTabPress, onAddWorkout, onOpenMenu, wor
 }
 
 const styles = StyleSheet.create({
-  outer: { position: "absolute", left: 0, right: 0, bottom: 0, paddingTop: 8, paddingHorizontal: 16, alignItems: "center", zIndex: 30 },
+  outer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    zIndex: 30,
+  },
   shadow: { width: "100%", maxWidth: 448, borderRadius: 999 },
   bar: {
     flexDirection: "row",
@@ -96,7 +133,13 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     overflow: "hidden",
   },
-  iconButton: { width: 40, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  iconButton: {
+    width: 40,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   spacer: { flex: 1 },
   newWorkout: {
     minHeight: 44,

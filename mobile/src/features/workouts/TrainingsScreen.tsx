@@ -3,15 +3,27 @@ import { useRouter } from "expo-router";
 import { memo, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { exercisesWord, fmtListDate, fmtListDuration, loggedSetsWord, setsWord } from "@/domain/formatters";
+import {
+  exercisesWord,
+  fmtListDate,
+  fmtListDuration,
+  loggedSetsWord,
+  setsWord,
+} from "@/domain/formatters";
 import type { Workout } from "@/domain/types";
 import { fonts, pwaBarlow, tabularNums, toBoxShadow, useTheme } from "@/theme";
-import { EmptyState, Icon, PulseDot } from "@/ui";
+import { EmptyState, Icon, PulseDot, useBarClearance } from "@/ui";
 import { useTrainings } from "./queries";
 
 const setsOf = (w: Workout) => w.items.reduce((sum, i) => sum + i.sets.length, 0);
 
-const WorkoutCard = memo(function WorkoutCard({ workout, onPress }: { workout: Workout; onPress: (id: string) => void }) {
+const WorkoutCard = memo(function WorkoutCard({
+  workout,
+  onPress,
+}: {
+  workout: Workout;
+  onPress: (id: string) => void;
+}) {
   const { theme } = useTheme();
   const c = theme.colors;
   const duration = fmtListDuration(workout.durationSeconds);
@@ -22,7 +34,12 @@ const WorkoutCard = memo(function WorkoutCard({ workout, onPress }: { workout: W
       onPress={() => onPress(workout.id)}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: c.surface, borderColor: c.border, boxShadow: toBoxShadow(theme.shadow), transform: [{ scale: pressed ? 0.99 : 1 }] },
+        {
+          backgroundColor: c.surface,
+          borderColor: c.border,
+          boxShadow: toBoxShadow(theme.shadow),
+          transform: [{ scale: pressed ? 0.99 : 1 }],
+        },
       ]}
     >
       <View style={styles.cardMain}>
@@ -30,10 +47,22 @@ const WorkoutCard = memo(function WorkoutCard({ workout, onPress }: { workout: W
           <Text numberOfLines={1} style={[styles.cardName, { color: c.text }]}>
             {workout.workoutName || "Trening"}
           </Text>
-          {duration ? <Text style={[styles.duration, { backgroundColor: c.surface2, color: c.textSub }, tabularNums]}>{duration}</Text> : null}
+          {duration ? (
+            <Text
+              style={[
+                styles.duration,
+                { backgroundColor: c.surface2, color: c.textSub },
+                tabularNums,
+              ]}
+            >
+              {duration}
+            </Text>
+          ) : null}
         </View>
         <View style={styles.metaRow}>
-          <Text style={[styles.meta, { color: c.textMuted }]}>{fmtListDate(workout.workoutDate)}</Text>
+          <Text style={[styles.meta, { color: c.textMuted }]}>
+            {fmtListDate(workout.workoutDate)}
+          </Text>
           {workout.gymName ? (
             <>
               <Text style={[styles.meta, { color: c.textMuted }]}>•</Text>
@@ -49,7 +78,9 @@ const WorkoutCard = memo(function WorkoutCard({ workout, onPress }: { workout: W
           <Text style={[tabularNums, styles.exCount, { color: c.text }]}>
             {workout.items.length} <Text style={[styles.exUnit, { color: c.textMuted }]}>ćw.</Text>
           </Text>
-          <Text style={[styles.setCount, { color: c.textSub }, tabularNums]}>{setsOf(workout)} {setsWord(setsOf(workout))}</Text>
+          <Text style={[styles.setCount, { color: c.textSub }, tabularNums]}>
+            {setsOf(workout)} {setsWord(setsOf(workout))}
+          </Text>
         </View>
         <View style={[styles.chevron, { backgroundColor: c.surface2 }]}>
           <Icon name="chevronRight" size={14} strokeWidth={2.5} color={c.textMuted} />
@@ -100,12 +131,14 @@ export function TrainingsScreen() {
   const { theme } = useTheme();
   const c = theme.colors;
   const insets = useSafeAreaInsets();
+  const clearance = useBarClearance();
   const router = useRouter();
   const { workouts, overview } = useTrainings();
   const [desc, setDesc] = useState(true);
 
   const { drafts, completed } = useMemo(() => {
-    const byDate = (a: Workout, b: Workout) => (new Date(b.workoutDate).getTime() - new Date(a.workoutDate).getTime()) * (desc ? 1 : -1);
+    const byDate = (a: Workout, b: Workout) =>
+      (new Date(b.workoutDate).getTime() - new Date(a.workoutDate).getTime()) * (desc ? 1 : -1);
     return {
       drafts: workouts.filter((w) => w.status === "DRAFT").sort(byDate),
       completed: workouts.filter((w) => w.status === "COMPLETED").sort(byDate),
@@ -122,7 +155,16 @@ export function TrainingsScreen() {
         </Text>
       </View>
 
-      <View style={[styles.activity, { backgroundColor: c.surface, borderColor: c.border, boxShadow: toBoxShadow(theme.shadow) }]}>
+      <View
+        style={[
+          styles.activity,
+          {
+            backgroundColor: c.surface,
+            borderColor: c.border,
+            boxShadow: toBoxShadow(theme.shadow),
+          },
+        ]}
+      >
         <View style={styles.metrics}>
           <View>
             <Text style={[styles.metricLabel, { color: c.textMuted }]}>Ten rok</Text>
@@ -164,11 +206,22 @@ export function TrainingsScreen() {
       <View style={styles.historyHeader}>
         <View style={styles.historyTitle}>
           <Text style={[styles.historyLabel, { color: c.textMuted }]}>Historia sesji</Text>
-          <Text style={[styles.count, { backgroundColor: c.surface2, color: c.textSub }, tabularNums]}>{completed.length}</Text>
+          <Text
+            style={[styles.count, { backgroundColor: c.surface2, color: c.textSub }, tabularNums]}
+          >
+            {completed.length}
+          </Text>
         </View>
         {completed.length > 1 ? (
-          <Pressable accessibilityRole="button" testID="sort-toggle" onPress={() => setDesc((v) => !v)} style={styles.sort}>
-            <Text style={[styles.sortLabel, { color: c.textSub }]}>{desc ? "Od najnowszych" : "Od najstarszych"}</Text>
+          <Pressable
+            accessibilityRole="button"
+            testID="sort-toggle"
+            onPress={() => setDesc((v) => !v)}
+            style={styles.sort}
+          >
+            <Text style={[styles.sortLabel, { color: c.textSub }]}>
+              {desc ? "Od najnowszych" : "Od najstarszych"}
+            </Text>
             <View style={{ transform: [{ rotate: desc ? "0deg" : "180deg" }] }}>
               <Icon name="chevronDown" size={11} strokeWidth={2.5} color={c.textSub} />
             </View>
@@ -181,7 +234,11 @@ export function TrainingsScreen() {
   return (
     <FlashList
       style={{ backgroundColor: c.bg }}
-      contentContainerStyle={{ paddingTop: insets.top + 24, paddingHorizontal: 20, paddingBottom: 112 }}
+      contentContainerStyle={{
+        paddingTop: insets.top + 24,
+        paddingHorizontal: 20,
+        paddingBottom: clearance,
+      }}
       data={completed}
       keyExtractor={(w) => w.id}
       renderItem={({ item }) => <WorkoutCard workout={item} onPress={open} />}
@@ -205,32 +262,115 @@ export function TrainingsScreen() {
 
 const styles = StyleSheet.create({
   header: { marginBottom: 16 },
-  overline: { fontFamily: fonts.dmSans[700], fontSize: 11, lineHeight: 16.5, letterSpacing: 1.32, textTransform: "uppercase", marginBottom: 2 },
+  overline: {
+    fontFamily: fonts.dmSans[700],
+    fontSize: 11,
+    lineHeight: 16.5,
+    letterSpacing: 1.32,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
   title: { fontFamily: pwaBarlow[800], fontSize: 30, lineHeight: 30, letterSpacing: -0.75 },
-  activity: { borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  activity: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   metrics: { flexDirection: "row", alignItems: "center", gap: 16 },
-  metricLabel: { fontFamily: fonts.dmSans[700], fontSize: 10, lineHeight: 15, letterSpacing: 0.5, textTransform: "uppercase" },
+  metricLabel: {
+    fontFamily: fonts.dmSans[700],
+    fontSize: 10,
+    lineHeight: 15,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
   metricLine: { fontSize: 13, lineHeight: 24 },
   metricValue: { fontFamily: fonts.dmSans[700], fontSize: 16 },
   metricUnit: { fontFamily: fonts.dmSans[400], fontSize: 11 },
   divider: { width: 1, height: 28 },
-  tag: { fontFamily: fonts.dmSans[700], fontSize: 10, lineHeight: 15, letterSpacing: 0.5, textTransform: "uppercase", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, overflow: "hidden" },
+  tag: {
+    fontFamily: fonts.dmSans[700],
+    fontSize: 10,
+    lineHeight: 15,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    overflow: "hidden",
+  },
   drafts: { marginBottom: 24 },
   draftsHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
-  draftsLabel: { fontFamily: fonts.dmSans[700], fontSize: 11, lineHeight: 16.5, letterSpacing: 0.55, textTransform: "uppercase" },
+  draftsLabel: {
+    fontFamily: fonts.dmSans[700],
+    fontSize: 11,
+    lineHeight: 16.5,
+    letterSpacing: 0.55,
+    textTransform: "uppercase",
+  },
   list: { gap: 10 },
-  historyHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+  historyHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
   historyTitle: { flexDirection: "row", alignItems: "center", gap: 8 },
-  historyLabel: { fontFamily: fonts.dmSans[700], fontSize: 11, lineHeight: 16.5, letterSpacing: 0.55, textTransform: "uppercase" },
-  count: { fontFamily: fonts.dmSans[700], fontSize: 11, lineHeight: 16.5, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, overflow: "hidden" },
-  sort: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 4 },
+  historyLabel: {
+    fontFamily: fonts.dmSans[700],
+    fontSize: 11,
+    lineHeight: 16.5,
+    letterSpacing: 0.55,
+    textTransform: "uppercase",
+  },
+  count: {
+    fontFamily: fonts.dmSans[700],
+    fontSize: 11,
+    lineHeight: 16.5,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    overflow: "hidden",
+  },
+  sort: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
   sortLabel: { fontFamily: fonts.dmSans[600], fontSize: 11, lineHeight: 16.5 },
   empty: { borderRadius: 16, borderWidth: 1, borderStyle: "dashed", padding: 32 },
-  card: { borderRadius: 16, borderWidth: 1, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  card: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   cardMain: { flex: 1, minWidth: 0, paddingRight: 12 },
   nameRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
-  cardName: { flexShrink: 1, fontFamily: pwaBarlow[700], fontSize: 15, lineHeight: 22.5, letterSpacing: -0.15 },
-  duration: { fontFamily: fonts.dmSans[500], fontSize: 11, lineHeight: 16.5, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, overflow: "hidden" },
+  cardName: {
+    flexShrink: 1,
+    fontFamily: pwaBarlow[700],
+    fontSize: 15,
+    lineHeight: 22.5,
+    letterSpacing: -0.15,
+  },
+  duration: {
+    fontFamily: fonts.dmSans[500],
+    fontSize: 11,
+    lineHeight: 16.5,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    overflow: "hidden",
+  },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   meta: { fontFamily: fonts.dmSans[400], fontSize: 12, lineHeight: 18 },
   shrink: { flexShrink: 1 },
@@ -239,9 +379,22 @@ const styles = StyleSheet.create({
   exCount: { fontFamily: pwaBarlow[800], fontSize: 15, lineHeight: 22.5 },
   exUnit: { fontFamily: fonts.dmSans[400], fontSize: 11 },
   setCount: { fontFamily: fonts.dmSans[500], fontSize: 11, lineHeight: 16.5 },
-  chevron: { width: 32, height: 32, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  chevron: {
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   activeName: { fontFamily: pwaBarlow[700], fontSize: 16, lineHeight: 24, marginBottom: 4 },
   activeMeta: { fontFamily: fonts.dmSans[500], fontSize: 12, lineHeight: 18 },
-  back: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+  back: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
   backLabel: { fontFamily: fonts.dmSans[700], fontSize: 12, lineHeight: 18, color: "#000000" },
 });

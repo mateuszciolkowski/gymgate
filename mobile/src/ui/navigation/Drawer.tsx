@@ -1,11 +1,22 @@
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
-import Animated, { clamp, useAnimatedStyle, withTiming, type SharedValue } from "react-native-reanimated";
+import Animated, {
+  clamp,
+  useAnimatedStyle,
+  withTiming,
+  type SharedValue,
+} from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { fonts, pwaBarlow, useTheme } from "@/theme";
 import { Icon } from "../icons";
-import { DRAG_START_SLOP, EDGE_ZONE_WIDTH, drawerWidth, shouldClose, shouldOpen } from "./drawerMath";
+import {
+  DRAG_START_SLOP,
+  EDGE_ZONE_WIDTH,
+  drawerWidth,
+  shouldClose,
+  shouldOpen,
+} from "./drawerMath";
 import type { NavUser } from "./NavContext";
 import { DRAWER_ITEMS, type TabId } from "./tabs";
 
@@ -25,7 +36,17 @@ interface DrawerProps {
 }
 
 /** Side drawer (PWA NavigationDrawer): follows the finger; opens at 35% / closes at 30% of its width. */
-export function Drawer({ progress, isOpen, edgeEnabled, activeTab, user, onOpened, onClose, onNavigate, onLogout }: DrawerProps) {
+export function Drawer({
+  progress,
+  isOpen,
+  edgeEnabled,
+  activeTab,
+  user,
+  onOpened,
+  onClose,
+  onNavigate,
+  onLogout,
+}: DrawerProps) {
   const { theme } = useTheme();
   const c = theme.colors;
   const insets = useSafeAreaInsets();
@@ -69,7 +90,10 @@ export function Drawer({ progress, isOpen, edgeEnabled, activeTab, user, onOpene
   });
 
   const backdropStyle = useAnimatedStyle(() => ({ opacity: progress.get() }));
-  const panelStyle = useAnimatedStyle(() => ({ opacity: progress.get() > 0 ? 1 : 0, transform: [{ translateX: (progress.get() - 1) * width }] }));
+  const panelStyle = useAnimatedStyle(() => ({
+    opacity: progress.get() > 0 ? 1 : 0,
+    transform: [{ translateX: (progress.get() - 1) * width }],
+  }));
 
   const initials = user ? `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase() : "?";
 
@@ -86,7 +110,11 @@ export function Drawer({ progress, isOpen, edgeEnabled, activeTab, user, onOpene
       <GestureDetector gesture={closePan}>
         <View style={styles.overlay} pointerEvents={isOpen ? "auto" : "none"}>
           <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, backdropStyle]}>
-            <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Zamknij menu" />
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={onClose}
+              accessibilityLabel="Zamknij menu"
+            />
           </Animated.View>
 
           <Animated.View
@@ -104,6 +132,7 @@ export function Drawer({ progress, isOpen, edgeEnabled, activeTab, user, onOpene
             ]}
           >
             <Pressable
+              hitSlop={8}
               accessibilityRole="button"
               accessibilityLabel="Zamknij menu"
               testID="drawer-close"
@@ -113,7 +142,9 @@ export function Drawer({ progress, isOpen, edgeEnabled, activeTab, user, onOpene
               <Icon name="close" color={c.textMuted} />
             </Pressable>
 
-            <View style={[styles.profile, { paddingTop: insets.top + 56, borderBottomColor: c.border }]}>
+            <View
+              style={[styles.profile, { paddingTop: insets.top + 56, borderBottomColor: c.border }]}
+            >
               <View style={[styles.avatar, { backgroundColor: c.btnBg }]}>
                 <Text style={styles.avatarText}>{initials}</Text>
               </View>
@@ -140,8 +171,15 @@ export function Drawer({ progress, isOpen, edgeEnabled, activeTab, user, onOpene
                     onPress={() => onNavigate(item.id)}
                     style={[styles.item, { backgroundColor: active ? c.surface2 : "transparent" }]}
                   >
-                    <Icon name={item.icon} size={22} strokeWidth={1.8} color={active ? c.a2 : c.textMuted} />
-                    <Text style={[styles.itemLabel, { color: active ? c.text : c.textSub }]}>{item.label}</Text>
+                    <Icon
+                      name={item.icon}
+                      size={22}
+                      strokeWidth={1.8}
+                      color={active ? c.a2 : c.textMuted}
+                    />
+                    <Text style={[styles.itemLabel, { color: active ? c.text : c.textSub }]}>
+                      {item.label}
+                    </Text>
                   </Pressable>
                 );
               })}
@@ -150,7 +188,12 @@ export function Drawer({ progress, isOpen, edgeEnabled, activeTab, user, onOpene
             <View style={styles.flex} />
 
             <View style={styles.logoutWrap}>
-              <Pressable accessibilityRole="button" testID="drawer-logout" onPress={onLogout} style={styles.logout}>
+              <Pressable
+                accessibilityRole="button"
+                testID="drawer-logout"
+                onPress={onLogout}
+                style={styles.logout}
+              >
                 <Icon name="logout" color={c.error} />
                 <Text style={[styles.logoutLabel, { color: c.error }]}>Wyloguj się</Text>
               </Pressable>
@@ -168,18 +211,56 @@ const styles = StyleSheet.create({
   overlay: { ...StyleSheet.absoluteFill, zIndex: 40 },
   backdrop: { backgroundColor: "rgba(0,0,0,0.6)" },
   panel: { position: "absolute", top: 0, left: 0, bottom: 0, borderRightWidth: 1 },
-  closeButton: { position: "absolute", right: 16, width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", zIndex: 1 },
+  closeButton: {
+    position: "absolute",
+    right: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1,
+  },
   profile: { paddingHorizontal: 24, paddingBottom: 24, borderBottomWidth: 1 },
-  avatar: { width: 48, height: 48, borderRadius: 16, alignItems: "center", justifyContent: "center", marginBottom: 12 },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
   avatarText: { fontFamily: pwaBarlow[700], fontSize: 18, lineHeight: 27, color: "#ffffff" },
   name: { fontFamily: pwaBarlow[800], fontSize: 18, lineHeight: 27 },
   email: { fontFamily: fonts.dmSans[400], fontSize: 12, lineHeight: 18, marginTop: 2 },
   items: { paddingHorizontal: 12, paddingVertical: 12, gap: 4 },
-  item: { flexDirection: "row", alignItems: "center", gap: 14, minHeight: 44, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 12 },
+  item: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    minHeight: 44,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+  },
   itemLabel: { fontFamily: pwaBarlow[700], fontSize: 15, lineHeight: 22.5 },
   flex: { flex: 1 },
   logoutWrap: { paddingHorizontal: 12, paddingBottom: 12 },
-  logout: { flexDirection: "row", alignItems: "center", gap: 16, minHeight: 44, paddingVertical: 15, paddingHorizontal: 18, borderRadius: 14 },
+  logout: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    minHeight: 44,
+    paddingVertical: 15,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+  },
   logoutLabel: { fontFamily: pwaBarlow[700], fontSize: 17, lineHeight: 25.5 },
-  version: { fontFamily: fonts.dmSans[400], fontSize: 12, lineHeight: 18, paddingHorizontal: 28, paddingBottom: 28 },
+  version: {
+    fontFamily: fonts.dmSans[400],
+    fontSize: 12,
+    lineHeight: 18,
+    paddingHorizontal: 28,
+    paddingBottom: 28,
+  },
 });

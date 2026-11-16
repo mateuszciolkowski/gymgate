@@ -13,3 +13,5 @@ export { ScreenHeader } from "./ScreenHeader";
 export { Spinner } from "./Spinner";
 export { Switch } from "./Switch";
 export { chooseLogout, confirmAlert, showAlert } from "./alerts";
+export { useBarClearance } from "./navigation/BottomBar";
+export { successHaptic, tapHaptic } from "./haptics";

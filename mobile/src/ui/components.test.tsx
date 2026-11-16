@@ -1,4 +1,5 @@
 import { fireEvent, screen } from "@testing-library/react-native";
+import * as Haptics from "expo-haptics";
 import { Alert } from "react-native";
 import { Button } from "./Button";
 import { FormField } from "./FormField";
@@ -6,6 +7,12 @@ import { Switch, mixHex, withAlpha } from "./Switch";
 import { confirmAlert, showAlert } from "./alerts";
 import { renderThemed } from "./testUtils";
 
+jest.mock("expo-haptics", () => ({
+  impactAsync: jest.fn(() => Promise.resolve()),
+  notificationAsync: jest.fn(() => Promise.resolve()),
+  ImpactFeedbackStyle: { Light: "light" },
+  NotificationFeedbackType: { Success: "success" },
+}));
 
 describe("Button", () => {
   it("calls onPress", async () => {
@@ -63,6 +70,7 @@ describe("Switch", () => {
     await renderThemed(<Switch checked={false} onChange={onChange} label="Publiczny" />);
     await fireEvent.press(screen.getByLabelText("Publiczny"));
     expect(onChange).toHaveBeenCalledWith(true);
+    expect(Haptics.impactAsync).toHaveBeenCalledWith("light");
   });
   it("does not fire when disabled", async () => {
     const onChange = jest.fn();

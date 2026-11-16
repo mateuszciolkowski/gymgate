@@ -70,6 +70,7 @@ export function Modal({
                 </View>
                 {showCloseButton ? (
                   <Pressable
+                    hitSlop={8}
                     accessibilityRole="button"
                     accessibilityLabel="Zamknij"
                     onPress={onClose}

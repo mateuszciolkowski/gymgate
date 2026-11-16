@@ -3,14 +3,28 @@ import { useRouter } from "expo-router";
 import { memo, useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { deletePlan, duplicatePlan, getProfile, listAllPlans, setPlanFavorite } from "@/db/repositories";
+import {
+  deletePlan,
+  duplicatePlan,
+  getProfile,
+  listAllPlans,
+  setPlanFavorite,
+} from "@/db/repositories";
 import type { Db } from "@/db/types";
 import { groupLabel } from "@/domain/exerciseFilter";
-import { canEditPlan, exerciseCountLabel, planMuscles, planTabs, visiblePlans, type PlanListTab, type PlanSort } from "@/domain/planList";
+import {
+  canEditPlan,
+  exerciseCountLabel,
+  planMuscles,
+  planTabs,
+  visiblePlans,
+  type PlanListTab,
+  type PlanSort,
+} from "@/domain/planList";
 import type { WorkoutPlan } from "@/domain/types";
 import { useAction, useDb, useDbQuery } from "@/providers";
 import { fonts, pwaBarlow, useTheme } from "@/theme";
-import { Button, Icon, confirmAlert, showAlert } from "@/ui";
+import { Button, Icon, confirmAlert, showAlert, useBarClearance } from "@/ui";
 import { clearDraft } from "./draftStore";
 
 const TABS: { id: PlanListTab; label: string }[] = [
@@ -36,15 +50,31 @@ interface CardProps {
   onFavorite: (p: WorkoutPlan) => void;
 }
 
-const PlanCard = memo(function PlanCard({ plan, isOwner, canEdit, onEdit, onDelete, onDuplicate, onFavorite }: CardProps) {
+const PlanCard = memo(function PlanCard({
+  plan,
+  isOwner,
+  canEdit,
+  onEdit,
+  onDelete,
+  onDuplicate,
+  onFavorite,
+}: CardProps) {
   const { theme } = useTheme();
   const c = theme.colors;
   const [expanded, setExpanded] = useState(false);
   const muscles = planMuscles(plan);
   const small = [styles.small, { backgroundColor: c.surface2, borderColor: c.border }];
   return (
-    <View testID={`plan-${plan.id}`} style={[styles.card, { backgroundColor: c.surface, borderColor: c.borderMed }]}>
-      <Pressable accessibilityRole="button" accessibilityState={{ expanded }} testID={`plan-toggle-${plan.id}`} onPress={() => setExpanded((v) => !v)}>
+    <View
+      testID={`plan-${plan.id}`}
+      style={[styles.card, { backgroundColor: c.surface, borderColor: c.borderMed }]}
+    >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        testID={`plan-toggle-${plan.id}`}
+        onPress={() => setExpanded((v) => !v)}
+      >
         <View style={styles.cardTop}>
           <View style={styles.flex}>
             <Text numberOfLines={1} style={[styles.name, { color: c.text }]}>
@@ -62,7 +92,13 @@ const PlanCard = memo(function PlanCard({ plan, isOwner, canEdit, onEdit, onDele
         {muscles.length > 0 ? (
           <View style={styles.tags}>
             {muscles.map((m) => (
-              <Text key={m} style={[styles.tag, { color: c.textSub, backgroundColor: c.surface2, borderColor: c.border }]}>
+              <Text
+                key={m}
+                style={[
+                  styles.tag,
+                  { color: c.textSub, backgroundColor: c.surface2, borderColor: c.border },
+                ]}
+              >
                 {groupLabel(m)}
               </Text>
             ))}
@@ -83,26 +119,46 @@ const PlanCard = memo(function PlanCard({ plan, isOwner, canEdit, onEdit, onDele
 
       <View style={styles.actions}>
         {canEdit ? (
-          <Pressable accessibilityRole="button" testID={`plan-edit-${plan.id}`} onPress={() => onEdit(plan)} style={[small, styles.wide]}>
+          <Pressable
+            accessibilityRole="button"
+            testID={`plan-edit-${plan.id}`}
+            onPress={() => onEdit(plan)}
+            style={[small, styles.wide]}
+          >
             <Text style={[styles.smallText, { color: c.textSub }]}>Edytuj</Text>
           </Pressable>
         ) : null}
         {!isOwner ? (
-          <Pressable accessibilityRole="button" testID={`plan-duplicate-${plan.id}`} onPress={() => onDuplicate(plan)} style={[small, styles.wide]}>
+          <Pressable
+            accessibilityRole="button"
+            testID={`plan-duplicate-${plan.id}`}
+            onPress={() => onDuplicate(plan)}
+            style={[small, styles.wide]}
+          >
             <Text style={[styles.smallText, { color: c.textSub }]}>Duplikuj do moich</Text>
           </Pressable>
         ) : null}
         <Pressable
+          hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={plan.isFavorite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
           testID={`plan-favorite-${plan.id}`}
           onPress={() => onFavorite(plan)}
           style={[small, styles.icon]}
         >
-          <Text style={{ color: plan.isFavorite ? c.a1 : c.textMuted, fontSize: 18 }}>{plan.isFavorite ? "★" : "☆"}</Text>
+          <Text style={{ color: plan.isFavorite ? c.a1 : c.textMuted, fontSize: 18 }}>
+            {plan.isFavorite ? "★" : "☆"}
+          </Text>
         </Pressable>
         {canEdit ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Usuń plan" testID={`plan-delete-${plan.id}`} onPress={() => onDelete(plan)} style={[small, styles.icon]}>
+          <Pressable
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Usuń plan"
+            testID={`plan-delete-${plan.id}`}
+            onPress={() => onDelete(plan)}
+            style={[small, styles.icon]}
+          >
             <Icon name="bin" size={15} color={c.error} />
           </Pressable>
         ) : null}
@@ -116,6 +172,7 @@ export function PlansScreen() {
   const { theme } = useTheme();
   const c = theme.colors;
   const insets = useSafeAreaInsets();
+  const clearance = useBarClearance();
   const router = useRouter();
   const act = useAction();
   const { userId } = useDb();
@@ -182,9 +239,18 @@ export function PlansScreen() {
       </View>
       <View style={[styles.hint, { backgroundColor: c.surface2, borderColor: c.border }]}>
         <Text style={{ color: c.a1, fontSize: 16 }}>★</Text>
-        <Text style={[styles.hintText, { color: c.textSub }]}>Zaznacz gwiazdkę przy planie, aby móc wybrać go podczas tworzenia treningu</Text>
+        <Text style={[styles.hintText, { color: c.textSub }]}>
+          Zaznacz gwiazdkę przy planie, aby móc wybrać go podczas tworzenia treningu
+        </Text>
       </View>
-      <Button testID="plan-create" size="lg" fullWidth icon={<Icon name="plusLines" size={18} strokeWidth={2.5} color="#ffffff" />} onPress={create} style={styles.cta}>
+      <Button
+        testID="plan-create"
+        size="lg"
+        fullWidth
+        icon={<Icon name="plusLines" size={18} strokeWidth={2.5} color="#ffffff" />}
+        onPress={create}
+        style={styles.cta}
+      >
         Stwórz nowy plan
       </Button>
       <View style={[styles.tabs, { backgroundColor: c.surface2, borderColor: c.border }]}>
@@ -197,7 +263,9 @@ export function PlansScreen() {
             onPress={() => setTab(t.id)}
             style={[styles.tab, tab === t.id && { backgroundColor: c.surface }]}
           >
-            <Text style={[styles.tabText, { color: tab === t.id ? c.text : c.textMuted }]}>{t.label}</Text>
+            <Text style={[styles.tabText, { color: tab === t.id ? c.text : c.textMuted }]}>
+              {t.label}
+            </Text>
           </Pressable>
         ))}
       </View>
@@ -215,7 +283,12 @@ export function PlansScreen() {
             style={[styles.searchInput, { color: c.text }]}
           />
           {search ? (
-            <Pressable accessibilityRole="button" accessibilityLabel="Wyczyść" testID="plans-search-clear" onPress={() => setSearch("")}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Wyczyść"
+              testID="plans-search-clear"
+              onPress={() => setSearch("")}
+            >
               <Text style={{ color: c.textMuted, fontSize: 16 }}>×</Text>
             </Pressable>
           ) : null}
@@ -225,7 +298,10 @@ export function PlansScreen() {
           accessibilityState={{ expanded: showSort }}
           testID="plans-sort"
           onPress={() => setShowSort((v) => !v)}
-          style={[styles.sortButton, { backgroundColor: showSort ? c.a1 : c.surface2, borderColor: c.border }]}
+          style={[
+            styles.sortButton,
+            { backgroundColor: showSort ? c.a1 : c.surface2, borderColor: c.border },
+          ]}
         >
           <Icon name="sortLines" color={showSort ? "#ffffff" : c.textSub} />
           <Text style={[styles.sortText, { color: showSort ? "#ffffff" : c.textSub }]}>Sortuj</Text>
@@ -240,9 +316,14 @@ export function PlansScreen() {
               accessibilityState={{ selected: sort === id }}
               testID={`plans-sort-${id}`}
               onPress={() => setSort(id)}
-              style={[styles.sortChip, { backgroundColor: sort === id ? c.a1 : c.surface2, borderColor: c.border }]}
+              style={[
+                styles.sortChip,
+                { backgroundColor: sort === id ? c.a1 : c.surface2, borderColor: c.border },
+              ]}
             >
-              <Text style={[styles.sortText, { color: sort === id ? "#ffffff" : c.textSub }]}>{label}</Text>
+              <Text style={[styles.sortText, { color: sort === id ? "#ffffff" : c.textSub }]}>
+                {label}
+              </Text>
             </Pressable>
           ))}
         </View>
@@ -257,11 +338,23 @@ export function PlansScreen() {
       keyExtractor={(p) => p.id}
       extraData={userId}
       keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{ paddingTop: insets.top + 20, paddingHorizontal: 20, paddingBottom: 112 }}
+      contentContainerStyle={{
+        paddingTop: insets.top + 20,
+        paddingHorizontal: 20,
+        paddingBottom: clearance,
+      }}
       ListHeaderComponent={header}
       ListEmptyComponent={<EmptyTab tab={tab} />}
       renderItem={({ item: p }) => (
-        <PlanCard plan={p} isOwner={p.creatorUserId === userId} canEdit={canEditPlan(p, userId, isAdmin)} onEdit={edit} onDelete={remove} onDuplicate={duplicate} onFavorite={favorite} />
+        <PlanCard
+          plan={p}
+          isOwner={p.creatorUserId === userId}
+          canEdit={canEditPlan(p, userId, isAdmin)}
+          onEdit={edit}
+          onDelete={remove}
+          onDuplicate={duplicate}
+          onFavorite={favorite}
+        />
       )}
     />
   );
@@ -288,36 +381,98 @@ const styles = StyleSheet.create({
   flex: { flex: 1, minWidth: 0 },
   top: { marginBottom: 0 },
   titleBlock: { marginBottom: 20 },
-  overline: { fontFamily: fonts.dmSans[700], fontSize: 11, lineHeight: 16.5, letterSpacing: 1.32, textTransform: "uppercase", marginBottom: 4 },
+  overline: {
+    fontFamily: fonts.dmSans[700],
+    fontSize: 11,
+    lineHeight: 16.5,
+    letterSpacing: 1.32,
+    textTransform: "uppercase",
+    marginBottom: 4,
+  },
   title: { fontFamily: pwaBarlow[900], fontSize: 36, lineHeight: 36, letterSpacing: -1.08 },
-  hint: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 13, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
+  hint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderRadius: 13,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
   hintText: { flex: 1, fontFamily: fonts.dmSans[400], fontSize: 13, lineHeight: 19.5 },
   cta: { marginBottom: 16 },
   tabs: { flexDirection: "row", padding: 4, borderRadius: 14, borderWidth: 1, marginBottom: 16 },
   tab: { flex: 1, alignItems: "center", paddingVertical: 8, borderRadius: 10 },
   tabText: { fontFamily: fonts.dmSans[700], fontSize: 13, lineHeight: 19.5 },
   searchRow: { flexDirection: "row", gap: 8, marginBottom: 16 },
-  search: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, height: 38, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1 },
+  search: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    height: 38,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
   searchInput: { flex: 1, padding: 0, fontFamily: fonts.dmSans[400], fontSize: 13 },
-  sortButton: { flexDirection: "row", gap: 4, height: 38, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  sortButton: {
+    flexDirection: "row",
+    gap: 4,
+    height: 38,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   sortText: { fontFamily: fonts.dmSans[700], fontSize: 12, lineHeight: 18 },
   sorts: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 },
   sortChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 9, borderWidth: 1 },
   empty: { alignItems: "center", paddingVertical: 48 },
-  emptyTitle: { fontFamily: fonts.dmSans[500], fontSize: 15, lineHeight: 22.5, textAlign: "center", marginBottom: 4 },
+  emptyTitle: {
+    fontFamily: fonts.dmSans[500],
+    fontSize: 15,
+    lineHeight: 22.5,
+    textAlign: "center",
+    marginBottom: 4,
+  },
   emptyHint: { fontFamily: fonts.dmSans[400], fontSize: 13, lineHeight: 19.5, textAlign: "center" },
-  card: { borderRadius: 18, borderWidth: 1.5, paddingTop: 18, paddingHorizontal: 18, paddingBottom: 14, marginBottom: 12 },
+  card: {
+    borderRadius: 18,
+    borderWidth: 1.5,
+    paddingTop: 18,
+    paddingHorizontal: 18,
+    paddingBottom: 14,
+    marginBottom: 12,
+  },
   cardTop: { flexDirection: "row", alignItems: "flex-start", gap: 8, marginBottom: 8 },
   name: { fontFamily: pwaBarlow[700], fontSize: 17, lineHeight: 21 },
   meta: { fontFamily: fonts.dmSans[400], fontSize: 12, lineHeight: 18, marginTop: 2 },
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 4, marginBottom: 4 },
-  tag: { fontFamily: fonts.dmSans[500], fontSize: 11, lineHeight: 16.5, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, borderWidth: 1, overflow: "hidden" },
+  tag: {
+    fontFamily: fonts.dmSans[500],
+    fontSize: 11,
+    lineHeight: 16.5,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
   items: { borderTopWidth: 1, marginTop: 8, marginBottom: 12, paddingTop: 10 },
   itemRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4 },
   itemNo: { width: 20, textAlign: "right", fontFamily: fonts.dmSans[700], fontSize: 11 },
   itemName: { flex: 1, fontFamily: fonts.dmSans[400], fontSize: 13, lineHeight: 19.5 },
   actions: { flexDirection: "row", gap: 8, marginTop: 8 },
-  small: { borderRadius: 11, borderWidth: 1, alignItems: "center", justifyContent: "center", paddingVertical: 9 },
+  small: {
+    borderRadius: 11,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 9,
+  },
   wide: { flex: 1 },
   icon: { width: 38, paddingVertical: 0, height: 38 },
   smallText: { fontFamily: fonts.dmSans[700], fontSize: 13, lineHeight: 19.5 },

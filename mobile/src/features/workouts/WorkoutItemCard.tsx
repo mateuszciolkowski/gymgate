@@ -30,7 +30,17 @@ export interface ItemCardProps {
   onUpdateNotes: (itemId: string, notes: string) => void;
 }
 
-function SetRow({ set, canEdit, onSave, onDelete }: { set: WorkoutSet; canEdit: boolean; onSave: ItemCardProps["onUpdateSet"]; onDelete: (id: string) => void }) {
+function SetRow({
+  set,
+  canEdit,
+  onSave,
+  onDelete,
+}: {
+  set: WorkoutSet;
+  canEdit: boolean;
+  onSave: ItemCardProps["onUpdateSet"];
+  onDelete: (id: string) => void;
+}) {
   const { theme } = useTheme();
   const c = theme.colors;
   const [editing, setEditing] = useState(false);
@@ -57,9 +67,17 @@ function SetRow({ set, canEdit, onSave, onDelete }: { set: WorkoutSet; canEdit: 
   }
 
   return (
-    <View style={[styles.setRow, { backgroundColor: c.surface2, borderColor: c.border }]} testID={`set-row-${set.setNumber}`}>
+    <View
+      style={[styles.setRow, { backgroundColor: c.surface2, borderColor: c.border }]}
+      testID={`set-row-${set.setNumber}`}
+    >
       <Text style={[styles.setNumber, { color: c.textMuted }]}>#{set.setNumber}</Text>
-      <Pressable disabled={!canEdit} onPress={() => setEditing(true)} style={styles.setValues} accessibilityLabel={canEdit ? `Edytuj serię ${set.setNumber}` : undefined}>
+      <Pressable
+        disabled={!canEdit}
+        onPress={() => setEditing(true)}
+        style={styles.setValues}
+        accessibilityLabel={canEdit ? `Edytuj serię ${set.setNumber}` : undefined}
+      >
         <Text style={[styles.setBig, tabularNums, { color: c.text }]}>{set.weight}</Text>
         <Text style={[styles.setUnit, { color: c.textMuted }]}>kg</Text>
         <Text style={[styles.setTimes, { color: c.text }]}>×</Text>
@@ -68,14 +86,25 @@ function SetRow({ set, canEdit, onSave, onDelete }: { set: WorkoutSet; canEdit: 
       </Pressable>
       {canEdit ? (
         <View style={styles.setActions}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Edytuj serię" onPress={() => setEditing(true)} style={[styles.smallButton, { backgroundColor: c.surface3 }]}>
+          <Pressable
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Edytuj serię"
+            onPress={() => setEditing(true)}
+            style={[styles.smallButton, { backgroundColor: c.surface3 }]}
+          >
             <Icon name="pencil" size={13} color={c.textSub} />
           </Pressable>
           <Pressable
+            hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel="Usuń serię"
             testID={`set-delete-${set.setNumber}`}
-            onPress={() => void confirmAlert("Czy na pewno chcesz usunąć tę serię?", "Usuń").then((ok) => ok && onDelete(set.id))}
+            onPress={() =>
+              void confirmAlert("Czy na pewno chcesz usunąć tę serię?", "Usuń").then(
+                (ok) => ok && onDelete(set.id),
+              )
+            }
             style={[styles.smallButton, { backgroundColor: c.surface3 }]}
           >
             <Icon name="bin" size={13} color={c.textMuted} />
@@ -130,11 +159,24 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
   };
 
   return (
-    <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border, boxShadow: toBoxShadow(theme.shadow) }]} testID={`item-card-${number}`}>
-      <Pressable accessibilityRole="button" testID={`item-header-${number}`} onPress={() => onToggle(item.id)} style={styles.header}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: c.surface, borderColor: c.border, boxShadow: toBoxShadow(theme.shadow) },
+      ]}
+      testID={`item-card-${number}`}
+    >
+      <Pressable
+        accessibilityRole="button"
+        testID={`item-header-${number}`}
+        onPress={() => onToggle(item.id)}
+        style={styles.header}
+      >
         <View style={styles.headerMain}>
           <View style={styles.nameRow}>
-            <Text style={[styles.numberChip, { backgroundColor: c.surface2, color: c.textSub }]}>#{number}</Text>
+            <Text style={[styles.numberChip, { backgroundColor: c.surface2, color: c.textSub }]}>
+              #{number}
+            </Text>
             <Text numberOfLines={1} style={[styles.name, { color: c.text }]}>
               {item.exercise.name}
             </Text>
@@ -150,7 +192,10 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
             </Text>
           </View>
           {item.previousNote ? (
-            <View style={[styles.carry, { backgroundColor: c.surface2, borderColor: c.border }]} testID={`item-previous-note-${number}`}>
+            <View
+              style={[styles.carry, { backgroundColor: c.surface2, borderColor: c.border }]}
+              testID={`item-previous-note-${number}`}
+            >
               <Text style={[styles.carryLabel, { color: c.a2 }]}>Uwaga:</Text>
               <Text numberOfLines={1} style={[styles.carryText, { color: c.textSub }]}>
                 {`"${item.previousNote}"`}
@@ -162,10 +207,16 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
           <ExercisePhotoButton photos={item.exercise.photos} exerciseName={item.exercise.name} />
           {canEdit ? (
             <Pressable
+              hitSlop={8}
               accessibilityRole="button"
               accessibilityLabel="Usuń ćwiczenie"
               testID={`item-delete-${number}`}
-              onPress={() => void confirmAlert("Czy na pewno chcesz usunąć to ćwiczenie z treningu?", "Usuń").then((ok) => ok && onDeleteItem(item.id))}
+              onPress={() =>
+                void confirmAlert(
+                  "Czy na pewno chcesz usunąć to ćwiczenie z treningu?",
+                  "Usuń",
+                ).then((ok) => ok && onDeleteItem(item.id))
+              }
               style={[styles.headerButton, { backgroundColor: c.surface2 }]}
             >
               <Icon name="bin" size={13} color={c.textMuted} />
@@ -185,7 +236,9 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
             <View style={styles.summary}>
               <Text style={[styles.summaryLine, tabularNums, { color: c.textMuted }]}>
                 Ostatnio:{" "}
-                <Text style={[styles.summaryValue, { color: c.textSub }]}>{lastSetsSummary ?? `${stats.lastWeight} kg × ${stats.lastReps}`}</Text>
+                <Text style={[styles.summaryValue, { color: c.textSub }]}>
+                  {lastSetsSummary ?? `${stats.lastWeight} kg × ${stats.lastReps}`}
+                </Text>
               </Text>
               <Text style={[styles.summaryLine, tabularNums, { color: c.textMuted }]}>
                 Rekord:{" "}
@@ -201,7 +254,13 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
           ) : (
             <View style={styles.sets}>
               {item.sets.map((s) => (
-                <SetRow key={s.id} set={s} canEdit={canEdit} onSave={onUpdateSet} onDelete={onDeleteSet} />
+                <SetRow
+                  key={s.id}
+                  set={s}
+                  canEdit={canEdit}
+                  onSave={onUpdateSet}
+                  onDelete={onDeleteSet}
+                />
               ))}
               {draft && canEdit ? (
                 <SetEditor
@@ -226,7 +285,14 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
                 testID={`add-set-${number}`}
                 disabled={draft !== null}
                 onPress={() => setDraft(defaults())}
-                style={[styles.addSet, { backgroundColor: c.surface2, borderColor: c.borderMed, opacity: draft ? 0.4 : 1 }]}
+                style={[
+                  styles.addSet,
+                  {
+                    backgroundColor: c.surface2,
+                    borderColor: c.borderMed,
+                    opacity: draft ? 0.4 : 1,
+                  },
+                ]}
               >
                 <Text style={[styles.addSetText, { color: c.a2 }]}>+ Dodaj serię</Text>
               </Pressable>
@@ -236,7 +302,9 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
                 onPress={toggleNotes}
                 style={[styles.addSet, { backgroundColor: c.surface2, borderColor: c.border }]}
               >
-                <Text style={[styles.addSetText, { color: c.textSub }]}>{editingNotes ? "Ukryj notatki" : "Notatki"}</Text>
+                <Text style={[styles.addSetText, { color: c.textSub }]}>
+                  {editingNotes ? "Ukryj notatki" : "Notatki"}
+                </Text>
               </Pressable>
             </View>
           ) : null}
@@ -254,7 +322,10 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
                 multiline
                 autoFocus
                 textAlignVertical="top"
-                style={[styles.notesInput, { color: c.text, backgroundColor: c.surface, borderColor: c.borderMed }]}
+                style={[
+                  styles.notesInput,
+                  { color: c.text, backgroundColor: c.surface, borderColor: c.borderMed },
+                ]}
               />
               <View style={styles.notesButtons}>
                 <Pressable
@@ -269,7 +340,12 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
                 >
                   <Text style={[styles.notesButtonText, { color: c.textMuted }]}>Anuluj</Text>
                 </Pressable>
-                <Pressable accessibilityRole="button" testID={`item-notes-save-${number}`} onPress={saveNotes} style={[styles.notesSave, { backgroundColor: c.btnBg }]}>
+                <Pressable
+                  accessibilityRole="button"
+                  testID={`item-notes-save-${number}`}
+                  onPress={saveNotes}
+                  style={[styles.notesSave, { backgroundColor: c.btnBg }]}
+                >
                   <Text style={[styles.notesButtonText, { color: "#ffffff" }]}>Zapisz notatkę</Text>
                 </Pressable>
               </View>
@@ -293,44 +369,153 @@ export const WorkoutItemCard = memo(function WorkoutItemCard({
 
 const styles = StyleSheet.create({
   card: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
-  header: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", padding: 16 },
+  header: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    padding: 16,
+  },
   headerMain: { flex: 1, minWidth: 0, paddingRight: 8 },
   nameRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  numberChip: { fontFamily: "Menlo", fontWeight: "700", fontSize: 11, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, overflow: "hidden" },
+  numberChip: {
+    fontFamily: "Menlo",
+    fontWeight: "700",
+    fontSize: 11,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    overflow: "hidden",
+  },
   name: { flexShrink: 1, fontFamily: pwaBarlow[700], fontSize: 15, lineHeight: 22.5 },
   tags: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6, marginTop: 8 },
-  tag: { fontFamily: fonts.dmSans[600], fontSize: 10, lineHeight: 15, letterSpacing: 0.5, textTransform: "uppercase", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, overflow: "hidden" },
+  tag: {
+    fontFamily: fonts.dmSans[600],
+    fontSize: 10,
+    lineHeight: 15,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    overflow: "hidden",
+  },
   count: { fontFamily: fonts.dmSans[500], fontSize: 11, lineHeight: 16.5, marginLeft: 4 },
   headerButtons: { flexDirection: "row", alignItems: "center", gap: 8 },
-  headerButton: { width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  headerButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   body: { borderTopWidth: 1, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 },
   summary: { marginTop: 8, marginBottom: 12, paddingHorizontal: 4, gap: 2 },
   summaryLine: { fontFamily: fonts.dmSans[400], fontSize: 11, lineHeight: 16.5 },
   summaryValue: { fontFamily: fonts.dmSans[600] },
-  empty: { fontFamily: fonts.dmSans[400], fontSize: 13, lineHeight: 19.5, textAlign: "center", paddingVertical: 16 },
+  empty: {
+    fontFamily: fonts.dmSans[400],
+    fontSize: 13,
+    lineHeight: 19.5,
+    textAlign: "center",
+    paddingVertical: 16,
+  },
   sets: { gap: 8, marginBottom: 12 },
-  setRow: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10 },
-  setNumber: { width: 24, textAlign: "center", fontFamily: "Menlo", fontWeight: "700", fontSize: 12 },
-  setValues: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "baseline", justifyContent: "center", gap: 6 },
+  setRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  setNumber: {
+    width: 24,
+    textAlign: "center",
+    fontFamily: "Menlo",
+    fontWeight: "700",
+    fontSize: 12,
+  },
+  setValues: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "center",
+    gap: 6,
+  },
   setBig: { fontFamily: pwaBarlow[800], fontSize: 18 },
   setUnit: { fontFamily: fonts.dmSans[500], fontSize: 12 },
   setTimes: { fontFamily: fonts.dmSans[700], fontSize: 14, opacity: 0.4, paddingHorizontal: 2 },
   setActions: { flexDirection: "row", alignItems: "center", gap: 4 },
-  smallButton: { width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" },
-  carry: { flexDirection: "row", alignItems: "flex-start", gap: 6, marginTop: 10, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
+  smallButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  carry: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 6,
+    marginTop: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
   carryLabel: { fontFamily: fonts.dmSans[700], fontSize: 11, lineHeight: 16.5 },
-  carryText: { flex: 1, fontFamily: fonts.dmSans[400], fontStyle: "italic", fontSize: 11, lineHeight: 16.5 },
+  carryText: {
+    flex: 1,
+    fontFamily: fonts.dmSans[400],
+    fontStyle: "italic",
+    fontSize: 11,
+    lineHeight: 16.5,
+  },
   actions: { flexDirection: "row", gap: 8, marginTop: 4 },
-  addSet: { flex: 1, minHeight: 40, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center", paddingVertical: 10 },
+  addSet: {
+    flex: 1,
+    minHeight: 40,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+  },
   notesEditor: { marginTop: 12, borderRadius: 16, borderWidth: 1.5, padding: 14 },
   notesTitle: { fontFamily: fonts.dmSans[700], fontSize: 12, lineHeight: 18, marginBottom: 8 },
-  notesInput: { minHeight: 64, padding: 10, borderRadius: 12, borderWidth: 1, fontFamily: fonts.dmSans[400], fontSize: 13, lineHeight: 19.5 },
+  notesInput: {
+    minHeight: 64,
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    fontFamily: fonts.dmSans[400],
+    fontSize: 13,
+    lineHeight: 19.5,
+  },
   notesButtons: { flexDirection: "row", gap: 8, marginTop: 10 },
-  notesCancel: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, justifyContent: "center" },
-  notesSave: { flex: 1, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, alignItems: "center" },
+  notesCancel: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    justifyContent: "center",
+  },
+  notesSave: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
   notesButtonText: { fontFamily: fonts.dmSans[700], fontSize: 12, lineHeight: 18 },
   notesShown: { marginTop: 10, borderRadius: 12, borderWidth: 1, padding: 12 },
-  notesShownLabel: { fontFamily: fonts.dmSans[700], fontSize: 11, lineHeight: 16.5, marginBottom: 2 },
+  notesShownLabel: {
+    fontFamily: fonts.dmSans[700],
+    fontSize: 11,
+    lineHeight: 16.5,
+    marginBottom: 2,
+  },
   notesShownText: { fontFamily: fonts.dmSans[500], fontSize: 12, lineHeight: 19.5 },
   addSetText: { fontFamily: fonts.dmSans[700], fontSize: 13, lineHeight: 19.5 },
 });

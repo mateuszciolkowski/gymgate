@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { Keyboard, Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { MUSCLE_GROUPS } from "@/domain/muscleGroups";
 import { fonts, useTheme } from "@/theme";
 import { Icon, Modal } from "@/ui";
@@ -29,8 +29,15 @@ export function GroupSelect({ value, taken, disabled, testID, onChange }: Props)
         accessibilityRole="button"
         testID={testID}
         disabled={disabled}
-        onPress={() => setOpen(true)}
-        style={[styles.field, { backgroundColor: c.surface, borderColor: c.borderMed, opacity: disabled ? 0.5 : 1 }]}
+        onPress={() => {
+          // Blur first, otherwise iOS gives the focus back to the previous field when the modal closes.
+          Keyboard.dismiss();
+          setOpen(true);
+        }}
+        style={[
+          styles.field,
+          { backgroundColor: c.surface, borderColor: c.borderMed, opacity: disabled ? 0.5 : 1 },
+        ]}
       >
         <Text style={[styles.text, { color: c.text }]}>{label}</Text>
         <Icon name="chevronDown" size={14} color={c.text} />
@@ -49,7 +56,9 @@ export function GroupSelect({ value, taken, disabled, testID, onChange }: Props)
                 onPress={() => pick(g.value)}
                 style={[styles.option, { borderBottomColor: c.border, opacity: off ? 0.35 : 1 }]}
               >
-                <Text style={[styles.optionText, { color: g.value === value ? c.a2 : c.text }]}>{g.label}</Text>
+                <Text style={[styles.optionText, { color: g.value === value ? c.a2 : c.text }]}>
+                  {g.label}
+                </Text>
               </Pressable>
             );
           })}
@@ -60,7 +69,18 @@ export function GroupSelect({ value, taken, disabled, testID, onChange }: Props)
 }
 
 const styles = StyleSheet.create({
-  field: { flex: 1, minHeight: 50, paddingHorizontal: 15, paddingVertical: 13, borderRadius: 14, borderWidth: 1.5, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  field: {
+    flex: 1,
+    minHeight: 50,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
   text: { fontFamily: fonts.dmSans[400], fontSize: 14 },
   list: { maxHeight: 400 },
   option: { paddingVertical: 13, borderBottomWidth: 1 },

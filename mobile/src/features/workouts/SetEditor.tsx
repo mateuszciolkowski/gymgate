@@ -5,7 +5,8 @@ import { fonts, pwaBarlow, tabularNums, useTheme } from "@/theme";
 import { Icon } from "@/ui";
 
 /** Weight as typed ("62,5" on a Polish keyboard) to a number; empty means 0 (PWA). */
-export const parseWeight = (text: string): number => (text.trim() === "" ? 0 : Number(text.replace(",", ".")));
+export const parseWeight = (text: string): number =>
+  text.trim() === "" ? 0 : Number(text.replace(",", "."));
 
 interface SetEditorProps {
   setNumber: number;
@@ -17,7 +18,14 @@ interface SetEditorProps {
 }
 
 /** Inline editor of one set: used for the new-set draft and for editing a saved set (PWA DraftSetRow / SetRowEditable). */
-export function SetEditor({ setNumber, initialWeight, initialReps, testIDPrefix, onConfirm, onCancel }: SetEditorProps) {
+export function SetEditor({
+  setNumber,
+  initialWeight,
+  initialReps,
+  testIDPrefix,
+  onConfirm,
+  onCancel,
+}: SetEditorProps) {
   const { theme } = useTheme();
   const c = theme.colors;
   const [weight, setWeight] = useState(initialWeight);
@@ -30,13 +38,19 @@ export function SetEditor({ setNumber, initialWeight, initialReps, testIDPrefix,
     try {
       validateSet(w, r);
     } catch (e) {
-      setError(e instanceof ValidationError ? e.message : "Wpisz poprawny ciężar (≥0) i powtórzenia (≥1)");
+      setError(
+        e instanceof ValidationError ? e.message : "Wpisz poprawny ciężar (≥0) i powtórzenia (≥1)",
+      );
       return;
     }
     onConfirm(w, r);
   };
 
-  const input = [styles.input, tabularNums, { backgroundColor: c.surface, borderColor: c.borderMed, color: c.text }];
+  const input = [
+    styles.input,
+    tabularNums,
+    { backgroundColor: c.surface, borderColor: c.borderMed, color: c.text },
+  ];
   return (
     <View style={[styles.root, { backgroundColor: c.surface2, borderColor: c.a1 }]}>
       <View style={styles.row}>
@@ -79,6 +93,7 @@ export function SetEditor({ setNumber, initialWeight, initialReps, testIDPrefix,
         </View>
         <View style={styles.actions}>
           <Pressable
+            hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel="Zapisz serię"
             testID={`${testIDPrefix}-confirm`}
@@ -88,6 +103,7 @@ export function SetEditor({ setNumber, initialWeight, initialReps, testIDPrefix,
             <Icon name="check" size={17} strokeWidth={2.5} color="#ffffff" />
           </Pressable>
           <Pressable
+            hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel="Anuluj"
             testID={`${testIDPrefix}-cancel`}
@@ -106,13 +122,49 @@ export function SetEditor({ setNumber, initialWeight, initialReps, testIDPrefix,
 const styles = StyleSheet.create({
   root: { borderRadius: 12, borderWidth: 1.5, padding: 10, gap: 6 },
   row: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
-  number: { width: 24, textAlign: "center", fontFamily: "Menlo", fontWeight: "700", fontSize: 13, paddingTop: 30 },
+  number: {
+    width: 24,
+    textAlign: "center",
+    fontFamily: "Menlo",
+    fontWeight: "700",
+    fontSize: 13,
+    paddingTop: 30,
+  },
   column: { flex: 1, minWidth: 0 },
-  label: { fontFamily: fonts.dmSans[700], fontSize: 10, lineHeight: 15, letterSpacing: 0.5, textTransform: "uppercase", textAlign: "center", marginBottom: 4 },
-  input: { paddingHorizontal: 8, paddingVertical: 8, borderRadius: 12, borderWidth: 1, textAlign: "center", fontFamily: pwaBarlow[800], fontSize: 18, minHeight: 44 },
+  label: {
+    fontFamily: fonts.dmSans[700],
+    fontSize: 10,
+    lineHeight: 15,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  input: {
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    textAlign: "center",
+    fontFamily: pwaBarlow[800],
+    fontSize: 18,
+    minHeight: 44,
+  },
   times: { fontFamily: fonts.dmSans[700], fontSize: 14, opacity: 0.4, paddingTop: 30 },
   actions: { flexDirection: "row", alignItems: "center", gap: 4, paddingTop: 19 },
-  confirm: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  cancel: { width: 32, height: 32, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  confirm: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancel: {
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   error: { fontFamily: fonts.dmSans[600], fontSize: 11, lineHeight: 16.5, textAlign: "center" },
 });

@@ -1,6 +1,12 @@
 import { useEffect, type ReactNode } from "react";
+import { tapHaptic } from "./haptics";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { fonts, useTheme } from "@/theme";
 
 export interface SwitchProps {
@@ -25,11 +31,22 @@ export function withAlpha(hex: string, alpha: number): string {
 export function mixHex(a: string, pct: number, b: string): string {
   const x = parseInt(a.slice(1, 7), 16);
   const y = parseInt(b.slice(1, 7), 16);
-  const ch = (shift: number) => Math.round(((x >> shift) & 255) * pct + ((y >> shift) & 255) * (1 - pct));
+  const ch = (shift: number) =>
+    Math.round(((x >> shift) & 255) * pct + ((y >> shift) & 255) * (1 - pct));
   return `rgb(${ch(16)}, ${ch(8)}, ${ch(0)})`;
 }
 
-export function Switch({ checked, onChange, disabled = false, label, description, badge, variant = "accent", icon, testID }: SwitchProps) {
+export function Switch({
+  checked,
+  onChange,
+  disabled = false,
+  label,
+  description,
+  badge,
+  variant = "accent",
+  icon,
+  testID,
+}: SwitchProps) {
   const { theme } = useTheme();
   const c = theme.colors;
   const activeColor = variant === "admin" ? c.a2 : c.a1;
@@ -51,7 +68,10 @@ export function Switch({ checked, onChange, disabled = false, label, description
       accessibilityLabel={label}
       testID={testID}
       disabled={disabled}
-      onPress={() => onChange(!checked)}
+      onPress={() => {
+        tapHaptic();
+        onChange(!checked);
+      }}
       style={{ opacity: disabled ? 0.5 : 1 }}
     >
       <Animated.View style={[styles.track, trackStyle]}>
@@ -74,7 +94,14 @@ export function Switch({ checked, onChange, disabled = false, label, description
     >
       <View style={styles.left}>
         {icon ? (
-          <View style={[styles.icon, { backgroundColor: checked ? withAlpha(activeColor, 0.15) : c.surface2 }]}>{icon}</View>
+          <View
+            style={[
+              styles.icon,
+              { backgroundColor: checked ? withAlpha(activeColor, 0.15) : c.surface2 },
+            ]}
+          >
+            {icon}
+          </View>
         ) : null}
         <View style={styles.texts}>
           <View style={styles.titleRow}>
@@ -85,7 +112,9 @@ export function Switch({ checked, onChange, disabled = false, label, description
               <Text style={[styles.badge, { backgroundColor: activeColor }]}>{badge}</Text>
             ) : null}
           </View>
-          {description ? <Text style={[styles.desc, { color: c.textMuted }]}>{description}</Text> : null}
+          {description ? (
+            <Text style={[styles.desc, { color: c.textMuted }]}>{description}</Text>
+          ) : null}
         </View>
       </View>
       {track}
