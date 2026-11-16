@@ -6,7 +6,7 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 
 **Ostatnia aktualizacja:** 2026-11-15
 **Bieżący etap:** 3, 4 i 5 równolegle, sesja lokalna na MacBooku (sesja chmurowa wyłączona).
-**Następny krok:** Etap 8 (plany), potem 10, 11.
+**Następny krok:** Etap 10 (statystyki), potem 11.
 
 ## Przegląd etapów
 
@@ -108,6 +108,7 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 
 - [x] Etap 9 (pełny ekran treningu): notatki treningu i ćwiczenia, plan w treningu, szczegóły, trening zakończony z edycją, dialog porzuconego treningu, baner odrzuconych zmian. 240 testów Jest, typecheck i lint czyste (uruchomione przez orkiestratora); przepływy Maestro i porównanie zrzutów według agenta. Niesprawdzone: zmiana daty i godzin w natywnym selektorze, „Ponów” na banerze, przycisk zdjęcia, blokada ekranu, ścieżki błędów (E19, E20). Zrzuty listy i treningu w 12 motywach; z wzorcem porównane tylko dark, light i blossom.
 - [x] Etap 7 (ćwiczenia): zakładka z wyszukiwaniem, filtrami i partiami, tworzenie, edycja, usuwanie, tworzenie z poziomu wyboru ćwiczenia w treningu. 257 testów Jest, typecheck i lint czyste (uruchomione przez orkiestratora); Maestro i zrzuty według agenta. Niesprawdzone: modal zdjęć i ich pamięć offline, przełącznik admina, wyróżnienie „Wykonywane”, ciemny przepływ CRUD po ostatnich zmianach formularza. Zrzut `40` pokazuje jeszcze starą wersję przycisku „Nowe ćwiczenie”. Do Etapu 13: klawiatura zasłania przycisk zapisu przy aktywnym polu opisu.
+- [x] Etap 8 (plany): zakładki, wyszukiwanie, sortowanie, formularz z przeciąganiem kolejności, duplikowanie, ulubione, usuwanie, historia planu, wszystko offline. 278 testów Jest, typecheck i lint czyste (uruchomione przez orkiestratora); Maestro i zrzuty według agenta. Niesprawdzone: ścieżki admina, zakładka „Społeczność” z danymi, odrzucenie zmiany planu przez serwer, stan bazy serwera po synchronizacji planu utworzonego offline. Do Etapu 13: dolny pasek zasłania „Zapisz plan” do przewinięcia.
 
 Zakres każdego etapu to grupy z `PARYTET.md` wskazane w `PLAN.md`, sekcja 10. Listy zadań rozpisujemy tutaj przy wejściu w dany etap.
 

@@ -1,0 +1,43 @@
+# (offline) Run with the local backend stopped: a plan is created and edited with no connection, the banner counts the
+# unsent changes. Then start the backend and run plans-offline-resume.yaml (checks it synced, deletes the plan).
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-plans"
+- tapOn:
+    id: "plans-tab-mine"
+- tapOn:
+    id: "plan-create"
+- tapOn:
+    id: "plan-add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "martwy ciąg klasyczny"
+- hideKeyboard
+- tapOn:
+    id: "exercise-[0-9a-f]{8}-.*"
+- tapOn:
+    id: "plan-name"
+- inputText: "Offline Plan"
+- pressKey: Enter
+- tapOn:
+    id: "plan-submit"
+- assertVisible: ".*Offline Plan.*"
+- assertVisible: ".*Oczekujące zmiany: 1.*"
+- tapOn:
+    id: "plan-edit-.*"
+- tapOn:
+    id: "plan-short-name"
+- inputText: "Off"
+- pressKey: Enter
+- tapOn:
+    id: "plan-submit"
+- assertVisible: ".*Oczekujące zmiany: 2.*"

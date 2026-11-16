@@ -7,6 +7,7 @@ import { addItem, createExercise, getExercise, getProfile, updateExercise } from
 import type { Db } from "@/db/types";
 import { MUSCLE_GROUPS } from "@/domain/muscleGroups";
 import { ValidationError } from "@/domain/validation";
+import { appendToDraft } from "@/features/plans/draftStore";
 import { useAction, useDbQuery } from "@/providers";
 import { fonts, pwaBarlow, useTheme } from "@/theme";
 import { Button, FormField, Icon, Switch, TextField } from "@/ui";
@@ -17,10 +18,12 @@ interface Props {
   editId?: string;
   /** Create mode, opened from the workout picker: the new exercise is also added to this workout. */
   workoutId?: string;
+  /** Create mode, opened from the plan form picker: the new exercise is also added to that plan draft. */
+  planKey?: string;
 }
 
 /** PWA AddExerciseScreen / EditExerciseScreen in one form. */
-export function ExerciseFormScreen({ editId, workoutId }: Props) {
+export function ExerciseFormScreen({ editId, workoutId, planKey }: Props) {
   const { theme } = useTheme();
   const c = theme.colors;
   const insets = useSafeAreaInsets();
@@ -60,6 +63,7 @@ export function ExerciseFormScreen({ editId, workoutId }: Props) {
       } else {
         const created = act((ctx) => createExercise(ctx, { name, muscleGroups: valid, description: description.trim() || undefined, isGlobal: isAdmin ? isGlobal : undefined }));
         if (workoutId) act((ctx) => addItem(ctx, workoutId, created.id));
+        if (planKey) appendToDraft(planKey, created);
       }
       back();
     } catch (e) {

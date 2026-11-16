@@ -48,6 +48,11 @@ export function listPlans(db: Db, tab: PlanTab, userId: string): WorkoutPlan[] {
   return hydrate(db, db.select().from(plans).where(where).orderBy(desc(plans.createdAt)).all());
 }
 
+/** Every plan visible to the user (own, built-in, public of others); the plans screen splits it into tabs like the PWA. */
+export function listAllPlans(db: Db): WorkoutPlan[] {
+  return hydrate(db, db.select().from(plans).orderBy(desc(plans.createdAt)).all());
+}
+
 export function getPlan(db: Db, id: string): WorkoutPlan | null {
   const row = db.select().from(plans).where(eq(plans.id, id)).get();
   return row ? (hydrate(db, [row])[0] ?? null) : null;

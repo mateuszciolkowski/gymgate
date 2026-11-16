@@ -12,6 +12,7 @@ export interface SwitchProps {
   badge?: string;
   variant?: "accent" | "admin" | "default";
   icon?: ReactNode;
+  testID?: string;
 }
 
 /** Hex colour `#rrggbb` with alpha, for the PWA `color-mix(in srgb, X p%, transparent|surface)` cases. */
@@ -28,7 +29,7 @@ export function mixHex(a: string, pct: number, b: string): string {
   return `rgb(${ch(16)}, ${ch(8)}, ${ch(0)})`;
 }
 
-export function Switch({ checked, onChange, disabled = false, label, description, badge, variant = "accent", icon }: SwitchProps) {
+export function Switch({ checked, onChange, disabled = false, label, description, badge, variant = "accent", icon, testID }: SwitchProps) {
   const { theme } = useTheme();
   const c = theme.colors;
   const activeColor = variant === "admin" ? c.a2 : c.a1;
@@ -48,6 +49,7 @@ export function Switch({ checked, onChange, disabled = false, label, description
       accessibilityRole="switch"
       accessibilityState={{ checked, disabled }}
       accessibilityLabel={label}
+      testID={testID}
       disabled={disabled}
       onPress={() => onChange(!checked)}
       style={{ opacity: disabled ? 0.5 : 1 }}

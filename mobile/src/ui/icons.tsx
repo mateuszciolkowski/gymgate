@@ -211,6 +211,22 @@ const defs = {
       ["path", { d: "M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" }],
     ],
   },
+  /** Three shrinking lines of the plans "Sortuj" button. */
+  sortLines: { size: 13, stroke: 2.5, round: true, nodes: [line(4, 6, 20, 6), line(8, 12, 16, 12), line(11, 18, 13, 18)] },
+  /** Six-dot drag handle of the plan form rows. */
+  grip: {
+    size: 18,
+    stroke: 2,
+    round: true,
+    nodes: [
+      ["circle", { cx: 9, cy: 5, r: 1 }],
+      ["circle", { cx: 9, cy: 12, r: 1 }],
+      ["circle", { cx: 9, cy: 19, r: 1 }],
+      ["circle", { cx: 15, cy: 5, r: 1 }],
+      ["circle", { cx: 15, cy: 12, r: 1 }],
+      ["circle", { cx: 15, cy: 19, r: 1 }],
+    ],
+  },
   chevronDown: { size: 14, stroke: 2, round: true, nodes: [["polyline", { points: "6 9 12 15 18 9" }]] },
   search: { size: 15, stroke: 2, round: true, nodes: [["circle", { cx: 11, cy: 11, r: 7 }], ["path", { d: "M20 20l-4-4" }]] },
   calendar: {

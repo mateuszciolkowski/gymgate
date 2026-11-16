@@ -1,0 +1,136 @@
+# Plans: create (validation, picker, reorder, remove), edit, history, duplicate, favorite, delete.
+# Needs a signed-in app (login-sync.yaml first) and the seeded built-in plans. Leaves no plans of the test user behind.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-plans"
+- assertVisible: "Stwórz nowy plan"
+- assertVisible: "Brak ulubionych"
+- waitForAnimationToEnd
+- takeScreenshot: ${OUT}/70-plany
+- tapOn:
+    id: "plans-tab-builtin"
+- waitForAnimationToEnd
+- takeScreenshot: ${OUT}/72-plany-wbudowane
+- tapOn:
+    id: "plans-tab-mine"
+- assertVisible: "Stwórz swój pierwszy plan treningowy"
+- tapOn:
+    id: "plans-tab-community"
+- assertVisible: "Brak publicznych planów społeczności"
+- tapOn:
+    id: "plans-tab-mine"
+# create: validation order
+- tapOn:
+    id: "plan-create"
+- assertVisible: "Tworzenie planu"
+- waitForAnimationToEnd
+- takeScreenshot: ${OUT}/71-formularz-planu
+- tapOn:
+    id: "plan-submit"
+- assertVisible: "Nazwa planu musi mieć co najmniej 3 znaki"
+- tapOn:
+    id: "plan-name"
+- inputText: "Maestro Plan"
+- pressKey: Enter
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "plan-submit"
+      - assertVisible: "Dodaj co najmniej 1 ćwiczenie"
+# picker: add two exercises
+- tapOn:
+    id: "plan-add-exercise"
+- assertVisible: "Wybierz ćwiczenie"
+- tapOn:
+    id: "picker-search"
+- inputText: "sztangi ławce płaskiej"
+- hideKeyboard
+- tapOn:
+    id: "exercise-[0-9a-f]{8}-.*"
+- assertVisible: ".*1/50.*"
+- tapOn:
+    id: "plan-add-exercise"
+- tapOn:
+    id: "picker-search"
+- inputText: "martwy ciąg klasyczny"
+- hideKeyboard
+- tapOn:
+    id: "exercise-[0-9a-f]{8}-.*"
+- assertVisible: ".*2/50.*"
+# reorder by dragging the first row's grip below the second
+- swipe:
+    from:
+      id: "plan-row-handle-.*"
+    direction: DOWN
+    duration: 600
+- waitForAnimationToEnd
+- takeScreenshot: ${OUT}/71b-plan-kolejnosc
+- scroll # the floating bar covers the lower part of the button until the page is scrolled
+- tapOn:
+    id: "plan-submit"
+- assertVisible: ".*Maestro Plan.*"
+- assertVisible: ".*2 ćwiczenia.*"
+# expand: both exercises listed (order shown in 71b screenshot and unit-tested)
+- tapOn:
+    id: "plan-toggle-.*"
+- assertVisible: "Martwy ciąg klasyczny"
+- assertVisible: "Wyciskanie sztangi na ławce płaskiej"
+# favorite -> shows in Ulubione
+- tapOn:
+    id: "plan-favorite-.*"
+- tapOn:
+    id: "plans-tab-favorites"
+- assertVisible: ".*Maestro Plan.*"
+- tapOn:
+    id: "plan-favorite-.*"
+- assertVisible: "Brak ulubionych"
+# edit + history
+- tapOn:
+    id: "plans-tab-mine"
+- tapOn:
+    id: "plan-edit-.*"
+- assertVisible: "Edytuj plan"
+- tapOn:
+    id: "plan-row-remove-.*"
+- assertVisible: ".*1/50.*"
+- scroll
+- tapOn:
+    id: "plan-submit"
+- assertVisible: ".*1 ćwiczenie.*"
+- tapOn:
+    id: "plan-edit-.*"
+- tapOn:
+    id: "plan-history-open"
+- assertVisible: "Historia planu"
+- waitForAnimationToEnd
+- takeScreenshot: ${OUT}/73-historia-planu
+- tapOn:
+    id: "plan-version-.*"
+- tapOn: "Zamknij"
+- tapOn:
+    id: "plan-form-cancel"
+# duplicate a built-in plan, then delete both of ours
+- tapOn:
+    id: "plans-tab-builtin"
+- tapOn:
+    id: "plan-duplicate-.*"
+- tapOn:
+    id: "plans-tab-mine"
+- assertVisible: ".*\\(kopia\\).*"
+- tapOn:
+    id: "plan-delete-.*"
+- tapOn: "Usuń"
+- tapOn:
+    id: "plan-delete-.*"
+- tapOn: "Usuń"
+- assertVisible: "Stwórz swój pierwszy plan treningowy"

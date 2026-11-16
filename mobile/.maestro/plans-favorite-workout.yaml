@@ -1,0 +1,65 @@
+# Favorite a built-in plan -> it shows in "Ulubione" and (with a badge) in the new-workout plan dropdown; the workout
+# is created from it (plan banner). Unfavorites and deletes the workout at the end.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+      - assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-plans"
+- tapOn:
+    id: "plans-tab-builtin"
+- tapOn:
+    id: "plans-search"
+- inputText: "E2E mini"
+- hideKeyboard
+- tapOn:
+    id: "plan-favorite-.*"
+- tapOn:
+    id: "plans-tab-favorites"
+- assertVisible: ".*E2E mini plan.*"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-trainings"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-plan"
+- assertVisible: ".*Ulubione.*"
+- tapOn:
+    id: "plan-option-.*"
+- tapOn:
+    id: "workout-submit"
+- assertVisible: "Czas trwania"
+- assertVisible: "Plan 0/2"
+- assertVisible: ".*Kolejne z planu.*"
+# cleanup
+- tapOn:
+    id: "workout-delete"
+- tapOn: "Usuń"
+- assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-plans"
+- assertVisible: ".*E2E mini plan.*"
+- tapOn:
+    id: "plan-favorite-.*"
+- assertVisible: "Brak ulubionych"

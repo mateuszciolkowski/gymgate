@@ -2,24 +2,38 @@ import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { addItem } from "@/db/repositories";
-import { useWorkout } from "@/features/workouts/queries";
+import { appendToDraft, getDraft } from "@/features/plans/draftStore";
+import { useExercises, useWorkout } from "@/features/workouts/queries";
 import { useAction } from "@/providers";
 import { fonts, pwaBarlow, useTheme } from "@/theme";
 import { Icon } from "@/ui";
 import { ExerciseList } from "./ExerciseList";
 
-/** Bottom sheet "Wybierz ćwiczenie" (PWA ExerciseSelectionModal + ExerciseList in select mode). */
-export function ExercisePickerSheet({ workoutId }: { workoutId: string }) {
+/**
+ * Bottom sheet "Wybierz ćwiczenie" (PWA ExerciseSelectionModal + ExerciseList in select mode). Adds the pick to a workout
+ * (`workoutId`) or to the plan form draft (`planKey`).
+ */
+export function ExercisePickerSheet({ workoutId, planKey }: { workoutId?: string; planKey?: string }) {
   const { theme } = useTheme();
   const c = theme.colors;
   const router = useRouter();
   const act = useAction();
-  const workout = useWorkout(workoutId);
-  const added = useMemo(() => new Set(workout?.items.map((i) => i.exerciseId)), [workout]);
+  const workout = useWorkout(workoutId ?? "");
+  const all = useExercises();
+  // The plan draft cannot change while this sheet is open, so reading it once is enough.
+  const added = useMemo(
+    () => new Set(planKey ? getDraft(planKey)?.items.map((i) => i.exerciseId) : workout?.items.map((i) => i.exerciseId)),
+    [planKey, workout],
+  );
 
-  const close = () => (router.canGoBack() ? router.back() : router.replace("/trainings"));
+  const close = () => (router.canGoBack() ? router.back() : router.replace(planKey ? "/plans" : "/trainings"));
   const select = (exerciseId: string) => {
-    act((ctx) => addItem(ctx, workoutId, exerciseId));
+    if (planKey) {
+      const exercise = all.find((e) => e.id === exerciseId);
+      if (exercise) appendToDraft(planKey, exercise);
+    } else if (workoutId) {
+      act((ctx) => addItem(ctx, workoutId, exerciseId));
+    }
     close();
   };
 
@@ -43,7 +57,7 @@ export function ExercisePickerSheet({ workoutId }: { workoutId: string }) {
           <Pressable
             accessibilityRole="button"
             testID="picker-new-exercise"
-            onPress={() => router.replace({ pathname: "/exercise-new", params: { workoutId } })}
+            onPress={() => router.replace({ pathname: "/exercise-new", params: planKey ? { planKey } : { workoutId } })}
             style={[styles.newButton, { backgroundColor: c.btnBg }]}
           >
             <Icon name="plusLines" size={17} strokeWidth={2.5} color="#ffffff" />

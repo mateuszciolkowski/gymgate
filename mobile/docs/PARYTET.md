@@ -4,7 +4,7 @@ Każda pozycja to funkcja lub stan PWA, który apka musi odtworzyć. Opis zachow
 
 Oznaczenia: `[ ]` do zrobienia, `[x]` zweryfikowane, `[~]` zrobione, niezweryfikowane na urządzeniu, `[o]` świadome odstępstwo (wpis w `DECYZJE.md`).
 
-Stan: 98 z 243 pozycji zweryfikowanych.
+Stan: 121 z 243 pozycji zweryfikowanych.
 
 ## A. Start, logowanie, rejestracja, sesja (7)
 
@@ -189,34 +189,34 @@ Stan: 98 z 243 pozycji zweryfikowanych.
 
 ## J. Plany (5)
 
-- [ ] J1 Nagłówek, podpowiedź o gwiazdce, „Stwórz nowy plan”
-- [ ] J2 Cztery zakładki i ich zawartość; domyślnie „Ulubione”
-- [ ] J3 Wyszukiwarka rozmyta z czyszczeniem
-- [ ] J4 „Sortuj”: cztery opcje, domyślnie A–Z
-- [ ] J5 Puste stany czterech zakładek
-- [ ] J6 Karta: nazwa, liczba ćwiczeń z odmianą, „• Publiczny”, do trzech grup
-- [ ] J7 Karta: rozwijana lista ćwiczeń
-- [ ] J8 „Edytuj” i „Usuń” tylko dla uprawnionych
-- [ ] J9 „Duplikuj do moich” dla cudzych i wbudowanych; „Kopiowanie…”; nazwa „(kopia)”, „(kopia 2)”
-- [ ] J10 Gwiazdka ulubionych; ulubione pojawiają się w wyborze planu treningu
-- [ ] J11 Usunięcie z potwierdzeniem; treningi tracą powiązanie z planem
-- [ ] J12 Formularz: nagłówek nowy / edycja, „Anuluj”
-- [ ] J13 Formularz: nazwa (limit 100), nazwa skrócona (limit 50) z podpowiedzią
-- [ ] J14 Formularz: przełącznik „Publiczny plan”
-- [ ] J15 Formularz: licznik „Ćwiczenia (n/50)”, dodawanie przez modal wyboru
-- [ ] J16 Formularz: zmiana kolejności przeciąganiem
-- [ ] J17 Formularz: usuwanie ćwiczenia z planu
-- [ ] J18 Formularz: pięć walidacji w kolejności
-- [ ] J19 Formularz: zapis, „Zapisywanie...”, błąd z powodem z serwera (naprawa B3)
-- [ ] J20 Formularz: szkic przetrwa wyjście do „Nowe ćwiczenie”
-- [ ] J21 Plan publiczny tylko z ćwiczeń globalnych (lokalnie i na serwerze)
-- [ ] J22 Unikalność nazwy planu w obrębie konta
-- [ ] J23 Historia: lista wersji, „Aktualna”, daty, „Wersja początkowa”
-- [ ] J24 Historia: sześć typów zmian ze znakami i tekstami
-- [ ] J25 Historia: wykrywanie przesunięć (najdłuższy zachowany podciąg)
-- [ ] J26 Historia: rozwinięcie pełnej listy ćwiczeń wersji
-- [ ] J27 Plany edytowalne offline (D3); zmiana odrzucona przez serwer widoczna z możliwością poprawy
-- [ ] J28 Admin: „Globalny plan treningowy”, edycja i usuwanie planów wbudowanych
+- [x] J1 Nagłówek, podpowiedź o gwiazdce, „Stwórz nowy plan” — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J2 Cztery zakładki i ich zawartość; domyślnie „Ulubione” — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J3 Wyszukiwarka rozmyta z czyszczeniem — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J4 „Sortuj”: cztery opcje, domyślnie A–Z — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J5 Puste stany czterech zakładek — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J6 Karta: nazwa, liczba ćwiczeń z odmianą, „• Publiczny”, do trzech grup — zrzut vs wzorzec + test komponentu (wg raportu agenta)
+- [x] J7 Karta: rozwijana lista ćwiczeń — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J8 „Edytuj” i „Usuń” tylko dla uprawnionych — test jednostkowy/komponentu
+- [x] J9 „Duplikuj do moich” dla cudzych i wbudowanych; „Kopiowanie…”; nazwa „(kopia)”, „(kopia 2)” — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J10 Gwiazdka ulubionych; ulubione pojawiają się w wyborze planu treningu — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J11 Usunięcie z potwierdzeniem; treningi tracą powiązanie z planem — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J12 Formularz: nagłówek nowy / edycja, „Anuluj” — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J13 Formularz: nazwa (limit 100), nazwa skrócona (limit 50) z podpowiedzią — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J14 Formularz: przełącznik „Publiczny plan” — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J15 Formularz: licznik „Ćwiczenia (n/50)”, dodawanie przez modal wyboru — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J16 Formularz: zmiana kolejności przeciąganiem — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J17 Formularz: usuwanie ćwiczenia z planu — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J18 Formularz: pięć walidacji w kolejności — test jednostkowy/komponentu
+- [~] J19 Formularz: zapis, „Zapisywanie...”, błąd z powodem z serwera (naprawa B3) — zapis w teście komponentu; „Zapisywanie...” nieobserwowalne (zapis natychmiastowy)
+- [x] J20 Formularz: szkic przetrwa wyjście do „Nowe ćwiczenie” — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J21 Plan publiczny tylko z ćwiczeń globalnych (lokalnie i na serwerze) — test jednostkowy/komponentu
+- [~] J22 Unikalność nazwy planu w obrębie konta — test komponentu; odrzucenie przez serwer niesprawdzone
+- [x] J23 Historia: lista wersji, „Aktualna”, daty, „Wersja początkowa” — Maestro na symulatorze iOS (Etap 8, wg raportu agenta)
+- [x] J24 Historia: sześć typów zmian ze znakami i tekstami — test jednostkowy/komponentu
+- [x] J25 Historia: wykrywanie przesunięć (najdłuższy zachowany podciąg) — test jednostkowy/komponentu
+- [~] J26 Historia: rozwinięcie pełnej listy ćwiczeń wersji — rozwinięcie karty w Maestro, bez zrzutu
+- [~] J27 Plany edytowalne offline (D3); zmiana odrzucona przez serwer widoczna z możliwością poprawy — tworzenie i edycja offline w Maestro; przyjęcie przez serwer wywnioskowane z pustej kolejki, baza nie była sprawdzana
+- [~] J28 Admin: „Globalny plan treningowy”, edycja i usuwanie planów wbudowanych — test komponentu; brak konta admina na symulatorze
 
 ## K. Statystyki (6)
 

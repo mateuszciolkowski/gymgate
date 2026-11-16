@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from "@/ui/ScreenPlaceholder";
+import { PlansScreen } from "@/features/plans";
 
 export default function Plans() {
-  return <ScreenPlaceholder title="Plany" />;
+  return <PlansScreen />;
 }

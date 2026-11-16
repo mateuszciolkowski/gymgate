@@ -58,3 +58,20 @@ export function appendExercise(
     ],
   };
 }
+
+/** PWA PlanFormScreen.validate: the five checks in order. Null = OK. `creatorOf` gives an exercise's creator (null = built-in). */
+export function planDraftError(
+  draft: Pick<PlanDraft, "name" | "isPublic" | "isGlobal" | "items">,
+  creatorOf: (exerciseId: string) => string | null | undefined,
+): string | null {
+  const name = draft.name.trim();
+  if (name.length < 3) return "Nazwa planu musi mieć co najmniej 3 znaki";
+  if (name.length > 100) return "Nazwa planu może mieć maksymalnie 100 znaków";
+  if (draft.items.length === 0) return "Dodaj co najmniej 1 ćwiczenie";
+  if (draft.items.length > MAX_PLAN_EXERCISES) return `Plan może zawierać maksymalnie ${MAX_PLAN_EXERCISES} ćwiczeń`;
+  const privateOne = (draft.isPublic || draft.isGlobal) && draft.items.some((i) => {
+    const creator = creatorOf(i.exerciseId);
+    return creator !== null && creator !== undefined && creator !== "1";
+  });
+  return privateOne ? "Plan publiczny lub globalny nie może zawierać prywatnych ćwiczeń" : null;
+}

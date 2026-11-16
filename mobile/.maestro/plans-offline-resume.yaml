@@ -1,0 +1,23 @@
+# After plans-offline.yaml with the backend running again: the plan synced (no pending changes); deletes it.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- extendedWaitUntil:
+    notVisible: ".*Oczekujące zmiany.*"
+    timeout: 30000
+- tapOn:
+    id: "bar-menu"
+- tapOn:
+    id: "drawer-item-plans"
+- tapOn:
+    id: "plans-tab-mine"
+- assertVisible: ".*Offline Plan.*"
+- tapOn:
+    id: "plan-delete-.*"
+- tapOn: "Usuń"
+- assertVisible: "Stwórz swój pierwszy plan treningowy"

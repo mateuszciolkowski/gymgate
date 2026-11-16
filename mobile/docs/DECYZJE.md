@@ -120,6 +120,18 @@ Format: numer, data, decyzja, powód, skutek.
 
 **D-59 (2026-11-16) Zdjęcia ćwiczeń tylko do odczytu:** ani PWA, ani protokół synchronizacji nie mają wysyłania zdjęć; apka pokazuje pobrane, z pamięcią dyskową `expo-image`.
 
+## Plany (Etap 8)
+
+**D-60 (2026-11-16) Plany działają offline:** tworzenie, edycja, usuwanie, duplikowanie i ulubione zapisują się lokalnie i idą przez kolejkę (PWA wymaga sieci). Znika stan „Kopiowanie…”.
+
+**D-61 (2026-11-16) Komunikaty błędów planu z lokalnej walidacji mają brzmienie serwera** (po angielsku, np. „Plan with this name already exists”), zgodnie z D-12. Wstępna walidacja formularza używa polskich tekstów PWA.
+
+**D-62 (2026-11-16) Historia planu offline:** kopia ostatnio pobranej historii w pamięci urządzenia, z notą „Brak połączenia — historia sprzed ostatniej synchronizacji…”. Plan utworzony offline nie ma historii do pierwszego otwarcia online. Kopie nie są usuwane po skasowaniu planu ani wylogowaniu.
+
+**D-63 (2026-11-16) Apka wysyła `isGlobal` tylko po zmianie przez admina.** PWA wysyła je zawsze, a serwer wtedy wymusza `isPublic = true`, więc prywatny plan edytowany przez admina staje się publiczny. Błąd PWA/backendu nienaprawiony.
+
+**D-64 (2026-11-16) Zmiana kolejności ćwiczeń w planie:** własna lista przeciągana (gesture-handler + reanimated), wiersze o stałej wysokości, dodatkowo akcje dostępności „Przesuń wyżej/niżej”.
+
 ## Otwarte, do rozstrzygnięcia w trakcie
 
 - Biblioteka przeciągania w formularzu planu (Etap 8).

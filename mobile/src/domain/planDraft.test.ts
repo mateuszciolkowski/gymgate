@@ -3,6 +3,7 @@ import {
   MAX_PLAN_EXERCISES,
   appendExercise,
   draftFromPlan,
+  planDraftError,
   type PlanDraft,
 } from "./planDraft";
 import type { WorkoutPlan } from "./types";
@@ -83,5 +84,24 @@ describe("appendExercise", () => {
       })),
     };
     expect(appendExercise(full, bench)).toBe(full);
+  });
+});
+
+describe("planDraftError", () => {
+  const item = (id: string) => ({ exerciseId: id, name: id, muscleGroups: [] });
+  const base = { name: "Plan A", isPublic: false, isGlobal: false, items: [item("a")] };
+  const creator = (id: string) => (id === "own" ? "u1" : id === "builtin" ? null : id === "legacy" ? "1" : undefined);
+
+  it("checks in the PWA order", () => {
+    expect(planDraftError({ ...base, name: " ab ", items: [] }, creator)).toBe("Nazwa planu musi mieć co najmniej 3 znaki");
+    expect(planDraftError({ ...base, name: "x".repeat(101), items: [] }, creator)).toBe("Nazwa planu może mieć maksymalnie 100 znaków");
+    expect(planDraftError({ ...base, items: [] }, creator)).toBe("Dodaj co najmniej 1 ćwiczenie");
+    expect(planDraftError({ ...base, items: Array.from({ length: 51 }, (_, i) => item(`e${i}`)) }, creator)).toBe("Plan może zawierać maksymalnie 50 ćwiczeń");
+    expect(planDraftError({ ...base, isPublic: true, items: [item("own")] }, creator)).toBe("Plan publiczny lub globalny nie może zawierać prywatnych ćwiczeń");
+  });
+  it("allows private exercises in a private plan and global ones in a public plan", () => {
+    expect(planDraftError({ ...base, items: [item("own")] }, creator)).toBeNull();
+    expect(planDraftError({ ...base, isPublic: true, items: [item("builtin"), item("legacy"), item("unknown")] }, creator)).toBeNull();
+    expect(planDraftError({ ...base, isGlobal: true, items: [item("own")] }, creator)).not.toBeNull();
   });
 });
