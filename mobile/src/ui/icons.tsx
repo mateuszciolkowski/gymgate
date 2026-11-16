@@ -199,6 +199,18 @@ const defs = {
     nodes: [["path", { d: "M6 5v14M18 5v14M2 9h4M18 9h4M2 15h4M18 15h4M6 12h12" }]],
   },
   check: { size: 15, stroke: 2.5, round: true, nodes: [["path", { d: "M5 12l5 5 9-9" }]] },
+  /** Person of the "own exercise" marker in the exercise list. */
+  user: { size: 13, stroke: 2.2, round: true, nodes: [["path", { d: "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" }], ["circle", { cx: 12, cy: 7, r: 4 }]] },
+  globe: {
+    size: 18,
+    stroke: 1.8,
+    round: true,
+    nodes: [
+      ["circle", { cx: 12, cy: 12, r: 10 }],
+      line(2, 12, 22, 12),
+      ["path", { d: "M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" }],
+    ],
+  },
   chevronDown: { size: 14, stroke: 2, round: true, nodes: [["polyline", { points: "6 9 12 15 18 9" }]] },
   search: { size: 15, stroke: 2, round: true, nodes: [["circle", { cx: 11, cy: 11, r: 7 }], ["path", { d: "M20 20l-4-4" }]] },
   calendar: {

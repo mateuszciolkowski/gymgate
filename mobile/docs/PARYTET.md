@@ -4,7 +4,7 @@ Każda pozycja to funkcja lub stan PWA, który apka musi odtworzyć. Opis zachow
 
 Oznaczenia: `[ ]` do zrobienia, `[x]` zweryfikowane, `[~]` zrobione, niezweryfikowane na urządzeniu, `[o]` świadome odstępstwo (wpis w `DECYZJE.md`).
 
-Stan: 77 z 243 pozycji zweryfikowanych.
+Stan: 98 z 243 pozycji zweryfikowanych.
 
 ## A. Start, logowanie, rejestracja, sesja (7)
 
@@ -159,33 +159,33 @@ Stan: 77 z 243 pozycji zweryfikowanych.
 
 ## I. Ćwiczenia (4)
 
-- [ ] I1 Nagłówek „Twoja baza” / „Ćwiczenia”, przycisk „Nowe ćwiczenie”
-- [ ] I2 Wyszukiwarka z czyszczeniem
-- [ ] I3 Wyszukiwanie rozmyte: polskie znaki, tolerancja literówek, dowolna kolejność słów
-- [ ] I4 Sortowanie A → Z / Z → A wg polskiego alfabetu
-- [ ] I5 Filtr „Wykonywane” z wyróżnieniem kart
-- [ ] I6 Filtr „Ze zdjęciem”
-- [ ] I7 Filtr „Moje własne”
-- [ ] I8 Rząd grup mięśniowych: 20 grup w kolejności, jedna wybrana, odznaczanie
-- [ ] I9 Łączenie filtrów
-- [ ] I10 Widoczność: globalne i własne
-- [ ] I11 Karta: nazwa, ikona własnego, etykiety, opis (2 linie), „Ostatnio” i „Rekord”
-- [ ] I12 Karta: „Edytuj” i „Usuń” tylko dla twórcy lub admina
-- [ ] I13 Stan ładowania i „Nie znaleziono ćwiczeń”
-- [ ] I14 Usuwanie z potwierdzeniem; błąd
-- [ ] I15 Usunięcie ćwiczenia usuwa je z historii treningów, planów i statystyk (jak backend)
-- [ ] I16 Modal wyboru: arkusz 90%, tytuł, zamknięcie, „Dodaj nowe ćwiczenie”
-- [ ] I17 Modal wyboru: wykluczenie już dodanych; „Wszystkie ćwiczenia zostały już dodane”
-- [ ] I18 Modal wyboru: wybór dodaje ćwiczenie i zamyka; klawiatura się chowa
-- [ ] I19 Nowe ćwiczenie: pola, placeholdery, dynamiczna lista grup bez powtórzeń
-- [ ] I20 Nowe ćwiczenie: walidacje i ich kolejność
-- [ ] I21 Nowe ćwiczenie: „Dodawanie...”, blokada pól, błąd zapisu
-- [ ] I22 Nowe ćwiczenie: działa offline i jest od razu używalne w treningu i planie
-- [ ] I23 Edycja ćwiczenia: pola wypełnione, walidacja, „Zapisz zmiany”
-- [ ] I24 Zdjęcie ćwiczenia: modal z tytułem, etykiety etapów przy wielu zdjęciach
-- [ ] I25 Zdjęcia dostępne offline po pierwszym pobraniu
-- [ ] I26 Admin: przełącznik „Globalne ćwiczenie” ze znaczkiem
-- [ ] I27 Admin: edycja i usuwanie cudzych i globalnych ćwiczeń
+- [x] I1 Nagłówek „Twoja baza” / „Ćwiczenia”, przycisk „Nowe ćwiczenie” — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [x] I2 Wyszukiwarka z czyszczeniem — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [x] I3 Wyszukiwanie rozmyte: polskie znaki, tolerancja literówek, dowolna kolejność słów — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [x] I4 Sortowanie A → Z / Z → A wg polskiego alfabetu — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [~] I5 Filtr „Wykonywane” z wyróżnieniem kart — test jednostkowy filtra; wyróżnienie kart niewidziane na ekranie
+- [~] I6 Filtr „Ze zdjęciem” — test jednostkowy; brak zdjęć w danych
+- [x] I7 Filtr „Moje własne” — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [x] I8 Rząd grup mięśniowych: 20 grup w kolejności, jedna wybrana, odznaczanie — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [x] I9 Łączenie filtrów — test jednostkowy/komponentu
+- [x] I10 Widoczność: globalne i własne — test jednostkowy/komponentu
+- [x] I11 Karta: nazwa, ikona własnego, etykiety, opis (2 linie), „Ostatnio” i „Rekord” — zrzut vs wzorzec (wg raportu agenta)
+- [x] I12 Karta: „Edytuj” i „Usuń” tylko dla twórcy lub admina — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [x] I13 Stan ładowania i „Nie znaleziono ćwiczeń” — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [x] I14 Usuwanie z potwierdzeniem; błąd — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [x] I15 Usunięcie ćwiczenia usuwa je z historii treningów, planów i statystyk (jak backend) — test jednostkowy/komponentu
+- [x] I16 Modal wyboru: arkusz 90%, tytuł, zamknięcie, „Dodaj nowe ćwiczenie” — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [x] I17 Modal wyboru: wykluczenie już dodanych; „Wszystkie ćwiczenia zostały już dodane” — test jednostkowy/komponentu
+- [x] I18 Modal wyboru: wybór dodaje ćwiczenie i zamyka; klawiatura się chowa — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [x] I19 Nowe ćwiczenie: pola, placeholdery, dynamiczna lista grup bez powtórzeń — zrzut vs wzorzec + test komponentu (wg raportu agenta)
+- [x] I20 Nowe ćwiczenie: walidacje i ich kolejność — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [~] I21 Nowe ćwiczenie: „Dodawanie...”, blokada pól, błąd zapisu — błąd zapisu w teście komponentu; stan „Dodawanie...” nieobserwowalny (zapis natychmiastowy)
+- [x] I22 Nowe ćwiczenie: działa offline i jest od razu używalne w treningu i planie — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [x] I23 Edycja ćwiczenia: pola wypełnione, walidacja, „Zapisz zmiany” — Maestro na symulatorze iOS (Etap 7, wg raportu agenta)
+- [~] I24 Zdjęcie ćwiczenia: modal z tytułem, etykiety etapów przy wielu zdjęciach — brak zdjęć w danych testowych
+- [~] I25 Zdjęcia dostępne offline po pierwszym pobraniu — pamięć dyskowa expo-image, niesprawdzone
+- [~] I26 Admin: przełącznik „Globalne ćwiczenie” ze znaczkiem — test komponentu; brak konta admina na symulatorze
+- [x] I27 Admin: edycja i usuwanie cudzych i globalnych ćwiczeń — test jednostkowy/komponentu
 
 ## J. Plany (5)
 

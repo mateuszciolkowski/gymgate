@@ -1,0 +1,112 @@
+# Exercises tab: validation, create, search/filters, edit, delete (with confirmation). Needs a signed-in app (login-sync.yaml first).
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-tab-exercises"
+- assertVisible: "Twoja baza"
+- takeScreenshot: ${OUT}/40-cwiczenia
+# create: validation first
+- tapOn:
+    id: "exercise-add"
+- assertVisible: "Dodaj ćwiczenie do swojej bazy"
+- takeScreenshot: ${OUT}/41-nowe-cwiczenie
+- tapOn:
+    id: "exercise-submit"
+- assertVisible: "Nazwa ćwiczenia jest wymagana"
+# description first (the multiline keyboard cannot be hidden by Maestro), the single-line name last: Enter dismisses its keyboard
+- tapOn:
+    id: "exercise-description"
+- inputText: "Opis testowy"
+- tapOn:
+    text: "Continue"
+    optional: true # iOS "slide to type" sheet on first keyboard use
+- tapOn:
+    id: "exercise-name"
+- inputText: "Maestro Przysiad"
+- pressKey: Enter
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "exercise-submit"
+      - assertVisible: "Wybierz przynajmniej jedną grupę mięśniową"
+- tapOn:
+    id: "exercise-group-select-0"
+- tapOn:
+    id: "exercise-group-select-0-CHEST"
+- tapOn:
+    id: "exercise-submit"
+# back on the list; the new exercise is visible and editable
+- assertVisible: "Twoja baza"
+- tapOn:
+    id: "exercise-search"
+- inputText: "maestro przysaid"
+- assertVisible: "Maestro Przysiad"
+- hideKeyboard
+# filter "Moje własne"
+- tapOn:
+    id: "exercise-filter-mine"
+- assertVisible: "Maestro Przysiad"
+- tapOn:
+    id: "exercise-search-clear"
+- tapOn:
+    id: "exercise-filter-mine"
+- scrollUntilVisible:
+    element:
+      id: "exercise-sort"
+    direction: UP
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "exercise-sort"
+      - assertVisible: "Z → A"
+- tapOn:
+    id: "exercise-sort"
+# group chip
+- scrollUntilVisible:
+    element:
+      id: "exercise-group-CHEST"
+    direction: UP
+- tapOn:
+    id: "exercise-group-CHEST"
+- assertVisible: "Maestro Przysiad"
+- tapOn:
+    id: "exercise-group-CHEST"
+# edit
+- scrollUntilVisible:
+    element:
+      id: "exercise-search"
+    direction: UP
+- tapOn:
+    id: "exercise-search"
+- inputText: "maestro przysiad"
+- hideKeyboard
+- tapOn:
+    id: "exercise-edit-.*"
+- assertVisible: "Edytuj ćwiczenie"
+- tapOn:
+    id: "exercise-name"
+- eraseText: 40
+- inputText: "Maestro Przysiad v2"
+- pressKey: Enter # hideKeyboard would tap the multiline description under it
+- tapOn:
+    id: "exercise-submit"
+- assertVisible: "Maestro Przysiad v2"
+# delete: cancel first, then confirm
+- tapOn:
+    id: "exercise-delete-.*"
+- assertVisible: "Czy na pewno chcesz usunąć ćwiczenie.*"
+- tapOn: "Anuluj"
+- assertVisible: "Maestro Przysiad v2"
+- tapOn:
+    id: "exercise-delete-.*"
+- tapOn: "Usuń"
+- assertNotVisible: "Maestro Przysiad v2"
+- assertVisible: "Nie znaleziono ćwiczeń"

@@ -106,6 +106,20 @@ Format: numer, data, decyzja, powód, skutek.
 
 **D-53 (2026-11-15) Zmiana daty w szczegółach treningu zachowuje pierwotną godzinę.**
 
+## Ćwiczenia (Etap 7)
+
+**D-54 (2026-11-16) Potwierdzenie usunięcia ćwiczenia podaje skutki:** „Zniknie też z historii: treningi: N, plany: M.” (wykonanie D-10).
+
+**D-55 (2026-11-16) Wybór partii mięśniowej to pole otwierające listę w modalu** zamiast natywnego `<select>`; partie wybrane w innych polach są nieaktywne.
+
+**D-56 (2026-11-16) Pola nazwy i opisu ćwiczenia mają wyłączoną autokorektę.** Dodane dla stabilności Maestro; do cofnięcia, jeśli właściciel woli autokorektę.
+
+**D-57 (2026-11-16) Etykiety dostępności „Edytuj ćwiczenie” / „Usuń ćwiczenie”** na karcie (PWA: „Edytuj” / „Usuń”).
+
+**D-58 (2026-11-16) Brak stanu „Ładowanie ćwiczeń...”:** lista czyta lokalną bazę synchronicznie, a pierwsze pobranie ma własny ekran.
+
+**D-59 (2026-11-16) Zdjęcia ćwiczeń tylko do odczytu:** ani PWA, ani protokół synchronizacji nie mają wysyłania zdjęć; apka pokazuje pobrane, z pamięcią dyskową `expo-image`.
+
 ## Otwarte, do rozstrzygnięcia w trakcie
 
 - Biblioteka przeciągania w formularzu planu (Etap 8).

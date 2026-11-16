@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { API_BASE } from "@/api/config";
 import type { WorkoutItem } from "@/domain/types";
 import { fonts, useTheme } from "@/theme";
@@ -27,7 +28,7 @@ export function ExercisePhotoButton({ photos, exerciseName }: { photos?: Photos;
           {photos.map((p) => (
             <View key={p.id}>
               {photos.length > 1 ? <Text style={[styles.stage, { color: c.textMuted }]}>{STAGE_LABELS[p.photoStage] ?? p.photoStage}</Text> : null}
-              <Image source={{ uri: resolveUrl(p.photoUrl) }} accessibilityLabel={STAGE_LABELS[p.photoStage] ?? p.photoStage} resizeMode="contain" style={[styles.image, { borderColor: c.border }]} />
+              <Image source={{ uri: resolveUrl(p.photoUrl) }} cachePolicy="disk" accessibilityLabel={STAGE_LABELS[p.photoStage] ?? p.photoStage} contentFit="contain" style={[styles.image, { borderColor: c.border }]} />
             </View>
           ))}
         </View>

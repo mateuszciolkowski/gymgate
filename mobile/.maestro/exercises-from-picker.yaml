@@ -1,0 +1,71 @@
+# Picker: filter row, "Dodaj nowe ćwiczenie" -> form -> the new exercise lands in the workout. Needs a signed-in app.
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- assertVisible: "Historia sesji"
+- runFlow:
+    when:
+      visible:
+        id: "bar-continue-workout"
+    commands:
+      - tapOn:
+          id: "bar-continue-workout"
+      - tapOn:
+          id: "workout-delete"
+      - tapOn: "Usuń"
+      - assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-new-workout"
+- tapOn:
+    id: "workout-name"
+- inputText: "Z pickera"
+- hideKeyboard
+- tapOn:
+    id: "workout-submit"
+- assertVisible: "Czas trwania"
+- tapOn:
+    id: "add-exercise"
+- assertVisible: "Wybierz ćwiczenie"
+- assertVisible: "Wykonywane"
+- takeScreenshot: ${OUT}/22-wybor-cwiczenia
+- tapOn:
+    id: "picker-new-exercise"
+- assertVisible: "Dodaj ćwiczenie do swojej bazy"
+# description first (multiline keyboard stays up), the single-line name last so Enter dismisses the keyboard
+- tapOn:
+    id: "exercise-description"
+- inputText: "Opis"
+- tapOn:
+    text: "Continue"
+    optional: true # iOS "slide to type" sheet on first keyboard use
+- tapOn:
+    id: "exercise-group-select-0"
+- tapOn:
+    id: "exercise-group-select-0-CHEST"
+- tapOn:
+    id: "exercise-name"
+- inputText: "Picker Nowe"
+- pressKey: Enter # single-line field: return dismisses the keyboard (hideKeyboard does not work reliably here)
+- tapOn:
+    id: "exercise-submit"
+- assertVisible: "Czas trwania"
+- assertVisible: ".*Picker Nowe.*"
+# cleanup: delete the workout, then the exercise
+- tapOn:
+    id: "workout-delete"
+- tapOn: "Usuń"
+- assertVisible: "Historia sesji"
+- tapOn:
+    id: "bar-tab-exercises"
+- tapOn:
+    id: "exercise-search"
+- inputText: "picker nowe"
+- hideKeyboard
+- tapOn:
+    id: "exercise-delete-.*"
+- tapOn: "Usuń"
+- assertVisible: "Nie znaleziono ćwiczeń"

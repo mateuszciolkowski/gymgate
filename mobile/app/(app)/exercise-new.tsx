@@ -1,6 +1,8 @@
-import { ScreenPlaceholder } from "@/ui/ScreenPlaceholder";
+import { useLocalSearchParams } from "expo-router";
+import { ExerciseFormScreen } from "@/features/exercises";
 
-// Placeholder: the exercise form is stage 7. The picker's "Dodaj nowe ćwiczenie" leads here until then.
+/** Create-exercise form. With `workoutId` (opened from the picker) the new exercise is also added to that workout. */
 export default function ExerciseNew() {
-  return <ScreenPlaceholder title="Nowe ćwiczenie" />;
+  const { workoutId } = useLocalSearchParams<{ workoutId?: string }>();
+  return <ExerciseFormScreen workoutId={workoutId} />;
 }
