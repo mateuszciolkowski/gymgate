@@ -1,4 +1,4 @@
-import { exercisesWord, loggedSetsWord, fmtDate, fmtDuration, fmtListDuration, fmtTimer, setsWord } from "./formatters";
+import { exercisesWord, loggedSetsWord, fmtDate, fmtDayMonth, fmtDuration, fmtListDuration, fmtTimer, setsWord } from "./formatters";
 
 describe("fmtTimer", () => {
   it("pads minutes and seconds", () => {
@@ -40,5 +40,12 @@ describe("list formatters and plurals (D-17, D-25)", () => {
 describe("fmtDate", () => {
   it("has no ' o ' between date and time", () => {
     expect(fmtDate(new Date(2026, 10, 12, 0, 3).toISOString())).not.toMatch(/ o /);
+  });
+});
+
+describe("fmtDayMonth", () => {
+  it("short Polish month without year (chart axis)", () => {
+    expect(fmtDayMonth("2026-08-14T12:00:00.000Z")).toBe("14 sie");
+    expect(fmtDayMonth("2026-10-25T12:00:00.000Z")).toBe("25 paź");
   });
 });

@@ -46,3 +46,8 @@ export function plural(n: number, one: string, few: string, many: string): strin
 export const setsWord = (n: number): string => plural(n, "seria", "serie", "serii");
 export const exercisesWord = (n: number): string => plural(n, "ćwiczenie", "ćwiczenia", "ćwiczeń");
 export const loggedSetsWord = (n: number): string => plural(n, "zalogowana seria", "zalogowane serie", "zalogowanych serii");
+
+/** Chart axis date ("14 sie"). */
+export function fmtDayMonth(date: string): string {
+  return new Date(date).toLocaleDateString("pl-PL", { day: "numeric", month: "short" });
+}

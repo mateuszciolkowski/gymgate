@@ -4,7 +4,7 @@ Każda pozycja to funkcja lub stan PWA, który apka musi odtworzyć. Opis zachow
 
 Oznaczenia: `[ ]` do zrobienia, `[x]` zweryfikowane, `[~]` zrobione, niezweryfikowane na urządzeniu, `[o]` świadome odstępstwo (wpis w `DECYZJE.md`).
 
-Stan: 121 z 243 pozycji zweryfikowanych.
+Stan: 130 z 243 pozycji zweryfikowanych.
 
 ## A. Start, logowanie, rejestracja, sesja (7)
 
@@ -220,19 +220,19 @@ Stan: 121 z 243 pozycji zweryfikowanych.
 
 ## K. Statystyki (6)
 
-- [ ] K1 Nagłówek i trzy kafle (miesiąc, rok, serie)
-- [ ] K2 Przełącznik „Rekordy” / „Aktualne” z tytułami
-- [ ] K3 Lista rekordów: sortowanie malejąco, format liczby z przecinkiem
-- [ ] K4 Lista aktualnych: pierwsza seria najnowszego treningu, „—” i przygaszenie bez danych
-- [ ] K5 Stan pusty
-- [ ] K6 Szczegóły: nagłówek, cztery kafle
-- [ ] K7 Wykres: geometria, etykiety osi, daty skrajne, punkty i linia
-- [ ] K8 Wykres: stan pusty i pojedynczy punkt
-- [ ] K9 „Ostatnie sesje”: 8 najnowszych, przełącznik kolejności, serie treningu
-- [ ] K10 Stan „Brak historii dla tego ćwiczenia.”
-- [ ] K11 Statystyki liczone lokalnie dają wynik identyczny z serwerem (test porównujący na danych z seeda)
-- [ ] K12 Statystyki aktualizują się offline po zakończeniu treningu
-- [ ] K13 Kolejność przy tym samym dniu rozstrzygana jak na serwerze (`createdAt`)
+- [x] K1 Nagłówek i trzy kafle (miesiąc, rok, serie) — test komponentu + Maestro na symulatorze iOS (Etap 10, wg raportu agenta)
+- [x] K2 Przełącznik „Rekordy” / „Aktualne” z tytułami — test komponentu + Maestro na symulatorze iOS (Etap 10, wg raportu agenta)
+- [x] K3 Lista rekordów: sortowanie malejąco, format liczby z przecinkiem — test komponentu + zrzut vs wzorzec (wg raportu agenta; zrzut 52 obejrzany przez orkiestratora)
+- [~] K4 Lista aktualnych: pierwsza seria najnowszego treningu, „—” i przygaszenie bez danych — reguła pierwszej serii w teście jednostkowym; „—” i przygaszenie bez testu
+- [x] K5 Stan pusty — test jednostkowy/komponentu
+- [x] K6 Szczegóły: nagłówek, cztery kafle — test komponentu + zrzut vs wzorzec (wg raportu agenta; zrzut 52 obejrzany przez orkiestratora)
+- [x] K7 Wykres: geometria, etykiety osi, daty skrajne, punkty i linia — zrzut vs wzorzec, dark i light (wg raportu agenta; zrzut 52 obejrzany przez orkiestratora)
+- [~] K8 Wykres: stan pusty i pojedynczy punkt — test komponentu tylko sprawdza, że wykres się renderuje
+- [x] K9 „Ostatnie sesje”: 8 najnowszych, przełącznik kolejności, serie treningu — test komponentu + Maestro na symulatorze iOS (Etap 10, wg raportu agenta)
+- [x] K10 Stan „Brak historii dla tego ćwiczenia.” — test jednostkowy/komponentu
+- [~] K11 Statystyki liczone lokalnie dają wynik identyczny z serwerem (test porównujący na danych z seeda) — test:parity nieuruchomiony w tym etapie; nowe funkcje to porty logiki PWA bez odpowiednika na serwerze
+- [~] K12 Statystyki aktualizują się offline po zakończeniu treningu — odczyt przez żywe zapytanie; bez testu offline
+- [x] K13 Kolejność przy tym samym dniu rozstrzygana jak na serwerze (`createdAt`) — test jednostkowy/komponentu
 
 ## L. Ustawienia (8.3)
 

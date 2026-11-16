@@ -279,6 +279,10 @@ const defs = {
     round: true,
     nodes: [["circle", { cx: 12, cy: 12, r: 10 }], ["polyline", { points: "12 6 12 12 16 14" }]],
   },
+  /** Stats tiles (StatsScreen). */
+  statFlame: { size: 15, stroke: 2, round: true, nodes: [["path", { d: "M12 2s-5 6-5 11a5 5 0 0010 0C17 8 12 2 12 2z" }]] },
+  statBars: { size: 15, stroke: 2, round: true, nodes: [rect(3, 13, 4, 7, 1), rect(10, 8, 4, 12, 1), rect(17, 4, 4, 16, 1)] },
+  statLines: { size: 15, stroke: 2, round: true, nodes: [rect(3, 5, 18, 2, 1), rect(3, 11, 18, 2, 1), rect(3, 17, 11, 2, 1)] },
   /** Crossed-dumbbell glyph of the "new workout" button (filled). */
   workoutAction: {
     size: 32,

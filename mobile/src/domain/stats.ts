@@ -1,5 +1,5 @@
 import type { ExerciseProgression, ExerciseProgressPoint, StatsOverview, StatsProgressMetric } from "./types";
-import { fromHundredths, toHundredths } from "./weight";
+import { fromHundredths, normalizeWeight, toHundredths } from "./weight";
 
 /**
  * Local statistics, same rules as backend workout.repository.ts (getExerciseProgression,
@@ -191,4 +191,37 @@ export function overview(workouts: StatsWorkoutRow[], now: Date = new Date()): S
     }
   }
   return { workoutsLastMonth, workoutsLastYear, totalSets, totalVolume: volumeH / 100 };
+}
+
+/**
+ * "Aktualne" tab: per exercise the first set (setNumber 1, else the first) of its newest completed workout that
+ * has sets (PWA computeFirstSetWeightMap).
+ */
+export function currentFirstSets(workouts: StatsWorkoutRow[]): Map<string, { weight: string; reps: number }> {
+  const map = new Map<string, { weight: string; reps: number }>();
+  for (const w of workouts.filter((x) => x.status === "COMPLETED").sort(byDateThenCreated).reverse()) {
+    for (const item of w.items) {
+      if (map.has(item.exerciseId)) continue;
+      const first = item.sets.find((s) => s.setNumber === 1) ?? item.sets[0];
+      if (first) map.set(item.exerciseId, { weight: normalizeWeight(first.weight), reps: first.repetitions });
+    }
+  }
+  return map;
+}
+
+/** "Ostatnie sesje" text per workout: every set as "62.5 kg × 8", ordered by set number. */
+export function setSummaries(workouts: StatsWorkoutRow[], exerciseId: string): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const w of workouts) {
+    const item = w.items.find((i) => i.exerciseId === exerciseId);
+    if (!item || item.sets.length === 0) continue;
+    map.set(w.id, orderedSets(item).map((s) => `${normalizeWeight(s.weight)} kg × ${s.repetitions}`).join(", "));
+  }
+  return map;
+}
+
+/** The 8 newest points; "asc" re-orders those 8 oldest first (PWA sortedRecentPoints). */
+export function recentPoints(points: ProgressionPoint[], order: "desc" | "asc"): ProgressionPoint[] {
+  const recent = [...points].reverse().slice(0, 8);
+  return order === "asc" ? recent.reverse() : recent;
 }

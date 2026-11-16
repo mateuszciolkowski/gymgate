@@ -1,0 +1,34 @@
+# Statistics: tiles, records <-> current toggle, exercise history (tiles, chart, sessions, order), back.
+# Needs: Metro on 8081, local backend with seed data, the account already signed in and synced (run login-sync first).
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- tapOn:
+    id: "bar-tab-stats"
+- assertVisible: "Twoje postępy"
+- assertVisible: "Rekordy osobiste \\(PR\\)"
+- assertVisible: "wykonanych serii"
+- assertVisible: "Wyciskanie sztangi na ławce.*"
+- tapOn:
+    id: "stats-mode-current"
+- assertVisible: "Aktualne obciążenia"
+- tapOn:
+    id: "stats-mode-records"
+- assertVisible: "Rekordy osobiste \\(PR\\)"
+- tapOn: "Wyciskanie sztangi na ławce.*"
+- assertVisible: "Historia ćwiczenia"
+- assertVisible: "Maks. ciężar"
+- assertVisible: "Ciężar podnoszony w czasie"
+- scrollUntilVisible:
+    element: "Ostatnie sesje"
+- assertVisible: "Najnowsze"
+- tapOn:
+    id: "stats-order-asc"
+- assertVisible: ".*sie 2026.*"
+- tapOn:
+    id: "stats-back"
+- assertVisible: "Twoje postępy"

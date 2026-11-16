@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from "@/ui/ScreenPlaceholder";
+import { StatsScreen } from "@/features/stats";
 
 export default function Stats() {
-  return <ScreenPlaceholder title="Statystyki" />;
+  return <StatsScreen />;
 }

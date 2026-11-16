@@ -1,0 +1,26 @@
+# Statistics screenshots for docs/zrzuty/<theme>/ (50-53 of docs/wzorzec). Seeded, synced account:
+# maestro test -e OUT=dark .maestro/zrzuty-stats.yaml
+appId: com.gymgate.app
+---
+- launchApp
+- openLink: "exp+gymgate://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&disableOnboarding=1"
+- tapOn:
+    text: "Open"
+    optional: true
+- tapOn:
+    id: "bar-tab-stats"
+- assertVisible: "Twoje postępy"
+- takeScreenshot: ${OUT}/50-statystyki
+- tapOn:
+    id: "stats-mode-current"
+- assertVisible: "Aktualne obciążenia"
+- takeScreenshot: ${OUT}/51-statystyki-aktualne
+- tapOn:
+    id: "stats-mode-records"
+- tapOn: "Wyciskanie sztangi na ławce.*"
+- assertVisible: "Historia ćwiczenia"
+- takeScreenshot: ${OUT}/52-statystyki-cwiczenie
+- scrollUntilVisible:
+    element: "Ostatnie sesje"
+- scroll
+- takeScreenshot: ${OUT}/53-statystyki-cwiczenie-sesje

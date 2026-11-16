@@ -1,5 +1,8 @@
 import {
   allExerciseStats,
+  currentFirstSets,
+  recentPoints,
+  setSummaries,
   exerciseStats,
   lastPoint,
   overview,
@@ -172,5 +175,26 @@ describe("seed-local fixture", () => {
     expect(o.workoutsLastMonth).toBe(5); // 3, 9, 15, 21, 27 days ago
     // sorted heaviest first: press 130 + 15 = 145 leads, then deadlift 125
     expect(all.slice(0, 2).map((s) => s.exerciseId)).toEqual(["press", "deadlift"]);
+  });
+});
+
+describe("stats screen helpers", () => {
+  it("currentFirstSets takes setNumber 1 of the newest completed workout, ties broken by createdAt", () => {
+    const old = workout("2026-01-01T00:00:00.000Z", "2026-01-01T08:00:00.000Z", [{ ex: "e", sets: [[50, 10]] }]);
+    const a = workout("2026-01-02T00:00:00.000Z", "2026-01-02T08:00:00.000Z", [{ ex: "e", sets: [[60, 8], [70, 5]] }]);
+    const b = workout("2026-01-02T00:00:00.000Z", "2026-01-02T18:00:00.000Z", [{ ex: "e", sets: [[62.5, 6]] }, { ex: "x", sets: [] }]);
+    const draft = workout("2026-01-09T00:00:00.000Z", "2026-01-09T08:00:00.000Z", [{ ex: "e", sets: [[999, 1]] }], "DRAFT");
+    const map = currentFirstSets([old, a, b, draft]);
+    expect(map.get("e")).toEqual({ weight: "62.5", reps: 6 });
+    expect(map.has("x")).toBe(false);
+  });
+  it("setSummaries lists every set in set order", () => {
+    const w = workout("2026-01-01T00:00:00.000Z", "2026-01-01T08:00:00.000Z", [{ ex: "e", sets: [["60.00", 8], [65, 6]] }]);
+    expect(setSummaries([w], "e").get(w.id)).toBe("60 kg × 8, 65 kg × 6");
+  });
+  it("recentPoints keeps the 8 newest, newest first or re-ordered oldest first", () => {
+    const pts = Array.from({ length: 10 }, (_, i) => ({ workoutId: `w${i}`, workoutDate: "", maxSetWeight: i, repetitionsAtMaxSet: 1, volume: 0 }));
+    expect(recentPoints(pts, "desc").map((p) => p.workoutId)).toEqual(["w9", "w8", "w7", "w6", "w5", "w4", "w3", "w2"]);
+    expect(recentPoints(pts, "asc").map((p) => p.workoutId)).toEqual(["w2", "w3", "w4", "w5", "w6", "w7", "w8", "w9"]);
   });
 });

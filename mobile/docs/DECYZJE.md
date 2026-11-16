@@ -132,6 +132,14 @@ Format: numer, data, decyzja, powód, skutek.
 
 **D-64 (2026-11-16) Zmiana kolejności ćwiczeń w planie:** własna lista przeciągana (gesture-handler + reanimated), wiersze o stałej wysokości, dodatkowo akcje dostępności „Przesuń wyżej/niżej”.
 
+## Statystyki (Etap 10)
+
+**D-65 (2026-11-16) Szczegóły ćwiczenia w statystykach to osobna trasa** `/stats-exercise?id=…` z powrotem gestem; PWA trzyma to w stanie ekranu.
+
+**D-66 (2026-11-16) „Aktualne” rozstrzyga treningi z tego samego dnia po `createdAt`, potem po id.** PWA sortuje tylko po dacie, więc kolejność zależała od API.
+
+**D-67 (2026-11-16) Wykres rysowany w `react-native-svg`** z geometrią PWA (viewBox 100×60); czcionka osi: Menlo na iOS, `monospace` na Androidzie.
+
 ## Otwarte, do rozstrzygnięcia w trakcie
 
 - Biblioteka przeciągania w formularzu planu (Etap 8).
