@@ -150,6 +150,16 @@ Format: numer, data, decyzja, powód, skutek.
 
 **D-71 (2026-11-16) Wylogowanie z opcją „Zachowaj dane” zostaje wylogowaniem po restarcie apki.** Wcześniej restart otwierał dane tego konta z banerem „Sesja wygasła”.
 
+## Live Activity (Etap 12)
+
+**D-72 (2026-11-16) Live Activity przez `expo-widgets` i `@expo/ui`.** Układ w JS, rozszerzenie generuje wtyczka przy prebuildzie, licznik to systemowy `Text(timerInterval:)`, więc tyka bez apki. Bez powiadomień push.
+
+**D-73 (2026-11-16) Porzucony trening:** `staleDate` = ostatnia aktywność + 2 h; system sam przełącza widok na „Trening wstrzymany” z zatrzymanym czasem. Gdy trening jest porzucony już przy wysyłaniu treści, apka ustawia `abandoned: true` bez `staleDate`, bo aktywność przeterminowana na starcie nie jest wyświetlana.
+
+**D-74 (2026-11-16) Bez push aktywność zmienia się i kończy tylko przy działającej apce.** Trening zakończony w PWA zamknie ją dopiero przy następnej synchronizacji z żywą apką; inaczej wygasa po limicie systemowym (około 8 h + do 4 h na ekranie blokady). Wylogowanie kończy aktywność.
+
+**D-75 (2026-11-16) Android odłożony:** wymaga własnego modułu Kotlin (usługa pierwszoplanowa, powiadomienie z chronometrem), którego bez Android SDK nie da się zbudować ani sprawdzić. `createLiveActivity` ładowane leniwie tylko na iOS (na Androidzie w SDK 58 rzuca wyjątek przy imporcie).
+
 ## Otwarte, do rozstrzygnięcia w trakcie
 
 - Biblioteka przeciągania w formularzu planu (Etap 8).

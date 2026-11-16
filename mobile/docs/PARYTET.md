@@ -4,7 +4,7 @@ Każda pozycja to funkcja lub stan PWA, który apka musi odtworzyć. Opis zachow
 
 Oznaczenia: `[ ]` do zrobienia, `[x]` zweryfikowane, `[~]` zrobione, niezweryfikowane na urządzeniu, `[o]` świadome odstępstwo (wpis w `DECYZJE.md`).
 
-Stan: 163 z 243 pozycji zweryfikowanych.
+Stan: 166 z 243 pozycji zweryfikowanych.
 
 ## A. Start, logowanie, rejestracja, sesja (7)
 
@@ -288,11 +288,11 @@ Stan: 163 z 243 pozycji zweryfikowanych.
 
 ## P. Live Activity i powiadomienie (zlecenie, sekcja 7)
 
-- [ ] P1 iOS: start przy rozpoczęciu treningu, koniec przy zakończeniu i usunięciu
-- [ ] P2 iOS: ekran blokady i Dynamic Island z czasem, nazwą, ćwiczeniem i seriami
-- [ ] P3 iOS: czas tyka bez działającej apki
-- [ ] P4 iOS: aktualizacja po zapisie serii i zmianie ćwiczenia
-- [ ] P5 Android: stałe powiadomienie z tym samym zakresem i licznikiem
-- [ ] P6 Android: działa przy zablokowanym ekranie i w tle (także Xiaomi)
-- [ ] P7 Zachowanie przy porzuconym treningu
-- [ ] P8 Trening zakończony w PWA zamyka aktywność przy synchronizacji
+- [x] P1 iOS: start przy rozpoczęciu treningu, koniec przy zakończeniu i usunięciu — widziane na symulatorze iOS, zrzuty 90* (Etap 12, wg raportu agenta; 90d i 90e obejrzane przez orkiestratora)
+- [x] P2 iOS: ekran blokady i Dynamic Island z czasem, nazwą, ćwiczeniem i seriami — widziane na symulatorze iOS, zrzuty 90* (Etap 12, wg raportu agenta; 90d i 90e obejrzane przez orkiestratora); widok minimalny niezłapany
+- [x] P3 iOS: czas tyka bez działającej apki — widziane na symulatorze iOS, zrzuty 90* (Etap 12, wg raportu agenta; 90d i 90e obejrzane przez orkiestratora)
+- [~] P4 iOS: aktualizacja po zapisie serii i zmianie ćwiczenia — po zapisie serii widziane na symulatorze; zmiana ćwiczenia tylko test jednostkowy
+- [ ] P5 Android: stałe powiadomienie z tym samym zakresem i licznikiem — niezbudowane: tylko notatka projektowa, brak Android SDK
+- [ ] P6 Android: działa przy zablokowanym ekranie i w tle (także Xiaomi) — niezbudowane, jak P5
+- [~] P7 Zachowanie przy porzuconym treningu — stan „Trening wstrzymany” widziany dla treningu już porzuconego; przejście w trakcie uśpienia apki niewidziane
+- [~] P8 Trening zakończony w PWA zamyka aktywność przy synchronizacji — z konstrukcji (żywe zapytanie do bazy), działa tylko gdy apka żyje; niesprawdzone

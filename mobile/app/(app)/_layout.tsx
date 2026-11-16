@@ -2,6 +2,7 @@ import { Redirect, Stack } from "expo-router";
 import { useActiveWorkout, useInitialPullDone } from "@/features/workouts/queries";
 import { AbandonedWorkoutDialog } from "@/features/workouts/AbandonedWorkoutDialog";
 import { ContinuePill } from "@/features/workouts/ContinuePill";
+import { useLiveActivity } from "@/features/liveActivity";
 import { logoutWithPrompt } from "@/features/auth";
 import { DownloadScreen } from "@/features/sync/DownloadScreen";
 import { StatusFrame } from "@/features/sync/StatusFrame";
@@ -29,6 +30,7 @@ function Shell() {
   const { theme } = useTheme();
   const { state, logout } = useSession();
   const active = useActiveWorkout();
+  useLiveActivity();
   const user = state.user ? { firstName: state.user.firstName, lastName: state.user.lastName, email: state.user.email } : null;
   const onLogout = () => logoutWithPrompt(logout, chooseLogout).catch(() => showAlert("Nie udało się wylogować"));
   return (

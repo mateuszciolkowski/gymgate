@@ -25,7 +25,8 @@
       "expo-secure-store",
       "expo-sqlite",
       "expo-dev-client",
-      "expo-image"
+      "expo-image",
+      "expo-widgets"
     ],
     "experiments": {
       "typedRoutes": true

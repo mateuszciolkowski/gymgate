@@ -6,7 +6,7 @@ Oznaczenia: `[x]` zrobione i sprawdzone, `[~]` w trakcie, `[ ]` do zrobienia, `[
 
 **Ostatnia aktualizacja:** 2026-11-15
 **Bieżący etap:** 3, 4 i 5 równolegle, sesja lokalna na MacBooku (sesja chmurowa wyłączona).
-**Następny krok:** Etap 12 (Live Activity), potem 13 (dopracowanie natywne, grupa O), 14, 15. Zaległe: niesprawdzone pozycje `[~]` w `PARYTET.md`, scenariusze N.
+**Następny krok:** Etap 13 (dopracowanie natywne, grupa O), potem 14, 15. Zaległe: pozycje `[~]` w `PARYTET.md`, scenariusze N, Android.
 
 ## Przegląd etapów
 
@@ -111,6 +111,7 @@ Do przejrzenia przez właściciela w dowolnym momencie (nie blokuje pracy): `PLA
 - [x] Etap 8 (plany): zakładki, wyszukiwanie, sortowanie, formularz z przeciąganiem kolejności, duplikowanie, ulubione, usuwanie, historia planu, wszystko offline. 278 testów Jest, typecheck i lint czyste (uruchomione przez orkiestratora); Maestro i zrzuty według agenta. Niesprawdzone: ścieżki admina, zakładka „Społeczność” z danymi, odrzucenie zmiany planu przez serwer, stan bazy serwera po synchronizacji planu utworzonego offline. Do Etapu 13: dolny pasek zasłania „Zapisz plan” do przewinięcia.
 - [x] Etap 10 (statystyki): kafle, Rekordy / Aktualne, szczegóły ćwiczenia z wykresem i ostatnimi sesjami, liczone lokalnie. 288 testów Jest, typecheck i lint czyste (uruchomione przez orkiestratora); Maestro i zrzuty według agenta. Niesprawdzone: zgodność z serwerem (`test:parity` nieuruchomiony), aktualizacja offline po zakończeniu treningu, stan „—” w „Aktualne”.
 - [x] Etap 11 (ustawienia, konto) i weryfikacja grup A, B: ekran ustawień, 12 motywów, odświeżanie pamięci podręcznej, wylogowanie z ostrzeżeniem, usuwanie konta; zmiana konta, wymuszone ponowne logowanie i brak wylogowania offline sprawdzone w Maestro (według agenta). 301 testów Jest, typecheck i lint czyste (uruchomione przez orkiestratora). Niesprawdzone: 5xx na symulatorze, gesty szuflady, natywny gest cofania (B13), B6, B17, B18, palety 9 z 12 motywów na ekranie ustawień. `logout-pending` nie był powtórzony po poprawce `session.ts`.
+- [~] Etap 12 (Live Activity): iOS działa na symulatorze (ekran blokady, Dynamic Island, tykanie przy zabitej apce, aktualizacja po serii, koniec po zakończeniu i usunięciu). 312 testów Jest, typecheck i lint czyste (uruchomione przez orkiestratora). Android niezbudowany (brak SDK). Niesprawdzone: fizyczny iPhone z darmowym Apple ID (12.2), przejście w „Trening wstrzymany” podczas uśpienia apki, zamknięcie przez synchronizację.
 
 Zakres każdego etapu to grupy z `PARYTET.md` wskazane w `PLAN.md`, sekcja 10. Listy zadań rozpisujemy tutaj przy wejściu w dany etap.
 
@@ -161,6 +162,8 @@ Do czasu odpowiedzi: zakładam, że push na `mobile-migration` może zbudować p
 - Limit logowań backendu (10 prób na 15 minut na IP) blokuje automaty logujące się wielokrotnie; `capture.mjs` loguje się raz przez API i wstrzykuje sesję.
 - Użytkownik testowy z `seed-local.ts` ma identyfikator `local-test-user-1`, który nie jest UUID. Schematy Zod wymagają UUID tylko dla części pól; do uwzględnienia przy projektowaniu synchronizacji.
 - Zastane błędy w kodzie: lista w `MIGRACJA_MOBILE.md`, sekcja 1.11.
+
+- Maestro po przebudowie natywnej (Etap 12): niezmienione `workout-full` i `workout-kill` nie przechodzą, bo klawiatura zasłania listę ćwiczeń i dotknięcie trafia w klawisz; przechodzą z `hideKeyboard` po wpisaniu frazy. Przepływy do poprawienia w Etapie 13. Stary porzucony DRAFT na symulatorze otwiera dialog i psuje `login-sync`; przed przepływami seed.
 
 ## Dziennik sesji
 

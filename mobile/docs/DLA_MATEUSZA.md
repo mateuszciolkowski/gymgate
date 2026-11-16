@@ -103,3 +103,14 @@ Ograniczenia: z darmowym Apple ID apka wygasa po 7 dniach (trzeba zbudować pono
 6. Sprawdź w PWA lub bazie, że trening ma czas startu i trwania z telefonu.
 
 Prawdziwy tryb samolotowy nie był dotąd testowany; na symulatorze brak sieci był symulowany zatrzymaniem backendu.
+
+### 5.3 Live Activity na iPhonie (niesprawdzone na telefonie)
+
+Na symulatorze działa. Na telefonie z darmowym Apple ID sprawdź:
+
+1. Czy Xcode podpisuje apkę i rozszerzenie `ExpoWidgetsTarget` Twoim Personal Team. Rozszerzenie to dodatkowy identyfikator apki na darmowym koncie.
+2. Wtyczka dodaje App Group `group.com.gymgate.app`. Jeśli darmowe konto go nie przyjmie, daj znać: trzeba będzie zmienić identyfikator grupy albo usunąć uprawnienie.
+3. Przy pierwszym treningu iOS pyta „Allow Live Activities from GymGate?”: zezwól. W Ustawieniach apki ma być włączone „Live Activities”.
+4. Rozpocznij trening, zablokuj telefon: na ekranie blokady ma być nazwa treningu, ćwiczenie, serie i tykający czas. Zabij apkę: czas ma tykać dalej.
+
+Ograniczenie: bez powiadomień push aktywność zmienia się tylko wtedy, gdy apka działa. Trening zakończony w PWA zniknie z ekranu blokady dopiero po otwarciu apki.
