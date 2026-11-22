@@ -45,7 +45,9 @@ const weight = z
   .union([z.number(), z.string().regex(/^\d+(\.\d+)?$/, "Invalid weight")])
   .transform((v) => Number(v))
   .pipe(z.number().nonnegative().max(9999.99));
-const reps = z.number().int().positive();
+// Postgres INT4 columns: an out-of-range value must be rejected per operation, not crash the whole push.
+const int4 = z.number().int().max(2_147_483_647);
+const reps = int4.positive().max(10_000);
 
 const base = { opId: z.string(), at: iso };
 
@@ -67,15 +69,15 @@ export const operationSchema = z.discriminatedUnion("type", [
     workoutName: z.string().nullable().optional(),
     gymName: z.string().nullable().optional(),
     workoutNotes: z.string().nullable().optional(),
-    durationSeconds: z.number().int().nonnegative().optional(),
+    durationSeconds: int4.nonnegative().optional(),
   }),
-  op("workout.complete", { id, durationSeconds: z.number().int().nonnegative() }),
+  op("workout.complete", { id, durationSeconds: int4.nonnegative() }),
   op("workout.delete", { id }),
   op("workout.skipPlanExercise", { id, exerciseId: id }),
-  op("item.add", { id, workoutId: id, exerciseId: id, orderInWorkout: z.number().int().positive() }),
+  op("item.add", { id, workoutId: id, exerciseId: id, orderInWorkout: int4.positive() }),
   op("item.update", { id, notes: z.string().nullable() }),
   op("item.delete", { id }),
-  op("set.add", { id, itemId: id, setNumber: z.number().int().positive(), weight, repetitions: reps }),
+  op("set.add", { id, itemId: id, setNumber: int4.positive(), weight, repetitions: reps }),
   op("set.update", { id, weight: weight.optional(), repetitions: reps.optional() }),
   op("set.delete", { id }),
   op("exercise.create", {

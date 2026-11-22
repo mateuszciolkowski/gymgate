@@ -10,6 +10,18 @@ import { operationSchema, pushSchema } from "./sync.schema.js";
 const now = new Date("2026-11-15T12:00:00.000Z");
 const uuid = "3f2b8c1e-5a4d-4e6f-8a9b-0c1d2e3f4a5b";
 
+describe("sync integer bounds (no 500 on out-of-range values)", () => {
+  const setAdd = (over: Record<string, unknown>) => ({
+    opId: "o1", at: now.toISOString(), type: "set.add", id: uuid, itemId: uuid, setNumber: 1, weight: 50, repetitions: 5, ...over,
+  });
+  it("rejects INT4 overflow and absurd reps in the op schema", () => {
+    expect(operationSchema.safeParse(setAdd({})).success).toBe(true);
+    expect(operationSchema.safeParse(setAdd({ setNumber: 1e10 })).success).toBe(false);
+    expect(operationSchema.safeParse(setAdd({ repetitions: 1e10 })).success).toBe(false);
+    expect(operationSchema.safeParse(setAdd({ repetitions: 10_001 })).success).toBe(false);
+  });
+});
+
 describe("sync pure rules", () => {
   it("clampAt cuts future times to server time", () => {
     expect(clampAt(new Date("2026-11-16T00:00:00Z"), now)).toBe(now);

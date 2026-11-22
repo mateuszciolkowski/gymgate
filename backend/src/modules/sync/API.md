@@ -19,6 +19,8 @@ Response `data`: `{ serverTime, results: [{ opId, status, code?, error?, current
 | `superseded` | a newer change exists on the server (`at` < record `updatedAt`); `current` = server row |
 | `rejected` | permanent: `code` = validation / not_found / forbidden / conflict / bad_request / stale_start / unknown_type; `error` = service message; `current` = server row or null |
 
+Integer fields are bounded: `repetitions` 1–10000; `setNumber`, `orderInWorkout`, `durationSeconds` fit Postgres INT4. An out-of-range value (or other invalid data the database refuses) rejects that single operation (`validation` / `bad_request`) instead of failing the whole request with 500.
+
 Rules: operations run in order, each in its own transaction starting with `SELECT ... FOR UPDATE` on the user row; one rejection never aborts the rest. A rejected/superseded result is stored too, so a replay returns it unchanged. Newer change wins; equal timestamps apply; write sets `updatedAt = at`. `workout.create` always creates a workout (never returns the existing active one); the later `startedAt` becomes the active workout, the other stays DRAFT. `startedAt` older than 30 days is rejected. Deleting or unfavoriting a missing record succeeds.
 
 ## GET /api/sync/pull

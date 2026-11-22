@@ -68,7 +68,10 @@ export const toRejection = (error: unknown): { code: string; message: string } |
     if (error.code === "P2025") return { code: "not_found", message: "Rekord nie istnieje" };
     if (error.code === "P2003") return { code: "bad_request", message: "Powiązany rekord nie istnieje" };
     if (error.code === "P2002") return { code: "conflict", message: "Rekord już istnieje" };
+    // Bad data (value too long / out of range / invalid): permanent, so reject the op instead of a 5xx retry loop.
+    if (["P2000", "P2006", "P2007", "P2020", "P2033"].includes(error.code)) return { code: "bad_request", message: "Nieprawidłowa wartość" };
   }
+  if (error instanceof Prisma.PrismaClientValidationError) return { code: "validation", message: "Nieprawidłowa wartość" };
   return null;
 };
 

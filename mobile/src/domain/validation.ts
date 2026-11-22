@@ -33,7 +33,7 @@ export function validateWeight(weight: string | number): void {
 
 /** Integer >= 1. */
 export function validateReps(repetitions: number): void {
-  if (!Number.isInteger(repetitions) || repetitions < 1) fail(SET_MESSAGE);
+  if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 10_000) fail(SET_MESSAGE);
 }
 
 export function validateSet(weight: string | number, repetitions: number): void {
