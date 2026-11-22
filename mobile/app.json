@@ -8,8 +8,9 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.gymgate.app",
-      "supportsTablet": false
+      "bundleIdentifier": "pl.mateuszciolkowski.gymgate",
+      "supportsTablet": false,
+      "appleTeamId": "8SQ4UJ93FG"
     },
     "android": {
       "package": "com.gymgate.app"
