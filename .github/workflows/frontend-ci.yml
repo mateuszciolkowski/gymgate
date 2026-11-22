@@ -30,6 +30,7 @@ jobs:
           filters: |
             frontend:
               - 'frontend/**'
+              - 'shared/**'
               - '.github/workflows/frontend-ci.yml'
 
       - name: Skip info

@@ -1,0 +1,8 @@
+{
+  "staleMs": 7200000,
+  "cases": [
+    { "name": "running", "workout": { "createdAt": "2026-01-01T10:00:00.000Z", "updatedAt": "2026-01-01T10:00:00.000Z", "items": [{ "updatedAt": "2026-01-01T10:20:00.000Z", "sets": [{ "updatedAt": "2026-01-01T10:30:00.000Z" }] }] }, "now": "2026-01-01T10:45:00.000Z", "expected": { "elapsed": 2700, "isStale": false, "lastActivity": "2026-01-01T10:30:00.000Z" } },
+    { "name": "abandoned: capped at last activity", "workout": { "createdAt": "2026-01-01T10:00:00.000Z", "updatedAt": "2026-01-01T10:00:00.000Z", "items": [{ "updatedAt": "2026-01-01T10:20:00.000Z", "sets": [{ "updatedAt": "2026-01-01T11:00:00.000Z" }] }] }, "now": "2026-01-01T13:00:01.000Z", "expected": { "elapsed": 3600, "isStale": true, "lastActivity": "2026-01-01T11:00:00.000Z" } },
+    { "name": "exactly at the 2 h boundary is not stale", "workout": { "createdAt": "2026-01-01T10:00:00.000Z", "updatedAt": "2026-01-01T10:00:00.000Z", "items": [] }, "now": "2026-01-01T12:00:00.000Z", "expected": { "elapsed": 7200, "isStale": false, "lastActivity": "2026-01-01T10:00:00.000Z" } }
+  ]
+}

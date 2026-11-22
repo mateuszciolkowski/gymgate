@@ -19,6 +19,10 @@ The PWA and the native app are both supported, long term, at the same time. They
 **Features: always build both clients (mandatory)**
 Every new feature or behaviour change goes into the PWA and the app in the same branch, with tests in each, unless the owner explicitly says otherwise or the feature only makes sense on one platform (e.g. Live Activity) — then say so and record it in `mobile/docs/DECYZJE.md`.
 
+**Enforcement**
+- A project hook (`.claude/settings.json` → `.claude/hooks/check-two-clients.sh`) blocks a `git commit` that changes client logic in only one of `frontend/src` and `mobile/src|mobile/app`. Fix the other client, or put `Only-PWA: <reason>` / `Only-app: <reason>` in the commit message and tell the owner why.
+- Shared parity fixtures in `shared/parity/*.json` run in both test suites (`frontend/src/utils/parity.test.ts`, `mobile/src/domain/parity.test.ts`). Logic that exists in both clients gets a fixture; change the fixture first, then make both suites pass.
+
 **Branches**
 Start every task on a new branch from the latest `dev` (`feat/…`, `fix/…`, `chore/…`). `mobile-migration` is finished and merged; do not commit to it.
 

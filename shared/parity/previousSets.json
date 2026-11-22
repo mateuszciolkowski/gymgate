@@ -1,0 +1,15 @@
+{
+  "excludeWorkoutId": "current",
+  "workouts": [
+    { "id": "current", "workoutDate": "2026-01-10T10:00:00.000Z", "items": [{ "exerciseId": "bench", "sets": [{ "setNumber": 1, "weight": "100", "repetitions": 5 }] }] },
+    { "id": "draft-older", "workoutDate": "2026-01-08T10:00:00.000Z", "items": [{ "exerciseId": "bench", "sets": [{ "setNumber": 2, "weight": "72.5", "repetitions": 6 }, { "setNumber": 1, "weight": "70", "repetitions": 8 }] }, { "exerciseId": "squat", "sets": [] }] },
+    { "id": "oldest", "workoutDate": "2026-01-01T10:00:00.000Z", "items": [{ "exerciseId": "bench", "sets": [{ "setNumber": 1, "weight": "60", "repetitions": 10 }] }, { "exerciseId": "squat", "sets": [{ "setNumber": 1, "weight": "90", "repetitions": 5 }] }] }
+  ],
+  "expected": {
+    "previous": {
+      "bench": [{ "setNumber": 1, "weight": "70", "repetitions": 8 }, { "setNumber": 2, "weight": "72.5", "repetitions": 6 }],
+      "squat": [{ "setNumber": 1, "weight": "90", "repetitions": 5 }]
+    },
+    "latestKeys": ["bench", "squat"]
+  }
+}

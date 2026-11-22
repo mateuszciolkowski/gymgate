@@ -1,0 +1,14 @@
+{
+  "plan": { "items": [
+    { "exerciseId": "c", "orderInPlan": 3 },
+    { "exerciseId": "a", "orderInPlan": 1 },
+    { "exerciseId": "b", "orderInPlan": 2 },
+    { "exerciseId": "d", "orderInPlan": 4 }
+  ] },
+  "cases": [
+    { "added": [], "skipped": [], "expected": ["a:next", "b:todo", "c:todo", "d:todo"] },
+    { "added": ["a"], "skipped": ["b"], "expected": ["a:added", "b:skipped", "c:next", "d:todo"] },
+    { "added": ["a", "d"], "skipped": [], "expected": ["a:added", "b:next", "c:todo", "d:added"] },
+    { "added": ["a", "b", "c"], "skipped": ["d"], "expected": ["a:added", "b:added", "c:added", "d:skipped"] }
+  ]
+}

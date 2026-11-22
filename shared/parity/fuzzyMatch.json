@@ -1,0 +1,10 @@
+{
+  "cases": [
+    { "text": "Wyciskanie sztangi na ławce płaskiej", "query": "wyciskanie", "expected": true },
+    { "text": "Wyciskanie sztangi na ławce płaskiej", "query": "lawce", "expected": true },
+    { "text": "Wyciskanie sztangi na ławce płaskiej", "query": "sztanga lawka", "expected": true },
+    { "text": "Przysiad ze sztangą", "query": "przysaid", "expected": true },
+    { "text": "Przysiad ze sztangą", "query": "martwy ciąg", "expected": false },
+    { "text": "Rozpiętki", "query": "", "expected": true }
+  ]
+}

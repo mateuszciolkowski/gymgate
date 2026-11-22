@@ -30,6 +30,7 @@ jobs:
           filters: |
             mobile:
               - 'mobile/**'
+              - 'shared/**'
               - '.github/workflows/mobile-ci.yml'
 
       - name: Skip info
