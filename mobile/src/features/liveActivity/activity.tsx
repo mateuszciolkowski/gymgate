@@ -17,12 +17,21 @@ const WorkoutActivity = (p: ActivityProps, env: LiveActivityEnvironment) => {
   const accent = stale ? muted : p.accent;
   const start = new Date(p.startedAt);
   const wide = frame({ maxWidth: 10000 });
-  const timer = (size: number) => (
+  /** Right-aligned in a fixed width at the top-right corner (a system timer otherwise reserves room and looks indented). */
+  const cornerTimer = (size: number, width: number) => (
     <Text
       timerInterval={{ lower: start, upper: new Date(stale ? Math.max(p.lastActivityAt, p.startedAt) : p.startedAt + 99 * 3600 * 1000) }}
       pauseTime={stale ? new Date(p.lastActivityAt) : undefined}
       countsDown={false}
-      modifiers={[font({ size, weight: "bold", design: "monospaced" }), foregroundStyle(accent), lineLimit(1)]}
+      modifiers={[
+        font({ size, weight: "bold" }),
+        monospacedDigit(),
+        foregroundStyle(accent),
+        lineLimit(1),
+        minimumScaleFactor(0.7),
+        multilineTextAlignment("trailing"),
+        frame({ width, alignment: "topTrailing" }),
+      ]}
     />
   );
   const text = (value: string, size: number, color?: string, weight?: "medium" | "semibold" | "bold") => (
@@ -35,7 +44,7 @@ const WorkoutActivity = (p: ActivityProps, env: LiveActivityEnvironment) => {
       <Image systemName={stale ? "pause.circle.fill" : "figure.strengthtraining.traditional"} color={accent} size={15} />
       {status ? text(status, 13, stale ? muted : undefined, "semibold") : null}
       <Spacer />
-      {timer(timerSize)}
+      {cornerTimer(timerSize, timerSize * 4.2)}
     </HStack>
   );
   // "Wyciskanie sztangi – seria 3": the name shortens, the set number always stays visible.
