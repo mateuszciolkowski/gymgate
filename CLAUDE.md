@@ -53,6 +53,8 @@ npm run --prefix backend backup:sql
 ```
 Verify that the new timestamped `.sql` file is created in `backend/backups/` before proceeding with the operation. See `.agent/skills/pre-destructive-backup/SKILL.md`.
 
+Subproject guides: `backend/CLAUDE.md`, `frontend/CLAUDE.md`, `mobile/CLAUDE.md`.
+
 ## Project layout
 
 ```
