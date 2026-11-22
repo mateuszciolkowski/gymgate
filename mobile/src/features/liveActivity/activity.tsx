@@ -82,7 +82,15 @@ const WorkoutActivity = (p: ActivityProps, env: LiveActivityEnvironment) => {
         {buttons}
       </VStack>
     ),
-    compactLeading: <Image systemName={stale ? "pause.circle.fill" : "figure.strengthtraining.traditional"} color={accent} />,
+    // Small, fixed-size symbol inset from the rounded edge, so the figure is not clipped by the island's corner.
+    compactLeading: (
+      <Image
+        systemName={stale ? "pause.circle.fill" : "figure.strengthtraining.traditional"}
+        color={accent}
+        size={14}
+        modifiers={[padding({ leading: 6 }), frame({ width: 28, height: 22, alignment: "center" })]}
+      />
+    ),
     // A system timer text reserves room for its longest value: pin it to a narrow width at the trailing edge.
     compactTrailing: (
       <Text
@@ -100,7 +108,14 @@ const WorkoutActivity = (p: ActivityProps, env: LiveActivityEnvironment) => {
         ]}
       />
     ),
-    minimal: <Image systemName={stale ? "pause.circle.fill" : "figure.strengthtraining.traditional"} color={accent} />,
+    minimal: (
+      <Image
+        systemName={stale ? "pause.circle.fill" : "figure.strengthtraining.traditional"}
+        color={accent}
+        size={13}
+        modifiers={[frame({ width: 22, height: 22, alignment: "center" })]}
+      />
+    ),
     expandedLeading: (
       <VStack modifiers={[padding({ leading: 8, top: 6 })]}>
         <Image systemName={stale ? "pause.circle.fill" : "figure.strengthtraining.traditional"} color={accent} size={18} />
