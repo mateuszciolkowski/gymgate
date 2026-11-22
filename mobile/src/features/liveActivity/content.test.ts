@@ -34,10 +34,10 @@ describe("workoutToActivity", () => {
       nextName: "Rozpiętki na ławce skośnej",
       plan: { done: 2, total: 5 },
     })!;
-    expect(p).toMatchObject({ plan: "Plan 2/5", exerciseSets: "2 serie", proposal: "62.5 kg × 6", logged: "Seria 2: 62.5 kg × 6" });
+    expect(p).toMatchObject({ plan: "Plan 2/5", setLabel: "seria 3", proposal: "62.5 kg × 6", logged: "Seria 2: 62.5 kg × 6" });
     expect(p.next!.startsWith("Rozpiętki")).toBe(true);
     expect(p.next!.length).toBeLessThanOrEqual(14);
-    expect(workoutToActivity(workout(), 0, "#fff")).toMatchObject({ next: null, proposal: null, plan: null, exerciseSets: null });
+    expect(workoutToActivity(workout(), 0, "#fff")).toMatchObject({ next: null, proposal: null, plan: null, setLabel: null });
   });
 
   it("is null without a DRAFT workout (completed, deleted or none)", () => {
@@ -81,7 +81,7 @@ describe("workoutToActivity", () => {
 });
 
 describe("reconcile", () => {
-  const props = (over: Partial<ActivityProps> = {}): ActivityProps => ({ workoutId: "w", name: "Push", startedAt: 1, lastActivityAt: 1, abandoned: false, exercise: null, plan: null, exerciseSets: null, logged: null, proposal: null, next: null, accent: "#fff", ...over });
+  const props = (over: Partial<ActivityProps> = {}): ActivityProps => ({ workoutId: "w", name: "Push", startedAt: 1, lastActivityAt: 1, abandoned: false, exercise: null, plan: null, setLabel: null, logged: null, proposal: null, next: null, accent: "#fff", ...over });
   const fake = (exists = false) => {
     const calls: string[] = [];
     const api: ActivityApi = {

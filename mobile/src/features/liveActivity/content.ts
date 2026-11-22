@@ -1,7 +1,6 @@
 import { computeWorkoutLastActivity, STALE_WORKOUT_MS } from "@/domain/workoutTimer";
 import type { Workout } from "@/domain/types";
 import { draftDefaults } from "@/domain/draftSet";
-import { setsWord } from "@/domain/formatters";
 import type { PreviousSetData } from "@/domain/previousSets";
 
 /** Everything the Live Activity shows. Plain JSON: it is handed to the system and rendered by the widget extension. */
@@ -10,8 +9,8 @@ export interface ActivityProps {
   name: string;
   /** "Plan 3/6" when the workout follows a plan. */
   plan: string | null;
-  /** Saved sets of the current exercise: "2 serie". */
-  exerciseSets: string | null;
+  /** The set being done now in the current exercise (saved + 1): "seria 3". */
+  setLabel: string | null;
   /** Epoch ms the system timer counts from (device clock: createdAt minus the stored server clock offset). */
   startedAt: number;
   /** Epoch ms of the last activity (device clock); the frozen time of an abandoned workout (P7). */
@@ -88,7 +87,7 @@ export function workoutToActivity(
     workoutId: workout.id,
     name: workout.workoutName?.trim() || "Trening",
     plan: guide.plan && guide.plan.total > 0 ? `Plan ${guide.plan.done}/${guide.plan.total}` : null,
-    exerciseSets: item ? `${item.sets.length} ${setsWord(item.sets.length)}` : null,
+    setLabel: item ? `seria ${Math.max(0, ...item.sets.map((x) => x.setNumber)) + 1}` : null,
     startedAt: new Date(workout.createdAt).getTime() - clockOffsetMs,
     lastActivityAt,
     abandoned: now - lastActivityAt > STALE_WORKOUT_MS,

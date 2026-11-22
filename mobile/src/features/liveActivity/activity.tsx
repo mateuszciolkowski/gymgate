@@ -1,5 +1,5 @@
 import { Button, HStack, Image, Spacer, Text, VStack } from "@expo/ui/swift-ui";
-import { buttonStyle, controlSize, font, foregroundStyle, frame, lineLimit, minimumScaleFactor, monospacedDigit, multilineTextAlignment, padding, tint } from "@expo/ui/swift-ui/modifiers";
+import { buttonStyle, controlSize, font, foregroundStyle, frame, layoutPriority, lineLimit, minimumScaleFactor, monospacedDigit, multilineTextAlignment, padding, tint } from "@expo/ui/swift-ui/modifiers";
 import { addUserInteractionListener, createLiveActivity, type LiveActivityEnvironment } from "expo-widgets";
 import type { ActivityProps } from "./content";
 
@@ -38,11 +38,14 @@ const WorkoutActivity = (p: ActivityProps, env: LiveActivityEnvironment) => {
       {timer(timerSize)}
     </HStack>
   );
+  // "Wyciskanie sztangi – seria 3": the name shortens, the set number always stays visible.
   const exerciseRow = (
-    <HStack spacing={6}>
+    <HStack spacing={4}>
       {text(exercise, 16, undefined, "bold")}
+      {p.setLabel ? (
+        <Text modifiers={[font({ size: 16, weight: "semibold" }), foregroundStyle(accent), lineLimit(1), layoutPriority(1)]}>{`– ${p.setLabel}`}</Text>
+      ) : null}
       <Spacer />
-      {p.exerciseSets ? text(p.exerciseSets, 13, muted, "medium") : null}
     </HStack>
   );
   const logged = p.logged ? (
