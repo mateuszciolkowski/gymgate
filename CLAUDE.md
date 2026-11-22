@@ -1,6 +1,34 @@
 # GymGate – CLAUDE.md
 
-Fullstack strength-training tracker. Backend: Node.js + Express + TypeScript + Prisma + PostgreSQL. Frontend: React 19 + Vite + TypeScript + Tailwind CSS + Context API (no external state library).
+Fullstack strength-training tracker with **two production clients on one backend**: the PWA (`frontend/`, React 19 + Vite + TypeScript + Tailwind CSS + Context API) and the native app (`mobile/`, Expo + React Native, offline-first). Backend: Node.js + Express + TypeScript + Prisma + PostgreSQL.
+
+## Two clients, one backend (read before any change)
+
+The PWA and the native app are both supported, long term, at the same time. They share one backend, one database and the same user accounts, and one person can use both in parallel on the same account. Every change must keep **both** working. Never treat one of them as legacy.
+
+**Backend and database**
+- Endpoints used by the PWA stay backward compatible. Contract changes are additive (new optional fields, new endpoints). Removing or changing the meaning of a field needs a plan for both clients.
+- Migrations are additive: no dropping or renaming columns or tables either client reads. Installed app versions cannot be force-updated, so old app builds must keep working too.
+- Every write path, old or new, must reach the sync log. Postgres triggers write `sync_changes` for the synced tables. A new synced table or column needs: the trigger, `GET /api/sync/pull` support, a `POST /api/sync/push` operation if the app writes it, and the matching local schema in `mobile/src/db/`.
+- Writes from the PWA's REST endpoints and from the app's sync push must give the same result in the database (same validation, same cascades, same stats rebuild).
+
+**Domain logic exists twice**
+- PWA: `frontend/src/`. App: `mobile/src/domain/` (ported logic, plus stats computed locally in `mobile/src/domain/stats.ts`; the server rebuilds `ExerciseUserStats`).
+- A behaviour change goes into both clients and, where it applies, the backend. A deliberate difference is recorded in `mobile/docs/DECYZJE.md`. Feature parity checklist: `mobile/docs/PARYTET.md`.
+
+**Sync and offline**
+- The app writes every change to local SQLite plus an outbox in one transaction and syncs later; the PWA keeps its own IndexedDB queue. Conflict rule: the newer change (`at`) wins per record; older ones come back as `superseded`, permanent failures as `rejected`.
+- Protocol: `backend/src/modules/sync/API.md` and `mobile/docs/PLAN.md` section 5. A change to a push operation or the pull shape updates both sides and the protocol tests.
+
+**Testing a change that touches shared behaviour**
+- Backend: `npm test` and `npm run test:integration` in `backend/` (local DB only).
+- PWA against the changed backend: `npm test` in `frontend/` and the smoke test `mobile/tools/pwa-smoke/smoke.mjs`.
+- App: `npm run typecheck`, `npm run lint`, `npm test` in `mobile/`; against a local backend: `npm run test:protocol` (sync protocol) and `npm run test:parity` (local stats vs server).
+- Untested cases that matter most: editing the same record in both clients, and offline work in the app while the PWA is used.
+
+**Deployment**
+- Backend deploys (Railway, `prisma migrate deploy` on merge to `main`) affect both clients at once. Back up the production database first. Checklist and rollback: `mobile/docs/WDROZENIE_BACKENDU.md`.
+- Mobile work context, status and decisions: `MIGRACJA_MOBILE.md`, `mobile/docs/STATUS.md`, `mobile/docs/DECYZJE.md`. `mobile/` needs Node 24 (Expo SDK 58); `backend/` and `frontend/` use Node 20.
 
 ## Database Safety & Pre-Destructive Backup Policy
 
@@ -48,6 +76,15 @@ frontend/src/
     auth.ts                – authFetch + getAuthHeaders helpers
   config/api.ts            – single API_BASE
   types/workout.ts         – all domain types
+
+mobile/                    – native app (Expo Router, offline-first; Node 24)
+  app/                     – routes (screens)
+  src/domain/              – logic ported from the PWA + local stats
+  src/db/                  – local SQLite schema, migrations, repositories (each write + outbox in one transaction)
+  src/sync/                – outbox, push, pull, sync engine, rejected-change issues
+  src/session/ src/api/    – mobile sessions (access + refresh token)
+  src/features/            – screens per area (workouts, exercises, plans, stats, settings, liveActivity)
+  docs/                    – STATUS, PLAN, PARYTET (parity checklist), DECYZJE (decisions)
 ```
 
 ## Backend architecture
@@ -149,7 +186,7 @@ cd frontend && npm run dev
 
 ## Tests
 
-Framework: **Vitest** (backend only – no frontend test suite currently).  
+Backend: **Vitest** (unit + integration). Frontend: its own suite (`cd frontend && npm test`). Mobile: Jest + React Native Testing Library, Maestro flows in `mobile/.maestro/` (see "Two clients, one backend").  
 Repository layer is mocked in service tests via `vi.mock('./workout.repository.js')`.
 
 ```bash
