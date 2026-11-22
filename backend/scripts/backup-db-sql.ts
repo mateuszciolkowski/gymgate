@@ -74,12 +74,13 @@ async function createSqlBackup() {
   const exerciseUserStats = await prisma.exerciseUserStats.findMany();
   const exercisePendingNotes = await prisma.exercisePendingNote.findMany();
   const userFavoritePlans = await prisma.userFavoritePlan.findMany();
+  const workoutPlanVersions = await prisma.workoutPlanVersion.findMany();
 
   const sqlStatements: string[] = [
     `-- ==========================================================`,
     `-- GymGate Supabase PostgreSQL Backup`,
     `-- Exported at: ${new Date().toISOString()}`,
-    `-- Total tables: 11`,
+    `-- Total tables: 12`,
     `-- ==========================================================`,
     ``,
     `SET statement_timeout = 0;`,
@@ -88,7 +89,8 @@ async function createSqlBackup() {
     ``,
     `BEGIN;`,
     ``,
-    ...generateTableInserts("users", users as unknown as Record<string, unknown>[]),
+    // users.activeWorkoutId points at workouts, which are inserted later: insert NULL first, restore it at the end.
+    ...generateTableInserts("users", users.map((u) => ({ ...u, activeWorkoutId: null })) as unknown as Record<string, unknown>[]),
     ...generateTableInserts("exercises", exercises as unknown as Record<string, unknown>[]),
     ...generateTableInserts("exercise_photos", exercisePhotos as unknown as Record<string, unknown>[]),
     ...generateTableInserts("workout_plans", workoutPlans as unknown as Record<string, unknown>[]),
@@ -99,6 +101,14 @@ async function createSqlBackup() {
     ...generateTableInserts("exercise_user_stats", exerciseUserStats as unknown as Record<string, unknown>[]),
     ...generateTableInserts("exercise_pending_notes", exercisePendingNotes as unknown as Record<string, unknown>[]),
     ...generateTableInserts("user_favorite_plans", userFavoritePlans as unknown as Record<string, unknown>[]),
+    ...generateTableInserts(
+      "workout_plan_versions",
+      // Json column: write it as a JSON text literal (the generic array branch would emit a Postgres array).
+      workoutPlanVersions.map((v) => ({ ...v, exercises: JSON.stringify(v.exercises) })) as unknown as Record<string, unknown>[],
+    ),
+    ...users
+      .filter((u) => u.activeWorkoutId)
+      .map((u) => `UPDATE "users" SET "activeWorkoutId" = ${escapeSqlValue(u.activeWorkoutId)} WHERE "id" = ${escapeSqlValue(u.id)};`),
     `COMMIT;`,
     ``,
   ];
