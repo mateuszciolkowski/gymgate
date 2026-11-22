@@ -2,6 +2,7 @@ import { fireEvent, screen } from "@testing-library/react-native";
 import type { Workout } from "@/domain/types";
 import { renderThemed } from "@/ui/testUtils";
 import { PlanBanner } from "./PlanBanner";
+import { PlanChecklistModal } from "./PlanChecklistModal";
 import { WorkoutEditModal } from "./WorkoutEditModal";
 import { WorkoutNotesModal } from "./WorkoutNotesModal";
 
@@ -81,5 +82,29 @@ describe("PlanBanner", () => {
     await renderThemed(<PlanBanner nextName={null} onAdd={jest.fn()} onSkip={jest.fn()} />);
     expect(screen.getByText("Wszystkie ćwiczenia z planu zostały dodane")).toBeOnTheScreen();
     expect(screen.queryByText("Pomiń")).toBeNull();
+  });
+});
+
+describe("PlanChecklistModal", () => {
+  const plan = {
+    name: "Push",
+    items: [
+      { exerciseId: "a", orderInPlan: 1, exercise: { name: "Wyciskanie" } },
+      { exerciseId: "b", orderInPlan: 2, exercise: { name: "Rozpiętki" } },
+      { exerciseId: "c", orderInPlan: 3, exercise: { name: "Dipy" } },
+    ],
+  };
+  it("shows progress and states; a not-added exercise is added out of order, an added one is locked", async () => {
+    const onAdd = jest.fn();
+    const onClose = jest.fn();
+    await renderThemed(<PlanChecklistModal isOpen plan={plan} addedExerciseIds={["a"]} skippedExerciseIds={[]} onClose={onClose} onAdd={onAdd} />);
+    expect(screen.getByText("Plan 1/3 · stuknij, aby dodać")).toBeOnTheScreen();
+    expect(screen.getByText("Dodane")).toBeOnTheScreen();
+    expect(screen.getByText("Następne")).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId("plan-item-1"));
+    expect(onAdd).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByTestId("plan-item-3"));
+    expect(onAdd).toHaveBeenCalledWith("c");
+    expect(onClose).toHaveBeenCalled();
   });
 });

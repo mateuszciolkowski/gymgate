@@ -37,6 +37,7 @@ import { PlanBanner } from "./PlanBanner";
 import { WorkoutEditModal } from "./WorkoutEditModal";
 import { WorkoutItemCard } from "./WorkoutItemCard";
 import { WorkoutNotesModal } from "./WorkoutNotesModal";
+import { PlanChecklistModal } from "./PlanChecklistModal";
 
 /** Workout screen (PWA WorkoutDetailScreen). DRAFT: timer, add exercise, sets, finish. COMPLETED: read-only. */
 export function WorkoutScreen({ id }: { id: string }) {
@@ -52,6 +53,7 @@ export function WorkoutScreen({ id }: { id: string }) {
   const [fresh, setFresh] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [planOpen, setPlanOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const known = useRef<Set<string> | null>(null);
   const leaving = useRef(false);
@@ -113,7 +115,13 @@ export function WorkoutScreen({ id }: { id: string }) {
     const problem = completionError(workout);
     if (problem) return showAlert(problem);
     try {
-      act((ctx) => completeWorkout(ctx, id, computeWorkoutElapsed(workout, Date.now() + getClockOffset(db)).elapsed));
+      act((ctx) =>
+        completeWorkout(
+          ctx,
+          id,
+          computeWorkoutElapsed(workout, Date.now() + getClockOffset(db)).elapsed,
+        ),
+      );
       successHaptic();
       leaving.current = true;
       goBack();
@@ -282,20 +290,29 @@ export function WorkoutScreen({ id }: { id: string }) {
                 <Text style={[styles.notesButtonText, { color: c.textSub }]}>Notatki</Text>
               </Pressable>
               {plan ? (
-                <Text
-                  testID="plan-progress"
-                  style={[
-                    styles.planProgress,
-                    tabularNums,
-                    {
-                      backgroundColor: c.activeBg,
-                      borderColor: c.activeBorder,
-                      color: c.activeBorder,
-                    },
-                  ]}
+                <Pressable
+                  testID="plan-progress-button"
+                  accessibilityRole="button"
+                  accessibilityLabel={`Plan ${planDone} z ${planTotal}, pokaż ćwiczenia planu`}
+                  disabled={isCompleted}
+                  hitSlop={8}
+                  onPress={() => setPlanOpen(true)}
                 >
-                  Plan {planDone}/{planTotal}
-                </Text>
+                  <Text
+                    testID="plan-progress"
+                    style={[
+                      styles.planProgress,
+                      tabularNums,
+                      {
+                        backgroundColor: c.activeBg,
+                        borderColor: c.activeBorder,
+                        color: c.activeBorder,
+                      },
+                    ]}
+                  >
+                    Plan {planDone}/{planTotal}
+                  </Text>
+                </Pressable>
               ) : null}
             </View>
           </View>
@@ -410,6 +427,14 @@ export function WorkoutScreen({ id }: { id: string }) {
           ))
         )}
       </View>
+      <PlanChecklistModal
+        isOpen={planOpen}
+        plan={plan}
+        addedExerciseIds={added}
+        skippedExerciseIds={skipped}
+        onClose={() => setPlanOpen(false)}
+        onAdd={(exerciseId) => act((ctx) => addItem(ctx, id, exerciseId))}
+      />
       <WorkoutNotesModal
         isOpen={notesOpen}
         initialNotes={workout.workoutNotes}

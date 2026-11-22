@@ -160,6 +160,10 @@ Format: numer, data, decyzja, powód, skutek.
 
 **D-75 (2026-11-16) Android odłożony:** wymaga własnego modułu Kotlin (usługa pierwszoplanowa, powiadomienie z chronometrem), którego bez Android SDK nie da się zbudować ani sprawdzić. `createLiveActivity` ładowane leniwie tylko na iOS (na Androidzie w SDK 58 rzuca wyjątek przy imporcie).
 
+## Po pierwszych testach na telefonie
+
+**D-76 (2026-11-22) Lista ćwiczeń planu w treningu (tylko apka, na życzenie właściciela).** Stuknięcie w „Plan x/y” na ekranie aktywnego treningu otwiera listę ćwiczeń planu ze stanem (dodane / następne / pominięte); każde niedodane, także pominięte, można dodać poza kolejnością. „Kolejne z planu” dalej proponuje pierwsze pozostałe. PWA tego nie ma; do dodania, jeśli właściciel zechce.
+
 ## Otwarte, do rozstrzygnięcia w trakcie
 
 - Biblioteka przeciągania w formularzu planu (Etap 8).

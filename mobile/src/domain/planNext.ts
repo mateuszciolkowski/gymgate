@@ -23,3 +23,20 @@ export function remainingFromPlan(
   const done = new Set([...addedExerciseIds, ...skippedExerciseIds]);
   return plan.items.filter((i) => !done.has(i.exerciseId)).length;
 }
+
+export type PlanItemState = "added" | "next" | "skipped" | "todo";
+
+/** Every plan exercise in plan order with its state in the workout (plan checklist sheet). */
+export function planChecklist<T extends { exerciseId: string; orderInPlan: number }>(
+  plan: { items: T[] } | null | undefined,
+  addedExerciseIds: Iterable<string>,
+  skippedExerciseIds: Iterable<string>,
+): Array<T & { state: PlanItemState }> {
+  if (!plan) return [];
+  const added = new Set(addedExerciseIds);
+  const skipped = new Set(skippedExerciseIds);
+  const next = nextFromPlan(plan, added, skipped)?.exerciseId;
+  return [...plan.items]
+    .sort((a, b) => a.orderInPlan - b.orderInPlan)
+    .map((i) => ({ ...i, state: added.has(i.exerciseId) ? "added" : i.exerciseId === next ? "next" : skipped.has(i.exerciseId) ? "skipped" : "todo" }));
+}
