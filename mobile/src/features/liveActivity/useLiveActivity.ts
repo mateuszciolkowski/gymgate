@@ -18,7 +18,8 @@ function iosApi(): ActivityApi {
   const current = () => workoutActivity.getInstances()[0];
   return {
     exists: () => workoutActivity.getInstances().length > 0,
-    start: (p) => void workoutActivity.start(p, "gymgate://", staleDateOf(p)),
+    // Tapping the activity opens this workout (expo-router deep link), not just the app.
+    start: (p) => void workoutActivity.start(p, `gymgate://workout/${p.workoutId}`, staleDateOf(p)),
     update: (p: ActivityProps) => current()?.update(p, staleDateOf(p)),
     end: () => void Promise.all(workoutActivity.getInstances().map((i) => i.end("immediate"))),
   };
