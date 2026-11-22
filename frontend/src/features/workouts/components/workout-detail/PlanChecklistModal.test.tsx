@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { PlanChecklistModal, planChecklist } from "./PlanChecklistModal";
+import { PlanChecklistModal } from "./PlanChecklistModal";
+import { planChecklist } from "@/utils/planChecklist";
 import type { WorkoutPlan } from "@/types/workout";
 
 const item = (exerciseId: string, orderInPlan: number, name: string) => ({
