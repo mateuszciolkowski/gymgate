@@ -1,3 +1,4 @@
+import { useIsFocused } from "expo-router";
 import { FlashList } from "@shopify/flash-list";
 import { memo, useCallback, useMemo, useState, type ReactNode } from "react";
 import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
@@ -191,9 +192,11 @@ export function ExerciseList({
   const { userId } = useDb();
   const insets = useSafeAreaInsets();
   const clearance = useBarClearance();
-  const all = useExercises();
+  const focused = useIsFocused();
+  const all = useExercises(focused);
   const stats = useDbQuery(
     useCallback((db: Db) => new Map(getAllStats(db).map((s) => [s.exerciseId, s])), []),
+    focused,
   );
   const isAdmin = useDbQuery(useCallback((db: Db) => getProfile(db)?.isAdmin ?? false, []));
   const [query, setQuery] = useState("");

@@ -1,5 +1,5 @@
 import { FlashList } from "@shopify/flash-list";
-import { useRouter } from "expo-router";
+import { useIsFocused, useRouter } from "expo-router";
 import { memo, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -133,7 +133,7 @@ export function TrainingsScreen() {
   const insets = useSafeAreaInsets();
   const clearance = useBarClearance();
   const router = useRouter();
-  const { workouts, overview } = useTrainings();
+  const { workouts, overview } = useTrainings(useIsFocused());
   const [desc, setDesc] = useState(true);
 
   const { drafts, completed } = useMemo(() => {

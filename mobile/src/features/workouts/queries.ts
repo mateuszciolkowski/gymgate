@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getActiveWorkout, getAllStats, getPlan, getStatsOverview, getWorkout, listPlansForWorkoutPicker, listWorkouts, listExercises } from "@/db/repositories";
 import type { Db } from "@/db/types";
 import { computePreviousSets } from "@/domain/previousSets";
@@ -9,9 +9,9 @@ import { getClockOffset } from "@/sync/clock";
 import { initialPullDone } from "@/sync";
 
 /** Trainings tab: every workout (newest first) plus the activity-bar numbers. */
-export function useTrainings() {
+export function useTrainings(active = true) {
   const read = useCallback((db: Db) => ({ workouts: listWorkouts(db), overview: getStatsOverview(db) }), []);
-  return useDbQuery(read);
+  return useDbQuery(read, active);
 }
 
 export function useWorkout(id: string): Workout | null {
@@ -30,21 +30,26 @@ export function useWorkoutScreen(id: string) {
       return {
         workout,
         plan: workout?.workoutPlanId ? getPlan(db, workout.workoutPlanId) : null,
-        previous: computePreviousSets(listWorkouts(db), id),
         stats: new Map(getAllStats(db).map((s) => [s.exerciseId, s])),
       };
     },
     [id],
   );
-  return useDbQuery(read);
+  const data = useDbQuery(read);
+  // Previous sessions only change when this workout's exercises do: not re-hydrating the whole history on every set.
+  const { db } = useDb();
+  const exerciseKey = data.workout?.items.map((i) => i.exerciseId).join(",") ?? "";
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const previous = useMemo(() => computePreviousSets(listWorkouts(db), id), [db, id, exerciseKey]);
+  return { ...data, previous };
 }
 
 export function usePlansForNewWorkout(userId: string) {
   return useDbQuery(useCallback((db: Db) => listPlansForWorkoutPicker(db, userId), [userId]));
 }
 
-export function useExercises() {
-  return useDbQuery(useCallback((db: Db) => listExercises(db), []));
+export function useExercises(active = true) {
+  return useDbQuery(useCallback((db: Db) => listExercises(db), []), active);
 }
 
 /** True once the first full pull finished (until then the app shows "pobieranie danych"). */

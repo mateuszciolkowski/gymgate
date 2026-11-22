@@ -1,5 +1,5 @@
 import { FlashList } from "@shopify/flash-list";
-import { useRouter } from "expo-router";
+import { useIsFocused, useRouter } from "expo-router";
 import { memo, useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -176,7 +176,7 @@ export function PlansScreen() {
   const router = useRouter();
   const act = useAction();
   const { userId } = useDb();
-  const plans = useDbQuery(useCallback((db: Db) => listAllPlans(db), []));
+  const plans = useDbQuery(useCallback((db: Db) => listAllPlans(db), []), useIsFocused());
   const isAdmin = useDbQuery(useCallback((db: Db) => getProfile(db)?.isAdmin ?? false, []));
   const [tab, setTab] = useState<PlanListTab>("favorites");
   const [search, setSearch] = useState("");

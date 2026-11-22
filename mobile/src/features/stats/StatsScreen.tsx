@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useIsFocused, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,7 +16,7 @@ export function StatsScreen() {
   const insets = useSafeAreaInsets();
   const clearance = useBarClearance();
   const router = useRouter();
-  const { overview, stats, current, names } = useStats();
+  const { overview, stats, current, names } = useStats(useIsFocused());
   const [showCurrent, setShowCurrent] = useState(false);
 
   const list = useMemo(

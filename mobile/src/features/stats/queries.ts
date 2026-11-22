@@ -5,13 +5,14 @@ import { allExerciseStats, currentFirstSets, overview, progression, setSummaries
 import { useDbQuery } from "@/providers";
 
 /** Everything the stats list needs, computed from the local database (no network). */
-export function useStats() {
+export function useStats(active = true) {
   return useDbQuery(
     useCallback((db: Db) => {
       const rows = loadCompletedForStats(db);
       const names = new Map(listExercises(db).map((e) => [e.id, e.name]));
       return { overview: overview(rows), stats: allExerciseStats(rows), current: currentFirstSets(rows), names };
     }, []),
+    active,
   );
 }
 

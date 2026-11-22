@@ -18,7 +18,7 @@ jest.mock("@shopify/flash-list", () => ({ FlashList: jest.requireActual("react-n
 jest.mock("react-native-gesture-handler", () => ({ GestureDetector: ({ children }: { children: unknown }) => children, usePanGesture: () => ({}) }));
 jest.mock("expo-sqlite/kv-store", () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: () => undefined } }));
 const mockRouter = { back: jest.fn(), canGoBack: () => true, replace: jest.fn(), push: jest.fn() };
-jest.mock("expo-router", () => ({ useRouter: () => mockRouter }));
+jest.mock("expo-router", () => ({ useRouter: () => mockRouter, useIsFocused: () => true }));
 const mockWorld: { ctx: Ctx } = { ctx: null as unknown as Ctx };
 jest.mock("@/providers", () => ({
   useDb: () => ({ db: mockWorld.ctx.db, userId: mockWorld.ctx.userId }),

@@ -13,7 +13,7 @@ jest.mock("react-native-keyboard-controller", () => jest.requireActual("react-na
 // FlashList is ESM-only and needs a native layout pass; a FlatList renders the same items.
 jest.mock("@shopify/flash-list", () => ({ FlashList: jest.requireActual("react-native").FlatList }));
 const mockRouter = { back: jest.fn(), canGoBack: () => true, replace: jest.fn(), push: jest.fn() };
-jest.mock("expo-router", () => ({ useRouter: () => mockRouter }));
+jest.mock("expo-router", () => ({ useRouter: () => mockRouter, useIsFocused: () => true }));
 const mockWorld: { ctx: Ctx } = { ctx: null as unknown as Ctx };
 jest.mock("@/providers", () => ({
   useDb: () => ({ db: mockWorld.ctx.db, userId: mockWorld.ctx.userId }),

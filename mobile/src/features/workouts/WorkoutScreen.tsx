@@ -18,7 +18,10 @@ import {
 import { fmtDate, fmtDuration, fmtTimer } from "@/domain/formatters";
 import { nextFromPlan, remainingFromPlan } from "@/domain/planNext";
 import { completionError } from "@/domain/validation";
-import { useAction } from "@/providers";
+import { useAction, useDb } from "@/providers";
+import { computeWorkoutElapsed } from "@/domain/workoutTimer";
+import { getClockOffset } from "@/sync/clock";
+import type { Workout } from "@/domain/types";
 import { fonts, pwaBarlow, tabularNums, toBoxShadow, useTheme } from "@/theme";
 import {
   confirmAlert,
@@ -43,8 +46,8 @@ export function WorkoutScreen({ id }: { id: string }) {
   const clearance = useBarClearance();
   const router = useRouter();
   const act = useAction();
+  const { db } = useDb();
   const { workout, plan, previous, stats } = useWorkoutScreen(id);
-  const elapsed = useWorkoutElapsed(workout?.status === "DRAFT" ? workout : null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [fresh, setFresh] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
@@ -110,7 +113,7 @@ export function WorkoutScreen({ id }: { id: string }) {
     const problem = completionError(workout);
     if (problem) return showAlert(problem);
     try {
-      act((ctx) => completeWorkout(ctx, id, elapsed));
+      act((ctx) => completeWorkout(ctx, id, computeWorkoutElapsed(workout, Date.now() + getClockOffset(db)).elapsed));
       successHaptic();
       leaving.current = true;
       goBack();
@@ -258,7 +261,7 @@ export function WorkoutScreen({ id }: { id: string }) {
             <View style={styles.timerLeft}>
               <Text style={[styles.timerLabel, { color: c.textMuted }]}>Czas trwania</Text>
               <Text testID="workout-timer" style={[styles.timer, tabularNums, { color: c.text }]}>
-                {fmtTimer(elapsed)}
+                <WorkoutTimerText workout={workout.status === "DRAFT" ? workout : null} />
               </Text>
               {workout.gymName ? (
                 <View style={styles.gymRow}>
@@ -543,3 +546,8 @@ const styles = StyleSheet.create({
   noneTitle: { fontFamily: fonts.dmSans[700], fontSize: 15, lineHeight: 22.5, marginBottom: 4 },
   noneHint: { fontFamily: fonts.dmSans[400], fontSize: 13, lineHeight: 19.5, textAlign: "center" },
 });
+
+/** Ticks every second on its own, so the timer does not re-render the whole workout screen (and its inputs). */
+function WorkoutTimerText({ workout }: { workout: Workout | null }) {
+  return <>{fmtTimer(useWorkoutElapsed(workout))}</>;
+}

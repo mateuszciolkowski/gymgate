@@ -9,7 +9,14 @@ export const EDGE_ZONE_WIDTH = 24;
 export const drawerWidth = (screenWidth: number) => Math.min(screenWidth * DRAWER_WIDTH_FRACTION, DRAWER_MAX_WIDTH);
 
 /** Swipe from the left edge by `offset` px opens the drawer when it covers >= 35% of the panel width. */
-export const shouldOpen = (offset: number, width: number) => offset >= width * OPEN_THRESHOLD;
+// Called from gesture worklets on the UI thread: must be worklets, or Release builds crash on the swipe.
+export function shouldOpen(offset: number, width: number) {
+  "worklet";
+  return offset >= width * OPEN_THRESHOLD;
+}
 
 /** Swipe to the left by `offset` px closes the drawer when it covers >= 30% of the panel width. */
-export const shouldClose = (offset: number, width: number) => offset >= width * CLOSE_THRESHOLD;
+export function shouldClose(offset: number, width: number) {
+  "worklet";
+  return offset >= width * CLOSE_THRESHOLD;
+}

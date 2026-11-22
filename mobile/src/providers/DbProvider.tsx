@@ -39,10 +39,16 @@ export function useDb(): DbValue {
 }
 
 /** Re-runs `read` whenever the database changes (coalesced, 30 ms). `read` must be stable (useCallback). */
-export function useDbQuery<T>(read: (db: Db) => T): T {
+/**
+ * Live read: re-runs `read` after database changes. `active = false` (a hidden screen, e.g. a tab under the workout
+ * screen) skips re-reads and catches up once when it becomes active again, so a set save does not re-hydrate
+ * every mounted list on the JS thread.
+ */
+export function useDbQuery<T>(read: (db: Db) => T, active = true): T {
   const { db, subscribe } = useDb();
   const [tick, bump] = useReducer((n: number) => n + 1, 0);
   useEffect(() => {
+    if (!active) return; // hidden: no re-reads; `active` in the memo deps catches up once on return
     let timer: ReturnType<typeof setTimeout> | null = null;
     const off = subscribe(() => {
       timer ??= setTimeout(() => {
@@ -54,11 +60,12 @@ export function useDbQuery<T>(read: (db: Db) => T): T {
       off();
       if (timer) clearTimeout(timer);
     };
-  }, [subscribe]);
+  }, [subscribe, active]);
   return useMemo(() => {
     void tick; // only forces a re-read after a database change
+    void active;
     return read(db);
-  }, [db, read, tick]);
+  }, [db, read, tick, active]);
 }
 
 /**

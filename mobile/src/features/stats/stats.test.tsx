@@ -7,7 +7,7 @@ import { StatsExerciseScreen } from "./StatsExerciseScreen";
 import { StatsScreen } from "./StatsScreen";
 
 const mockRouter = { back: jest.fn(), push: jest.fn() };
-jest.mock("expo-router", () => ({ useRouter: () => mockRouter }));
+jest.mock("expo-router", () => ({ useRouter: () => mockRouter, useIsFocused: () => true }));
 const mockWorld: { ctx: Ctx } = { ctx: null as unknown as Ctx };
 jest.mock("@/providers", () => ({
   useDb: () => ({ db: mockWorld.ctx.db, userId: mockWorld.ctx.userId }),
