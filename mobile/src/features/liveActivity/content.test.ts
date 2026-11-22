@@ -34,10 +34,10 @@ describe("workoutToActivity", () => {
       nextName: "Rozpiętki na ławce skośnej",
       plan: { done: 2, total: 5 },
     })!;
-    expect(p).toMatchObject({ summary: "3 serie · 2 ćw. · Plan 2/5", proposal: "+ 62.5 × 6", logged: "✓ Seria 2: 62.5 kg × 6" });
-    expect(p.next!.startsWith("⏭ Rozpiętki")).toBe(true);
-    expect(p.next!.length).toBeLessThanOrEqual(18);
-    expect(workoutToActivity(workout(), 0, "#fff")).toMatchObject({ next: null, proposal: null, summary: "0 serii · 0 ćw." });
+    expect(p).toMatchObject({ plan: "Plan 2/5", exerciseSets: "2 serie", proposal: "62.5 kg × 6", logged: "Seria 2: 62.5 kg × 6" });
+    expect(p.next!.startsWith("Rozpiętki")).toBe(true);
+    expect(p.next!.length).toBeLessThanOrEqual(14);
+    expect(workoutToActivity(workout(), 0, "#fff")).toMatchObject({ next: null, proposal: null, plan: null, exerciseSets: null });
   });
 
   it("is null without a DRAFT workout (completed, deleted or none)", () => {
@@ -54,7 +54,7 @@ describe("workoutToActivity", () => {
     const w = workout({
       items: [item("a", "Przysiad", 0, 1, [set(1, "100.00", 5, 2)]), item("b", "Wyciskanie", 1, 3, [set(1, "60", 8, 4), set(2, "62.5", 6, 9)])],
     });
-    expect(workoutToActivity(w, 0, "#fff")).toMatchObject({ exercise: "Wyciskanie", logged: "✓ Seria 2: 62.5 kg × 6", lastActivityAt: Date.parse(at(9)) });
+    expect(workoutToActivity(w, 0, "#fff")).toMatchObject({ exercise: "Wyciskanie", logged: "Seria 2: 62.5 kg × 6", lastActivityAt: Date.parse(at(9)) });
   });
 
   it("switches back to an older exercise when a set is edited there", () => {
@@ -81,7 +81,7 @@ describe("workoutToActivity", () => {
 });
 
 describe("reconcile", () => {
-  const props = (over: Partial<ActivityProps> = {}): ActivityProps => ({ workoutId: "w", name: "Push", startedAt: 1, lastActivityAt: 1, abandoned: false, exercise: null, summary: "", logged: null, proposal: null, next: null, accent: "#fff", ...over });
+  const props = (over: Partial<ActivityProps> = {}): ActivityProps => ({ workoutId: "w", name: "Push", startedAt: 1, lastActivityAt: 1, abandoned: false, exercise: null, plan: null, exerciseSets: null, logged: null, proposal: null, next: null, accent: "#fff", ...over });
   const fake = (exists = false) => {
     const calls: string[] = [];
     const api: ActivityApi = {
@@ -98,7 +98,7 @@ describe("reconcile", () => {
     const st: Reconciler = { sent: null };
     reconcile(st, props(), api);
     reconcile(st, props(), api);
-    reconcile(st, props({ logged: "✓ Seria 1: 60 kg × 8" }), api);
+    reconcile(st, props({ logged: "Seria 1: 60 kg × 8" }), api);
     reconcile(st, null, api);
     reconcile(st, null, api);
     expect(calls).toEqual(["start", "update", "end"]);

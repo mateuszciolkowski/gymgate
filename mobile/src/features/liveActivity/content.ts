@@ -8,18 +8,20 @@ import type { PreviousSetData } from "@/domain/previousSets";
 export interface ActivityProps {
   workoutId: string;
   name: string;
-  /** Top line next to the timer: "12 serii · 3 ćw. · Plan 3/6". */
-  summary: string;
+  /** "Plan 3/6" when the workout follows a plan. */
+  plan: string | null;
+  /** Saved sets of the current exercise: "2 serie". */
+  exerciseSets: string | null;
   /** Epoch ms the system timer counts from (device clock: createdAt minus the stored server clock offset). */
   startedAt: number;
   /** Epoch ms of the last activity (device clock); the frozen time of an abandoned workout (P7). */
   lastActivityAt: number;
   exercise: string | null;
-  /** Feedback after a save: "✓ Seria 2: 62.5 kg × 8" (the last logged set of the current exercise). */
+  /** Feedback after a save: "Seria 2: 62.5 kg × 8" (the last logged set of the current exercise). */
   logged: string | null;
-  /** Label of the "add the proposed set" button, e.g. "+ 62.5 × 8"; null hides it. */
+  /** Label of the "add the proposed set" button, e.g. "62.5 kg × 8"; null hides it. */
   proposal: string | null;
-  /** Label of the "next plan exercise" button, e.g. "⏭ Rozpiętki"; null hides it. */
+  /** Label of the "next plan exercise" button (exercise name, shortened); null hides it. */
   next: string | null;
   accent: string;
   /** Already abandoned when sent (app relaunched after 2 h): the system shows no activity that is stale at start, so the layout is told explicitly. */
@@ -82,24 +84,18 @@ export function workoutToActivity(
   const item = currentItem(workout);
   const last = item?.sets.reduce<(typeof item.sets)[number] | null>((m, s) => (!m || s.setNumber >= m.setNumber ? s : m), null) ?? null;
   const lastActivityAt = computeWorkoutLastActivity(workout) - clockOffsetMs;
-  const totalSets = workout.items.reduce((n, i) => n + i.sets.length, 0);
   return {
     workoutId: workout.id,
     name: workout.workoutName?.trim() || "Trening",
-    summary: [
-      `${totalSets} ${setsWord(totalSets)}`,
-      `${workout.items.length} ćw.`,
-      guide.plan && guide.plan.total > 0 ? `Plan ${guide.plan.done}/${guide.plan.total}` : null,
-    ]
-      .filter(Boolean)
-      .join(" · "),
+    plan: guide.plan && guide.plan.total > 0 ? `Plan ${guide.plan.done}/${guide.plan.total}` : null,
+    exerciseSets: item ? `${item.sets.length} ${setsWord(item.sets.length)}` : null,
     startedAt: new Date(workout.createdAt).getTime() - clockOffsetMs,
     lastActivityAt,
     abandoned: now - lastActivityAt > STALE_WORKOUT_MS,
     exercise: item?.exercise.name ?? null,
-    logged: last ? `✓ Seria ${last.setNumber}: ${kg(last.weight)} kg × ${last.repetitions}` : null,
-    proposal: guide.proposal ? `+ ${kg(guide.proposal.weight)} × ${guide.proposal.repetitions}` : null,
-    next: guide.nextName ? `⏭ ${short(guide.nextName)}` : null,
+    logged: last ? `Seria ${last.setNumber}: ${kg(last.weight)} kg × ${last.repetitions}` : null,
+    proposal: guide.proposal ? `${kg(guide.proposal.weight)} kg × ${guide.proposal.repetitions}` : null,
+    next: guide.nextName ? short(guide.nextName, 14) : null,
     accent,
   };
 }

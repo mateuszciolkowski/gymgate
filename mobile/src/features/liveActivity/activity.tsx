@@ -1,5 +1,5 @@
 import { Button, HStack, Image, Spacer, Text, VStack } from "@expo/ui/swift-ui";
-import { buttonStyle, controlSize, font, foregroundStyle, lineLimit, padding, tint } from "@expo/ui/swift-ui/modifiers";
+import { buttonStyle, controlSize, font, foregroundStyle, frame, lineLimit, minimumScaleFactor, monospacedDigit, multilineTextAlignment, padding, tint } from "@expo/ui/swift-ui/modifiers";
 import { addUserInteractionListener, createLiveActivity, type LiveActivityEnvironment } from "expo-widgets";
 import type { ActivityProps } from "./content";
 
@@ -7,63 +7,111 @@ import type { ActivityProps } from "./content";
  * The layout runs in the widget extension's own JS runtime: no hooks, no module scope, so everything is declared
  * inside. The timer is a SwiftUI `Text(timerInterval:)` (the system ticks it, P3). When the system marks the
  * activity stale (2 h without activity, P7) it shows "Trening wstrzymany" with the timer paused at the last activity.
- * Every text is limited to one line so the lock-screen card never overflows.
+ * Every text is one line and the two buttons share the width, so the lock-screen card is full but never overflows.
+ * Icons are SF Symbols, no emoji.
  */
 const WorkoutActivity = (p: ActivityProps, env: LiveActivityEnvironment) => {
   "widget";
   const stale = env.isStale === true || p.abandoned;
   const muted = "#9CA3AF";
+  const accent = stale ? muted : p.accent;
   const start = new Date(p.startedAt);
+  const wide = frame({ maxWidth: 10000 });
   const timer = (size: number) => (
     <Text
       timerInterval={{ lower: start, upper: new Date(stale ? Math.max(p.lastActivityAt, p.startedAt) : p.startedAt + 99 * 3600 * 1000) }}
       pauseTime={stale ? new Date(p.lastActivityAt) : undefined}
       countsDown={false}
-      modifiers={[font({ size, weight: "bold", design: "monospaced" }), foregroundStyle(stale ? muted : p.accent), lineLimit(1)]}
+      modifiers={[font({ size, weight: "bold", design: "monospaced" }), foregroundStyle(accent), lineLimit(1)]}
     />
   );
-  const line = (text: string, size: number, color?: string, weight?: "semibold" | "bold") => (
-    <Text modifiers={[font({ size, weight }), ...(color ? [foregroundStyle(color)] : []), lineLimit(1)]}>{text}</Text>
+  const text = (value: string, size: number, color?: string, weight?: "medium" | "semibold" | "bold") => (
+    <Text modifiers={[font({ size, weight }), ...(color ? [foregroundStyle(color)] : []), lineLimit(1)]}>{value}</Text>
   );
-  // Top line: workout totals (the workout name is not needed); "Trening wstrzymany" when paused.
-  const top = stale ? "Trening wstrzymany" : p.summary;
+  const status = stale ? "Trening wstrzymany" : p.plan;
   const exercise = p.exercise ?? "Dodaj pierwsze ćwiczenie";
-  const icon = <Image systemName={stale ? "pause.circle.fill" : "dumbbell.fill"} color={stale ? muted : p.accent} />;
+  const header = (timerSize: number) => (
+    <HStack spacing={6}>
+      <Image systemName={stale ? "pause.circle.fill" : "figure.strengthtraining.traditional"} color={accent} size={15} />
+      {status ? text(status, 13, stale ? muted : undefined, "semibold") : null}
+      <Spacer />
+      {timer(timerSize)}
+    </HStack>
+  );
+  const exerciseRow = (
+    <HStack spacing={6}>
+      {text(exercise, 16, undefined, "bold")}
+      <Spacer />
+      {p.exerciseSets ? text(p.exerciseSets, 13, muted, "medium") : null}
+    </HStack>
+  );
+  const logged = p.logged ? (
+    <HStack spacing={5}>
+      <Image systemName="checkmark.circle.fill" color={accent} size={13} />
+      {text(p.logged, 13, accent, "semibold")}
+    </HStack>
+  ) : null;
   // Buttons are handled by the running app (useLiveActivity); hidden while paused.
   const buttons =
     !stale && (p.proposal || p.next) ? (
       <HStack spacing={8}>
         {p.proposal ? (
-          <Button label={p.proposal} target="add-set" modifiers={[buttonStyle("borderedProminent"), controlSize("small"), tint(p.accent), lineLimit(1)]} />
+          <Button
+            label={p.proposal}
+            systemImage="plus.circle.fill"
+            target="add-set"
+            modifiers={[buttonStyle("borderedProminent"), controlSize("regular"), tint(p.accent), lineLimit(1), wide]}
+          />
         ) : null}
-        {p.next ? <Button label={p.next} target="next-exercise" modifiers={[buttonStyle("bordered"), controlSize("small"), lineLimit(1)]} /> : null}
+        {p.next ? (
+          <Button
+            label={p.next}
+            systemImage="forward.end.fill"
+            target="next-exercise"
+            modifiers={[buttonStyle("bordered"), controlSize("regular"), tint(p.accent), lineLimit(1), wide]}
+          />
+        ) : null}
       </HStack>
     ) : null;
   return {
     banner: (
-      <VStack alignment="leading" spacing={3} modifiers={[padding({ all: 12 })]}>
-        <HStack spacing={8}>
-          {line(top, 13, stale ? muted : undefined, "semibold")}
-          <Spacer />
-          {timer(22)}
-        </HStack>
-        {line(exercise, 14, undefined, "bold")}
-        {p.logged ? line(p.logged, 12, p.accent) : null}
+      <VStack alignment="leading" spacing={6} modifiers={[padding({ horizontal: 16, vertical: 14 })]}>
+        {header(24)}
+        {exerciseRow}
+        {logged}
         {buttons}
       </VStack>
     ),
-    compactLeading: icon,
-    compactTrailing: timer(13),
-    minimal: icon,
-    expandedLeading: <VStack modifiers={[padding({ all: 8 })]}>{icon}</VStack>,
-    expandedCenter: (
-      <VStack modifiers={[padding({ all: 4 })]}>{line(top, 12, stale ? muted : undefined, "semibold")}</VStack>
+    compactLeading: <Image systemName={stale ? "pause.circle.fill" : "figure.strengthtraining.traditional"} color={accent} />,
+    // A system timer text reserves room for its longest value: pin it to a narrow width at the trailing edge.
+    compactTrailing: (
+      <Text
+        timerInterval={{ lower: start, upper: new Date(stale ? Math.max(p.lastActivityAt, p.startedAt) : p.startedAt + 99 * 3600 * 1000) }}
+        pauseTime={stale ? new Date(p.lastActivityAt) : undefined}
+        countsDown={false}
+        modifiers={[
+          font({ size: 14, weight: "semibold" }),
+          monospacedDigit(),
+          foregroundStyle(accent),
+          lineLimit(1),
+          minimumScaleFactor(0.7),
+          multilineTextAlignment("trailing"),
+          frame({ width: 46, alignment: "trailing" }),
+        ]}
+      />
     ),
-    expandedTrailing: <VStack modifiers={[padding({ all: 8 })]}>{timer(18)}</VStack>,
+    minimal: <Image systemName={stale ? "pause.circle.fill" : "figure.strengthtraining.traditional"} color={accent} />,
+    expandedLeading: (
+      <VStack modifiers={[padding({ leading: 8, top: 6 })]}>
+        <Image systemName={stale ? "pause.circle.fill" : "figure.strengthtraining.traditional"} color={accent} size={18} />
+      </VStack>
+    ),
+    expandedCenter: <VStack modifiers={[padding({ top: 6 })]}>{status ? text(status, 13, stale ? muted : undefined, "semibold") : null}</VStack>,
+    expandedTrailing: <VStack modifiers={[padding({ trailing: 8, top: 6 })]}>{timer(18)}</VStack>,
     expandedBottom: (
-      <VStack alignment="leading" spacing={3} modifiers={[padding({ horizontal: 8, vertical: 4 })]}>
-        {line(exercise, 13, undefined, "semibold")}
-        {p.logged ? line(p.logged, 12, p.accent) : null}
+      <VStack alignment="leading" spacing={5} modifiers={[padding({ horizontal: 10, bottom: 6 })]}>
+        {exerciseRow}
+        {logged}
         {buttons}
       </VStack>
     ),
