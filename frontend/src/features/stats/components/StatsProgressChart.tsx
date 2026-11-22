@@ -1,8 +1,8 @@
 import { memo } from "react";
-import type { ExerciseProgressPoint } from "@/types";
+import type { SessionPoint } from "@/utils/strengthMetrics";
 
 interface StatsProgressChartProps {
-  points: ExerciseProgressPoint[];
+  points: SessionPoint[];
   label: string;
   height?: number;
   ySuffix?: string;
@@ -71,7 +71,7 @@ export const StatsProgressChart = memo(function StatsProgressChart({
         <span className="text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--gg-text-muted)" }}>
           {label}
         </span>
-        <span className="font-barlow font-extrabold text-[17px] num-tabular" style={{ color: "var(--gg-a2)" }}>
+        <span data-testid="chart-latest" className="font-barlow font-extrabold text-[17px] num-tabular" style={{ color: "var(--gg-a2)" }}>
           {latestFormatter ? latestFormatter(latestValue) : `${latestValue.toFixed(1)}${ySuffix}`}
         </span>
       </div>

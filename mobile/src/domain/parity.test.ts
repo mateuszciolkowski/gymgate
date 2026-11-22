@@ -7,6 +7,7 @@ import { join } from "path";
 import { fuzzyMatch } from "./fuzzyMatch";
 import { planChecklist } from "./planNext";
 import { computePreviousSets } from "./previousSets";
+import { bestE1RM, estimate1RM, sessionSeries } from "./strengthMetrics";
 import { computeWorkoutElapsed, computeWorkoutLastActivity } from "./workoutTimer";
 
  
@@ -37,5 +38,17 @@ describe("shared parity fixtures", () => {
     const r = computePreviousSets(f.workouts, f.excludeWorkoutId);
     expect(Object.fromEntries(r.previousSetsByExerciseId)).toEqual(f.expected.previous);
     expect([...r.latestSetsByExerciseId.keys()].sort()).toEqual(f.expected.latestKeys);
+  });
+
+  it("strengthMetrics", () => {
+    const f = fixture("strengthMetrics");
+    for (const c of f.estimate) expect([c.weight, c.reps, estimate1RM(c.weight, c.reps)]).toEqual([c.weight, c.reps, c.expected]);
+    for (const m of ["weight", "e1rm", "volume"] as const) {
+      const s = sessionSeries(f.workouts, f.exerciseId, m);
+      expect([m, s.map((p) => p.workoutId)]).toEqual([m, f.expected.order]);
+      expect([m, s.map((p) => p.value)]).toEqual([m, f.expected[m]]);
+    }
+    expect(bestE1RM(f.workouts, f.exerciseId)).toBe(f.expected.best);
+    expect(bestE1RM(f.workouts, "nope")).toBe(f.expected.bestWithoutData);
   });
 });

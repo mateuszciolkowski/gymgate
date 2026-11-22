@@ -1,7 +1,14 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { useData, useStatsData } from "@/contexts/data";
 import type { ExerciseStats } from "@/types";
+import { bestE1RM, sessionSeries, type StrengthMetric } from "@/utils/strengthMetrics";
 import { StatsProgressChart } from "./StatsProgressChart";
+
+const METRICS: Array<{ key: StrengthMetric; button: string; label: string }> = [
+  { key: "weight", button: "Ciężar", label: "Ciężar podnoszony w czasie" },
+  { key: "e1rm", button: "1RM", label: "Szac. 1RM w czasie" },
+  { key: "volume", button: "Objętość", label: "Objętość w czasie" },
+];
 
 interface StatsExerciseDetailScreenProps {
   exerciseId: string;
@@ -18,6 +25,7 @@ export const StatsExerciseDetailScreen = memo(function StatsExerciseDetailScreen
   const { stats, getExerciseProgression } = useStatsData();
   const { workouts } = useData();
   const [dateSort, setDateSort] = useState<"desc" | "asc">("desc");
+  const [metric, setMetric] = useState<StrengthMetric>("weight");
   const [progression, setProgression] = useState<
     Awaited<ReturnType<typeof getExerciseProgression>> | null
   >(null);
@@ -38,6 +46,9 @@ export const StatsExerciseDetailScreen = memo(function StatsExerciseDetailScreen
     return map;
   }, [workouts, exerciseId]);
 
+  const chartPoints = useMemo(() => sessionSeries(workouts, exerciseId, metric), [workouts, exerciseId, metric]);
+  const e1rm = useMemo(() => bestE1RM(workouts, exerciseId), [workouts, exerciseId]);
+
   const sortedRecentPoints = useMemo(() => {
     const points = progression?.points ?? [];
     const newestFirst = [...points].sort(
@@ -57,9 +68,10 @@ export const StatsExerciseDetailScreen = memo(function StatsExerciseDetailScreen
 
   const statCards = [
     { label: "Maks. ciężar", value: `${exerciseStat?.maxWeight ?? "0"} kg`, highlight: true },
+    { label: "Szac. 1RM", value: `${e1rm} kg` },
     { label: "Powt. przy PR", value: String(exerciseStat?.maxWeightReps ?? 0) },
     { label: "Sesje", value: String(exerciseStat?.totalWorkouts ?? 0) },
-    { label: "Ostatnio", value: `${exerciseStat?.lastWeight ?? "0"} kg × ${exerciseStat?.lastReps ?? 0}` },
+    { label: "Ostatnio", value: `${exerciseStat?.lastWeight ?? "0"} kg × ${exerciseStat?.lastReps ?? 0}`, wide: true },
   ];
 
   return (
@@ -94,7 +106,7 @@ export const StatsExerciseDetailScreen = memo(function StatsExerciseDetailScreen
         {statCards.map((card, i) => (
           <div
             key={i}
-            className="rounded-2xl p-3.5 transition-all"
+            className={`rounded-2xl p-3.5 transition-all${card.wide ? " col-span-2" : ""}`}
             style={{
               background: "var(--gg-surface)",
               border: "1px solid var(--gg-border)",
@@ -116,9 +128,26 @@ export const StatsExerciseDetailScreen = memo(function StatsExerciseDetailScreen
 
       {/* Chart */}
       <div className="mb-4">
+        <div className="flex rounded-lg overflow-hidden p-0.5 mb-2" style={{ background: "var(--gg-surface2)" }}>
+          {METRICS.map((m) => (
+            <button
+              key={m.key}
+              type="button"
+              aria-pressed={metric === m.key}
+              onClick={() => setMetric(m.key)}
+              className="flex-1 px-2.5 py-1.5 text-[11px] font-bold border-none cursor-pointer rounded-md transition-all"
+              style={{
+                background: metric === m.key ? "var(--gg-a1)" : "transparent",
+                color: metric === m.key ? "#fff" : "var(--gg-text-muted)",
+              }}
+            >
+              {m.button}
+            </button>
+          ))}
+        </div>
         <StatsProgressChart
-          points={progression?.points ?? []}
-          label="Ciężar podnoszony w czasie"
+          points={chartPoints}
+          label={METRICS.find((m) => m.key === metric)!.label}
           height={180}
           ySuffix=" kg"
         />

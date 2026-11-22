@@ -4,28 +4,37 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { fmtListDate } from "@/domain/formatters";
 import { recentPoints } from "@/domain/stats";
+import type { StrengthMetric } from "@/domain/strengthMetrics";
 import { fonts, pwaBarlow, tabularNums, toBoxShadow, useTheme } from "@/theme";
 import { Icon, useBarClearance } from "@/ui";
 import { useExerciseHistory } from "./queries";
 import { StatsProgressChart } from "./StatsProgressChart";
 
-/** Exercise history (PWA StatsExerciseDetailScreen): four tiles, progress chart, last sessions. */
+const METRICS: Array<{ key: StrengthMetric; button: string; label: string }> = [
+  { key: "weight", button: "Ciężar", label: "Ciężar podnoszony w czasie" },
+  { key: "e1rm", button: "1RM", label: "Szac. 1RM w czasie" },
+  { key: "volume", button: "Objętość", label: "Objętość w czasie" },
+];
+
+/** Exercise history (PWA StatsExerciseDetailScreen): five tiles, progress chart, last sessions. */
 export function StatsExerciseScreen({ exerciseId }: { exerciseId: string }) {
   const { theme } = useTheme();
   const c = theme.colors;
   const insets = useSafeAreaInsets();
   const clearance = useBarClearance();
   const router = useRouter();
-  const { stat, name, points, summaries } = useExerciseHistory(exerciseId);
+  const { stat, name, points, summaries, series, e1rm } = useExerciseHistory(exerciseId);
+  const [metric, setMetric] = useState<StrengthMetric>("weight");
   const [order, setOrder] = useState<"desc" | "asc">("desc");
   const recent = recentPoints(points, order);
   const shadow = toBoxShadow(theme.shadow);
 
   const cards = [
     { label: "Maks. ciężar", value: `${stat?.maxWeight ?? "0"} kg`, hi: true },
+    { label: "Szac. 1RM", value: `${e1rm} kg` },
     { label: "Powt. przy PR", value: String(stat?.maxWeightReps ?? 0) },
     { label: "Sesje", value: String(stat?.totalWorkouts ?? 0) },
-    { label: "Ostatnio", value: `${stat?.lastWeight ?? "0"} kg × ${stat?.lastReps ?? 0}` },
+    { label: "Ostatnio", value: `${stat?.lastWeight ?? "0"} kg × ${stat?.lastReps ?? 0}`, wide: true },
   ];
 
   return (
@@ -66,6 +75,7 @@ export function StatsExerciseScreen({ exerciseId }: { exerciseId: string }) {
             key={card.label}
             style={[
               styles.card,
+              card.wide && styles.cardWide,
               { backgroundColor: c.surface, borderColor: c.border, boxShadow: shadow },
             ]}
           >
@@ -78,7 +88,25 @@ export function StatsExerciseScreen({ exerciseId }: { exerciseId: string }) {
       </View>
 
       <View style={styles.chart}>
-        <StatsProgressChart points={points} label="Ciężar podnoszony w czasie" height={180} />
+        <View style={[styles.sort, styles.metricSwitch, { backgroundColor: c.surface2 }]}>
+          {METRICS.map((m) => (
+            <Pressable
+              key={m.key}
+              accessibilityRole="button"
+              accessibilityState={{ selected: metric === m.key }}
+              testID={`stats-metric-${m.key}`}
+              onPress={() => setMetric(m.key)}
+              style={[styles.sortBtn, styles.metricBtn, metric === m.key && { backgroundColor: c.a1 }]}
+            >
+              <Text style={[styles.sortText, { color: metric === m.key ? "#ffffff" : c.textMuted }]}>{m.button}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <StatsProgressChart
+          points={series[metric]}
+          label={METRICS.find((m) => m.key === metric)!.label}
+          height={180}
+        />
       </View>
 
       <View
@@ -156,7 +184,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   cardValue: { fontFamily: pwaBarlow[900], fontSize: 20, lineHeight: 25 },
+  cardWide: { width: "100%" },
   chart: { marginBottom: 16 },
+  metricSwitch: { marginBottom: 8 },
+  metricBtn: { flex: 1, alignItems: "center", paddingVertical: 6 },
   table: { borderRadius: 16, borderWidth: 1, marginBottom: 24, overflow: "hidden" },
   tableHead: {
     flexDirection: "row",

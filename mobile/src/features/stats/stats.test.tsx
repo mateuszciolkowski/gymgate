@@ -81,6 +81,24 @@ describe("StatsExerciseScreen", () => {
     await fireEvent.press(screen.getByTestId("stats-back"));
     expect(mockRouter.back).toHaveBeenCalled();
   });
+  it("shows the best estimated 1RM tile and switches the chart metric (draft ignored)", async () => {
+    const { db, ctx } = world();
+    seedExercise(db, BENCH, "Wyciskanie");
+    day(ctx, "2026-03-01", BENCH, [[100, 5], [80, 10]]);
+    day(ctx, "2026-03-08", BENCH, [[60, 12]]);
+    const draft = createWorkout(ctx, { workoutDate: "2026-03-09T12:00:00.000Z" });
+    addSet(ctx, addItem(ctx, draft.id, BENCH).id, { weight: 200, repetitions: 10 });
+    await renderThemed(<StatsExerciseScreen exerciseId={BENCH} />);
+    expect(screen.getByText("Szac. 1RM")).toBeOnTheScreen();
+    expect(screen.getByText("116.7 kg")).toBeOnTheScreen();
+    expect(screen.getByTestId("chart-latest")).toHaveTextContent("60.0 kg");
+    await fireEvent.press(screen.getByTestId("stats-metric-e1rm"));
+    expect(screen.getByText("Szac. 1RM w czasie")).toBeOnTheScreen();
+    expect(screen.getByTestId("chart-latest")).toHaveTextContent("84.0 kg");
+    await fireEvent.press(screen.getByTestId("stats-metric-volume"));
+    expect(screen.getByText("Objętość w czasie")).toBeOnTheScreen();
+    expect(screen.getByTestId("chart-latest")).toHaveTextContent("720.0 kg");
+  });
   it("shows only 8 sessions", async () => {
     const { db, ctx } = world();
     seedExercise(db, BENCH, "Wyciskanie");

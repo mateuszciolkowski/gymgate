@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Line, Polyline, Text as SvgText } from "react-native-svg";
 import { fmtDayMonth } from "@/domain/formatters";
-import type { ProgressionPoint } from "@/domain/stats";
+import type { SessionPoint } from "@/domain/strengthMetrics";
 import { fonts, pwaBarlow, tabularNums, toBoxShadow, useTheme } from "@/theme";
 
 const MONO = Platform.select({ ios: "Menlo", default: "monospace" });
@@ -18,7 +18,7 @@ export const StatsProgressChart = memo(function StatsProgressChart({
   height = 180,
   ySuffix = " kg",
 }: {
-  points: ProgressionPoint[];
+  points: SessionPoint[];
   label: string;
   height?: number;
   ySuffix?: string;
@@ -32,7 +32,7 @@ export const StatsProgressChart = memo(function StatsProgressChart({
       </View>
     );
   }
-  const values = points.map((p) => p.maxSetWeight);
+  const values = points.map((p) => p.value);
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = Math.max(max - min, 1);
@@ -64,7 +64,7 @@ export const StatsProgressChart = memo(function StatsProgressChart({
           {fmtDayMonth(points[points.length - 1]!.workoutDate)}
         </SvgText>
         <Polyline
-          points={points.map((p, i) => `${plotX(i)},${plotY(p.maxSetWeight)}`).join(" ")}
+          points={points.map((p, i) => `${plotX(i)},${plotY(p.value)}`).join(" ")}
           fill="none"
           stroke={c.a1}
           strokeWidth={1.4}
@@ -72,7 +72,7 @@ export const StatsProgressChart = memo(function StatsProgressChart({
           strokeLinejoin="round"
         />
         {points.map((p, i) => (
-          <Circle key={p.workoutId} cx={plotX(i)} cy={plotY(p.maxSetWeight)} r={1.4} fill={c.a2} />
+          <Circle key={p.workoutId} cx={plotX(i)} cy={plotY(p.value)} r={1.4} fill={c.a2} />
         ))}
       </Svg>
     </View>

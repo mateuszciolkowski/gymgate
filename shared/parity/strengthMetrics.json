@@ -1,0 +1,27 @@
+{
+  "estimate": [
+    { "weight": 100, "reps": 1, "expected": 100 },
+    { "weight": 100, "reps": 5, "expected": 116.7 },
+    { "weight": 80, "reps": 10, "expected": 106.7 },
+    { "weight": 62.5, "reps": 8, "expected": 79.2 },
+    { "weight": "60", "reps": 12, "expected": 84 },
+    { "weight": 0, "reps": 5, "expected": 0 }
+  ],
+  "exerciseId": "ex1",
+  "workouts": [
+    { "id": "w1", "status": "COMPLETED", "workoutDate": "2026-03-01T12:00:00.000Z", "createdAt": "2026-03-01T10:00:00.000Z", "items": [{ "exerciseId": "ex1", "sets": [{ "weight": "100", "repetitions": 5 }, { "weight": "80", "repetitions": 10 }] }] },
+    { "id": "w2", "status": "COMPLETED", "workoutDate": "2026-03-08T12:00:00.000Z", "createdAt": "2026-03-08T10:00:00.000Z", "items": [{ "exerciseId": "ex1", "sets": [{ "weight": "102.5", "repetitions": 1 }] }] },
+    { "id": "w3", "status": "COMPLETED", "workoutDate": "2026-03-08T12:00:00.000Z", "createdAt": "2026-03-08T09:00:00.000Z", "items": [{ "exerciseId": "ex1", "sets": [{ "weight": "60", "repetitions": 12 }] }] },
+    { "id": "w4", "status": "DRAFT", "workoutDate": "2026-03-09T12:00:00.000Z", "createdAt": "2026-03-09T09:00:00.000Z", "items": [{ "exerciseId": "ex1", "sets": [{ "weight": "200", "repetitions": 10 }] }] },
+    { "id": "w5", "status": "COMPLETED", "workoutDate": "2026-03-10T12:00:00.000Z", "createdAt": "2026-03-10T09:00:00.000Z", "items": [{ "exerciseId": "ex2", "sets": [{ "weight": "300", "repetitions": 3 }] }] },
+    { "id": "w6", "status": "COMPLETED", "workoutDate": "2026-03-15T12:00:00.000Z", "createdAt": "2026-03-15T09:00:00.000Z", "items": [{ "exerciseId": "ex1", "sets": [{ "weight": "62.5", "repetitions": 8 }, { "weight": "62.5", "repetitions": 6 }] }] }
+  ],
+  "expected": {
+    "order": ["w1", "w3", "w2", "w6"],
+    "weight": [100, 60, 102.5, 62.5],
+    "e1rm": [116.7, 84, 102.5, 79.2],
+    "volume": [1300, 720, 102.5, 875],
+    "best": 116.7,
+    "bestWithoutData": 0
+  }
+}
