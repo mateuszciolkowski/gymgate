@@ -16,6 +16,15 @@ The PWA and the native app are both supported, long term, at the same time. They
 - PWA: `frontend/src/`. App: `mobile/src/domain/` (ported logic, plus stats computed locally in `mobile/src/domain/stats.ts`; the server rebuilds `ExerciseUserStats`).
 - A behaviour change goes into both clients and, where it applies, the backend. A deliberate difference is recorded in `mobile/docs/DECYZJE.md`. Feature parity checklist: `mobile/docs/PARYTET.md`.
 
+**Bug reports: always check both clients (mandatory)**
+Whenever the owner reports a bug, in either client or the backend, before fixing:
+1. Find the root cause in the client where it was reported.
+2. Check whether the same bug exists in the other client: find the counterpart code (PWA `frontend/src/` ↔ app `mobile/src/`, same feature or ported domain function in `mobile/src/domain/`) and the shared backend path. Read it, do not assume.
+3. If the cause is in the backend, both clients are affected by definition: fix it once there.
+4. Fix every client that has the bug in the same change, with a test in each. If the other client does not have it, say so in the reply with the reason (e.g. "the PWA has no drawer swipe gesture", "logic lives only in the app's local stats").
+5. In the reply, always state: where the bug was, whether it also affected the other client, and what was fixed where.
+Platform-only bugs (e.g. a React Native worklet crash, an iOS keyboard issue, a browser-only CSS issue) still get step 2, answered briefly.
+
 **Sync and offline**
 - The app writes every change to local SQLite plus an outbox in one transaction and syncs later; the PWA keeps its own IndexedDB queue. Conflict rule: the newer change (`at`) wins per record; older ones come back as `superseded`, permanent failures as `rejected`.
 - Protocol: `backend/src/modules/sync/API.md` and `mobile/docs/PLAN.md` section 5. A change to a push operation or the pull shape updates both sides and the protocol tests.
