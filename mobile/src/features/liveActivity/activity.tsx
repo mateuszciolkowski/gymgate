@@ -122,7 +122,24 @@ const WorkoutActivity = (p: ActivityProps, env: LiveActivityEnvironment) => {
       </VStack>
     ),
     expandedCenter: <VStack modifiers={[padding({ top: 6 })]}>{status ? text(status, 13, stale ? muted : undefined, "semibold") : null}</VStack>,
-    expandedTrailing: <VStack modifiers={[padding({ trailing: 8, top: 6 })]}>{timer(18)}</VStack>,
+    // Top-right corner: right-aligned in a fixed width (a system timer otherwise reserves room and looks indented).
+    expandedTrailing: (
+      <Text
+        timerInterval={{ lower: start, upper: new Date(stale ? Math.max(p.lastActivityAt, p.startedAt) : p.startedAt + 99 * 3600 * 1000) }}
+        pauseTime={stale ? new Date(p.lastActivityAt) : undefined}
+        countsDown={false}
+        modifiers={[
+          font({ size: 20, weight: "bold" }),
+          monospacedDigit(),
+          foregroundStyle(accent),
+          lineLimit(1),
+          minimumScaleFactor(0.7),
+          multilineTextAlignment("trailing"),
+          frame({ width: 84, alignment: "topTrailing" }),
+          padding({ trailing: 6, top: 4 }),
+        ]}
+      />
+    ),
     expandedBottom: (
       <VStack alignment="leading" spacing={5} modifiers={[padding({ horizontal: 10, bottom: 6 })]}>
         {exerciseRow}
