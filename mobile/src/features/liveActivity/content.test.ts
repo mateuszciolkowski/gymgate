@@ -1,6 +1,6 @@
 import type { Workout } from "@/domain/types";
 import { STALE_WORKOUT_MS } from "@/domain/workoutTimer";
-import { reconcile, repeatLastSet, staleDateOf, workoutToActivity, type ActivityApi, type ActivityProps, type Reconciler } from "./content";
+import { proposedSet, reconcile, staleDateOf, workoutToActivity, type ActivityApi, type ActivityProps, type Reconciler } from "./content";
 
 const at = (m: number) => new Date(Date.UTC(2026, 0, 1, 10, m)).toISOString();
 const set = (n: number, weight: string, reps: number, m: number) => ({ id: `s${n}`, itemId: "i", setNumber: n, weight, repetitions: reps, createdAt: at(m), updatedAt: at(m) });
@@ -11,19 +11,33 @@ const workout = (over: Partial<Workout> = {}): Workout => ({
   id: "w", userId: "u", workoutDate: at(0), status: "DRAFT", workoutName: "Push", createdAt: at(0), updatedAt: at(0), items: [], ...over,
 });
 
-describe("repeatLastSet", () => {
-  it("repeats the last set of the current exercise, or nothing without sets", () => {
-    expect(repeatLastSet(workout({ items: [item("a", "Przysiad", 0, 1)] }))).toBeNull();
-    const w = workout({ items: [item("a", "Przysiad", 0, 1, [set(1, "100", 5, 2), set(2, "105", 3, 3)])] });
-    expect(repeatLastSet(w)).toEqual({ itemId: "a", weight: "105", repetitions: 3 });
-    expect(repeatLastSet(workout({ status: "COMPLETED" }))).toBeNull();
+describe("proposedSet", () => {
+  const none = () => undefined;
+  it("follows the app's draft defaults: last set, else previous session's set 1, else stats, else nothing valid", () => {
+    const withSets = workout({ items: [item("a", "Przysiad", 0, 1, [set(1, "100", 5, 2), set(2, "105", 3, 3)])] });
+    expect(proposedSet(withSets, none, none)).toEqual({ itemId: "a", weight: "105", repetitions: 3 });
+    const empty = workout({ items: [item("a", "Przysiad", 0, 1)] });
+    const prev = [{ setNumber: 1, weight: "90", repetitions: 6 }] as never;
+    expect(proposedSet(empty, () => prev, none)).toEqual({ itemId: "a", weight: "90", repetitions: 6 });
+    expect(proposedSet(empty, none, () => ({ lastWeight: "80", lastReps: 8 }))).toEqual({ itemId: "a", weight: "80", repetitions: 8 });
+    expect(proposedSet(empty, none, none)).toEqual({ itemId: "a", weight: "0", repetitions: 1 });
+    expect(proposedSet(workout(), none, none)).toBeNull();
+    expect(proposedSet(workout({ status: "COMPLETED" }), none, none)).toBeNull();
   });
 });
 
 describe("workoutToActivity", () => {
-  it("carries the next plan exercise", () => {
-    expect(workoutToActivity(workout(), 0, "#fff", Date.now(), "Dipy")!.next).toBe("Dipy");
-    expect(workoutToActivity(workout(), 0, "#fff")!.next).toBeNull();
+  it("builds button labels, totals and plan progress (short, one line)", () => {
+    const w = workout({ items: [item("a", "Przysiad", 0, 1, [set(1, "100", 5, 2)]), item("b", "Wyciskanie", 1, 3, [set(1, "60", 8, 4), set(2, "62.5", 6, 9)])] });
+    const p = workoutToActivity(w, 0, "#fff", Date.now(), {
+      proposal: { itemId: "b", weight: "62.5", repetitions: 6 },
+      nextName: "Rozpiętki na ławce skośnej",
+      plan: { done: 2, total: 5 },
+    })!;
+    expect(p).toMatchObject({ summary: "3 serie · 2 ćw. · Plan 2/5", proposal: "+ 62.5 × 6", logged: "✓ Seria 2: 62.5 kg × 6" });
+    expect(p.next!.startsWith("⏭ Rozpiętki")).toBe(true);
+    expect(p.next!.length).toBeLessThanOrEqual(18);
+    expect(workoutToActivity(workout(), 0, "#fff")).toMatchObject({ next: null, proposal: null, summary: "0 serii · 0 ćw." });
   });
 
   it("is null without a DRAFT workout (completed, deleted or none)", () => {
@@ -33,14 +47,14 @@ describe("workoutToActivity", () => {
 
   it("starts empty with the default name and no exercise", () => {
     const p = workoutToActivity(workout({ workoutName: " " }), 0, "#abc")!;
-    expect(p).toMatchObject({ name: "Trening", exercise: null, sets: 0, lastSet: null, accent: "#abc", startedAt: Date.parse(at(0)) });
+    expect(p).toMatchObject({ name: "Trening", exercise: null, logged: null, accent: "#abc", startedAt: Date.parse(at(0)) });
   });
 
-  it("shows the most recently touched exercise with its set count and last set", () => {
+  it("shows the most recently touched exercise and confirms its last logged set", () => {
     const w = workout({
       items: [item("a", "Przysiad", 0, 1, [set(1, "100.00", 5, 2)]), item("b", "Wyciskanie", 1, 3, [set(1, "60", 8, 4), set(2, "62.5", 6, 9)])],
     });
-    expect(workoutToActivity(w, 0, "#fff")).toMatchObject({ exercise: "Wyciskanie", sets: 2, lastSet: "62.5 kg × 6", lastActivityAt: Date.parse(at(9)) });
+    expect(workoutToActivity(w, 0, "#fff")).toMatchObject({ exercise: "Wyciskanie", logged: "✓ Seria 2: 62.5 kg × 6", lastActivityAt: Date.parse(at(9)) });
   });
 
   it("switches back to an older exercise when a set is edited there", () => {
@@ -67,7 +81,7 @@ describe("workoutToActivity", () => {
 });
 
 describe("reconcile", () => {
-  const props = (over: Partial<ActivityProps> = {}): ActivityProps => ({ workoutId: "w", name: "Push", startedAt: 1, lastActivityAt: 1, abandoned: false, exercise: null, sets: 0, lastSet: null, next: null, accent: "#fff", ...over });
+  const props = (over: Partial<ActivityProps> = {}): ActivityProps => ({ workoutId: "w", name: "Push", startedAt: 1, lastActivityAt: 1, abandoned: false, exercise: null, summary: "", logged: null, proposal: null, next: null, accent: "#fff", ...over });
   const fake = (exists = false) => {
     const calls: string[] = [];
     const api: ActivityApi = {
@@ -84,7 +98,7 @@ describe("reconcile", () => {
     const st: Reconciler = { sent: null };
     reconcile(st, props(), api);
     reconcile(st, props(), api);
-    reconcile(st, props({ sets: 1 }), api);
+    reconcile(st, props({ logged: "✓ Seria 1: 60 kg × 8" }), api);
     reconcile(st, null, api);
     reconcile(st, null, api);
     expect(calls).toEqual(["start", "update", "end"]);
