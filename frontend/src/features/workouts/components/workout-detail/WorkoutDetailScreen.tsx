@@ -6,6 +6,7 @@ import { ExerciseSelectionModal } from "@/features/exercises";
 import { WorkoutItemCard } from "./WorkoutItemCard";
 import { WorkoutEditModal } from "./WorkoutEditModal";
 import { WorkoutNotesModal } from "./WorkoutNotesModal";
+import { PlanChecklistModal } from "./PlanChecklistModal";
 import { fmtTimer, fmtDuration, fmtDate } from "./formatters";
 
 interface WorkoutDetailScreenProps {
@@ -27,6 +28,7 @@ export function WorkoutDetailScreen({
   const [isWorkoutEditModalOpen, setIsWorkoutEditModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isWorkoutNotesModalOpen, setIsWorkoutNotesModalOpen] = useState(false);
+  const [isPlanChecklistOpen, setIsPlanChecklistOpen] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
   // Timer state — seconds elapsed since workout was created
@@ -427,12 +429,15 @@ export function WorkoutDetailScreen({
                   </button>
 
                   {planProgress && (
-                    <div
-                      className="flex items-center justify-center px-3 py-1.5 rounded-xl text-[11px] font-bold num-tabular"
+                    <button
+                      type="button"
+                      onClick={() => setIsPlanChecklistOpen(true)}
+                      aria-label={`Plan ${planProgress.done} z ${planProgress.total}, pokaż ćwiczenia planu`}
+                      className="flex items-center justify-center px-3 py-1.5 rounded-xl text-[11px] font-bold num-tabular cursor-pointer"
                       style={{ background: "var(--gg-active-bg)", border: "1px solid var(--gg-active-border)", color: "var(--gg-active-border)" }}
                     >
                       Plan {planProgress.done}/{planProgress.total}
-                    </div>
+                    </button>
                   )}
                 </div>
               </div>
@@ -648,6 +653,14 @@ export function WorkoutDetailScreen({
       />
 
       {/* Workout notes modal */}
+      <PlanChecklistModal
+        isOpen={isPlanChecklistOpen}
+        plan={activePlan}
+        addedExerciseIds={workout.items.map((i) => i.exerciseId)}
+        skippedExerciseIds={workout.skippedPlanExerciseIds ?? []}
+        onClose={() => setIsPlanChecklistOpen(false)}
+        onAdd={handleAddFromPlan}
+      />
       <WorkoutNotesModal
         isOpen={isWorkoutNotesModalOpen}
         onClose={() => setIsWorkoutNotesModalOpen(false)}

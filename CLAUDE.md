@@ -16,6 +16,12 @@ The PWA and the native app are both supported, long term, at the same time. They
 - PWA: `frontend/src/`. App: `mobile/src/domain/` (ported logic, plus stats computed locally in `mobile/src/domain/stats.ts`; the server rebuilds `ExerciseUserStats`).
 - A behaviour change goes into both clients and, where it applies, the backend. A deliberate difference is recorded in `mobile/docs/DECYZJE.md`. Feature parity checklist: `mobile/docs/PARYTET.md`.
 
+**Features: always build both clients (mandatory)**
+Every new feature or behaviour change goes into the PWA and the app in the same branch, with tests in each, unless the owner explicitly says otherwise or the feature only makes sense on one platform (e.g. Live Activity) — then say so and record it in `mobile/docs/DECYZJE.md`.
+
+**Branches**
+Start every task on a new branch from the latest `dev` (`feat/…`, `fix/…`, `chore/…`). `mobile-migration` is finished and merged; do not commit to it.
+
 **Bug reports: always check both clients (mandatory)**
 Whenever the owner reports a bug, in either client or the backend, before fixing:
 1. Find the root cause in the client where it was reported.
