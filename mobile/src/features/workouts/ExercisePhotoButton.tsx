@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { API_BASE } from "@/api/config";
+import { sortPhotosByStage } from "@/domain/photoOrder";
 import type { WorkoutItem } from "@/domain/types";
 import { fonts, useTheme } from "@/theme";
 import { Icon, Modal } from "@/ui";
@@ -43,7 +44,7 @@ export function ExercisePhotoButton({
       </Pressable>
       <Modal isOpen={open} onClose={() => setOpen(false)} title={exerciseName}>
         <View style={styles.list}>
-          {photos.map((p) => (
+          {sortPhotosByStage(photos).map((p) => (
             <View key={p.id}>
               {photos.length > 1 ? (
                 <Text style={[styles.stage, { color: c.textMuted }]}>

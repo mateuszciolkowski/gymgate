@@ -1,0 +1,7 @@
+{ "cases": [
+  { "name": "end before start", "stages": ["END", "START"], "expected": ["START", "END"] },
+  { "name": "all three shuffled", "stages": ["MIDDLE", "END", "START"], "expected": ["START", "MIDDLE", "END"] },
+  { "name": "single", "stages": ["START"], "expected": ["START"] },
+  { "name": "unknown goes last, stable", "stages": ["SIDE", "END", "START", "SIDE2"], "expected": ["START", "END", "SIDE", "SIDE2"] },
+  { "name": "empty", "stages": [], "expected": [] }
+] }
