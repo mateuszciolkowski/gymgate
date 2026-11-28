@@ -1,5 +1,6 @@
 import { db } from "../../config/txContext.js";
 import type { Prisma } from "@prisma/client";
+import { photosByStage } from "../../common/photoOrder.js";
 
 /** Prisma queries for the push pipeline. No business rules here. */
 
@@ -53,7 +54,7 @@ export const findCurrent = async (
     case "exercise":
       return db().exercise.findFirst({
         where: { id, OR: [{ creatorUserId: null }, { creatorUserId: "1" }, { creatorUserId: userId }] },
-        include: { photos: true },
+        include: { photos: photosByStage },
       });
     case "plan":
       return db().workoutPlan.findFirst({

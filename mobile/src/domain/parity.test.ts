@@ -6,6 +6,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { fuzzyMatch } from "./fuzzyMatch";
 import { planChecklist } from "./planNext";
+import { sortPhotosByStage } from "./photoOrder";
 import { computePreviousSets } from "./previousSets";
 import { bestE1RM, estimate1RM, sessionSeries } from "./strengthMetrics";
 import { computeWorkoutElapsed, computeWorkoutLastActivity } from "./workoutTimer";
@@ -50,5 +51,13 @@ describe("shared parity fixtures", () => {
     }
     expect(bestE1RM(f.workouts, f.exerciseId)).toBe(f.expected.best);
     expect(bestE1RM(f.workouts, "nope")).toBe(f.expected.bestWithoutData);
+  });
+
+  it("photoOrder", () => {
+    for (const c of fixture("photoOrder").cases) {
+      const photos = c.stages.map((s: string, i: number) => ({ id: String(i), photoStage: s }));
+      expect([c.name, sortPhotosByStage(photos).map((p) => p.photoStage)]).toEqual([c.name, c.expected]);
+      expect(photos.map((p: { photoStage: string }) => p.photoStage)).toEqual(c.stages); // input not mutated
+    }
   });
 });

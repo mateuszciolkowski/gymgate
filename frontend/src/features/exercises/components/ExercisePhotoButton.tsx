@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Modal } from "@/components/ui/Modal";
 import { PhotoIcon } from "@/components/icons";
 import { API_BASE } from "@/config/api";
+import { sortPhotosByStage } from "@/utils/photoOrder";
 
 interface ExercisePhoto {
   id: string;
@@ -44,7 +45,7 @@ export function ExercisePhotoButton({ photos, exerciseName }: { photos?: Exercis
       {createPortal(
         <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={exerciseName} maxWidth="md">
           <div className="flex flex-col gap-3">
-            {photos.map((photo) => (
+            {sortPhotosByStage(photos).map((photo) => (
               <div key={photo.id}>
                 {photos.length > 1 && (
                   <p className="text-[11px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--gg-text-muted)" }}>

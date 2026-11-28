@@ -6,6 +6,7 @@ import type {
 } from "./exercise.schema.js";
 import type { MuscleGroup } from "@prisma/client";
 import type { WriteStamp } from "../workout/workout.repository.js";
+import { photosByStage } from "../../common/photoOrder.js";
 
 // Never expose the full user row (password hash) to clients (B2).
 const creatorSelect = { id: true, firstName: true, lastName: true, email: true } as const;
@@ -38,7 +39,7 @@ export class ExerciseRepository {
     return await db().exercise.findMany({
       where,
       include: {
-        photos: true,
+        photos: photosByStage,
         creator: { select: creatorSelect },
       },
       orderBy: { createdAt: "desc" },
@@ -49,7 +50,7 @@ export class ExerciseRepository {
     return await db().exercise.findUnique({
       where: { id },
       include: {
-        photos: true,
+        photos: photosByStage,
         creator: { select: creatorSelect },
       },
     });
@@ -76,7 +77,7 @@ export class ExerciseRepository {
     return await db().exercise.create({
       data: createInput,
       include: {
-        photos: true,
+        photos: photosByStage,
         creator: {
           select: {
             id: true,
@@ -112,7 +113,7 @@ export class ExerciseRepository {
       where: { id },
       data: updateData,
       include: {
-        photos: true,
+        photos: photosByStage,
         creator: {
           select: {
             id: true,
@@ -137,7 +138,7 @@ export class ExerciseRepository {
         muscleGroups: { hasSome: muscleGroups },
       },
       include: {
-        photos: true,
+        photos: photosByStage,
         creator: {
           select: {
             id: true,

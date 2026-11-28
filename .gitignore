@@ -8,3 +8,6 @@ backend/backups/
 
 # IDE settings
 .vscode/
+
+# superpowers plan workspaces (ledgers, briefs)
+.superpowers/

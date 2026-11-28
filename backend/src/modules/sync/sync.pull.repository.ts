@@ -75,7 +75,7 @@ const setSelect = {
 
 const exerciseSelect = {
   id: true, name: true, muscleGroups: true, description: true, creatorUserId: true, createdAt: true, updatedAt: true,
-  photos: { select: { id: true, photoStage: true, photoUrl: true }, orderBy: { createdAt: "asc" } },
+  photos: { select: { id: true, photoStage: true, photoUrl: true }, orderBy: { photoStage: "asc" } },
 } as const;
 
 const planSelect = {

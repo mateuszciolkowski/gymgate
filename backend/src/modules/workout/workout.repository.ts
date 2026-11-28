@@ -1,5 +1,6 @@
 import { db, runInTx } from "../../config/txContext.js";
 import type { Prisma } from "@prisma/client";
+import { photosByStage } from "../../common/photoOrder.js";
 
 interface ProgressionQueryFilters {
   from?: Date;
@@ -50,7 +51,7 @@ const workoutInclude = {
     include: {
       exercise: {
         include: {
-          photos: true,
+          photos: photosByStage,
         },
       },
       sets: {
@@ -141,7 +142,7 @@ export const findWorkoutById = (id: string) => {
         include: {
           exercise: {
             include: {
-              photos: true,
+              photos: photosByStage,
             },
           },
           sets: {
@@ -222,7 +223,7 @@ export const addExerciseToWorkout = (
     include: {
       exercise: {
         include: {
-          photos: true,
+          photos: photosByStage,
         },
       },
       sets: true,
@@ -250,7 +251,7 @@ export const addExerciseToWorkoutWithPendingNote = (
         include: {
           exercise: {
             include: {
-              photos: true,
+              photos: photosByStage,
             },
           },
           sets: true,
@@ -286,7 +287,7 @@ export const addExerciseToWorkoutWithPendingNote = (
       include: {
         exercise: {
           include: {
-            photos: true,
+            photos: photosByStage,
           },
         },
         sets: true,

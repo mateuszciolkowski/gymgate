@@ -183,6 +183,18 @@ describe("GET /api/sync/pull", () => {
       expect(snap.upserts.pendingNotes).toEqual([expect.objectContaining({ exerciseId: ex.id, note: "na później" })]);
     });
 
+    it("zdjęcia ćwiczenia idą w kolejności etapów (START przed END), też w REST", async () => {
+      const ex = await createTestExercise(null);
+      await prisma.exercisePhoto.create({ data: { exerciseId: ex.id, photoStage: "END", photoUrl: "exercise-photos/x-end.jpeg" } });
+      await prisma.exercisePhoto.create({ data: { exerciseId: ex.id, photoStage: "START", photoUrl: "exercise-photos/x.jpeg" } });
+      const snap = await snapshotAll(user);
+      const pulled = snap.upserts.exercises.find((e) => e.id === ex.id);
+      expect(pulled?.photos.map((p: Row) => p.photoStage)).toEqual(["START", "END"]);
+      const rest = await api.get(user, "/api/exercises");
+      const listed = (rest.body.data as Row[]).find((e) => e.id === ex.id);
+      expect(listed?.photos.map((p: Row) => p.photoStage)).toEqual(["START", "END"]);
+    });
+
     it("dzieli treningi na strony po 200 i pozostałe dane daje tylko na pierwszej", async () => {
       const ex = await createTestExercise(null);
       const rows = Array.from({ length: 205 }, () => ({ id: uuid(), userId: user.id }));
