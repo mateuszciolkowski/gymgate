@@ -139,7 +139,7 @@
   creatorUserId: string
   createdAt: string
   updatedAt: string
-  photos: ExercisePhoto[]
+  photos: ExercisePhoto[] // ordered by photoStage: START, MIDDLE, END
   creator: {            // null for global exercises; never contains the password hash (B2 fix)
     id: string
     firstName: string

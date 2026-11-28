@@ -53,6 +53,7 @@ components:
 
     ExercisePhoto:
       type: object
+      description: Wherever an exercise returns `photos`, they are ordered by photoStage — START, MIDDLE, END.
       properties:
         id: { type: string, format: uuid }
         exerciseId: { type: string, format: uuid }
